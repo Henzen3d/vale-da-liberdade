@@ -1,0 +1,75 @@
+{
+  "_description": "Rodada 2 de validação: URLs alternativas para feeds que falharam na rodada 1.",
+  "candidates": [
+    {
+      "id": "brasil247_alt",
+      "name": "Brasil 247 — Alternativa /feed",
+      "url": "https://www.brasil247.com/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md alternativa /feed"
+    },
+    {
+      "id": "correio_braziliense_alt",
+      "name": "Correio Braziliense — Alternativa /feed",
+      "url": "https://www.correiobraziliense.com.br/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md alternativa /feed"
+    },
+    {
+      "id": "estadao_alt",
+      "name": "Estadão — Alternativa /rss/",
+      "url": "https://www.estadao.com.br/rss/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md alternativa /rss/"
+    },
+    {
+      "id": "terra_alt",
+      "name": "Terra — Alternativa /rss/",
+      "url": "https://www.terra.com.br/rss/",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md alternativa /rss/"
+    },
+    {
+      "id": "alexandre_garcia_alt",
+      "name": "Alexandre Garcia — Sem barra final",
+      "url": "https://www.alexandregarciaoficial.com.br/feed",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "Tentativa sem barra final"
+    },
+    {
+      "id": "cnn_politica_alt",
+      "name": "CNN Brasil — Política (sem barra final)",
+      "url": "https://www.cnnbrasil.com.br/politica/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "Tentativa sem barra final"
+    },
+    {
+      "id": "valor_politica_alt",
+      "name": "Valor Econômico — Alternativa /rss/",
+      "url": "https://valor.globo.com/rss/valor",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md alternativa /rss/valor (geral)"
+    }
+  ]
+}

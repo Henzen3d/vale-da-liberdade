@@ -1,0 +1,10 @@
+.env
+*.wav
+*.mp3
+audio/chunks/
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+nul

@@ -1,0 +1,22 @@
+{
+  "edicao": "2026-06-18",
+  "episodio": 6,
+  "duracao_estimada_min": 5.4,
+  "palavras_total": 806,
+  "quadros_gerados": [
+    "seguranca",
+    "saude",
+    "educacao",
+    "politica",
+    "esportes",
+    "economia"
+  ],
+  "noticias_total": 20,
+  "noticias_com_continuidade": 0,
+  "fontes_utilizadas": [],
+  "arquivos_gerados": [
+    "roteiro.md",
+    "roteiro_tts.txt",
+    "manchetes.txt"
+  ]
+}

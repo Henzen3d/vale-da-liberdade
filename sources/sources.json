@@ -1,0 +1,385 @@
+{
+  "version": "1.2",
+  "_changelog": "v1.2 (2026-06-22): Adicionados 16 feeds RSS nacionais (O Globo, Correio Braziliense, Estadão, Terra Brasil Notícias, Metrópoles, Veja, Gazeta do Povo, G1, CNN, Valor) validados em 3 rodadas via validate_feeds.py. Fontes descartadas: Brasil 247 (vazio), Terra histórico (conexão recusada), Alexandre Garcia (404), Valor Política original (404). Desabilitadas: Reuters Brasil e AP News (feeds de terceiros mortos desde v1.1, nunca funcionaram). G1 Brasil alterado de /rss/g1/brasil/ para /dynamo/brasil/rss2.xml por indicador no news_urls.md. Versão OPML: noticias-brasil.opml.",
+  "sources": [
+    {
+      "id": "ndmais_blumenau",
+      "name": "ND+ Blumenau",
+      "url": "https://ndmais.com.br/blumenau/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "oblumenauense",
+      "name": "O Blumenauense",
+      "url": "https://oblumenauense.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "informeblumenau",
+      "name": "Informe Blumenau",
+      "url": "https://www.informeblumenau.com/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "blogdojaime",
+      "name": "Blog do Jaime",
+      "url": "https://blogdojaime.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "mesorregional",
+      "name": "Portal Mesorregional",
+      "url": "https://mesorregional.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "altovaleagora",
+      "name": "Alto Vale Agora",
+      "url": "https://altovaleagora.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "altovalenoticias",
+      "name": "Alto Vale Notícias",
+      "url": "https://altovalenoticias.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "blogdoprisco",
+      "name": "Blog do Prisco",
+      "url": "https://www.blogdoprisco.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "gcd",
+      "name": "Grupo de Comunicação Difusora (GCD)",
+      "url": "https://gcd.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "upiara",
+      "name": "Upiara Boschi (SCC10)",
+      "url": "https://upiara.scc10.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "nsctotal",
+      "name": "NSC Total Blumenau",
+      "url": "https://www.nsctotal.com.br/blumenau",
+      "method": "browser",
+      "tier": 2,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "ajnoticias",
+      "name": "AJ Notícias",
+      "url": "https://ajnoticias.com.br/",
+      "method": "scraping",
+      "tier": 2,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "pancho",
+      "name": "Portal do Pancho",
+      "url": "https://pancho.com.br/",
+      "method": "scraping",
+      "tier": 2,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "id": "jatv",
+      "name": "Jatv Alto Vale",
+      "url": "https://www.jatv.com.br/",
+      "method": "scraping",
+      "tier": 2,
+      "scope": "local",
+      "enabled": true
+    },
+    {
+      "_comment": "===== NACIONAL / INTERNACIONAL (v1.1 + v1.2) =====",
+      "id": "g1_brasil",
+      "name": "G1 — Brasil",
+      "url": "https://g1.globo.com/dynamo/brasil/rss2.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Validado com sucesso (100 itens) via /dynamo/brasil/rss2.xml em 2026-06-22."
+    },
+    {
+      "id": "g1_sc",
+      "name": "G1 — Santa Catarina",
+      "url": "https://g1.globo.com/rss/g1/sc/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Cobertura estadual SC — complementa fontes locais. 14 itens em teste."
+    },
+    {
+      "id": "agencia_brasil",
+      "name": "Agência Brasil",
+      "url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Agência oficial de notícias — alta credibilidade. 10 itens em teste."
+    },
+    {
+      "id": "cnn_brasil",
+      "name": "CNN Brasil",
+      "url": "https://www.cnnbrasil.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "60 itens em teste."
+    },
+    {
+      "id": "bbc_brasil",
+      "name": "BBC Brasil",
+      "url": "https://feeds.bbci.co.uk/portuguese/rss.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Cobre Brasil e internacional em português. 29 itens em teste."
+    },
+    {
+      "id": "reuters_brazil",
+      "name": "Reuters — Brasil",
+      "url": "https://feeds.reuters.com/reuters/BRbrazilNews",
+      "method": "rss",
+      "tier": 1,
+      "scope": "internacional",
+      "enabled": false,
+      "_note": "DESABILITADO (2026-06-22): feeds.reuters.com não responde desde v1.1. Manter para revalidação futura."
+    },
+    {
+      "id": "bbc_world",
+      "name": "BBC World Service",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "internacional",
+      "enabled": true,
+      "_note": "Notícias internacionais em inglês. 31 itens em teste."
+    },
+    {
+      "id": "ap_top_news",
+      "name": "AP News — Top Stories",
+      "url": "https://rsshub.app/apnews/topics/ap-top-news",
+      "method": "rss",
+      "tier": 1,
+      "scope": "internacional",
+      "enabled": false,
+      "_note": "DESABILITADO (2026-06-22): rsshub.app não responde desde v1.1. Manter para revalidação futura."
+    },
+
+    {
+      "_comment": "===== NOVOS FEEDS NACIONAIS — v1.2 (validados 2026-06-22) =====",
+      "id": "oglobo_geral",
+      "name": "O Globo — Geral",
+      "url": "https://oglobo.globo.com/rss/oglobo",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Editoria geral. 100 itens em validação."
+    },
+    {
+      "id": "correio_braziliense",
+      "name": "Correio Braziliense — Geral",
+      "url": "https://www.correiobraziliense.com.br/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Validado via /feed (sem barra). 20 itens."
+    },
+    {
+      "id": "estadao_politica",
+      "name": "Estadão — Política",
+      "url": "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/politica/?outputType=xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Validado via Arc outboundfeeds para seção política. 20 itens."
+    },
+    {
+      "id": "terra_brasil_noticias",
+      "name": "Terra Brasil Notícias — Geral",
+      "url": "https://terrabrasilnoticias.com/feed/",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "WordPress. 100 itens em validação."
+    },
+    {
+      "id": "metropoles",
+      "name": "Metrópoles — Geral",
+      "url": "https://www.metropoles.com/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "132 itens em validação."
+    },
+    {
+      "id": "veja",
+      "name": "Veja — Geral",
+      "url": "https://veja.abril.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "20 itens em validação."
+    },
+    {
+      "id": "valor_geral",
+      "name": "Valor Econômico — Geral",
+      "url": "https://valor.globo.com/rss/valor",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Validado via /rss/valor (geral). 100 itens."
+    },
+    {
+      "id": "cnn_politica",
+      "name": "CNN Brasil — Política",
+      "url": "https://www.cnnbrasil.com.br/feed/?cat=politica",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "Validado via feed geral com ?cat=politica. 60 itens."
+    },
+    {
+      "id": "gazetadopovo_politica",
+      "name": "Gazeta do Povo — Política",
+      "url": "https://www.gazetadopovo.com.br/feed/rss/politica.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "24 itens em validação."
+    },
+    {
+      "id": "oglobo_politica",
+      "name": "O Globo — Política",
+      "url": "https://oglobo.globo.com/rss/oglobo/politica",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "100 itens em validação."
+    },
+    {
+      "id": "g1_politica",
+      "name": "G1 — Política",
+      "url": "https://g1.globo.com/rss/g1/politica/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "100 itens em validação."
+    },
+    {
+      "id": "veja_politica",
+      "name": "Veja — Política",
+      "url": "https://veja.abril.com.br/politica/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "20 itens em validação."
+    },
+    {
+      "id": "metropoles_politica",
+      "name": "Metrópoles — Política",
+      "url": "https://www.metropoles.com/politica/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "20 itens em validação."
+    },
+    {
+      "id": "gazetadopovo_economia",
+      "name": "Gazeta do Povo — Economia",
+      "url": "https://www.gazetadopovo.com.br/feed/rss/economia.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "24 itens em validação."
+    },
+    {
+      "id": "oglobo_economia",
+      "name": "O Globo — Economia",
+      "url": "https://oglobo.globo.com/rss/oglobo/economia",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "100 itens em validação."
+    },
+    {
+      "id": "g1_economia",
+      "name": "G1 — Economia",
+      "url": "https://g1.globo.com/rss/g1/economia/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "100 itens em validação."
+    },
+    {
+      "id": "veja_economia",
+      "name": "Veja — Economia",
+      "url": "https://veja.abril.com.br/economia/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "_note": "20 itens em validação."
+    }
+  ]
+}

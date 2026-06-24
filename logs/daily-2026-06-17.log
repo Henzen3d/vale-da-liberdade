@@ -1,0 +1,41 @@
+=== Daily build started: qua 17 jun 2026 12:35:55 UTC ===
+🚀 Pipeline completo para 2026-06-17
+==================================================
+
+📝 Etapa 1/4 — Processamento do roteiro
+✅ Roteiro 2026-06-17 preenchido automaticamente a partir do raw.
+📄 Processando roteiro: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-17.md (682 palavras)
+  ✅ TTS gerado: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-17-tts.txt
+  ✅ Manchetes geradas: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-17-manchetes.txt
+  ✅ Metadados gerados: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-17-metadata.json
+     📊 682 palavras, ~4.5 min
+     📊 Quadros: seguranca, saude, meio_ambiente, politica, esportes, rapidinhas
+
+🔍 Etapa 2/4 — Validação
+
+🔍 Validação do episódio 2026-06-17:
+   Arquivo: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-17.md
+   Palavras: 682
+
+⚠️  3 problema(s) encontrado(s):
+
+  ❌ Quadro obrigatório ausente: Educação
+  ⚠️ Poucas referências ao viés libertário (recomendado: pelo menos 3 menções)
+  ⚠️ Roteiro curto (682 palavras) — meta: 2000-2500 palavras (~15 min)
+
+⚠️  Episódio tem problemas. Continuando mesmo assim...
+
+🎙️  Etapa 3/4 — Geração de áudio
+
+🎙️  Gerando áudio multi-locutor...
+   Input: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-17-tts.txt
+   Output: /home/osmar/web-jornal-vale-da-liberdade/audio/2026-06-17-completo.wav
+  ✅ Áudio gerado: /home/osmar/web-jornal-vale-da-liberdade/audio/2026-06-17-completo.wav
+  ✅ MP3 convertido: /home/osmar/web-jornal-vale-da-liberdade/audio/2026-06-17-vale-da-liberdade.mp3
+
+📁 Etapa 4/4 — Atualização do índice
+  ℹ️  2026-06-17 já está no índice
+
+==================================================
+✅ Pipeline completo finalizado para 2026-06-17
+=== Daily build finished: qua 17 jun 2026 12:38:49 UTC ===

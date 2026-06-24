@@ -1,0 +1,127 @@
+{
+  "_schema_version": "2.0",
+  "_changelog": "v2.0 (2026-06-21): perfis categorizados por tier (official/media/watch), operadores de busca do X, blacklist, whitelist de hashtags, filtros de lang/engagement/idade agora efetivos. Retrocompatível com v1.0 via migracao automatica.",
+
+  "search_terms": [
+    "Blumenau",
+    "Blumenau prefeitura",
+    "Blumenau polícia",
+    "Blumenau IPTU",
+    "BR-470 acidente",
+    "Rio do Sul",
+    "Vale do Itajaí",
+    "Câmara Blumenau",
+    "Indaial",
+    "Pomerode",
+    "Santa Catarina governo",
+    "IPTU Blumenau",
+    "enchente Blumenau",
+    "Blumenau trânsito"
+  ],
+
+  "search_operators": {
+    "_doc": "Operadores anexados a cada termo de busca para melhorar sinal/ruído. Use placeholders {date} (YYYY-MM-DD) e {lang}.",
+    "template": "{term} lang:{lang} min_faves:{min_faves} -filter:retweets -filter:replies since:{date}",
+    "lang": "pt",
+    "min_faves": 2,
+    "exclude_terms": [
+      "aposta", "bet", "apostar", "capper",
+      "idol", "votação", "votaçao", "enquete",
+      "giveaway", "sorteio"
+    ]
+  },
+
+  "profiles": {
+    "official": {
+      "_doc": "Órgãos públicos e instituições. Tweet = fonte primária, máxima confiabilidade.",
+      "handles": [
+        "PrefBlumenau",
+        "PMaboresc",
+        "BombeirosSC",
+        "defesacivilsc",
+        "SecomBlumenau"
+      ]
+    },
+    "media": {
+      "_doc": "Veículos de imprensa local/regional. Tweet = fonte secundária confiável.",
+      "handles": [
+        "NSCTotal",
+        "ndaboremais",
+        "mesorregional",
+        "RadioNereu",
+        "portalndmais",
+        "blogdojaime"
+      ]
+    },
+    "watch": {
+      "_doc": "Contas a monitorar mas com score intermediário (jornalistas, observadores).",
+      "handles": [
+        "obssl",
+        "jornaldeblumenau"
+      ]
+    }
+  },
+
+  "blacklist": {
+    "_doc": "Contas bloqueadas — nunca coletar (spam, bots de apostas, etc). Adicionado TheGodOfCappers que estava poluindo o cache.",
+    "handles": [
+      "TheGodOfCappers",
+      "CapperBrasil",
+      "ApostasESports"
+    ],
+    "keywords_in_text": [
+      "PORTER PICKS",
+      "MLB",
+      "LIGA ACB",
+      "A11 BETS",
+      "odds",
+      "stake"
+    ]
+  },
+
+  "settings": {
+    "max_tweets_per_search": 15,
+    "max_tweets_per_profile": 10,
+    "max_tweets_per_profile_official": 15,
+    "min_engagement": 3,
+    "language_filter": "pt",
+    "delay_between_searches_sec": [15, 45],
+    "delay_between_actions_sec": [3, 8],
+    "typing_delay_ms": [50, 150],
+    "scroll_delay_sec": [1, 3],
+    "max_sessions_per_day": 4,
+    "cookie_file": "x_cookies.json",
+    "tweet_cache_file": "x_tweets_cache.json",
+    "hours_lookback": 24,
+
+    "cache_ttl_days": 7,
+    "max_collected_ids_kept": 5000,
+
+    "scoring": {
+      "_doc": "Pesos para ranking de relevância. Tweet oficial com boa data > tweet de mídia > watch > busca.",
+      "tier_official": 100,
+      "tier_media": 60,
+      "tier_watch": 30,
+      "tier_search": 10,
+      "engagement_multiplier": 0.5,
+      "verified_bonus": 15,
+      "has_media_bonus": 5,
+      "recent_hours_bonus_threshold": 6,
+      "recent_hours_bonus": 20,
+      "min_score_to_keep": 5
+    },
+
+    "viewports": [
+      {"width": 1280, "height": 800},
+      {"width": 1366, "height": 768},
+      {"width": 1920, "height": 1080},
+      {"width": 1440, "height": 900}
+    ],
+    "user_agents": [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    ]
+  }
+}

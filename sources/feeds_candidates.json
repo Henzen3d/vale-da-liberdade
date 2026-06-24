@@ -1,0 +1,205 @@
+{
+  "_description": "Feeds RSS candidatos a inclusão no sources.json (v1.2). URLs reconciliadas: news_urls.md (confirmadas) suplantam noticias-brasil.opml em caso de divergência. Gerado em 2026-06-22.",
+  "candidates": [
+    {
+      "id": "oglobo_geral",
+      "name": "O Globo — Geral",
+      "url": "https://oglobo.globo.com/rss/oglobo",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (confirmado) / OPML: rss.xml?completo=true"
+    },
+    {
+      "id": "brasil247",
+      "name": "Brasil 247 — Geral",
+      "url": "https://www.brasil247.com/rss",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (confirmado) / OPML: /pt/247/rss"
+    },
+    {
+      "id": "correio_braziliense",
+      "name": "Correio Braziliense — Geral",
+      "url": "https://www.correiobraziliense.com.br/rss/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (confirmado)"
+    },
+    {
+      "id": "estadao_ultimas",
+      "name": "Estadão — Últimas",
+      "url": "https://www.estadao.com.br/arc/outboundfeeds/sitemap/feed/?outputType=xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (confirmado, Arc) / OPML: /arc/outboundfeeds/rss/"
+    },
+    {
+      "id": "terra_ultimas",
+      "name": "Terra — Últimas Notícias",
+      "url": "https://rss.terra.com.br/0,,EI1,00.xml",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (histórico / a testar) / OPML"
+    },
+    {
+      "id": "terra_brasil_noticias",
+      "name": "Terra Brasil Notícias — Geral",
+      "url": "https://terrabrasilnoticias.com/feed/",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (não confirmado, WordPress) / OPML"
+    },
+    {
+      "id": "metropoles",
+      "name": "Metrópoles — Geral",
+      "url": "https://www.metropoles.com/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "veja",
+      "name": "Veja — Geral",
+      "url": "https://veja.abril.com.br/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "alexandre_garcia",
+      "name": "Alexandre Garcia Oficial",
+      "url": "https://www.alexandregarciaoficial.com.br/feed/",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "news_urls.md (não confirmado, WordPress) / OPML"
+    },
+    {
+      "id": "cnn_politica",
+      "name": "CNN Brasil — Política",
+      "url": "https://www.cnnbrasil.com.br/politica/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "valor_politica",
+      "name": "Valor Econômico — Política",
+      "url": "https://valor.globo.com/politica/rss.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "gazetadopovo_politica",
+      "name": "Gazeta do Povo — Política",
+      "url": "https://www.gazetadopovo.com.br/feed/rss/politica.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "oglobo_politica",
+      "name": "O Globo — Política",
+      "url": "https://oglobo.globo.com/rss/oglobo/politica",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "g1_politica",
+      "name": "G1 — Política",
+      "url": "https://g1.globo.com/rss/g1/politica/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "veja_politica",
+      "name": "Veja — Política",
+      "url": "https://veja.abril.com.br/politica/feed/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "metropoles_politica",
+      "name": "Metrópoles — Política",
+      "url": "https://www.metropoles.com/politica/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "gazetadopovo_economia",
+      "name": "Gazeta do Povo — Economia",
+      "url": "https://www.gazetadopovo.com.br/feed/rss/economia.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "economia",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "oglobo_economia",
+      "name": "O Globo — Economia",
+      "url": "https://oglobo.globo.com/rss/oglobo/economia",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "economia",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "g1_economia",
+      "name": "G1 — Economia",
+      "url": "https://g1.globo.com/rss/g1/economia/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "economia",
+      "origem": "news_urls.md (confirmado) / OPML"
+    },
+    {
+      "id": "veja_economia",
+      "name": "Veja — Economia",
+      "url": "https://veja.abril.com.br/economia/feed",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "economia",
+      "origem": "news_urls.md (confirmado) / OPML"
+    }
+  ]
+}

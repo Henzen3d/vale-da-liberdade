@@ -1,0 +1,7 @@
+=== Daily build started: seg 22 jun 2026 06:00:01 UTC ===
+🚀 Pipeline completo para 2026-06-22
+==================================================
+
+📝 Etapa 1/4 — Processamento do roteiro
+FALHA: roteiro não encontrado: /home/osmar/web-jornal-vale-da-liberdade/episodes/2026-06-22.md
+  Dica: execute 'python pipeline.py init --date 2026-06-22' primeiro.

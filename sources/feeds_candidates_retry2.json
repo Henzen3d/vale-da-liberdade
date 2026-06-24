@@ -1,0 +1,45 @@
+{
+  "_description": "Rodada 3: últimas tentativas para feeds persistentemente falhando.",
+  "candidates": [
+    {
+      "id": "brasil247_r3",
+      "name": "Brasil 247 — /rss/ (com barra)",
+      "url": "https://www.brasil247.com/rss/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "Tentativa /rss/ com barra final"
+    },
+    {
+      "id": "estadao_r3",
+      "name": "Estadão — Política (Arc outboundfeeds)",
+      "url": "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/politica/?outputType=xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "news_urls.md padrão Arc para seções"
+    },
+    {
+      "id": "terra_r3",
+      "name": "Terra — terra.com.br/noticias/feed/",
+      "url": "https://www.terra.com.br/noticias/feed/",
+      "method": "rss",
+      "tier": 2,
+      "scope": "nacional",
+      "editoria": "geral",
+      "origem": "Tentativa feed WP no /noticias"
+    },
+    {
+      "id": "cnn_politica_r3",
+      "name": "CNN Brasil — Política (alternativa)",
+      "url": "https://www.cnnbrasil.com.br/feed/?cat=politica",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "editoria": "politica",
+      "origem": "Tentativa com query param"
+    }
+  ]
+}

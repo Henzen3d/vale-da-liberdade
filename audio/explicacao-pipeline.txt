@@ -1,0 +1,52 @@
+Pipeline do Web Jornal Vale da Liberdade — passo a passo
+
+1. Coleta de notícias
+Responsável: news_collector.py + x_collector.py (se habilitado).
+Ele varre os feeds RSS e sites das fontes configuradas em sources.json, baixa os artigos brutos e salva em episodes/raw-YYYY-MM-DD.md.
+
+2. Filtro e curadoria
+Responsável: ai_news_filter.py.
+Aqui entra a IA para categorizar as notícias por quadro (Segurança, Saúde, Educação etc.), ranquear por relevância, remover duplicatas e aplicar regras locais (Blumenau, Alto Vale, SC). O filtro também sinaliza breaking news quando encontra termos de urgência.
+
+3. Geração do roteiro
+Responsável: generate_script.py + Hermes Agent.
+O script monta o prompt canônico com as personas Peter e Ricardo, as regras de ouro do programa e o bloco de notícias curadas. Esse prompt é enviado para a IA gerar um JSON estruturado com manchetes, introdução, quadros e fechamento. Depois o renderer transforma esse JSON em episodes/YYYY-MM-DD.md, já no formato final do roteiro.
+
+Prompt enviado para a IA:
+Você é o roteirista-chefe do podcast Webjornal Vale da Liberdade. Escreva o roteiro COMPLETO do episódio de [DATA] a partir das notícias curadas abaixo.
+Personas obrigatórias:
+- Peter: libertário provocador, anti-estado, irônico, sarcástico.
+- Ricardo: analista pragmático, contraponto racional, calmo e baseado em dados.
+Estrutura:
+1) Manchetes; 2) Introdução editorial; 3) Quadros temáticos em ordem fixa (Segurança, Saúde, Educação, Política, Esportes, Brasil, Mundo, Rapidinhas); 4) Fechamento editorial.
+Regras de ouro:
+- prefixe falas com Peter: ou Ricardo:;
+- não invente dados, só use o que está nas notícias;
+- voz ativa;
+- ~2000 a 2500 palavras;
+- transições variadas.
+Saída exata: JSON com campos manchetes, introducao, quadros, fechamento.
+
+4. Pré-processamento TTS
+Responsável: scripts/tts_preprocessor.py.
+Aplica substituições obrigatórias, remove marcadores de pausa, valida o roteiro contra checklist de qualidade e gera episodes/YYYY-MM-DD-tts.txt com falas prontas para sintetizar.
+
+5. Geração de áudio
+Responsável: generate_gemini_tts_multi.py.
+Sintetiza cada fala usando o motor principal (Gemini TTS multi-locutor). Se a Gemini falhar, acionamos automaticamente o edge-tts como fallback com voz única masculina. Os áudios são combinados e enviados para pós-processamento.
+
+6. Pós-processamento e entrega final
+Responsável: pipeline.py (etapa audio).
+Aplica cadeia ffmpeg: highpass a 80Hz, compressor, equalizador em 3kHz e normalização loudnorm 2-pass para -16 LUFS. Gera o MP3 final.
+
+7. Agendamento
+Responsável: cron + cron-wrapper.sh.
+Tudo isso roda todo dia às 6h da manhã, com log em logs/daily-YYYY-MM-DD.log.
+
+Resumo rápido:
+- Coleta: news_collector.py + x_collector.py
+- IA de filtro: ai_news_filter.py
+- Roteiro: generate_script.py com prompt canônico + Hermes Agent
+- TTS: generate_gemini_tts_multi.py com fallback edge-tts
+- Pós-processamento: pipeline.py + ffmpeg
+- Automação: cron + cron-wrapper.sh

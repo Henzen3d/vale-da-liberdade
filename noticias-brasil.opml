@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Noticias Brasil - Lista de Feeds</title>
+    <dateCreated>2026-06-22</dateCreated>
+    <ownerName>Lista personalizada</ownerName>
+  </head>
+  <body>
+
+    <!-- ============================================= -->
+    <!-- GERAL / MULTISECAO                            -->
+    <!-- ============================================= -->
+    <outline text="Noticias - Geral" title="Noticias - Geral">
+
+      <outline type="rss"
+               text="BBC News Brasil"
+               title="BBC News Brasil"
+               xmlUrl="https://feeds.bbci.co.uk/portuguese/rss.xml"
+               htmlUrl="https://www.bbc.com/portuguese"/>
+
+      <outline type="rss"
+               text="O Globo"
+               title="O Globo"
+               xmlUrl="https://oglobo.globo.com/rss.xml?completo=true"
+               htmlUrl="https://oglobo.globo.com/"/>
+
+      <outline type="rss"
+               text="Brasil 247"
+               title="Brasil 247"
+               xmlUrl="http://www.brasil247.com/pt/247/rss"
+               htmlUrl="https://www.brasil247.com/"/>
+
+      <outline type="rss"
+               text="Correio Braziliense"
+               title="Correio Braziliense"
+               xmlUrl="https://www.correiobraziliense.com.br/feed/"
+               htmlUrl="https://www.correiobraziliense.com.br/"/>
+
+      <outline type="rss"
+               text="Estadao - Ultimas"
+               title="Estadao - Ultimas"
+               xmlUrl="https://www.estadao.com.br/arc/outboundfeeds/rss/?outputType=xml"
+               htmlUrl="https://www.estadao.com.br/"/>
+
+      <outline type="rss"
+               text="Terra - Ultimas"
+               title="Terra - Ultimas"
+               xmlUrl="http://rss.terra.com.br/0,,EI1,00.xml"
+               htmlUrl="https://www.terra.com.br/"/>
+
+      <outline type="rss"
+               text="Terra Brasil Noticias"
+               title="Terra Brasil Noticias"
+               xmlUrl="https://terrabrasilnoticias.com/feed/"
+               htmlUrl="https://terrabrasilnoticias.com/"/>
+
+      <outline type="rss"
+               text="Metropoles"
+               title="Metropoles"
+               xmlUrl="https://www.metropoles.com/feed"
+               htmlUrl="https://www.metropoles.com/"/>
+
+      <outline type="rss"
+               text="Veja"
+               title="Veja"
+               xmlUrl="https://veja.abril.com.br/feed/"
+               htmlUrl="https://veja.abril.com.br/"/>
+
+      <outline type="rss"
+               text="G1 - Brasil"
+               title="G1 - Brasil"
+               xmlUrl="http://g1.globo.com/dynamo/brasil/rss2.xml"
+               htmlUrl="https://g1.globo.com/"/>
+
+      <outline type="rss"
+               text="Alexandre Garcia Oficial"
+               title="Alexandre Garcia Oficial"
+               xmlUrl="https://www.alexandregarciaoficial.com.br/feed/"
+               htmlUrl="https://www.alexandregarciaoficial.com.br/"/>
+
+    </outline>
+
+    <!-- ============================================= -->
+    <!-- POLITICA                                      -->
+    <!-- ============================================= -->
+    <outline text="Politica" title="Politica">
+
+      <outline type="rss"
+               text="CNN Brasil - Politica"
+               title="CNN Brasil - Politica"
+               xmlUrl="https://www.cnnbrasil.com.br/politica/feed/"
+               htmlUrl="https://www.cnnbrasil.com.br/politica/"/>
+
+      <outline type="rss"
+               text="Valor - Politica"
+               title="Valor - Politica"
+               xmlUrl="https://valor.globo.com/politica/rss.xml"
+               htmlUrl="https://valor.globo.com/politica/"/>
+
+      <outline type="rss"
+               text="Gazeta do Povo - Politica"
+               title="Gazeta do Povo - Politica"
+               xmlUrl="https://www.gazetadopovo.com.br/feed/rss/politica.xml"
+               htmlUrl="https://www.gazetadopovo.com.br/"/>
+
+      <outline type="rss"
+               text="O Globo - Politica"
+               title="O Globo - Politica"
+               xmlUrl="https://oglobo.globo.com/rss/oglobo/politica"
+               htmlUrl="https://oglobo.globo.com/politica/"/>
+
+      <outline type="rss"
+               text="G1 - Politica"
+               title="G1 - Politica"
+               xmlUrl="https://g1.globo.com/rss/g1/politica/"
+               htmlUrl="https://g1.globo.com/politica/"/>
+
+      <outline type="rss"
+               text="Veja - Politica"
+               title="Veja - Politica"
+               xmlUrl="https://veja.abril.com.br/politica/feed/"
+               htmlUrl="https://veja.abril.com.br/politica/"/>
+
+      <outline type="rss"
+               text="Metropoles - Politica"
+               title="Metropoles - Politica"
+               xmlUrl="https://www.metropoles.com/politica/feed"
+               htmlUrl="https://www.metropoles.com/colunas/politica"/>
+
+    </outline>
+
+    <!-- ============================================= -->
+    <!-- ECONOMIA                                      -->
+    <!-- ============================================= -->
+    <outline text="Economia" title="Economia">
+
+      <outline type="rss"
+               text="Gazeta do Povo - Economia"
+               title="Gazeta do Povo - Economia"
+               xmlUrl="https://www.gazetadopovo.com.br/feed/rss/economia.xml"
+               htmlUrl="https://www.gazetadopovo.com.br/economia/"/>
+
+      <outline type="rss"
+               text="O Globo - Economia"
+               title="O Globo - Economia"
+               xmlUrl="https://oglobo.globo.com/rss/oglobo/economia"
+               htmlUrl="https://oglobo.globo.com/economia/"/>
+
+      <outline type="rss"
+               text="G1 - Economia"
+               title="G1 - Economia"
+               xmlUrl="https://g1.globo.com/rss/g1/economia/"
+               htmlUrl="https://g1.globo.com/economia/"/>
+
+      <outline type="rss"
+               text="Veja - Economia"
+               title="Veja - Economia"
+               xmlUrl="https://veja.abril.com.br/economia/feed"
+               htmlUrl="https://veja.abril.com.br/economia/"/>
+
+    </outline>
+
+  </body>
+</opml>

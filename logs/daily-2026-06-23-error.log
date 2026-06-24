@@ -1,0 +1,6 @@
+[2026-06-23 06:07:05 UTC] ERRO - pipeline.py audio --date 2026-06-23
+Falha na geração de áudio TTS: 429 RESOURCE_EXHAUSTED (gemini-3.1-flash-tts).
+Detalhe: quota excedida para generate_content_free_tier_requests.
+Etapas concluídas: init, roteiro ajustado manualmente, process com sucesso.
+Arquivos gerados até o erro: episodes/2026-06-23.md, -tts.txt, -manchetes.txt, -metadata.json.
+Não foi possível continuar para geração de WAVs e pós-processamento.

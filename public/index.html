@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Jornal Vale da Liberdade</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">Vale da Liberdade<span class="dot">*</span></div>
+    <nav class="nav" id="mainNav">
+      <a href="/">Início</a>
+      <a href="/episodios">Episódios</a>
+      <a href="/admin" id="navAdminLink" class="hidden">Admin</a>
+      <button class="btn btn-primary" id="navLoginBtn">Entrar</button>
+      <button class="btn btn-secondary hidden" id="navLogoutBtn">Sair</button>
+    </nav>
+  </div>
+</header>
+
+<section class="hero-band">
+  <div class="container">
+    <h1>Podcast/jornal web diário com Peter Albuquerque e Ricardo Souto.</h1>
+    <p>Cobertura crítica de Blumenau, Alto Vale e Santa Catarina.</p>
+  </div>
+</section>
+
+<main class="section">
+  <div class="container">
+
+    <div class="ad-slot">
+      Espaço reservado para Google AdSense
+    </div>
+
+    <section id="episodesSection">
+      <h2 style="font-family: var(--font-display); font-size: var(--display-md); font-weight: 400;">Episódios</h2>
+
+      <article class="episode-card">
+        <div class="episode-meta">
+          <span class="badge">Novo</span>
+          <span>13 de junho de 2026</span>
+        </div>
+        <h3 class="episode-title">Destaques do dia com Peter e Ricardo</h3>
+        <p>Roteiro disponível. Áudio em breve.</p>
+        <a class="btn btn-secondary" href="/episodes/2026-06-13.md" target="_blank">Abrir roteiro</a>
+      </article>
+
+      <article class="episode-card">
+        <div class="episode-meta">
+          <span>12 de junho de 2026</span>
+        </div>
+        <h3 class="episode-title">Episódio piloto</h3>
+        <audio class="audio-player" controls>
+          <source src="/audio/2026-06-12-vale-da-liberdade.mp3" type="audio/mpeg">
+        </audio>
+      </article>
+    </section>
+
+    <section id="loginSection" class="hidden">
+      <div class="login-card">
+        <h2>Área restrita</h2>
+        <form id="loginForm">
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" name="email" required>
+          </div>
+          <div class="field">
+            <label>Senha</label>
+            <input type="password" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="adminSection" class="admin-panel hidden">
+      <h2>Admin</h2>
+      <form id="adminUploadForm">
+        <label for="episodeText">Arquivo de roteiro (.md/.txt)</label>
+        <input type="file" id="episodeText" name="episodeText" accept=".md,.txt">
+
+        <label for="episodeAudio">Arquivo de áudio (.mp3/.wav)</label>
+        <input type="file" id="episodeAudio" name="episodeAudio" accept=".mp3,.wav">
+
+        <label for="episodeDate">Data do episódio</label>
+        <input type="date" id="episodeDate" name="episodeDate">
+
+        <label for="episodeTitle">Título</label>
+        <input type="text" id="episodeTitle" name="episodeTitle">
+
+        <button type="submit" class="btn btn-primary">Publicar episódio</button>
+      </form>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <strong style="color: var(--on-dark)">Vale da Liberdade</strong>
+      <p style="color: var(--on-dark-soft); margin-top: 8px;">Jornal web independente.</p>
+    </div>
+    <div>
+      <p style="color: var(--on-dark-soft);">Episódios</p>
+      <p style="color: var(--on-dark-soft);">Contato</p>
+      <p style="color: var(--on-dark-soft);">Assinar</p>
+    </div>
+    <div>
+      <p style="color: var(--on-dark-soft);">Termos</p>
+      <p style="color: var(--on-dark-soft);">Privacidade</p>
+    </div>
+    <div>
+      <p style="color: var(--on-dark-soft);">Desenvolvedor: Osmar Gonçalves Filho</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const navAdminLink = document.getElementById('navAdminLink');
+  const navLoginBtn = document.getElementById('navLoginBtn');
+  const navLogoutBtn = document.getElementById('navLogoutBtn');
+  const loginSection = document.getElementById('loginSection');
+  const adminSection = document.getElementById('adminSection');
+  const loginForm = document.getElementById('loginForm');
+  let authed = false;
+
+  function setAuth(state) {
+    authed = !!state;
+    if (authed) {
+      navLoginBtn.classList.add('hidden');
+      navLogoutBtn.classList.remove('hidden');
+      navAdminLink.classList.remove('hidden');
+      loginSection.classList.add('hidden');
+      adminSection.classList.remove('hidden');
+    } else {
+      navLoginBtn.classList.remove('hidden');
+      navLogoutBtn.classList.add('hidden');
+      navAdminLink.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      adminSection.classList.add('hidden');
+    }
+  }
+
+  navLoginBtn.addEventListener('click', () => {
+    document.getElementById('episodesSection').classList.add('hidden');
+    loginSection.classList.remove('hidden');
+  });
+
+  navLogoutBtn.addEventListener('click', () => setAuth(false));
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(loginForm);
+    const email = String(data.get('email') || '');
+    const password = String(data.get('password') || '');
+    const expectedEmail = 'peter@valedaliberdade.local';
+    const expectedPassword = 'admin123';
+    if (email === expectedEmail && password === expectedPassword) {
+      setAuth(true);
+    } else {
+      alert('Credenciais inválidas.');
+    }
+  });
+
+  document.getElementById('adminUploadForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert('Upload simulado. Conecte esse formulário ao endpoint de publicação do episódio.');
+  });
+
+  setAuth(false);
+})();
+</script>
+
+</body>
+</html>
