@@ -20,6 +20,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from gemini_client import GeminiClient
 
 # Importar pré-processador TTS
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -52,38 +53,25 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
         wf.writeframes(pcm)
 
 
-def generate_with_retry(client, prompt, voice_name, max_retries=MAX_RETRIES):
-    """Gera áudio com retry e backoff exponencial."""
-    for attempt in range(1, max_retries + 1):
-        try:
-            log.info(f"Tentativa {attempt}/{max_retries} — voz: {voice_name}")
-            response = client.models.generate_content(
-                model="gemini-3.1-flash-tts-preview",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=types.SpeechConfig(
-                        voice_config=types.VoiceConfig(
-                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                voice_name=voice_name
-                            )
-                        )
-                    ),
-                ),
-            )
-            data = response.candidates[0].content.parts[0].inline_data.data
-            log.info(f"Áudio recebido: {len(data)} bytes")
-            return data
-
-        except Exception as exc:
-            delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
-            log.warning(f"Erro na tentativa {attempt}: {exc}")
-            if attempt < max_retries:
-                log.info(f"Aguardando {delay}s antes de retry...")
-                time.sleep(delay)
-            else:
-                log.error(f"Todas as {max_retries} tentativas falharam.")
-                raise
+def generate_with_retry(client, prompt, voice_name):
+    """Gera áudio através do GeminiClient (que gerencia retries e rate limiting)."""
+    response = client.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=voice_name
+                    )
+                )
+            ),
+        ),
+    )
+    data = response.candidates[0].content.parts[0].inline_data.data
+    log.info(f"Áudio recebido: {len(data)} bytes")
+    return data
 
 
 def main():
@@ -134,7 +122,7 @@ def main():
         stem = texto_path.stem
         out_path = audio_dir / f"{stem}-{args.voz}.wav"
 
-    client = genai.Client()
+    client = GeminiClient()
 
     prompt = (
         "Leia em português do Brasil, no estilo de apresentador de podcast "

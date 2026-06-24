@@ -37,6 +37,7 @@ import edge_tts
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from gemini_client import GeminiClient
 
 # Importar pré-processador TTS
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -382,42 +383,23 @@ def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path) -> None:
     log.info(f"✅ Loudnorm EBU R128 2-pass aplicado → {output_mp3}")
 
 
-def generate_with_retry(client, prompt, speaker_voice_configs, max_retries=MAX_RETRIES):
-    """Gera áudio multi-locutor com retry e backoff exponencial."""
-    for attempt in range(1, max_retries + 1):
-        try:
-            speakers_str = ", ".join(
-                f"{svc.speaker}={svc.voice_config.prebuilt_voice_config.voice_name}"
-                for svc in speaker_voice_configs
-            )
-            log.info(f"Tentativa {attempt}/{max_retries} — speakers: {speakers_str}")
-
-            response = client.models.generate_content(
-                model="gemini-3.1-flash-tts-preview",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=types.SpeechConfig(
-                        multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
-                            speaker_voice_configs=speaker_voice_configs
-                        )
-                    ),
-                ),
-            )
-
-            data = response.candidates[0].content.parts[0].inline_data.data
-            log.info(f"Áudio recebido: {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
-            return data
-
-        except Exception as exc:
-            delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
-            log.warning(f"Erro na tentativa {attempt}: {exc}")
-            if attempt < max_retries:
-                log.info(f"Aguardando {delay}s antes de retry...")
-                time.sleep(delay)
-            else:
-                log.error(f"Todas as {max_retries} tentativas falharam.")
-                raise
+def generate_with_retry(client, prompt, speaker_voice_configs):
+    """Gera áudio multi-locutor através do GeminiClient (que gerencia retries e rate limiting)."""
+    response = client.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+                    speaker_voice_configs=speaker_voice_configs
+                )
+            ),
+        ),
+    )
+    data = response.candidates[0].content.parts[0].inline_data.data
+    log.info(f"Áudio recebido: {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
+    return data
 
 
 _FALLBACK_EDGE_TTS_VOICE = "pt-BR-AntonioNeural"
@@ -533,7 +515,7 @@ def main():
 
     out_path = Path(args.out) if args.out else audio_dir / f"{episode_path.stem}-completo.wav"
 
-    client = genai.Client()
+    client = GeminiClient()
 
     speaker_voice_configs = []
     for speaker in speakers:
