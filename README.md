@@ -72,5 +72,21 @@ Links para documentos:
 - `LESSONS_LEARNED.md` — incidentes e decisões técnicas
 - `AGENT_GUIDE.md` — ordem de leitura para IAs retomando o projeto
 
+## Fluxo de commits
+
+Todo mudança aprovada pelo usuário ou validada autônoma em itens autorizados termina com commit real neste repositório:
+
+```bash
+cd /home/osmar/web-jornal-vale-da-liberdade
+git add -A
+git commit -m "feat: descrição da mudança"
+git push
+```
+
+Nunca commitar:
+- `.env` ou arquivos com chaves/tokens reais
+- Arquivos maiores que 50MB (onnx, wav, mp3)
+- `node_modules/`, `.venv/`, `venv_win/`
+
 ---
 *Mantido por: Hermes Agent | Última atualização: 2026-06-22*
