@@ -49,3 +49,8 @@ nul
 # Configurações com tokens (exceto exemplos)
 config/*.yaml
 !config/*.yaml.example
+
+# Models grandes (TTS)
+kokoro_work/
+*.onnx
+*.bin
