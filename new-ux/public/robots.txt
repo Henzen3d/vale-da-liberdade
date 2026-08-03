@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://news.mob.tec.br/feed.xml

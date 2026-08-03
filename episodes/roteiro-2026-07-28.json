@@ -1,0 +1,370 @@
+{
+  "manchetes": [
+    "Obras paradas por corrupção em Blumenau terão de ser relicitadas",
+    "Ex-policial militar é encontrado morto em rio no Alto Vale",
+    "Blumenau engata duas semanas consecutivas sem novos casos de dengue",
+    "Justiça Federal libera uso da marca Kegelfest para Rio do Sul em 2026",
+    "Atleta blumenauense Gian Pitbull vence por nocaute em Abu Dhabi"
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Obras paralisadas por fraude e burocratas mapeando até o cardápio do seu restaurante. Até quando você aceita pagar a conta da incompetência alheia?"
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "A corrupção consome recursos públicos e paralisa melhorias cruciais. Mas o controle institucional e a fiscalização são os únicos caminhos para responsabilizar os culpados."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "O único caminho real é expor a maquiagem estatal. Hoje temos no roteiro corrupção em licitações, impostos disfarçados e disputas judiciais absurdas."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Madrugada agitada no bairro Água Verde em Blumenau. Às 4h24, o Corpo de Bombeiros foi acionado para apagar um incêndio na lixeira de alvenaria de um condomínio na Rua Otto Wille."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Lixeira pegando fogo às quatro da manhã. O cidadão paga imposto altíssimo para ver o serviço público apagando lixo queimado em condomínio privado."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O atendimento de emergência precisa agir antes que o fogo se alastre para as moradias. Prevenção básica de danos maiores."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "A polícia até agora não achou nada."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A criminalidade contra trabalhadores de aplicativo cresceu na região. A Polícia Militar mantém buscas na área rural do Alto Vale."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Sete e meia da noite uma trabalhadora fica sem seu meio de sustento Ricardo. O Estado proíbe a legítima defesa e falha em proteger."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Em Taió a Polícia Civil desvendou a morte do ex-PM Dário Cesar Vessel Cardoso. Dois homens foram indiciados por homicídio qualificado e ocultação de cadáver após o corpo ser achado no rio."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Quase uma semana desaparecido até o Estado juntar as peças de uma versão inventada. Se nem ex-policial está seguro, imagina o cidadão comum."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O trabalho de inteligência policial desmentiu os suspeitos e garantiu o indiciamento no Poder Judiciário."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Pelo menos em Rio do Sul a OAB lança o programa OAB por Elas na DPCAMI nesta terça às 17h para dar assessoria jurídica gratuita a mulheres."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A iniciativa voluntária dos advogados fortalece o acolhimento direto dentro da estrutura da delegacia especializada."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Teve também a cena em Ibirama no domingo à noite onde um cachorro recusou-se a sair do lado do tutor acidentado enquanto o Samu atendia."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Sensibilidade das equipes do Samu em respeitar a presença do animal durante os procedimentos médicos."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Blumenau completa duas semanas sem registrar nenhum novo caso de dengue entre 13 e 27 de julho. Mantemos 11 casos confirmados no ano."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Duas semanas zeradas na dengue é mérito do morador que limpa o próprio quintal sem esperar fiscal da prefeitura bater na porta."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Ações da vigilância epidemiológica e conscientização comunitária atuam de forma conjunta nesses índices baixos."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Falando em balcão estatal, o Sine abriu atendimento presencial esta semana das 12h às 18h exigindo carteira física e comprovante."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "O Sine intermedeia vagas para quem tem dificuldade de acesso às plataformas digitais de emprego."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Exigir senha presencial até as 17h em 2026 é burocracia pura atrapalhando quem busca trabalho imediato Ricardo."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Enquanto isso na Justiça Eleitoral o presidente do TRE desembargador Carlos Roberto visita os cartórios de Joinville nesta terça às 11h30."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Visita institucional com coletiva de imprensa para preparar a máquina das eleições. Gastança pública para organizar pleito."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A solidariedade privada também se destaca com o SESI SC entregando 14 cadeiras de rodas ao Hospital São José de Joinville na segunda-feira."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Catorze cadeiras doadas pela campanha Lacres do Bem da indústria provam que a sociedade civil resolve carências onde o hospital público falha."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "A prefeitura de Blumenau colocou agentes de vigilância escolar em uma semana inteira de treinamento entre 27 e 31 de julho. Três secretarias envolvidas no treinamento."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Capacitar seguranças para agir em ambiente escolar exige integração entre Educação e Segurança Pública."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Três secretarias para treinar vigias em escola pública. A burocracia adora criar evento em vez de garantir segurança real nas portas."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Treinamento adequado evita abusos e melhora a resposta imediata em situações de crise com alunos."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "A Defesa Civil de Santa Catarina emitiu alerta para uma frente fria entre terça e quarta com risco de temporais e falta de energia."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O monitoramento prévio serve exatamente para prefeituras e concessionárias de energia prepararem equipes de emergência."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Cai duas gotas de chuva e a fiação pública desmorona. O alerta prévio vira desculpa oficial para o apagão."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Uma lista revelou obras paralisadas em Blumenau que precisarão de novas licitações devido a investigações de corrupção."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Investigação de corrupção em obra pública? Que surpresa gigante. O contribuinte paga duas vezes pela mesma rua e a obra continua parada."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A interrupção e nova licitação são exigências legais quando há indício de fraude contratual para proteger o erário."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "E a Secretaria de Turismo abriu um censo para mapear restaurantes de Blumenau com formulário aberto até 13 de novembro."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Mapear o setor gastronômico ajuda no planejamento de políticas públicas para o turismo regional."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Burocrata querendo saber horário e acessibilidade de bar privado. O restaurante só quer trabalhar sem fiscal enchendo o saco."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Na análise política local Alexandre Gonçalves debateu na Rádio Itaberá as disputas internas do PL e a eleição da Mesa na Câmara."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Briga interna de partido por vaga na Mesa da Câmara enquanto o povo paga a conta dessas coligações."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "E no setor cultural a Temporada Blumenauense de Teatro apresenta a peça Todas Nela nos dias 14 e 15 de agosto no Auditório Carlos Jardim com entrada franca Peter."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Entrada dita gratuita bancada inteiramente com impostos do pagador de impostos local."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A Central Funerária de Blumenau registrou o falecimento de seis moradores nas últimas 24 horas incluindo Lucinda Geremias dos Santos aos 76 anos."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Nossos sentimentos às famílias de Lucinda, Luiz Carlos e dos outros quatro blumenauenses citados no boletim."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Na disputa jurídica a 2ª Vara Federal autorizou o município de Rio do Sul a usar a marca Kegelfest na Festa do Bolão de 2026."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Três anos de disputa na Justiça Federal contra o INPI e um empresário só para poder usar o nome de uma festa tradicional."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A marca pertence ao patrimônio cultural do município e a liminar garantiu a realização da edição deste ano."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Em Blumenau no sábado transferiram simbolicamente a sede da prefeitura para a Secretaria de Cultura no Dia da Imigração Alemã."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A homenagem reforça as raízes históricas e o folclore trazido pelos imigrantes pioneiros no século dezenove."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "No esporte o lutador Gian Pitbull venceu por nocaute técnico no primeiro round no evento UAE Warriors em Abu Dhabi."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "O lutador blumenauense derrotou o russo Imamshafi Aliev e ficou bem perto de uma vaga oficial no UFC."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Mérito total do atleta treinando com recursos próprios sem depender de bolsa governamental."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Blumenau também fechou com 14 medalhas nos Joguinhos Abertos de Santa Catarina destacando-se na ginástica artística e no jiu-jitsu."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "Em Pinhalzinho no Oeste catarinense um idoso de 75 anos foi encontrado enterrado cinco dias após ser assassinado por inquilinos."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Peter",
+      "texto": "Cinco dias enterrado com mãos e pés amarrados após desentendimento. A impunidade estimula barbárie absoluta."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "A Polícia Civil agiu rápido e o delegado Éder Matte elucidou a autoria do crime brutal."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Na África do Sul as autoridades investigam a morte de um cidadão nigeriano que colapsou sob custódia policial com marcas no peito."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Ricardo",
+      "texto": "A necropsia inicial confirmou escoriações e o órgão regulador abriu inquérito formal sobre a abordagem."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Monopólio da força estatal agindo sem testemunhas em qualquer lugar do planeta."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "E no festival de absurdos do Estado a Justiça Federal precisa dar autorização especial para uma cidade comemorar sua própria festa de bolão."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Trata-se de direito de propriedade industrial e disputas sobre registros de marcas no INPI."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Anos de processo por causa da palavra Kegelfest enquanto obras superfaturadas continuam paradas em Blumenau."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Por falar em gastança, a prefeitura de Blumenau gastou uma fortuna com decoração para o Dia da Imigração Alemã. Dinheiro que poderia ter ido para merenda escolar."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "A festa resgata a identidade cultural e atrai turistas. Mas o orçamento precisa ser transparente para não virar espetáculo de custo sem fim."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "E tem mais: o Estado quer obrigar motoboys a usarem colete refletivo aprovado por norma federal. Quem paga a conta? O trabalhador que já ganha pouco."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "A medida busca reduzir acidentes em rodovias, mas o custo do equipamento não pode virar taxa disfarçada sobre o autônomo."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Para fechar, olha isso: o governo federal quer criar um imposto sobre pequenas entregas por aplicativo. Mais um tributo, mais burocracia, menos liberdade."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Qualquer nova tributação precisa ser debatida no Congresso, não por medida provisória sem discussão. O contribuinte já paga demais."
+    }
+  ],
+  "fechamento": [
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "O Estado gasta seu dinheiro investigando o próprio rabo em licitações e cadastrando restaurantes enquanto você trabalha duro. Questione a burocracia diariamente."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "O controle social e a fiscalização dos atos públicos continuam sendo indispensáveis. Acompanhe os desdobramentos de todas essas matérias em nossas redes."
+    }
+  ]
+}

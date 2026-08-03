@@ -33,17 +33,69 @@ import time
 import wave
 from pathlib import Path
 
-import edge_tts
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from gemini_client import GeminiClient
+from gemini_client import GeminiClient, GeminiMultiClient
 
 # Importar pré-processador TTS
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+sys.path.insert(0, str(SCRIPT_DIR))
 from tts_preprocessor import preprocess_for_tts
 
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(Path.home() / ".hermes" / ".env", override=False)
 load_dotenv()
+
+
+def _candidate_gemini_keys() -> list[str]:
+    """Coleta GEMINI_API_KEY do ambiente e dos .env (projeto + Hermes)."""
+    seen: set[str] = set()
+    keys: list[str] = []
+    sources = [os.environ.get("GEMINI_API_KEY", "").strip()]
+    for path in (PROJECT_ROOT / ".env", Path.home() / ".hermes" / ".env"):
+        if not path.exists():
+            continue
+        try:
+            for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                # Aceita GEMINI_API_KEY e variações GEMINI_API_KEY_2, _3, etc.
+                if not line.startswith("GEMINI_API_KEY") or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                if v:
+                    sources.append(v)
+        except Exception:
+            pass
+    for k in sources:
+        if not k or "***" in k or k in seen:
+            continue
+        seen.add(k)
+        keys.append(k)
+    return keys
+
+
+def _make_gemini_client() -> "GeminiClient | GeminiMultiClient":
+    keys = _candidate_gemini_keys()
+    if not keys:
+        # tenta ADC / env default do SDK
+        return GeminiClient()
+    if len(keys) == 1:
+        return GeminiClient(api_key=keys[0])
+    # Múltiplas chaves (contas/projetos diferentes) → intercala por quota
+    log.info(f"GeminiMultiClient com {len(keys)} chaves (intercalamento por RPD/RPM)")
+    return GeminiMultiClient(keys)
+
+
+try:
+    import edge_tts  # type: ignore
+    _EDGE_TTS_AVAILABLE = True
+except ImportError:
+    edge_tts = None  # type: ignore
+    _EDGE_TTS_AVAILABLE = False
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,7 +125,7 @@ SPEAKER_PERSONAS = {
 
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 5  # segundos
-CHUNK_TARGET_WORDS = 300  # limite por bloco para evitar degradação TTS
+CHUNK_TARGET_WORDS = 200  # ~7-8 chunks p/ 1500 palavras → cabe nos 10 RPD do TTS da chave AI Studio
 
 # Duração dos silêncios (em segundos)
 PAUSA_LONGA_S = 1.5    # [PAUSA] — entre quadros
@@ -82,6 +134,15 @@ PAUSA_CURTA_S = 0.5    # [PAUSA_CURTA] — entre falas longas
 SAMPLE_RATE = 44100    # Hz — qualidade podcast (Fase 0.5)
 SAMPLE_WIDTH = 2       # bytes (16-bit PCM)
 CHANNELS = 1           # mono
+GEMINI_PCM_RATE = 24000
+
+# Chunks "vazios"/quase silêncio: ~0.35s @ 24kHz 16-bit mono ≈ 16800 bytes
+MIN_CHUNK_PCM_BYTES_24K = 16_000
+# Texto mínimo para gastar uma chamada TTS
+MIN_CHUNK_WORDS = 3
+# MP3 final mínimo (entrega)
+MIN_FINAL_MP3_BYTES = 1_000_000
+MIN_FINAL_DURATION_S = 7 * 60  # ~7 min piso duro (meta 8–15)
 
 
 def read_episode(path: Path) -> str:
@@ -117,6 +178,18 @@ def build_prompt(segment_text: str, speakers: list[str] | None = None) -> str:
 
     # Segmento já está limpo de marcadores de pausa (split aconteceu antes)
     clean_text = segment_text.strip()
+
+    if len(speakers) == 1:
+        sp = speakers[0]
+        return (
+            "Você é um sistema de síntese de voz para podcast com locutor solo.\n"
+            "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra.\n"
+            "Aplique a entonação e personalidade indicada para o locutor:\n\n"
+            f"- {sp}: {SPEAKER_PERSONAS.get(sp, '')}\n\n"
+            f"O texto já contém o rótulo '{sp}:' antes de cada fala. "
+            "Mantenha a entonação natural, contínua e expressiva.\n\n"
+            "---\n\n" + clean_text
+        )
 
     return (
         "Você é um sistema de síntese de voz para podcast jornalístico com dois apresentadores.\n"
@@ -398,8 +471,128 @@ def generate_with_retry(client, prompt, speaker_voice_configs):
         ),
     )
     data = response.candidates[0].content.parts[0].inline_data.data
-    log.info(f"Áudio recebido: {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
+    log.info(f"Áudio multi recebido: {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
     return data
+
+
+def generate_single_speaker_pcm(client, text: str, voice_name: str) -> bytes:
+    """TTS de uma fala com UMA voz pré-definida (Charon/Schedar).
+
+    Mais confiável que multi-speaker: o Gemini multi frequentemente colapsa
+    em uma única voz no episódio inteiro.
+    """
+    text = text.strip()
+    if not text:
+        return b""
+    # Instrução mínima de idioma; o voice_name carrega o timbre
+    prompt = (
+        "Leia em português do Brasil, de forma natural, apenas o texto a seguir, "
+        "sem adicionar palavras:\n\n" + text
+    )
+    response = client.models.generate_content(
+        model="gemini-3.1-flash-tts-preview",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=voice_name
+                    )
+                )
+            ),
+        ),
+    )
+    data = response.candidates[0].content.parts[0].inline_data.data
+    return data
+
+
+def parse_speaker_turns(text: str) -> list[tuple[str, str]]:
+    """Extrai turnos (speaker, fala) preservando ordem. Ignora marcadores de pausa."""
+    turns: list[tuple[str, str]] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("["):
+            continue
+        m = re.match(r"^(Peter|Ricardo)\s*:\s*(.*)$", line, re.I)
+        if not m:
+            continue
+        sp = "Peter" if m.group(1).lower() == "peter" else "Ricardo"
+        body = m.group(2).strip()
+        body = re.sub(r"\[PAUSA(?:_CURTA)?\]", " ", body)
+        body = re.sub(r"\s+", " ", body).strip()
+        if len(body.split()) < MIN_CHUNK_WORDS:
+            continue
+        turns.append((sp, body))
+    return turns
+
+
+def generate_episode_multi(client, episode_text: str, speaker_voice_configs: list) -> bytes:
+    """Gera o EPISÓDIO INTEIRO numa ÚNICA chamada multi-speaker (Gemini TTS).
+
+    Mantém os rótulos 'Peter:'/'Ricardo:' no texto para o modelo distinguir
+    os locutores. Não colapsa em voz única (confirmado pelo usuário na chave
+    AI Studio). Economiza drasticamente o RPD (1 chamada por episódio em vez
+    de 1 por fala). O texto é limpo dos marcadores de pausa, que são tratados
+    como breves silêncios naturais pelo próprio modelo.
+    """
+    clean_text = re.sub(r"\[PAUSA(?:_CURTA)?\]", " ", episode_text)
+    clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
+    speakers_list = [cfg.speaker for cfg in speaker_voice_configs] if speaker_voice_configs else list(SPEAKERS.keys())
+    prompt = build_prompt(clean_text, speakers_list)
+    log.info(f"Gerando episódio INTEIRO em 1 chamada multi-speaker (~{len(clean_text.split())} palavras)")
+    data = generate_with_retry(client, prompt, speaker_voice_configs)
+    return data
+
+
+def generate_per_turn_pcm(client, episode_text: str) -> bytes:
+    """Gera PCM 24kHz concatenando cada fala com a voz do locutor."""
+    turns = parse_speaker_turns(episode_text)
+    if not turns:
+        raise RuntimeError("Nenhum turno Peter/Ricardo encontrado no texto TTS")
+
+    log.info(f"Modo por-fala: {len(turns)} turnos (voz garantida por locutor)")
+    all_pcm = b""
+
+    def silence_24k(seconds: float) -> bytes:
+        n = int(GEMINI_PCM_RATE * seconds) * SAMPLE_WIDTH
+        return b"\x00" * n
+
+    gap = silence_24k(0.28)
+    skipped = 0
+    for i, (speaker, body) in enumerate(turns, start=1):
+        voice = SPEAKERS.get(speaker)
+        if not voice:
+            skipped += 1
+            continue
+        log.info(f"  Turno {i}/{len(turns)} {speaker}/{voice}: {body[:60]}…")
+        try:
+            pcm = generate_single_speaker_pcm(client, body, voice)
+        except Exception as exc:
+            log.warning(f"  Gemini single falhou turno {i}: {exc} — edge dual-style")
+            try:
+                style = EDGE_SPEAKER_STYLE.get(speaker) or EDGE_SPEAKER_STYLE["Peter"]
+                pcm = _edge_tts_generate_audio(
+                    body,
+                    voice=style["voice"],
+                    rate=style["rate"],
+                    pitch=style["pitch"],
+                )
+            except Exception as fb:
+                log.error(f"  turno {i} falhou de vez: {fb}")
+                skipped += 1
+                continue
+        if not _pcm_is_usable(pcm):
+            log.warning(f"  turno {i} áudio inútil — skip")
+            skipped += 1
+            continue
+        all_pcm += pcm + gap
+
+    if skipped:
+        log.info(f"Turnos pulados: {skipped}")
+    if len(all_pcm) < MIN_CHUNK_PCM_BYTES_24K * 10:
+        raise RuntimeError(f"PCM por-fala insuficiente ({len(all_pcm)} bytes)")
+    return all_pcm
 
 
 _FALLBACK_EDGE_TTS_VOICE = "pt-BR-AntonioNeural"
@@ -421,8 +614,18 @@ def _mp3_to_pcm_24k(mp3_path: Path) -> bytes:
     return proc.stdout
 
 
-async def _edge_tts_stream_audio(text: str, voice: str = _FALLBACK_EDGE_TTS_VOICE) -> bytes:
-    communicator = edge_tts.Communicate(text=text, voice=voice)
+async def _edge_tts_stream_audio(
+    text: str,
+    voice: str = _FALLBACK_EDGE_TTS_VOICE,
+    rate: str = "+0%",
+    pitch: str = "+0Hz",
+) -> bytes:
+    if not _EDGE_TTS_AVAILABLE or edge_tts is None:
+        raise RuntimeError(
+            "edge_tts não instalado neste Python. Use o venv Hermes: "
+            "/home/osmar/.hermes/hermes-agent/venv/bin/python3"
+        )
+    communicator = edge_tts.Communicate(text=text, voice=voice, rate=rate, pitch=pitch)
     audio_bytes = b""
     async for chunk in communicator.stream():
         if chunk["type"] == "audio":
@@ -430,12 +633,22 @@ async def _edge_tts_stream_audio(text: str, voice: str = _FALLBACK_EDGE_TTS_VOIC
     return audio_bytes
 
 
-def _edge_tts_generate_audio(text: str, voice: str = _FALLBACK_EDGE_TTS_VOICE) -> bytes:
+def _edge_tts_generate_audio(
+    text: str,
+    voice: str = _FALLBACK_EDGE_TTS_VOICE,
+    rate: str = "+0%",
+    pitch: str = "+0Hz",
+) -> bytes:
     text = text.replace("Peter:", "").replace("Ricardo:", "").strip()
-    if not text:
+    # Remove marcadores de pausa residuais
+    text = re.sub(r"\[PAUSA(?:_CURTA)?\]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text.split()) < MIN_CHUNK_WORDS:
         return b""
     try:
-        mp3_bytes = asyncio.run(_edge_tts_stream_audio(text, voice=voice))
+        mp3_bytes = asyncio.run(
+            _edge_tts_stream_audio(text, voice=voice, rate=rate, pitch=pitch)
+        )
     except Exception as exc:
         raise RuntimeError(f"edge-tts stream falhou: {exc}")
     if not mp3_bytes:
@@ -450,16 +663,156 @@ def _edge_tts_generate_audio(text: str, voice: str = _FALLBACK_EDGE_TTS_VOICE) -
         tmp_path.unlink(missing_ok=True)
 
 
+# Diferenciação Edge quando Gemini TTS não está disponível
+EDGE_SPEAKER_STYLE = {
+    "Peter": {"voice": "pt-BR-AntonioNeural", "rate": "+12%", "pitch": "+0Hz"},
+    "Ricardo": {"voice": "pt-BR-AntonioNeural", "rate": "-8%", "pitch": "-6Hz"},
+}
+
+
 def generate_fallback_edge_tts(text: str) -> bytes:
-    """Fallback single-voice para quando Gemini falhar."""
+    """Fallback single-voice para quando Gemini falhar (usado em modos antigos)."""
+    if not _EDGE_TTS_AVAILABLE:
+        raise RuntimeError(
+            "Fallback edge-tts indisponível: módulo edge_tts não encontrado. "
+            "Rode com /home/osmar/.hermes/hermes-agent/venv/bin/python3 "
+            "ou: pip install edge-tts"
+        )
     try:
         log.warning("⚠️  Gemini TTS indisponível. Acionando fallback edge-tts (voz única)...")
         audio = _edge_tts_generate_audio(text)
+        if not audio or len(audio) < MIN_CHUNK_PCM_BYTES_24K:
+            raise RuntimeError(
+                f"edge-tts retornou áudio vazio/curto ({len(audio) if audio else 0} bytes)"
+            )
         log.info(f"Fallback edge-tts OK: {len(audio)} bytes")
         return audio
     except Exception as exc:
         log.error(f"Fallback edge-tts também falhou: {exc}")
         raise
+
+
+def generate_fallback_edge_per_turn(text: str) -> bytes:
+    """Fallback edge-tts POR FALA (Peter/Ricardo com estilos diferentes).
+
+    Usado quando o modo PACKED (1 chamada Gemini) falha: mantém a diferenciação
+    dos locutores gerando cada turno separadamente com a voz/rate/pitch de
+    EDGE_SPEAKER_STYLE, exatamente como o modo TURNS fazia antes.
+    """
+    if not _EDGE_TTS_AVAILABLE:
+        raise RuntimeError(
+            "Fallback edge-tts indisponível: módulo edge_tts não encontrado. "
+            "Rode com /home/osmar/.hermes/hermes-agent/venv/bin/python3 "
+            "ou: pip install edge-tts"
+        )
+    turns = parse_speaker_turns(text)
+    if not turns:
+        # sem rótulos de locutor: cai no fallback single-voice
+        return generate_fallback_edge_tts(text)
+    log.warning("⚠️  Gemini PACKED falhou. Fallback edge-tts POR FALA (estilos distintos)...")
+
+    def silence_24k(seconds: float) -> bytes:
+        n = int(GEMINI_PCM_RATE * seconds) * SAMPLE_WIDTH
+        return b"\x00" * n
+
+    gap = silence_24k(0.28)
+    all_pcm = b""
+    skipped = 0
+    for i, (speaker, body) in enumerate(turns, start=1):
+        style = EDGE_SPEAKER_STYLE.get(speaker) or EDGE_SPEAKER_STYLE["Peter"]
+        try:
+            pcm = _edge_tts_generate_audio(
+                body, voice=style["voice"], rate=style["rate"], pitch=style["pitch"]
+            )
+        except Exception as exc:
+            log.error(f"  turno {i} edge falhou: {exc}")
+            skipped += 1
+            continue
+        if not _pcm_is_usable(pcm):
+            skipped += 1
+            continue
+        all_pcm += pcm + gap
+    if skipped:
+        log.info(f"Turnos pulados no fallback edge: {skipped}")
+    if len(all_pcm) < MIN_CHUNK_PCM_BYTES_24K * 10:
+        raise RuntimeError(f"Fallback edge per-turn insuficiente ({len(all_pcm)} bytes)")
+    log.info(f"Fallback edge-tts POR FALA OK: {len(all_pcm)} bytes")
+    return all_pcm
+
+
+def _pcm_is_usable(pcm: bytes, rate: int = GEMINI_PCM_RATE) -> bool:
+    """Rejeita chunks quase silenciosos / vazios antes do concat."""
+    if not pcm or len(pcm) < MIN_CHUNK_PCM_BYTES_24K:
+        return False
+    # RMS grosseiro: se quase tudo zero, descarta
+    # amostra a cada 64 bytes para barato
+    step = max(2, (SAMPLE_WIDTH * 32))
+    samples = pcm[::step]
+    if not samples:
+        return False
+    nonzero = sum(1 for b in samples if b != 0)
+    return nonzero / len(samples) > 0.01
+
+
+def _ffprobe_duration(path: Path) -> float | None:
+    try:
+        proc = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=nw=1:nk=1",
+                str(path),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=30,
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            return float(proc.stdout.strip())
+    except Exception:
+        return None
+    return None
+
+
+def publish_final_mp3(mp3_path: Path, date_stem: str | None = None) -> Path:
+    """
+    Garante audio/YYYY-MM-DD.mp3 (alias de entrega) a partir do MP3 processado.
+    date_stem: '2026-07-22' extraído do nome quando possível.
+    """
+    audio_dir = mp3_path.parent
+    stem = date_stem
+    if not stem:
+        # tenta 2026-07-22-vale-da-liberdade ou 2026-07-22-completo
+        m = re.match(r"(\d{4}-\d{2}-\d{2})", mp3_path.name)
+        stem = m.group(1) if m else mp3_path.stem.split("-vale")[0].split("-completo")[0]
+    delivery = audio_dir / f"{stem}.mp3"
+    if mp3_path.resolve() != delivery.resolve():
+        delivery.write_bytes(mp3_path.read_bytes())
+        log.info(f"Alias de entrega: {delivery}")
+    return delivery
+
+
+def assert_final_audio_ok(mp3_path: Path) -> None:
+    """Gate de qualidade do MP3 final (tamanho + duração)."""
+    if not mp3_path.exists():
+        raise RuntimeError(f"MP3 final ausente: {mp3_path}")
+    size = mp3_path.stat().st_size
+    if size < MIN_FINAL_MP3_BYTES:
+        raise RuntimeError(
+            f"MP3 final pequeno demais: {size} bytes (mín. {MIN_FINAL_MP3_BYTES}). "
+            f"Arquivo: {mp3_path}"
+        )
+    dur = _ffprobe_duration(mp3_path)
+    if dur is not None and dur < MIN_FINAL_DURATION_S:
+        raise RuntimeError(
+            f"MP3 final curto demais: {dur:.1f}s (mín. {MIN_FINAL_DURATION_S}s ≈ 7 min). "
+            f"Arquivo: {mp3_path}"
+        )
+    log.info(
+        f"✅ Gate de áudio OK: {mp3_path.name} ({size/1e6:.2f} MB"
+        + (f", {dur/60:.1f} min)" if dur else ")")
+    )
 
 
 def main():
@@ -478,7 +831,21 @@ def main():
     )
     parser.add_argument(
         "--no-chunk", action="store_true",
-        help="Desabilitar chunking por pausas (gera áudio em uma única chamada TTS)"
+        help="Desabilitar chunking por pausas (gera áudio em uma única chamada TTS multi)"
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["packed", "turns", "multi"],
+        default="packed",
+        help=(
+            "packed=EPÍSÓDIO INTEIRO em 1 chamada multi-speaker (padrão, economiza RPD); "
+            "turns=uma chamada TTS por fala com voz fixa Charon/Schedar; "
+            "multi= API multi-speaker legado (pode colapsar em 1 voz)"
+        ),
+    )
+    parser.add_argument(
+        "--single-speaker",
+        help="Define locutor solo, ex: Peter (ignora outros locutores)"
     )
     args = parser.parse_args()
 
@@ -493,7 +860,10 @@ def main():
         sys.exit(2)
 
     episode_text = read_episode(episode_path)
-    speakers = args.speakers or list(SPEAKERS.keys())
+    if args.single_speaker:
+        speakers = [args.single_speaker]
+    else:
+        speakers = args.speakers or list(SPEAKERS.keys())
 
     # Pré-processamento TTS (substituições obrigatórias da SKILL)
     if not args.skip_preprocess:
@@ -515,7 +885,7 @@ def main():
 
     out_path = Path(args.out) if args.out else audio_dir / f"{episode_path.stem}-completo.wav"
 
-    client = GeminiClient()
+    client = _make_gemini_client()
 
     speaker_voice_configs = []
     for speaker in speakers:
@@ -533,82 +903,226 @@ def main():
             )
         )
 
-    # ── Chunking por pausas (Fase 0.4) ──────────────────────────────────────
-    if args.no_chunk:
-        # Modo legado: texto inteiro em uma chamada (sem chunking)
-        log.info("Modo sem chunking (--no-chunk): gerando áudio em chamada única...")
-        clean_text = re.sub(r"\[PAUSA(?:_CURTA)?\]", "", episode_text)
-        clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
-        prompt = build_prompt(clean_text, speakers)
-        try:
-            data = generate_with_retry(client, prompt, speaker_voice_configs)
-        except Exception as exc:
-            log.warning(f"Gemini falhou (--no-chunk): {exc}")
-            data = generate_fallback_edge_tts(clean_text)
-        # Resample 24kHz → 44.1kHz quando Gemini retornar bytes
-        if data:
-            pcm_44k = resample_pcm(data, from_rate=24000, to_rate=SAMPLE_RATE)
-            wave_file(str(out_path), pcm_44k)
-            log.info(f"OK {out_path}")
-        else:
-            raise RuntimeError("Nenhum áudio gerado (fallback edge-tts retornou vazio).")
-    else:
-        # Modo chunking: divide por [PAUSA]/[PAUSA_CURTA], insere silêncio real
+    # ── Geração ──────────────────────────────────────────────────────────
+    skipped_empty = 0
+    if args.mode == "packed":
+        # PADRÃO (2026-07-26): multi-speaker EM CHUNKS.
+        # 1 chamada só colapsa em voz única em texto longo (Gemini perde
+        # o contexto de 2 locutores no meio/fim). Chunking por pausa +
+        # sub-chunking por CHUNK_TARGET_WORDS (~300 palavras) mantém o modelo
+        # coerente. ~5 chunks/episódio → cabe nos 10 RPD da chave AI Studio.
+        log.info("Modo PACKED — multi-speaker por CHUNKS (evita colapso em 1 voz)")
         chunks = split_into_chunks(episode_text)
         all_pcm = b""
-
         for i, (chunk_text, pause_after_s) in enumerate(chunks, start=1):
-            # Ignorar chunks que não têm falas de speakers
             has_speaker = any(f"{sp}:" in chunk_text for sp in speakers)
-            if not has_speaker:
-                log.debug(f"Chunk {i}: sem speaker, pulando geração TTS")
-                if pause_after_s > 0:
-                    silence = generate_silence_wav(pause_after_s)
-                    all_pcm += silence
-                continue
-
             word_count = len(chunk_text.split())
+            if (not has_speaker) or word_count < MIN_CHUNK_WORDS:
+                log.info(f"Chunk {i}/{len(chunks)}: pulando TTS (speaker={has_speaker}, words={word_count})")
+                skipped_empty += 1
+                if pause_after_s > 0:
+                    all_pcm += generate_silence_wav(min(pause_after_s, 0.4))
+                continue
             log.info(f"Chunk {i}/{len(chunks)}: {word_count} palavras, pausa_após={pause_after_s}s")
-
             prompt = build_prompt(chunk_text, speakers)
             try:
                 chunk_pcm = generate_with_retry(client, prompt, speaker_voice_configs)
             except Exception as exc:
-                log.warning(f"Gemini TTS falhou no chunk {i}: {exc}")
+                log.warning(f"Gemini PACKED falhou no chunk {i}: {exc} — fallback edge por-fala")
                 try:
-                    fallback_data = generate_fallback_edge_tts(chunk_text)
+                    chunk_pcm = generate_fallback_edge_per_turn(chunk_text)
                 except Exception as fb_exc:
-                    raise RuntimeError(
-                        f"Fallback edge-tts também falhou no chunk {i}: {fb_exc}"
-                    ) from fb_exc
-                if not fallback_data:
-                    raise RuntimeError(f"Fallback edge-tts vazio no chunk {i}.")
-                chunk_pcm = fallback_data
-
-            # Resample 24kHz → 44.1kHz
-            chunk_pcm_44k = resample_pcm(chunk_pcm, from_rate=24000, to_rate=SAMPLE_RATE)
+                    raise RuntimeError(f"Fallback edge por-fala também falhou no chunk {i}: {fb_exc}") from fb_exc
+            if not _pcm_is_usable(chunk_pcm):
+                log.warning(f"Chunk {i}: áudio vazio/quase silêncio ({len(chunk_pcm) if chunk_pcm else 0} bytes) — NÃO concatenado")
+                skipped_empty += 1
+                if pause_after_s > 0:
+                    all_pcm += generate_silence_wav(min(pause_after_s, 0.4))
+                continue
+            chunk_pcm_44k = resample_pcm(chunk_pcm, from_rate=GEMINI_PCM_RATE, to_rate=SAMPLE_RATE)
             all_pcm += chunk_pcm_44k
-
-            # Inserir silêncio real após o chunk
             if pause_after_s > 0:
-                silence = generate_silence_wav(pause_after_s)
-                all_pcm += silence
+                all_pcm += generate_silence_wav(pause_after_s)
                 log.info(f"  → Silêncio de {pause_after_s}s inserido após chunk {i}")
-
+        if skipped_empty:
+            log.info(f"Chunks pulados (vazios/curtos): {skipped_empty}")
+        if len(all_pcm) < MIN_CHUNK_PCM_BYTES_24K * 10:
+            raise RuntimeError(f"PCM combinado insuficiente ({len(all_pcm)} bytes) — todos os chunks falharam ou ficaram vazios.")
         duration_est = len(all_pcm) / (SAMPLE_RATE * SAMPLE_WIDTH * CHANNELS)
         log.info(f"PCM combinado: {len(all_pcm)} bytes (~{duration_est:.1f}s @ {SAMPLE_RATE}Hz)")
         wave_file(str(out_path), all_pcm)
         log.info(f"OK {out_path}")
+    elif args.mode == "turns":
+        # PADRÃO ANTIGO: uma voz por fala (Charon=Peter, Schedar=Ricardo)
+        log.info("Modo TURNS — 2 vozes garantidas (Charon/Schedar por fala)")
+        try:
+            data_24k = generate_per_turn_pcm(client, episode_text)
+        except Exception as exc:
+            log.warning(f"Modo turns falhou: {exc} — tentando multi/edge")
+            try:
+                clean_text = re.sub(r"\[PAUSA(?:_CURTA)?\]", "", episode_text)
+                clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
+                prompt = build_prompt(clean_text, speakers)
+                data_24k = generate_with_retry(client, prompt, speaker_voice_configs)
+            except Exception as exc2:
+                log.warning(f"Multi também falhou: {exc2}")
+                data_24k = generate_fallback_edge_tts(episode_text)
+        if not _pcm_is_usable(data_24k):
+            raise RuntimeError("Nenhum áudio utilizável gerado (vazio/quase silêncio).")
+        pcm_44k = resample_pcm(data_24k, from_rate=GEMINI_PCM_RATE, to_rate=SAMPLE_RATE)
+        wave_file(str(out_path), pcm_44k)
+        log.info(f"OK {out_path}")
+    elif args.no_chunk or args.mode == "multi":
+        # multi-speaker (legado / opcional)
+        log.info("Modo MULTI-SPEAKER Gemini (pode colapsar em 1 voz)...")
+        clean_text = re.sub(r"\[PAUSA(?:_CURTA)?\]", "", episode_text)
+        clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
+        # Se multi com chunking
+        if args.no_chunk or args.mode == "multi" and args.no_chunk:
+            prompt = build_prompt(clean_text, speakers)
+            try:
+                data = generate_with_retry(client, prompt, speaker_voice_configs)
+            except Exception as exc:
+                log.warning(f"Gemini falhou (--no-chunk/multi): {exc}")
+                data = generate_fallback_edge_tts(clean_text)
+            if not _pcm_is_usable(data):
+                raise RuntimeError("Nenhum áudio utilizável gerado (vazio/quase silêncio).")
+            pcm_44k = resample_pcm(data, from_rate=GEMINI_PCM_RATE, to_rate=SAMPLE_RATE)
+            wave_file(str(out_path), pcm_44k)
+            log.info(f"OK {out_path}")
+        else:
+            # chunking multi (legado)
+            chunks = split_into_chunks(episode_text)
+            all_pcm = b""
+
+            for i, (chunk_text, pause_after_s) in enumerate(chunks, start=1):
+                has_speaker = any(f"{sp}:" in chunk_text for sp in speakers)
+                word_count = len(chunk_text.split())
+                if (not has_speaker) or word_count < MIN_CHUNK_WORDS:
+                    log.info(
+                        f"Chunk {i}/{len(chunks)}: pulando TTS "
+                        f"(speaker={has_speaker}, words={word_count})"
+                    )
+                    skipped_empty += 1
+                    if pause_after_s > 0:
+                        silence = generate_silence_wav(pause_after_s)
+                        all_pcm += silence
+                    continue
+
+                log.info(f"Chunk {i}/{len(chunks)}: {word_count} palavras, pausa_após={pause_after_s}s")
+
+                prompt = build_prompt(chunk_text, speakers)
+                try:
+                    chunk_pcm = generate_with_retry(client, prompt, speaker_voice_configs)
+                except Exception as exc:
+                    log.warning(f"Gemini TTS falhou no chunk {i}: {exc}")
+                    try:
+                        fallback_data = generate_fallback_edge_tts(chunk_text)
+                    except Exception as fb_exc:
+                        raise RuntimeError(
+                            f"Fallback edge-tts também falhou no chunk {i}: {fb_exc}"
+                        ) from fb_exc
+                    chunk_pcm = fallback_data
+
+                if not _pcm_is_usable(chunk_pcm):
+                    log.warning(
+                        f"Chunk {i}: áudio vazio/quase silêncio "
+                        f"({len(chunk_pcm) if chunk_pcm else 0} bytes) — NÃO concatenado"
+                    )
+                    skipped_empty += 1
+                    if pause_after_s > 0:
+                        silence = generate_silence_wav(min(pause_after_s, 0.4))
+                        all_pcm += silence
+                    continue
+
+                chunk_pcm_44k = resample_pcm(chunk_pcm, from_rate=GEMINI_PCM_RATE, to_rate=SAMPLE_RATE)
+                all_pcm += chunk_pcm_44k
+
+                if pause_after_s > 0:
+                    silence = generate_silence_wav(pause_after_s)
+                    all_pcm += silence
+                    log.info(f"  → Silêncio de {pause_after_s}s inserido após chunk {i}")
+
+            if skipped_empty:
+                log.info(f"Chunks pulados (vazios/curtos): {skipped_empty}")
+
+            if len(all_pcm) < MIN_CHUNK_PCM_BYTES_24K * 10:
+                raise RuntimeError(
+                    f"PCM combinado insuficiente ({len(all_pcm)} bytes) — "
+                    f"todos os chunks falharam ou ficaram vazios."
+                )
+
+            duration_est = len(all_pcm) / (SAMPLE_RATE * SAMPLE_WIDTH * CHANNELS)
+            log.info(f"PCM combinado: {len(all_pcm)} bytes (~{duration_est:.1f}s @ {SAMPLE_RATE}Hz)")
+            wave_file(str(out_path), all_pcm)
+            log.info(f"OK {out_path}")
+    else:
+        # default already handled turns
+        pass
 
     # ── Pós-processamento EBU R128 2-pass (Fase 0.5) ────────────────────────
-    mp3_path = out_path.with_suffix(".mp3")
-    mp3_path = mp3_path.with_name(out_path.stem.replace("-completo", "") + "-vale-da-liberdade.mp3")
+    # Diário canônico: audio/{date}-vale-da-liberdade.mp3 + alias audio/{date}.mp3
+    # BM / caminhos custom (--out fora de audio/ ou --single-speaker):
+    # grava o MP3 AO LADO do WAV e NÃO sobrescreve o episódio diário.
+    out_path = Path(out_path).resolve()
+    default_audio_dir = (project_root / "audio").resolve()
+    is_custom_out = bool(args.out) and out_path.parent.resolve() != default_audio_dir
+    is_single = bool(args.single_speaker)
+
+    if is_custom_out or is_single:
+        # Sibling do WAV: foo-completo.wav → foo.mp3  |  foo.wav → foo.mp3
+        name = out_path.name
+        if name.endswith("-completo.wav"):
+            mp3_name = name[: -len("-completo.wav")] + ".mp3"
+        elif name.endswith(".wav"):
+            mp3_name = name[:-4] + ".mp3"
+        else:
+            mp3_name = out_path.stem.replace("-completo", "") + ".mp3"
+        mp3_path = out_path.parent / mp3_name
+        make_daily_alias = False
+        # Especiais BM ~5 min — gate de 7 min do diário não se aplica
+        min_duration_s = 60.0
+        min_bytes = 100_000
+    else:
+        date_m = re.search(r"(\d{4}-\d{2}-\d{2})", out_path.name + " " + episode_path.name)
+        date_stem = date_m.group(1) if date_m else out_path.stem.replace("-completo", "")
+        mp3_path = default_audio_dir / f"{date_stem}-vale-da-liberdade.mp3"
+        make_daily_alias = True
+        min_duration_s = MIN_FINAL_DURATION_S
+        min_bytes = MIN_FINAL_MP3_BYTES
+
     try:
         run_ffmpeg_chain_2pass(out_path, mp3_path)
         log.info(f"✅ MP3 final com EBU R128 2-pass: {mp3_path}")
+        if make_daily_alias:
+            date_m = re.search(r"(\d{4}-\d{2}-\d{2})", out_path.name + " " + episode_path.name)
+            date_stem = date_m.group(1) if date_m else out_path.stem.replace("-completo", "")
+            delivery = publish_final_mp3(mp3_path, date_stem=date_stem)
+            assert_final_audio_ok(delivery)
+        else:
+            # Gate relaxado (sem alias diário)
+            if not mp3_path.exists():
+                raise RuntimeError(f"MP3 final ausente: {mp3_path}")
+            size = mp3_path.stat().st_size
+            if size < min_bytes:
+                raise RuntimeError(
+                    f"MP3 final pequeno demais: {size} bytes (mín. {min_bytes}). "
+                    f"Arquivo: {mp3_path}"
+                )
+            dur = _ffprobe_duration(mp3_path)
+            if dur is not None and dur < min_duration_s:
+                raise RuntimeError(
+                    f"MP3 final curto demais: {dur:.1f}s (mín. {min_duration_s}s). "
+                    f"Arquivo: {mp3_path}"
+                )
+            log.info(
+                f"✅ Gate BM/custom OK: {mp3_path.name} ({size/1e6:.2f} MB"
+                + (f", {dur/60:.1f} min)" if dur else ")")
+            )
     except Exception as e:
-        log.error(f"Falha no pós-processamento: {e}")
+        log.error(f"Falha no pós-processamento / gate de áudio: {e}")
         log.info(f"WAV sem pós-processamento disponível em: {out_path}")
+        sys.exit(3)
 
 
 if __name__ == "__main__":

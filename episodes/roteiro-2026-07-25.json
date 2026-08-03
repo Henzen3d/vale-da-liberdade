@@ -1,0 +1,358 @@
+{
+  "manchetes": [
+    "Santa Catarina alcança menor taxa de mortes violentas do Brasil em 2025, superando São Paulo.",
+    "Prefeitura de Blumenau investe R$ 6,9 milhões em novos parques para 79 escolas e CEIs.",
+    "Lei autoriza spray de pimenta para defesa pessoal de mulheres em todo o Brasil.",
+    "Clínica estética clandestina em Balneário Camboriú é proibida de atuar e pagará por danos coletivos.",
+    "Hospital Santo Antônio detalha avanço das obras em Blumenau e resultados em Gaspar.",
+    "Blumenau vence por WO após Jaraguá desistir da última rodada da Série B do Catarinense.",
+    "Oktoberfest Blumenau define as dez finalistas da realeza.",
+    "Distrito de Inovação de Blumenau começa a sair do papel com R$ 60 milhões."
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Menor taxa de mortes violentas em Santa Catarina, spray de pimenta liberado para mulheres e Blumenau finalmente ganha um Distrito de Inovação de verdade. Será que o Estado está aprendendo a fazer menos besteira ou só estamos com sorte no noticiário?"
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Peter, a menor taxa de mortes violentas é um dado consolidado do Anuário Brasileiro de Segurança Pública. Isso não é sorte, é resultado de políticas coordenadas e investimento. Agora, o spray de pimenta é um avanço legislativo importante para a segurança feminina e o Distrito de Inovação mostra que Blumenau pode sair do papel quando tem planejamento e gestão."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Planejamento e gestão? Veremos se essa coordenação evita acidentes de trânsito diários, clínicas clandestinas funcionando em residências e a enxurrada de burocracia que paralisa a economia. Hoje vamos desmascarar a eficiência estatal — ou a falta dela — em segurança, saúde, educação, política e muito mais."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Uma saída de pista seguida de colisão contra um muro foi registrada na tarde desta sexta-feira, dia 24, em Lontras. O acidente mobilizou equipes de emergência por volta das 15h45."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Mais um acidente, Ricardo. A infraestrutura é pública, a manutenção é pública e o resultado é previsível: mais um carro fora da pista. Onde está a responsabilidade?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A precipitação pode ter sido um fator, mas o Corpo de Bombeiros Voluntários de Lontras agiu rapidamente e demonstrou capacidade de resposta. É um acidente, não uma falha sistêmica automática."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Capacidade de resposta depois que o estrago já está feito. E a prevenção? A qualidade das estradas, a sinalização, o estado da pista?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Falando em prevenção, o Seminário Regional da Prevenção ao Resgate Técnico Animal acontece no dia 1º de agosto em Agronômica. O evento discutirá o papel da medicina veterinária durante enchentes e outras emergências em Santa Catarina."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Um seminário para falar de resgate de animais em enchentes, Ricardo? Enquanto isso, a burocracia estatal não consegue evitar as enchentes em primeiro lugar. Parece mais um evento para justificar verba pública do que uma solução."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A preparação para desastres é um instrumento legítimo de gestão de riscos. Esse seminário busca aprimorar a resposta em situações de emergência, protegendo pessoas e animais. Não é substituir prevenção, é complementar."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Complementar? E o pior: motoristas em Ituporanga devem ficar atentos à interdição da Rua Castelo Branco, das 8h às 12h, para implantação de rede de drenagem pluvial. Obras no horário de pico, de novo?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Essa interdição visa justamente resolver o problema da drenagem. É um transtorno temporário para um benefício duradouro. A Prefeitura não resolve décadas de infraestrutura em um dia."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Transtorno temporário que se repete a cada obra pública, sempre no pico. Por que não planejar melhor para minimizar o impacto na vida das pessoas?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Em uma notícia de impacto nacional, a Lei nº 15.474/2026 foi sancionada, autorizando em todo o país a comercialização, aquisição e posse de aerossol de extratos vegetais para defesa pessoal da mulher. Em Santa Catarina, já havia lei similar."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Finalmente uma luz! O Estado reconhecendo que a mulher tem o direito de se defender. Mas por que demorou tanto para algo tão óbvio?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "É um passo importante para a segurança feminina. A lei busca dar mais ferramentas de proteção, especialmente em casos de violência. É uma resposta legislativa a uma demanda social real."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Empoderar? O Estado está apenas tirando o monopólio da violência de si mesmo. É o mínimo, não um avanço heroico."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "E para fechar a BR-470: um acidente por volta das 17h50 fez um carro capotar na Serrinha do Belchior, provocando lentidão no sentido Oeste, entre Gaspar e Blumenau. O motorista perdeu o controle; as causas ainda serão apuradas."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Prudência, claro. Mas e a manutenção da rodovia? A sinalização?"
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Vamos agora para o quadro Saúde. Santa Catarina alcançou a menor taxa de Mortes Violentas Intencionais do Brasil em 2025, superando São Paulo. Os dados são do 20º Anuário Brasileiro de Segurança Pública."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Menor taxa de mortes violentas não é saúde pública, Ricardo. É segurança. E mesmo assim, ainda morre gente todos os dias. A comemoração é prematura quando existem estados com taxa ainda alta."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Concordo que não resolve tudo, mas reduzir a mortalidade violenta tem impacto direto na saúde coletiva: menos traumatismos, menos pressão sobre hospitais e menos famílias destruídas. Em Blumenau, acreditamos que esse dado também se reflete no planejamento municipal."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Planejamento municipal? Enquanto isso, o Hospital Santo Antônio finalmente detalha o avanço das obras em Blumenau: uma torre de 10 andares, pronto-socorro pediátrico e operação de resgate em Gaspar. Mas o pediatra ainda depende de aval da Anvisa."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Isso é um avanço real. O hospital reuniu a imprensa, apresentou cronograma e mostrou que a gestão está tentando expandir a capacidade. O primeiro mês em Gaspar já traz resultados."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Avanço real é não precisar de aprovação da Anvisa. É a burocracia atrasando o que a população precisa urgentemente."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Indo para outra pauta: a Praça do Empreendedor de Blumenau terá serviços de CNPJ temporariamente indisponíveis entre os dias 23 e 27 de julho. Abertura, alteração e baixa ficam suspensas por causa da migração para o novo sistema da Receita Federal."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Serviço público cai no meio de uma migração de sistema federal e o empresário que paga impostos todos os dias é quem paga o pato. Planejamento, mais uma vez."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Não é só Blumenau; é federal. E o município avisou com antecedência, inclusive anunciando que a consulta pública seguiria funcionando em horários reduzidos. É menos do que ideal, mas não é caos."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Enquanto isso, o Hospital Annegret Neitzke, em Pouso Redondo, quer implantar um laboratório até o fim do ano para reduzir encaminhamentos para outras cidades. Se realmente cumprir, é um ganho para toda a região do Alto Vale."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Exatamente. Investimento descentralizado diminui a pressão sobre Blumenau e aproxima serviços da população."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Indo agora para o quadro Educação. O Senac de Rio do Sul oferece uma aula experimental gratuita de Florista na segunda-feira, dia 27, às 14h, na unidade do bairro Santana."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Aula de Florista? Bonito, mas não resolve o déficit estrutural da educação municipal. É bom que existam oportunidades de qualificação, mas a administração pública trata educação básica como despensa de merenda e transporte."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Essa aula é profissionalização, não substitui a escola pública. E o Senac tem tradição em qualificação! Agora, não podemos ignorar um investimento maior: a Prefeitura de Blumenau anunciou R$ 6,9 milhões em novos parques infantis para 79 escolas e Centros de Educação Infantil."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "R$ 6,9 milhões? Parece muito, mas dividido por 79 unidades dá pouco por escola. E o mais importante: por que não usam esses recursos para contratar mais professores ou reduzir filas?"
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Mais professores e filas são pautas legítimas, mas não inválidam o investimento em infraestrutura. Criança precisa de espaço seguro para brincar; isso também impacta qualidade."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Impacta, mas não resolve a raiz. E depois anunciam obra como se fosse solução definitiva. A discussão real é o quanto Blumenau está investindo por aluno e se esse valor acompanha a inflação educacional."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "O dado é que 21 unidades já receberam playgrounds em 2026. Se quisermos cobrar continuidade, é importante reconhecer o que ocorreu e pressionar pelo que falta."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Hora do quadro Política e Administração Pública. Em Balneário Camboriú, a Vara da Fazenda Pública condenou uma clínica estética clandestina a parar todas as atividades e pagar danos coletivos por insalubridade e uso de produtos vencidos sem registro na Anvisa."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Clínica clandestina funcionando em uma residência, usando produtos vencidos, colocando vidas em risco. Onde estavam os órgãos de fiscalização enquanto essa casa operava?"
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A sentença atende a uma ação civil pública do Ministério Público de Santa Catarina. O MP moveu, o juízo decidiu e a clínica está proibida. É o Estado reagindo, mas só depois do dano potencial."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Fiscalização reativa, não preventiva. O MP sempre está na ponta, enquanto a prefeitura que poderia evitar o funcionamento acaba blindada pela burocracia. O resultado é esse: danos coletivos, risco à saúde e dinheiro público gasto em processos."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Mudando para Blumenau: a cidade aposta no Distrito de Inovação para atrair empresas, empregos e investimentos. A Prefeitura assinou contrato com o Instituto Gene para tocar um projeto de R$ 60 milhões em área de 1,7 milhão de metros quadrados na Itoupava Seca."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "R$ 60 milhões é um número grande, mas o risco é virar mais um plano bonito que gera renúncia fiscal sem contrapartida clara. Já vimos esse filme antes, Ricardo."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Desta vez há contrato de gestão com uma entidade técnica, cronograma e investimento privado previsto. Também é uma resposta à falta de diversificação econômica real em Blumenau."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Espero que sim, mas quero ver empresas nascendo, não apenas centros de pesquisa recebendo subsídios sem entregar emprego qualificado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Outro ponto: a Prefeitura realizou mais uma ação integrada de abordagem social na madrugada, percorrendo bairros como Itoupava Seca, Garcia e Centro, com 17 acolhimentos."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Ação social de madrugada é importante, mas resolve o sintoma, não a causa. Se a cidade não tiver políticas de moradia e saúde mental, vamos ficar apenas abordando as mesmas pessoas todas as noites."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Não é única solução, mas é parte de uma rede. E a administração informou o número de acolhimentos, o que permite acompanhar."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Indo agora para o quadro Esportes e Interesse Comunitário. O Blumenau Esporte Clube foi declarado vencedor por WO da partida contra o Jaraguá, válida pela última rodada da Série B do Campeonato Catarinense."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "WO? O adversário desistiu e o BEC ganhou sem entrar em campo. Isso é esporte?"
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "O Jaraguá formalizou a desistência por ofício à Federação Catarinense de Futebol. O regulamento prevê o WO quando a mandante não confirma a data. Não foi decisão do BEC."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Mesmo assim, terminar a Série B sem jogar a última rodada é um fim melancólico. O torcedor paga ingresso, acompanha o ano todo e no final não tem clássico. O futebol catarinense precisa de mais credibilidade."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Concordo que o regulamento permite, mas a experiência do torcedor é um ativo que a FCF precisa preservar. Mais rigor e comunicação antecipada dariam transparência."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "E por falar em tradição, a 42ª Oktoberfest Blumenau já tem as dez candidatas que seguem na disputa pela realeza. A seletiva foi no Vila Germânica, com 21 participantes."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Esse número mostra que a festa continua mobilizando a comunidade. Dez finalistas é um processo saudável e mantém viva a identidade cultural de Blumenau."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Desde que não vire apenas evento turístico esquecendo a origem. Oktoberfest tem que ser do povo, não só do VIP."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Também temos o esporte paralímpico: paratletas de Gaspar participam do Meeting Paralímpico Loterias Caixa em Florianópolis, nas modalidades Atletismo e Natação, enquanto cinco professores fazem capacitação do Comitê Paralímpico Brasileiro."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Ações como essa descentralizam o esporte de alto rendimento e mostram que inclusão não é discurso, é investimento em estrutura."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Para fechar, duas rapidinhas da loucura estatal. A Serra de Santa Catarina amanheceu com 0,7°C e geada cobrindo campos em São Joaquim. Defesa Civil confirmou a menor marca do dia entre 5h e 6h."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Geada forte no inverno é normal, mas sempre exige atenção com a agricultura e com a população mais vulnerável. A Defesa Civil acompanhou e a previsão segue dentro do padrão sazonal."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Padrão ou não, todo ano tem produtor perdendo lavoura com geada tardia. Onde está o seguro agrícola descentralizado quando o Estado falha?"
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Exatamente por isso existem discussões sobre maior cobertura, não só assistência reativa."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "E fechando com economia real: Blumenau investiu R$ 60 milhões no Distrito de Inovação. Vamos ver se esse dinheiro volta para o contribuinte em empregos ou se vira mais um elefante branco administrado por políticos amigos."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Acompanharemos cada etapa. Até o próximo episódio."
+    }
+  ],
+  "fechamento": [
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "E assim encerramos mais um episódio, Ricardo. Entre burocracia, acidentes, avanços legislativos tímidos e a eterna busca por liberdade, fica a lição: quanto menos Estado atrapalhando, mais espaço para o indivíduo florescer. Ou você ainda acredita que o Estado vai nos salvar?"
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Acredito em soluções pragmáticas e na capacidade de instituições quando elas funcionam. O Estado tem suas falhas, mas também é instrumento para bem-estar social. A busca é por equilíbrio e eficiência, não por sua abolição."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Equilíbrio que parece nunca chegar. Até semana que vem."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Até semana que vem."
+    }
+  ]
+}

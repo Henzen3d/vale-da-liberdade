@@ -1,10 +1,51 @@
+# Ambiente e credenciais
 .env
-*.wav
-*.mp3
-audio/chunks/
-__pycache__/
-*.pyc
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+*.p12
+tokens*
+
+# Dependências
+node_modules/
 .venv/
 venv/
-node_modules/
+venv_win/
+__pycache__/
+*.pyc
+*.pyo
+
+# Áudios gerados
+audio/*.mp3
+audio/*.wav
+audio/chunks/
+edge.mp3
+piper.wav
+kokoro-v1.0.onnx
+pt_BR-faber-medium.onnx
+pt_BR-faber-medium.onnx.json
+
+# Logs
+logs/
+
+# Métricas e relatórios (podem conter dados sensíveis)
+metrics/reports/
+metrics_registry.json
+
+# Outputs temporários
+output/
+persona_suggestions/
+
+# Arquivos de backup
+*.bak
+*.bak-*
+*.old
+
+# Sistema
 nul
+
+# Configurações com tokens (exceto exemplos)
+config/*.yaml
+!config/*.yaml.example

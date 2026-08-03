@@ -1,0 +1,191 @@
+{
+  "manchetes": [
+    "Capotamento deixa motorista ferido no Salto Pilão, em Lontras",
+    "Furtos de cabos elétricos deixam Lontras sem luz e água",
+    "Incêndio destrói residência de dois andares em Taió",
+    "Homem é encontrado morto às margens da BR-470 em Indaial",
+    "Estudantes vencem Hackathon com projeto anti-desastres em Blumenau",
+    "Cãominhada reúne mais de 5 mil participantes e fortalece adoção responsável em Blumenau"
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Domingo de sol no Vale e o estado de coisas continua o mesmo: capotamento em Lontras, incêndio em Taió, corpo na BR-470 em Indaial. O Estado que monopoliza estrada, segurança e bombeiros entrega caos — e ainda cobra IPVA para manter a máquina."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Nem tudo é caos, Peter. A Cãominhada reuniu 5 mil pessoas em Blumenau, estudantes venceram um Hackathon com projeto de alertas offline para desastres e Rio do Sul abriu concurso com 15 vagas para Guarda Municipal. São respostas locais que funcionam sem depender só do Estado."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Respostas locais não pagam a conta do monopólio. Vamos começar por Lontras: capotamento na Rua Emílio Jacobsen, no Salto Pilão, e 70 metros de fiação furtada que deixaram energia e água faltando. Depois Taió: incêndio em casa de dois andares. E Indaial: mais um corpo às margens de rodovia federal."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Vamos à segurança pública. Na manhã deste domingo (19), um veículo saiu da pista na Rua Emílio Jacobsen, em Lontras, capotou e parou às margens da via com o motorista ferido. Os Bombeiros Voluntários atenderam a ocorrência às margens do Salto Pilão."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Estrada pública, manutenção pública, resultado público. O veículo saiu da pista porque a pavimentação ou a sinalização falharam. O Estado cobra IPVA, pedágio indireto em combustível, e entrega pista onde capotar é rotina."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A PM acionou os Bombeiros e a vítima foi socorrida. Não há registro de velocidade alta ou embriaguez ainda. Considerando o padrão da região, iluminação deficitária e falta de guardrails contribuem para acidentes como esse."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Guardrails custam reais, e o Estado prefere gastar em fiscalização de ar-condicionado de escola a instalar proteção em serra. O monopólio da segurança não impede roubo de cabo nem capotamento: ele só garante a burocracia do atendimento posterior."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Ainda na segurança, dois furtos de cabos elétricos foram registrados esta manhã na localidade de Francisco Rauh, também em Lontras. Ao todo, 70 metros de fiação foram levados, afetando energia e abastecimento de água."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Setenta metros de fiação furtada sem que ninguém veja. O Estado tem câmera de velocidade para multar, mas não tem câmera de vigilância para coibir furto de infraestrutura pública. A prioridade não é segurança: é arrecadação."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "E em Indaial, às margens da BR-470 no quilômetro 67, um homem foi encontrado morto na encosta do Rio Benedito. O corpo foi localizado às 6h50, a PM acionada às 7h16. A causa da morte depende da investigação da Polícia Civil."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Rodovia federal, polícia estadual investigando, corpo sem causa confirmada. Mais uma estatística na estrada que o Estado prometeu duplicar. O contribuinte paga a mesma thing todos os meses: imposto, ineficiência e luto."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Na saúde, os Ambulatórios Gerais da Família Garcia, Velha e Itoupava seguem abertos nos fins de semana de julho, das 8h às 17h. As datas confirmadas são 4 e 5, 11 e 12, 18 e 19 e 25 e 26. São serviços de atendimento ambulatorial e vacinação."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Horário de atendimento público de fim de semana e fila de um ano para neurologista pediatra. O Estado faz show de unidade aberta no sábado de manhã, mas entrega espera eterna para quem precisa de especialista. É marketing, não saúde."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A ampliação aos fins de semana reduz a pressão sobre as UBS de semana. O dado real é que 30 mil pessoas buscam atendimento fora do horário convencional em Blumenau. Três unidades cobrindo essa demanda é pouco, mas é melhor do que zero."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Três unidades para 360 mil habitantes é conta de padeiro que dá fome. Cada AGF atende milhares de pessoas sem consulta de especialista. O paciente com epilepsia continua esperando 12 meses enquanto o vereador anuncia recurso de emenda."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Na educação, onze equipes de estudantes, professores e profissionais da Defesa Civil participaram do Hackathon EducaDC no Senai Blumenau. O desafio era criar soluções para prevenção de desastres e monitoramento de riscos. O vencedor foi o projeto BluAlert, de alertas offline."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Aluno da escola municipal vence Hackathon enquanto a SEMED não consegue manter teto de escola sem goteira. O Estado gasta milhões em tecnologia educacional e quem resolve problema de prevenção de desastre é estudante de 14 anos com aplicativo offline."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "A iniciativa demonstra que a escola pública em rede com a comunidade produz solução de Estado sem precisar de autarquia. O BluAlert pode ser replicado em outras cidades do Vale. A inovação está mais próxima da sala de aula do que do gabinete."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Inovação está na sala de aula porque o gabinete engole orçamento em consultoria. A pergunta é: quantos editais de R$ 2 milhões poderiam financiar dez Hackathons como esse? A burocracia parasitária responde: nenhum, porque consultoria precisa de lagosta."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Na política local, a UVESC realizou uma pesquisa com vereadores catarinenses para levantar demandas municipais. O relatório será entregue aos candidatos a governador e senador durante o período eleitoral. A presidente Marcilei Vignatti diz que o objetivo é ampliar a participação no plano de governo."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Vereadores fazem pesquisa para entregar a candidatos — em outras palavras, fazem lobby municipalista disfarçado de consultoria. O Estado que já tem 37 mil cargos comissionados ainda acha pouco: quer mais recurso, mais poder, mais jeitinho por fora."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O exercício de ouvir vereadores não é inerentemente ruim. Ele pode reduzir o déficit de diálogo entre o Executivo estadual e os municípios. O risco é transformar o documento em lista de pedidos sem prioridade técnica."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Prioridade técnica num Estado que coloca R$ 70 mil mensais de aluguel de Câmara na conta e não resolve. O custo desse relatório sai do bolso do contribuinte que paga IPTU, IPVA, ICMS, PIS, COFINS — e ainda vê favela sem asfalto."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Fechando a parte local com algo positivo: a 31ª Cãominhada de Blumenau reuniu mais de 5 mil participantes e 1.200 cães inscritos neste domingo. É considerada a maior caminhada pet do Sul do Brasil e promove adoção responsável e guarda consciente."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "5 mil pessoas caminhando por conta de cachorro e o Estado não põe um centavo. Isso é sociedade civil funcionando sem orçamento público: gente com ideia, patrocínio privado e zero taxa de inscrição. O Estado só chega para multar se alguém estacionar errado."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A Prefeitura cedeu estrutura de trânsito e logística. Eventos dessa escala precisam de organização pública — não só de boa vontade privada. A questão é qual o limite do gasto, não se o gasto existe."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "O limite do gasto é a sua conta. A Prefeitura gasta R$ 70 mil por mês de aluguel de Câmara e não tem verba para asfaltar rua. Mas para apoiar caminhada de cachorro tem guarda municipal e sinalização viária. A prioridade é óbvia."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "No Brasil, a Copa do Mundo de 2026 terminou com Espanha 1 x 0 na Argentina. Agora o país se prepara para sediar o Mundial Feminino em 2027. A transferência de conhecimento e infraestrutura de São Paulo, Rio e Salvador serve de base para a nova organização."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Peter",
+      "texto": "Estádio que vira elefante branco, bilhão de reais sumido, e agora novo Mundial. O contribuente brasileiro pagará a reforma de estádio com nome de construtora amiga. O legado da Copa anterior foi dívida e estádio abandonado. A lição não entrou na cabeça da CBF."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "O evento movimenta economia, turismo e arrecadação de impostos. O risco de desperdício existe, mas Estados Unidos, Canadá e México também gastaram e conseguiram reuso posterior. O problema não é sediar, é fiscalizar o gasto."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Ricardo",
+      "texto": "No mundo, o show de intervalo da final da Copa teve Robbie Williams, Jennifer Hudson, Shakira, Madonna, Justin Bieber e BTS. Kylie Jenner e Timothée Chalamet estavam nas arquibancadas. Espetáculo privado sem dinheiro público."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Entretenimento privado, bilheteria paga, sem imposto. Diferente de estádio e segurança pública no Brasil, que são estatais. Por que o show de intervalo é privado e o estádio ao redor é dívida pública? Porque a FIFA não pega dinheiro do contribuinte americano."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Ricardo",
+      "texto": "A infraestrutura de transporte e a segurança ao redor recebem recurso público. O show, não. A comparação não é absolutista: Estados Unidos gastam com Copa sim, mas com mecanismos de reuso e sem esquema de propina que conhecemos por aqui."
+    }
+  ],
+  "fechamento": [
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Encerro com isso: Gaspar ensina que um garoto de 11 anos foi mais eficiente que toda a rede de proteção do Estado. Lontras mostra que 70 metros de fiação furtados viram falta de luz. Taió mostra que casa de dois andares vira cinza sem bombeiro a tempo. Indaial mostra que rodovia federal é pista de estatística. A lição é a mesma: o Estado falha sempre."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Eu deixo o recado: acompanhem o andamento do concurso da Guarda Municipal de Rio do Sul, fiscalizem o relatório da UVESC para candidatos e participem dos projetos da sua cidade. A sociedade funciona quando cada um faz a parte — e não quando espera o Estado fazer tudo que ele promete e não entrega."
+    }
+  ]
+}

@@ -3,14 +3,15 @@
 Pipeline unificado do Web Jornal Vale da Liberdade.
 
 Orquestra o fluxo diário de produção do podcast:
-1. Gera template raw para coleta de notícias
-2. Processa roteiro finalizado gerando TTS, manchetes e metadados
-3. Valida o episódio contra o checklist da SKILL
-4. Invoca geração de áudio TTS multi-locutor
-5. Atualiza o arquivo de índice
+1. init — coleta notícias → raw-{date}.md (+ template md se necessário)
+2. roteiro JSON — generate_roteiro_llm.py → roteiro-{date}.json
+3. process — renderiza {date}.md + TTS + manchetes + metadados
+4. validate — checklist de qualidade
+5. audio — TTS multi-locutor
+6. archive — atualiza índice
 
 Uso:
-    # Criar template para um novo dia
+    # Criar template / coletar notícias
     python pipeline.py init --date 2026-06-16
 
     # Processar roteiro finalizado (gerar TTS, manchetes, metadados)
@@ -19,7 +20,7 @@ Uso:
     # Validar um episódio
     python pipeline.py validate --date 2026-06-15
 
-    # Pipeline completo: processar + gerar áudio + atualizar índice
+    # Pipeline completo de ponta a ponta (init → JSON → process → audio)
     python pipeline.py full --date 2026-06-15
 
     # Gerar apenas o áudio a partir do TTS já processado
@@ -53,7 +54,7 @@ from tts_preprocessor import (
 # Imports para automação da coleta de notícias (Fase 2)
 from news_collector import collect_all_news, load_cache, save_cache, load_config
 from ai_news_filter import filter_and_categorize_news
-from generate_script import generate_script, format_script
+from generate_script import generate_script, format_script, render_from_json
 
 try:
     from x_collector import consume_x_tweets_for_pipeline
@@ -61,6 +62,16 @@ try:
 except Exception as e:
     # Falha silenciosa para evitar interrupções no pipeline caso dependências do X falhem
     _X_COLLECTOR_AVAILABLE = False
+    consume_x_tweets_for_pipeline = None  # type: ignore
+
+try:
+    from generate_roteiro_llm import generate_roteiro_json
+    _ROTEIRO_LLM_AVAILABLE = True
+    _ROTEIRO_LLM_IMPORT_ERROR = None
+except Exception as e:
+    _ROTEIRO_LLM_AVAILABLE = False
+    _ROTEIRO_LLM_IMPORT_ERROR = e
+    generate_roteiro_json = None  # type: ignore
 
 def format_raw_markdown(date, sources_used, selected_news):
     categories_map = {
@@ -179,59 +190,105 @@ def get_date_str(args_date: str | None = None) -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def _raw_needs_collect(raw_path: Path) -> bool:
+    """True se o raw não existe ou é placeholder/vazio (ex.: daily-collect.sh legado)."""
+    if not raw_path.exists():
+        return True
+    try:
+        text = raw_path.read_text(encoding="utf-8")
+    except Exception:
+        return True
+    markers_empty = (
+        "Extração automática indisponível",
+        "Cole aqui o conteúdo",
+        "template raw vazio",
+        "Nenhuma notícia",
+    )
+    if any(m.lower() in text.lower() for m in markers_empty):
+        return True
+    # Raw real do collector tem blocos #### • e Resumo
+    has_items = ("#### •" in text) or ("**Resumo**:" in text) or ("- **Resumo**:" in text)
+    if not has_items:
+        return True
+    if len(text.split()) < 80:
+        return True
+    return False
+
+
+def _is_roteiro_template(content: str) -> bool:
+    """Detecta md ainda em template / esqueleto (precisa render a partir do JSON)."""
+    return (
+        "[notícia]" in content
+        or "[frase de impacto" in content
+        or "[reação/complemento" in content
+        or "Confira agora os destaques do dia" in content
+        or len(content.split()) < 500
+    )
+
+
+def _run_news_collection(date: str, hours: int, raw_path: Path) -> None:
+    """Executa coleta + filtro e grava raw-{date}.md (ou fallback)."""
+    print(f"🚀 Iniciando coleta automática de notícias para {date} (janela: {hours}h)...")
+    try:
+        raw_articles = collect_all_news(hours=hours)
+        if _X_COLLECTOR_AVAILABLE:
+            try:
+                tweets = consume_x_tweets_for_pipeline()
+                if tweets:
+                    print(f"📱 Mesclando {len(tweets)} tweets do X na lista de candidatos.")
+                    raw_articles.extend(tweets)
+            except Exception as ex_err:
+                print(f"⚠️  Aviso: Falha ao mesclar tweets do X (o processo continuará): {ex_err}")
+        if raw_articles:
+            selected_news = filter_and_categorize_news(raw_articles)
+            if selected_news:
+                config = load_config()
+                sources_map = {s["id"]: s["name"] for s in config.get("sources", [])}
+                cache = load_cache()
+                last_run_sources = cache.get("last_run", {}).get("sources_used", [])
+                sources_used_names = [sources_map.get(sid, sid) for sid in last_run_sources]
+
+                raw_content = format_raw_markdown(date, sources_used_names, selected_news)
+                raw_path.write_text(raw_content, encoding="utf-8")
+                print(f"✅ Raw automatizado criado com {len(selected_news)} notícias em {raw_path}")
+                add_selected_to_cache(selected_news)
+            else:
+                print("⚠️  Nenhuma notícia selecionada pelo filtro de IA. Criando template raw vazio...")
+                _create_fallback_raw(raw_path, date)
+        else:
+            print("⚠️  Nenhuma notícia recente encontrada nas fontes. Criando template raw vazio...")
+            _create_fallback_raw(raw_path, date)
+    except Exception as e:
+        print(f"❌ Erro durante a coleta automática ({e}). Criando template raw vazio...")
+        _create_fallback_raw(raw_path, date)
+
+
 def cmd_init(date: str, collect: bool = True, hours: int = 48):
     """Cria templates para um novo dia de produção com coleta automática de notícias opcional."""
     EPISODES_DIR.mkdir(parents=True, exist_ok=True)
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 1. Criar ou preencher o raw
+    # 1. Criar ou preencher o raw (recoleta se for placeholder legado)
     raw_path = EPISODES_DIR / f"raw-{date}.md"
-    if raw_path.exists():
-        print(f"⚠️  Arquivo raw já existe: {raw_path}")
+    if collect and _raw_needs_collect(raw_path):
+        if raw_path.exists():
+            print(f"⚠️  Raw existe mas está vazio/placeholder — recoleta: {raw_path}")
+        _run_news_collection(date, hours, raw_path)
+    elif raw_path.exists():
+        print(f"✅ Arquivo raw já populado: {raw_path}")
     else:
-        if collect:
-            print(f"🚀 Iniciando coleta automática de notícias para {date} (janela: {hours}h)...")
-            try:
-                raw_articles = collect_all_news(hours=hours)
-                if _X_COLLECTOR_AVAILABLE:
-                    try:
-                        tweets = consume_x_tweets_for_pipeline()
-                        if tweets:
-                            print(f"📱 Mesclando {len(tweets)} tweets do X na lista de candidatos.")
-                            raw_articles.extend(tweets)
-                    except Exception as ex_err:
-                        print(f"⚠️  Aviso: Falha ao mesclar tweets do X (o processo continuará): {ex_err}")
-                if raw_articles:
-                    selected_news = filter_and_categorize_news(raw_articles)
-                    if selected_news:
-                        config = load_config()
-                        sources_map = {s["id"]: s["name"] for s in config.get("sources", [])}
-                        cache = load_cache()
-                        last_run_sources = cache.get("last_run", {}).get("sources_used", [])
-                        sources_used_names = [sources_map.get(sid, sid) for sid in last_run_sources]
-                       
-                        raw_content = format_raw_markdown(date, sources_used_names, selected_news)
-                        raw_path.write_text(raw_content, encoding="utf-8")
-                        print(f"✅ Raw automatizado criado com {len(selected_news)} notícias em {raw_path}")
-                        add_selected_to_cache(selected_news)
-                    else:
-                        print("⚠️  Nenhuma notícia selecionada pelo filtro de IA. Criando template raw vazio...")
-                        _create_fallback_raw(raw_path, date)
-                else:
-                    print("⚠️  Nenhuma notícia recente encontrada nas fontes. Criando template raw vazio...")
-                    _create_fallback_raw(raw_path, date)
-            except Exception as e:
-                print(f"❌ Erro durante a coleta automática ({e}). Criando template raw vazio...")
-                _create_fallback_raw(raw_path, date)
-        else:
-            print("ℹ️  Coleta automática desabilitada. Criando template raw vazio...")
-            _create_fallback_raw(raw_path, date)
+        print("ℹ️  Coleta automática desabilitada. Criando template raw vazio...")
+        _create_fallback_raw(raw_path, date)
 
-    # 2. Criar roteiro template
+    # 2. Criar roteiro template (não sobrescreve conteúdo rico)
     roteiro_path = EPISODES_DIR / f"{date}.md"
     if roteiro_path.exists():
-        print(f"⚠️  Roteiro já existe: {roteiro_path}")
+        current = roteiro_path.read_text(encoding="utf-8")
+        if _is_roteiro_template(current):
+            print(f"ℹ️  Roteiro existe mas ainda é template/esqueleto: {roteiro_path}")
+        else:
+            print(f"✅ Roteiro já existe com conteúdo rico: {roteiro_path}")
     else:
         template_path = EPISODES_DIR / "TEMPLATE.md"
         if template_path.exists():
@@ -405,31 +462,77 @@ def get_episode_number(date: str) -> int:
         return 1
 
 
-def cmd_process(date: str):
+def ensure_roteiro_json(date: str, force: bool = False) -> Path:
+    """Garante episodes/roteiro-{date}.json (gera via LLM se faltar/inválido)."""
+    json_path = EPISODES_DIR / f"roteiro-{date}.json"
+    if json_path.exists() and not force:
+        try:
+            data = json.loads(json_path.read_text(encoding="utf-8"))
+            if data.get("manchetes") and data.get("quadros") and data.get("fechamento"):
+                # polish leve sem regenerar LLM
+                try:
+                    from naturalize_roteiro import polish_file
+                    polish_file(date)
+                except Exception as exc:
+                    print(f"⚠️  polish naturalidade: {exc}")
+                print(f"✅ roteiro JSON presente: {json_path}")
+                return json_path
+        except Exception:
+            print(f"⚠️  roteiro JSON ilegível — regenerando: {json_path}")
+
+    if not _ROTEIRO_LLM_AVAILABLE:
+        print(f"❌ Módulo generate_roteiro_llm indisponível: {_ROTEIRO_LLM_IMPORT_ERROR}")
+        print(f"   Crie manualmente episodes/roteiro-{date}.json e rode process de novo.")
+        sys.exit(3)
+
+    try:
+        # generate_roteiro_llm já aplica polish + retry 7.1
+        return generate_roteiro_json(date, force=force or not json_path.exists())
+    except Exception as e:
+        print(f"❌ FALHA ao gerar roteiro JSON via LLM: {e}")
+        print(f"   Ação: gere episodes/roteiro-{date}.json (Hermes ou "
+              f"python3 scripts/generate_roteiro_llm.py --date {date})")
+        sys.exit(3)
+
+
+def cmd_process(date: str, force_render: bool = False):
     """Processa o roteiro finalizado, gerando TTS, manchetes e metadados."""
     roteiro_path = EPISODES_DIR / f"{date}.md"
+    json_path = EPISODES_DIR / f"roteiro-{date}.json"
+
     if not roteiro_path.exists():
-        print(f"FALHA: roteiro não encontrado: {roteiro_path}")
-        print(f"  Dica: execute 'python pipeline.py init --date {date}' primeiro.")
-        sys.exit(2)
+        # Se só o JSON existe, renderiza direto
+        if json_path.exists():
+            print(f"ℹ️  MD ausente; renderizando a partir de {json_path.name}")
+            try:
+                md = render_from_json(json_path)
+                roteiro_path.write_text(md, encoding="utf-8")
+            except Exception as e:
+                print(f"FALHA ao renderizar JSON→MD: {e}")
+                sys.exit(3)
+        else:
+            print(f"FALHA: roteiro não encontrado: {roteiro_path}")
+            print(f"  Dica: execute 'python pipeline.py full --date {date}' (init+JSON).")
+            sys.exit(2)
 
     # Verifica se o roteiro já está rico (não é mais template)
     current_content = roteiro_path.read_text(encoding="utf-8")
-    is_template = (
-        "[notícia]" in current_content
-        or "[frase de impacto" in current_content
-        or "[reação/complemento" in current_content
-        or len(current_content.split()) < 500
-    )
+    is_template = _is_roteiro_template(current_content)
 
-    if is_template:
-        # Gera roteiro com personas a partir do raw usando IA
+    if is_template or force_render:
+        # Prefere JSON (Hermes/LLM); generate_script só carrega o JSON
         try:
-            print("🧠 Gerando roteiro com personas Peter/Ricardo via generate_script...")
-            roteiro_obj = generate_script(date)
-            formatted_roteiro = format_script(date, roteiro_obj)
+            if not json_path.exists():
+                print("🧠 roteiro JSON ausente — tentando gerar via LLM...")
+                ensure_roteiro_json(date)
+            print("🧠 Renderizando roteiro com personas Peter/Ricardo via generate_script/JSON...")
+            if force_render and json_path.exists():
+                formatted_roteiro = render_from_json(json_path)
+            else:
+                roteiro_obj = generate_script(date)
+                formatted_roteiro = format_script(date, roteiro_obj)
             roteiro_path.write_text(formatted_roteiro, encoding="utf-8")
-            print(f"✅ Roteiro {date} gerado com sucesso por generate_script.")
+            print(f"✅ Roteiro {date} gerado com sucesso.")
         except Exception as e:
             # FALHA ALTA: não cair mais para fallback (antes: boilerplate)
             # que produziria roteiro enxuto (430 palavras, 3 quadros) que reprova o
@@ -438,7 +541,8 @@ def cmd_process(date: str):
             print("   Abortando em vez de emitir roteiro fallback degradado.")
             print("   Ação: execute o Hermes Agent para gerar episodes/roteiro-"
                   f"{date}.json,")
-            print(f"   ou corrija a causa da falha e rode novamente.")
+            print("   ou: python3 scripts/generate_roteiro_llm.py --date "
+                  f"{date}")
             sys.exit(3)
     else:
         print("✅ Roteiro já populado com conteúdo rico, mantendo.")
@@ -541,11 +645,32 @@ def cmd_validate(date: str):
     return (len(errors) == 0, errors, warnings)
 
 
-def cmd_audio(date: str):
-    """Gera áudio TTS multi-locutor para o episódio."""
+def cmd_audio(date: str, allow_short: bool = False):
+    """Gera áudio TTS multi-locutor para o episódio.
+
+    Cadeia de fallback:
+      1) Gemini multi-TTS (vozes Charon/Schedar)
+      2) MOSS-TTS duas vozes (clone peter_ref / ricardo_ref)
+      3) Edge TTS single-voice + FX Ricardo
+
+    Gates:
+      - roteiro ≥ 1500 palavras (a menos que allow_short)
+      - MP3 final ≥ 1 MB
+      - publica audio/{date}.mp3 como alias de entrega
+    """
+    roteiro_path = EPISODES_DIR / f"{date}.md"
     tts_path = EPISODES_DIR / f"{date}-tts.txt"
+
+    if roteiro_path.exists() and not allow_short:
+        words = len(roteiro_path.read_text(encoding="utf-8").split())
+        if words < 1500:
+            print(
+                f"❌ GATE tamanho: roteiro com {words} palavras (< 1500). "
+                f"Áudio bloqueado. Melhore o roteiro ou use --allow-short-audio."
+            )
+            sys.exit(4)
+
     if not tts_path.exists():
-        # Tentar processar primeiro
         print(f"⚠️  TTS não encontrado, processando roteiro primeiro...")
         tts_path = cmd_process(date)
 
@@ -555,34 +680,140 @@ def cmd_audio(date: str):
         sys.exit(2)
 
     out_path = AUDIO_DIR / f"{date}-completo.wav"
+    hermes_py = Path("/home/osmar/.hermes/hermes-agent/venv/bin/python3")
+    py = str(hermes_py) if hermes_py.exists() else sys.executable
+    env = os.environ.copy()
+
+    def _delivery_ok() -> bool:
+        delivery = AUDIO_DIR / f"{date}.mp3"
+        named = AUDIO_DIR / f"{date}-vale-da-liberdade.mp3"
+        if not delivery.exists() and named.exists():
+            delivery.write_bytes(named.read_bytes())
+        if delivery.exists() and delivery.stat().st_size >= 1_000_000:
+            return True
+        if named.exists() and named.stat().st_size >= 1_000_000:
+            if not delivery.exists():
+                delivery.write_bytes(named.read_bytes())
+            return True
+        return False
+
+    # ── 1) Gemini multi ──────────────────────────────────────────────
     cmd = [
-        sys.executable,
-        str(script),
+        py, str(script),
         "--episode", str(tts_path),
         "--out", str(out_path),
+        "--skip-preprocess",
     ]
-
-    print(f"\n🎙️  Gerando áudio multi-locutor...")
+    print(f"\n🎙️  Gerando áudio multi-locutor (Gemini)...")
+    print(f"   Python: {py}")
     print(f"   Input: {tts_path}")
     print(f"   Output: {out_path}")
 
-    # Passar variáveis de ambiente (inclui GEMINI_API_KEY do .env)
-    env = os.environ.copy()
     result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-    if result.returncode != 0:
-        print(f"FALHA na geração de áudio:")
-        print(f"  stdout: {result.stdout}")
-        print(f"  stderr: {result.stderr}")
-        sys.exit(3)
+    if result.returncode == 0:
+        if result.stdout:
+            print(result.stdout[-1500:])
+        print(f"  ✅ Gemini OK: {out_path}")
+    else:
+        print(f"⚠️  Gemini multi-TTS falhou (exit {result.returncode})")
+        if result.stdout:
+            print(result.stdout[-1500:])
+        if result.stderr:
+            print(result.stderr[-1500:])
+
+        moss_ok = False
+        eleven_ok = False
+
+        # ── 2) ElevenLabs pt-BR (se API key) ─────────────────────────
+        el = SCRIPT_DIR / "tts_fallback_elevenlabs.py"
+        hermes_py = Path("/home/osmar/.hermes/hermes-agent/venv/bin/python3")
+        el_py = str(hermes_py) if hermes_py.exists() else sys.executable
+        if el.exists():
+            print("🔁 Fallback #2: ElevenLabs (Liam/Will pt-BR)...")
+            eb = subprocess.run(
+                [el_py, str(el), "--date", date],
+                capture_output=True,
+                text=True,
+                env=env,
+                cwd=str(PROJECT_ROOT),
+            )
+            if eb.stdout:
+                print(eb.stdout[-2000:])
+            if eb.returncode == 0 and _delivery_ok():
+                print("  ✅ ElevenLabs fallback OK")
+                eleven_ok = True
+            else:
+                print(f"⚠️  ElevenLabs indisponível/falhou (exit {eb.returncode})")
+                if eb.stderr:
+                    print(eb.stderr[-1200:])
+
+        # ── 3) MOSS duas vozes ───────────────────────────────────────
+        moss_ok = False
+        moss = SCRIPT_DIR / "tts_fallback_moss.py"
+        # Prefer dedicated nano venv; fallback to legacy moss-tts-env
+        moss_py_candidates = [
+            Path("/home/osmar/moss-nano-env/bin/python"),
+            Path("/home/osmar/moss-tts-env/bin/python"),
+        ]
+        moss_py = next((p for p in moss_py_candidates if p.exists()), None)
+        if (not eleven_ok) and moss.exists() and moss_py is not None:
+            print("🔁 Fallback #3: MOSS-TTS (Peter/Ricardo clone)...")
+            mb = subprocess.run(
+                [str(moss_py), str(moss), "--date", date],
+                capture_output=True,
+                text=True,
+                env=env,
+                cwd=str(PROJECT_ROOT),
+            )
+            if mb.stdout:
+                print(mb.stdout[-2500:])
+            if mb.returncode == 0 and _delivery_ok():
+                print("  ✅ MOSS fallback OK")
+                moss_ok = True
+            else:
+                print(f"⚠️  MOSS falhou (exit {mb.returncode})")
+                if mb.stderr:
+                    print(mb.stderr[-1500:])
+        elif not eleven_ok:
+            print("⚠️  MOSS fallback indisponível (script ou moss-nano-env ausente)")
+
+        # ── 4) Edge + FX Ricardo ─────────────────────────────────────
+        if not eleven_ok and not moss_ok:
+            fallback = SCRIPT_DIR / "tts_fallback_edge.sh"
+            if fallback.exists():
+                print("🔁 Fallback #4: Edge TTS + FX Ricardo...")
+                fb = subprocess.run(
+                    ["bash", str(fallback), date],
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    cwd=str(PROJECT_ROOT),
+                )
+                print(fb.stdout[-2000:] if fb.stdout else "")
+                if fb.returncode != 0:
+                    print(f"FALHA no fallback Edge:\n{fb.stderr[-2000:]}")
+                    sys.exit(3)
+            else:
+                print("FALHA: todos os backends TTS falharam.")
+                sys.exit(3)
 
     print(f"  ✅ Áudio gerado: {out_path}")
 
-    # O pós-processamento e conversão MP3 agora são feitos pelo generate_gemini_tts_multi.py
-    mp3_path = AUDIO_DIR / f"{date}-vale-da-liberdade.mp3"
-    if mp3_path.exists():
-        print(f"  ✅ MP3 final com pós-processamento: {mp3_path}")
+    delivery = AUDIO_DIR / f"{date}.mp3"
+    named = AUDIO_DIR / f"{date}-vale-da-liberdade.mp3"
+    if not delivery.exists() and named.exists():
+        delivery.write_bytes(named.read_bytes())
+    if delivery.exists():
+        size = delivery.stat().st_size
+        print(f"  ✅ MP3 de entrega: {delivery} ({size/1e6:.2f} MB)")
+        if size < 1_000_000:
+            print(f"❌ GATE áudio: MP3 < 1 MB ({size} bytes)")
+            sys.exit(3)
+    elif named.exists():
+        print(f"  ✅ MP3: {named}")
     else:
-        print(f"  ⚠️  MP3 final não encontrado (pós-processamento pode ter falhado). WAV em: {out_path}")
+        print(f"  ⚠️  MP3 final não encontrado (WAV em: {out_path})")
+        sys.exit(3)
 
     return out_path
 
@@ -605,17 +836,49 @@ def cmd_update_archive(date: str):
     print(f"  ✅ Índice atualizado: {index_path}")
 
 
-def cmd_full(date: str):
-    """Pipeline completo: process + validate + audio + archive."""
+def cmd_full(
+    date: str,
+    hours: int = 48,
+    collect: bool = True,
+    skip_audio: bool = False,
+    force_roteiro: bool = False,
+    allow_short_audio: bool = False,
+):
+    """Pipeline completo de ponta a ponta:
+
+    init (coleta) → roteiro JSON (LLM) → process (MD+TTS) → validate → audio → archive
+    """
     print(f"🚀 Pipeline completo para {date}")
     print("=" * 50)
 
-    # 1. Processar roteiro
-    print("\n📝 Etapa 1/4 — Processamento do roteiro")
-    cmd_process(date)
+    # 1. Coleta + templates
+    print("\n📥 Etapa 1/7 — Init / coleta de notícias")
+    cmd_init(date, collect=collect, hours=hours)
 
-    # 2. Validar
-    print("\n🔍 Etapa 2/4 — Validação")
+    raw_path = EPISODES_DIR / f"raw-{date}.md"
+    if _raw_needs_collect(raw_path):
+        print(f"❌ FALHA: raw-{date}.md ficou vazio após init. Abortando full.")
+        sys.exit(2)
+
+    # 2. Garantir JSON do roteiro (LLM se necessário)
+    print("\n🧠 Etapa 2/7 — Roteiro JSON (LLM se necessário)")
+    md_path = EPISODES_DIR / f"{date}.md"
+    md_is_thin = (not md_path.exists()) or _is_roteiro_template(
+        md_path.read_text(encoding="utf-8")
+    )
+    json_path = EPISODES_DIR / f"roteiro-{date}.json"
+    if force_roteiro or md_is_thin or not json_path.exists():
+        ensure_roteiro_json(date, force=force_roteiro)
+    else:
+        print(f"✅ Mantendo JSON existente (MD já rico): {json_path}")
+
+    # 3. Processar (render MD se template + TTS + metadados)
+    print("\n📝 Etapa 3/7 — Processamento do roteiro (MD + TTS)")
+    # Se MD é template ou force, re-renderiza a partir do JSON
+    cmd_process(date, force_render=force_roteiro or md_is_thin)
+
+    # 4. Validar
+    print("\n🔍 Etapa 4/7 — Validação")
     ok, errors, warnings = cmd_validate(date)
     if not ok:
         print("\n❌ Episódio tem problemas críticos. Pipeline abortado.")
@@ -627,38 +890,155 @@ def cmd_full(date: str):
         for w in warnings:
             print(f"  {w}")
 
-    # 3. Gerar áudio
-    print("\n🎙️  Etapa 3/4 — Geração de áudio")
-    cmd_audio(date)
+    # 5. Gerar áudio
+    if skip_audio:
+        print("\n🎙️  Etapa 5/7 — Áudio IGNORADO (--skip-audio)")
+    else:
+        print("\n🎙️  Etapa 5/7 — Geração de áudio")
+        cmd_audio(date, allow_short=allow_short_audio)
 
-    # 4. Atualizar arquivo
-    print("\n📁 Etapa 4/4 — Atualização do índice")
+    # 6. Atualizar arquivo
+    print("\n📁 Etapa 6/7 — Atualização do índice")
     cmd_update_archive(date)
+
+    # 7. Publicar site estático
+    print("\n🌐 Etapa 7/7 — Publicar site (public/)")
+    cmd_publish_site(date)
 
     print("\n" + "=" * 50)
     print(f"✅ Pipeline completo finalizado para {date}")
 
+
+def cmd_publish_site(date: str | None = None):
+    """Upload áudio para Cloudflare R2 (espelho local) + rebuild PWA + catálogo/RSS.
+
+    Fluxo:
+      1. Upload R2 (espelho do áudio)
+      2. Reconstrução da PWA (build_site.py) — gera estrutura HTML + episodes.json
+      3. Atualização de feed RSS/JSON (publish_site.py)
+    """
+    py = sys.executable
+
+    # 1. Upload R2 + espelho public/audio/{date}.mp3
+    if date:
+        r2_script = SCRIPT_DIR / "upload_r2.py"
+        candidates = [
+            AUDIO_DIR / f"{date}.mp3",
+            AUDIO_DIR / f"{date}-vale-da-liberdade.mp3",
+            AUDIO_DIR / f"{date}-completo.mp3",
+        ]
+        mp3_path = next((p for p in candidates if p.exists() and p.stat().st_size > 1000), None)
+        if r2_script.exists() and mp3_path is not None:
+            print(f"\n☁️  Enviando áudio para Cloudflare R2 ({mp3_path.name})...")
+            try:
+                r = subprocess.run(
+                    [py, str(r2_script), "--date", date, "--file", str(mp3_path)],
+                    cwd=str(PROJECT_ROOT),
+                    text=True,
+                )
+                if r.returncode != 0:
+                    print(f"⚠️  upload_r2 exit {r.returncode} — public/ ainda pode servir local")
+            except Exception as e:
+                print(f"⚠️  Falha no upload R2 (fallback local): {e}")
+        else:
+            print(f"ℹ️  Sem MP3 para {date} — pulando R2")
+
+    # 2. Reconstrução do Portal Web PWA (build_site.py)
+    build_script = SCRIPT_DIR / "build_site.py"
+    if build_script.exists():
+        print("\n🌐 Reconstruindo Portal Web PWA (build_site.py)...")
+        try:
+            r = subprocess.run(
+                [py, str(build_script)],
+                cwd=str(PROJECT_ROOT),
+                text=True,
+                capture_output=True,
+            )
+            if r.stdout:
+                print(r.stdout[-1500:])
+            if r.returncode != 0:
+                print(f"⚠️  build_site falhou (exit {r.returncode})")
+                if r.stderr:
+                    print(r.stderr[-800:])
+        except Exception as e:
+            print(f"⚠️  Falha ao executar build_site.py: {e}")
+    else:
+        print("⚠️  scripts/build_site.py não encontrado")
+
+    # 3. Catálogo + feed
+    pub = SCRIPT_DIR / "publish_site.py"
+    if not pub.exists():
+        print("⚠️  scripts/publish_site.py não encontrado")
+        return
+    cmd = [py, str(pub)]
+    if date:
+        cmd += ["--date", date]
+    print("\n🌐 Atualizando catálogo/RSS (publish_site.py)...")
+    print(f"  → {' '.join(cmd)}")
+    r = subprocess.run(cmd, cwd=str(PROJECT_ROOT), text=True, capture_output=True)
+    if r.stdout:
+        print(r.stdout[-2000:])
+    if r.returncode != 0:
+        print(f"⚠️  publish_site falhou (exit {r.returncode})")
+        if r.stderr:
+            print(r.stderr[-1000:])
+    else:
+        print("  ✅ Site atualizado em public/ (UX PWA preservada)")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pipeline Web Jornal Vale da Liberdade")
-    parser.add_argument("command", choices=["init", "collect", "process", "validate", "audio", "full", "update-archive"])
+    parser.add_argument(
+        "command",
+        choices=["init", "collect", "process", "validate", "audio", "full", "update-archive", "roteiro", "deliver-check", "publish"],
+    )
     parser.add_argument("--date", help="Data no formato YYYY-MM-DD")
     parser.add_argument("--hours", type=int, default=48, help="Janela de horas para coleta")
-    parser.add_argument("--no-collect", action="store_true", help="Desabilita coleta automática no init")
-    
+    parser.add_argument("--no-collect", action="store_true", help="Desabilita coleta automática no init/full")
+    parser.add_argument("--skip-audio", action="store_true", help="No full: pula geração de áudio")
+    parser.add_argument(
+        "--force-roteiro",
+        action="store_true",
+        help="No full/roteiro: regenera JSON mesmo se já existir",
+    )
+    parser.add_argument(
+        "--allow-short-audio",
+        action="store_true",
+        help="Permite gerar áudio mesmo com roteiro < 1500 palavras (não recomendado)",
+    )
+
     args = parser.parse_args()
     date = get_date_str(args.date) if args.date else datetime.now().strftime("%Y-%m-%d")
-    
+
     if args.command == "init":
         cmd_init(date, collect=not args.no_collect, hours=args.hours)
     elif args.command == "collect":
         cmd_collect(date, hours=args.hours)
+    elif args.command == "roteiro":
+        ensure_roteiro_json(date, force=args.force_roteiro)
+    elif args.command == "deliver-check":
+        script = SCRIPT_DIR / "delivery_health_check.sh"
+        if not script.exists():
+            print(f"FALHA: {script} não encontrado")
+            sys.exit(2)
+        r = subprocess.run(["bash", str(script), "--json"], text=True)
+        sys.exit(r.returncode)
     elif args.command == "process":
         cmd_process(date)
     elif args.command == "validate":
         cmd_validate(date)
     elif args.command == "audio":
-        cmd_audio(date)
+        cmd_audio(date, allow_short=args.allow_short_audio)
     elif args.command == "full":
-        cmd_full(date)
+        cmd_full(
+            date,
+            hours=args.hours,
+            collect=not args.no_collect,
+            skip_audio=args.skip_audio,
+            force_roteiro=args.force_roteiro,
+            allow_short_audio=args.allow_short_audio,
+        )
     elif args.command == "update-archive":
         cmd_update_archive(date)
+    elif args.command == "publish":
+        cmd_publish_site(date if args.date else None)

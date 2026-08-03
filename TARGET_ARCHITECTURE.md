@@ -265,7 +265,7 @@ Nacional/Internacional e Social são compartilhados.
 
 ---
 
-## 8. Personalização (futuro, pós-Fase 6)
+## 8. Personalização e Distribuição (futuro, pós-Fase 6)
 
 - **`listeners/`** — perfis de ouvinte com interesses por quadro (segurança, política, esportes).
 - **Feed personalizado** — reordena/destaca quadros por perfil.
@@ -273,28 +273,181 @@ Nacional/Internacional e Social são compartilhados.
   (TF-IDF sobre roteiros transcritos).
 - **Multi-formato** — a partir do mesmo `roteiro-{date}.json`: áudio longo (15min), versão
   curta (5min highlights), newsletter texto, threads para redes.
+- **Portal web dinâmico** — gerador estático automático com player, transcrição e dashboard (Fase 7).
+- **Feed RSS de podcast** — distribuição automatizada em Spotify/Apple Podcasts (Fase 8).
+- **TTS híbrida local** — engine Kokoro/Piper como fallback zero-custo (Fase 9).
+- **Chat interativo** — widget de debate sob demanda com personas no portal (Fase 10).
+- **Sonoplastia e Vinhetas** — inserção de música de fundo, transições e blocos de anúncios (Fase 11).
 
 > Escopo futuro — não bloqueia as Fases 0-6. O contrato JSON já prepara o terreno.
+> Planos detalhados de execução estão em `ROADMAP.md` Fases 7-11.
 
 ---
 
 ## 9. Migração do estado atual → alvo
 
-| Componente atual | Componente alvo | Mudança |
-|---|---|---|
-| `ai_news_filter.py` (Gemini) | Camada determinística + Hermes editorial | Remove Gemini; adiciona scoring programático |
-| `generate_script.py` (Gemini) | Renderer JSON→MD + Hermes inline | Remove Gemini; Hermes gera JSON |
-| `news_collector.py` | + dedup semântica + clustering | Adiciona |
-| `x_collector.py` (desconectado) | Editor Social conectado | Adiciona caller em `cmd_collect` |
-| `sources.json` (só local) | + nacional/internacional por região | Adiciona feeds + campo `scope` |
-| `tts_preprocessor.py` (dict estático) | + `num2words` + lexicon | Substitui normalização |
-| `generate_gemini_tts_multi.py` | + chunking + pausas + 2-pass | Aprimora |
-| `pipeline.py` (sem checkpoint) | + checkpointing + dead-letter | Adiciona |
-| — (sem config regional) | `config/regions/*.yaml` | Novo |
+| Componente atual | Componente alvo | Mudança | Fase |
+|---|---|---|---|
+| `ai_news_filter.py` (Gemini) | Camada determinística + Hermes editorial | Remove Gemini; adiciona scoring programático | 1 |
+| `generate_script.py` (Gemini) | Renderer JSON→MD + Hermes inline | Remove Gemini; Hermes gera JSON | 1 |
+| `news_collector.py` | + dedup semântica + clustering | Adiciona | 2 |
+| `x_collector.py` (desconectado) | Editor Social conectado | Adiciona caller em `cmd_collect` | 2 |
+| `sources.json` (só local) | + nacional/internacional por região | Adiciona feeds + campo `scope` | 3 |
+| `tts_preprocessor.py` (dict estático) | + `num2words` + lexicon | Substitui normalização | 5 |
+| `generate_gemini_tts_multi.py` | + chunking + pausas + 2-pass | Aprimora | 5 |
+| `pipeline.py` (sem checkpoint) | + checkpointing + dead-letter | Adiciona | 6 |
+| — (sem config regional) | `config/regions/*.yaml` | Novo | 6 |
+| `public/index.html` (estático manual) | Gerador estático automático (`build_site.py`) | Substitui; player + transcrição + dashboard | 7 |
+| — (sem feed podcast) | `generate_podcast_rss.py` → `public/podcast.xml` | Novo; distribuição Spotify/Apple | 8 |
+| `generate_gemini_tts_multi.py` (só Gemini) | + `generate_kokoro_tts.py` (híbrido) | Adiciona fallback local zero-custo | 9 |
+| — (sem interação web) | `chat_api.py` + widget frontend | Novo; debate sob demanda | 10 |
+| `concat_files` em `generate_gemini...` | `generate_audio_mix.py` (mixagem) | Adiciona intros, transições e ducking | 11 |
 
 A maior parte do código existente é **aproveitada** — a migração é de responsabilidade
-(filtro/roteiro saem do Gemini) e de acréscimo (clustering, nacional/intl, observabilidade),
-não de reescrita.
+(filtro/roteiro saem do Gemini) e de acréscimo (clustering, nacional/intl, observabilidade,
+portal web, distribuição, TTS local, interação, sonoplastia), não de reescrita.
 
 ---
-*Mantido por: Hermes Agent | Última atualização: 2026-06-20*
+
+## 10. Portal Web Dinâmico (Fase 7)
+
+```
+                          ┌──────────────────────────┐
+                          │    build_site.py           │
+                          │    (gerador estático)       │
+                          └─────────────┬────────────┘
+                                        │
+              ┌─────────────┬─────────┼──────────┬───────────┐
+              │             │         │          │           │
+     archive/index.md  *-metadata  roteiro.md  audio/*.mp3  stats
+              │             │         │          │       (calculadas)
+              └─────────────┴─────────┼──────────┴───────────┘
+                                        │
+                                        ▼
+                          ┌──────────────────────────┐
+                          │  public/index.html         │
+                          │  ─ Player customizado       │
+                          │  ─ Transcrição estilizada   │
+                          │  ─ Fontes do dia            │
+                          │  ─ Dashboard estatísticas   │
+                          │  ─ Arquivo de episódios     │
+                          └──────────────────────────┘
+```
+
+O portal é regenerado a cada run do pipeline (`cmd_full`). Não há servidor dinâmico — é puro HTML/CSS/JS estático servido pelo Nginx/Cloudflare.
+
+---
+
+## 11. Feed RSS de Podcast (Fase 8)
+
+Arquivo `public/podcast.xml` compatível com RSS 2.0 + namespaces iTunes/Podcast.
+Gerado automaticamente pelo `generate_podcast_rss.py` a cada publicação.
+Configuração centralizada em `sources/podcast_config.json`.
+
+Permite distribuição em:
+- Spotify for Podcasters
+- Apple Podcasts Connect
+- Google Podcasts
+- Deezer
+- Qualquer agregador RSS
+
+---
+
+## 12. Engine TTS Híbrida (Fase 9)
+
+```
+                    ┌───────────────────────────┐
+                    │  pipeline.py cmd_audio      │
+                    │  --tts-engine=hybrid         │
+                    └─────────────┬─────────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │  Tenta Gemini TTS            │
+                    │  (multi-locutor nativo)       │
+                    └────────┬─────────┬────────┘
+                             │ OK      │ Falha/RPD
+                             ▼         ▼
+                       ┌───────┐  ┌────────────────┐
+                       │  .mp3  │  │ Kokoro/Piper     │
+                       └───────┘  │ (local, ONNX)    │
+                                  │ + ffmpeg pitch   │
+                                  │ + diferenciação   │
+                                  └────────┬───────┘
+                                           │
+                                     ┌───────┐
+                                     │  .mp3  │
+                                     └───────┘
+```
+
+Três modos: `gemini` (padrão), `kokoro` (local, custo zero), `hybrid` (fallback automático).
+
+---
+
+## 13. Chat Interativo com Personas (Fase 10)
+
+```
+    ┌────────────────────┐
+    │  Ouvinte no portal  │
+    │  (browser)          │
+    └─────────┬──────────┘
+              │ POST /api/chat
+              ▼
+    ┌────────────────────┐
+    │  chat_api.py         │
+    │  (FastAPI)           │
+    │  - Rate limit/IP     │
+    │  - Scraping de URL   │
+    │  - Prompt personas   │
+    └─────────┬──────────┘
+              │
+              ▼
+    ┌────────────────────┐
+    │  GeminiClient        │
+    │  (gemini-3.5-flash)  │
+    └─────────┬──────────┘
+              │ JSON debate
+              ▼
+    ┌────────────────────┐
+    │  Widget frontend     │
+    │  (bolhas Peter/      │
+    │   Ricardo estilizadas)│
+    │  + botão "Ouvir"     │
+    └────────────────────┘
+```
+
+Segue exatamente as personas de `SKILL.md` seções 5-6 e as regras de tom e anti-racionalização.
+Toda comunicação com a API é server-side (chave nunca exposta).
+
+---
+
+## 14. Sonoplastia e Monetização (Fase 11)
+
+```
+                       ┌────────────────┐
+                       │ Roteiro (JSON) │
+                       │ com [AD_SLOT]  │
+                       └────────┬───────┘
+                                ▼
+                       ┌────────────────┐
+                       │  TTS Pipeline  │
+                       │ (falas brutas) │
+                       └────────┬───────┘
+                                │
+    ┌────────────────┐          ▼
+    │ assets/audio/  │    ┌───────────────────────────┐
+    │ - intro.mp3    ├───►│ generate_audio_mix.py     │
+    │ - ads/*.mp3    │    │ (ffmpeg/pydub assembly)   │
+    │ - bed.mp3      │    └─────────────┬─────────────┘
+    └────────────────┘                  │
+                                        ▼
+                                ┌────────────────┐
+                                │ Final Mix.mp3  │
+                                │ (com ducking   │
+                                │  e EBU R128)   │
+                                └────────────────┘
+```
+
+O roteiro prevê pontos de transição. O script de mixagem inteligente costura a voz sintetizada com as vinhetas estáticas, aplica a trilha de fundo e normaliza o volume final. Permite inserção rotativa de anúncios para monetização.
+
+---
+*Mantido por: Hermes Agent | Última atualização: 2026-06-24*

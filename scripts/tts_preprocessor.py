@@ -51,7 +51,10 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 TTS_SUBSTITUTIONS: dict[str, str] = {
-    # Siglas — pronúncia soletrada
+    # Siglas — pronúncia natural/soletrada quando necessário
+    "web": "ueb",
+    "BR-470": "B-R quatrocentos e setenta",
+    "BR-163": "B-R cento e sessenta e três",
     "STF": "S-T-F",
     "STJ": "S-T-J",
     "TSE": "T-S-E",
@@ -64,11 +67,12 @@ TTS_SUBSTITUTIONS: dict[str, str] = {
     "CGU": "Controladoria Geral da União",
     "SEMED": "Secretaria Municipal de Educação",
     "UPA": "U-P-A",
-    "SUS": "S-U-S",
+    "SUS": "SUS",
     "PM": "Polícia Militar",
     "PC": "Polícia Civil",
     "PF": "Polícia Federal",
     "MP": "Ministério Público",
+    "MPSC": "M-P-S-C",
     "OAB": "O-A-B",
     "CPI": "C-P-I",
     "PIX": "P-I-X",
@@ -88,7 +92,15 @@ TTS_SUBSTITUTIONS: dict[str, str] = {
     "BR": "B-R",
     "SC": "S-C",
     "ALESC": "Alésc",
-    # Símbolos
+    "JASC": "jasc",
+    "GRAC": "grac",
+    "Univali": "UNIVALE",
+    "RG": "R-G",
+    "CNH": "C-N-H",
+    # Pronúncia regional / estrangeirismos
+    "Padre João Bachmann": "Padre João Baquemam",
+    "RUN": "rãm",
+    # Símbolos / unidades
     "R$": "reais",
     "%": " por cento",
     "m²": "metros quadrados",
@@ -218,8 +230,9 @@ def _normalize_years(text: str) -> str:
 def _normalize_times(text: str) -> str:
     """
     Normaliza horas: 21h40 → 'vinte e uma horas e quarenta'
-                     14h → 'quatorze horas'
-                     9h30 → 'nove horas e trinta'
+                    14h → 'quatorze horas'
+                    9h30 → 'nove horas e trinta'
+                    22h20min → 'vinte e duas horas e vinte' (consome sufixo 'min')
     """
     def _replace_time(match):
         hour = int(match.group(1))
@@ -230,10 +243,57 @@ def _normalize_times(text: str) -> str:
             return f"{hour_w} horas e {min_w}"
         return f"{hour_w} horas"
 
-    return re.sub(r"(\d{1,2})h(\d{2})?", _replace_time, text)
+    # Ordem importa: 22h20min (com sufixo min) ANTES de 22h20 simples,
+    # para não deixar 'min' colado (ex.: 'vintemin').
+    text = re.sub(r"(\d{1,2})h(\d{2})min\b", _replace_time, text, flags=re.IGNORECASE)
+    text = re.sub(r"(\d{1,2})h(\d{2})?", _replace_time, text)
+    return text
 
 
-def _normalize_plain_numbers(text: str) -> str:
+def _normalize_durations(text: str) -> str:
+    """
+    Normaliza durações curtas em minutos: 28min ou 28m → 'vinte e oito minutos'.
+    Usa word boundary em 'm' para não conflitar com 'm²', 'mil', 'metros', etc.
+    Não toca em 'km' (quilômetros) nem em 'm' dentro de outras palavras.
+    """
+    def _replace_min(match):
+        val = int(match.group(1))
+        return f"{_number_to_words(val)} minutos"
+
+    def _replace_m(match):
+        val = int(match.group(1))
+        return f"{_number_to_words(val)} minutos"
+
+    # 28min | 28MIN  (sempre minuto)
+    text = re.sub(r"(\d+)\s*min\b", _replace_min, text, flags=re.IGNORECASE)
+    # 28m (letra m isolada, com word boundary). Protege contra "3m de tubulação"
+    # (metro, não minuto): não converte se seguido de " de <substantivo>".
+    text = re.sub(r"(\d+)\s*m\b(?!\s+de\b)", _replace_m, text)
+    return text
+
+
+def _normalize_roads(text: str) -> str:
+    """
+    Normaliza rodovias para extenso em pt-BR: BR-470 → 'BR quatrocentos e setenta'.
+    Também aceita prefixos de UF (SC-470, PR-101, etc.) e a palavra 'rodovia'.
+    Converte apenas o número após o hífen; preserva o prefixo (BR/SC/PR...).
+    """
+    def _replace_road(match):
+        prefix = match.group(1)  # ex.: 'BR', 'SC', 'rodovia BR'
+        num = int(match.group(2))
+        return f"{prefix} {_number_to_words(num)}"
+
+    # BR-470 | SC-101 | rodovia BR-470 | Rodovia SC-101
+    text = re.sub(
+        r"\b((?:rodovia\s+)?[A-Z]{2})-(\d{1,6})\b",
+        _replace_road,
+        text,
+        flags=re.IGNORECASE,
+    )
+    return text
+
+
+def _normalize_plain_numbers(text: str):
     """
     Converte números isolados para extenso em pt-BR.
     Evita converter: anos (tratados por _normalize_years), rodovias (preservadas),
@@ -264,8 +324,11 @@ def _apply_num2words_normalization(text: str) -> str:
     text = _normalize_currency(text)
     text = _normalize_dates(text)
     text = _normalize_times(text)
+    text = _normalize_durations(text)
     text = _normalize_years(text)
     text = _normalize_percentage(text)
+    # Rodovias (BR-470 → BR quatrocentos e setenta) antes dos números simples
+    text = _normalize_roads(text)
     # Números simples por último (após moeda/data/hora para não conflitar)
     text = _normalize_plain_numbers(text)  # Habilitado (Fase 5.1)
     return text
@@ -501,6 +564,22 @@ def _extract_speaker_lines(text: str) -> str:
     return "\n".join(cleaned).strip()
 
 
+def _fix_peter_pronunciation(text: str) -> str:
+    """Peter (nome) → Piter na fala; mantém rótulo 'Peter:' para o multi/turns."""
+    # Proteger rótulos de locutor no início da linha
+    text = re.sub(
+        r"^(Peter)\s*:",
+        r"<<<SPK_PETER>>>:",
+        text,
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    # Nome falado (Ricardo citando, etc.)
+    text = re.sub(r"\bPeter\b", "Piter", text)
+    text = re.sub(r"\bpeter\b", "Piter", text)
+    text = text.replace("<<<SPK_PETER>>>:", "Peter:")
+    return text
+
+
 def preprocess_for_tts(markdown_text: str) -> str:
     """
     Pipeline completo de pré-processamento para TTS.
@@ -530,6 +609,22 @@ def preprocess_for_tts(markdown_text: str) -> str:
 
     # 5. Aplicar lexicon de pronúncia regional (Fase 5.2)
     text = _apply_pronunciation_lexicon(text)
+
+    # 5b. Peter → Piter (pronúncia EN) sem quebrar rótulo Peter:
+    text = _fix_peter_pronunciation(text)
+
+    # 5c. Vírgula ao redor de nomes de locutor → pausa artificial no TTS
+    #     "estado, Peter" → "estado Peter" ; "Peter, você" → "Peter você"
+    def _soften_names_line(line: str) -> str:
+        if not (line.startswith("Peter:") or line.startswith("Ricardo:")):
+            return line
+        sp, _, body = line.partition(":")
+        body = re.sub(r",\s*(Peter|Ricardo|Piter)\b", r" \1", body)
+        body = re.sub(r"\b(Peter|Ricardo|Piter),\s+", r"\1 ", body)
+        body = re.sub(r"\s{2,}", " ", body)
+        return f"{sp}:{body}"
+
+    text = "\n".join(_soften_names_line(l) for l in text.split("\n"))
 
     # 6. Extrair apenas linhas de falas
     text = _extract_speaker_lines(text)
@@ -727,12 +822,34 @@ def validate_episode(markdown_text: str) -> list[str]:
     if libertarian_count < 3:
         issues.append("⚠️ Poucas referências ao viés libertário (recomendado: pelo menos 3 menções)")
 
-    # 6. Estimativa de duração
+    # 6. Estimativa de duração — GATE de tamanho (item 4)
+    # Meta: 2000–2500 palavras (~15 min). Piso duro antes do áudio: 1500 (~8–10 min).
     word_count = len(markdown_text.split())
     if word_count < 1500:
-        issues.append(f"⚠️ Roteiro curto ({word_count} palavras) — meta: 2000-2500 palavras (~15 min)")
+        issues.append(
+            f"❌ Roteiro curto demais para áudio ({word_count} palavras) — "
+            f"mínimo 1500 (~8 min); meta 2000-2500 (~15 min)"
+        )
+    elif word_count < 2000:
+        issues.append(
+            f"⚠️ Roteiro abaixo da meta ({word_count} palavras) — meta: 2000-2500 palavras (~15 min)"
+        )
     elif word_count > 3000:
         issues.append(f"⚠️ Roteiro longo ({word_count} palavras) — meta: 2000-2500 palavras (~15 min)")
+
+    # 7. Naturalidade / dinâmica conversacional (SKILL §7.1)
+    try:
+        try:
+            from validate_naturalidade import validate_naturalidade
+        except ImportError:
+            _scripts = str(Path(__file__).resolve().parent)
+            if _scripts not in sys.path:
+                sys.path.insert(0, _scripts)
+            from validate_naturalidade import validate_naturalidade
+
+        issues.extend(validate_naturalidade(markdown_text))
+    except Exception as exc:
+        issues.append(f"⚠️ Naturalidade: validador indisponível ({exc})")
 
     return issues
 

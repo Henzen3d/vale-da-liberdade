@@ -1,0 +1,178 @@
+{
+  "manchetes": [
+    "Resgate aéreo atende vítima grave presa nas ferragens após colisão na BR-470",
+    "Defesa Civil alerta para chuva intensa e risco de alagamentos em Santa Catarina",
+    "Jovem é preso no Passo Manso por calote em corrida de aplicativo",
+    "Azul é a única interessada em operar rota de voo Blumenau a Florianópolis",
+    "Coleta de recicláveis cresce quase 50% em Rio do Sul"
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Uma colisão frontal na BR-470 deixa motorista preso nas ferragens enquanto a Defesa Civil emite alerta de tempestade para Santa Catarina inteira. Bem-vindos ao Webjornal Vale da Liberdade."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Os socorristas e o helicóptero Arcanjo 03 agiram rápido em Rodeio mas a infraestrutura da rodovia segue exigindo atenção extrema."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Hoje examinamos o custo do abandono das estradas a maquiagem dos programas governamentais e as novidades no Alto Vale."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O Arcanjo 03 precisou resgatar o motorista de um Onix preso nas ferragens após uma colisão frontal seguida de queda em ribanceira na BR-470 em Rodeio."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Ferragens na BR-470 Ricardo. É a mesma pista de sempre que engole impostos e entrega resgates dramáticos em vez de pista dupla descente."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A gravidade exigiu intervenção aeromédica imediata para salvar a vítima no local."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Salvar o cidadão das estradas que o próprio Estado não consegue manter transitáveis."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Falando em risco a Defesa Civil emitiu alerta moderado para temporais isolados em todo o estado das 12h até as 23h59 deste domingo."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Alerta até as onze da noite para alagamentos e falta de luz. O governo avisa no celular mas o bueiro continua entupido."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Alertas antecipados previnem tragédias e orientam a população sobre quedas de árvores e destelhamentos."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Prevenir com mensagem de texto é fácil quero ver limpar calha pública."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "No Passo Manso em Blumenau a Polícia Militar prendeu um jovem de 18 anos que pegou corrida de aplicativo desde Rio dos Cedros e se recusou a pagar escondendo-se nos fundos de uma casa."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Escondido nos fundos por conta de uma corrida do Alto Vale? O motorista trabalha de verdade enquanto o pilantra tenta calote."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O estelionato foi coibido graças à ação rápida da polícia acionada pelo motorista."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Pelo menos a polícia achou o espertinho no mato."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "No bairro Vorstadt um adolescente de 17 anos foi apreendido durante patrulhamento ostensivo por ter um mandado de busca em aberto."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Dezessete anos e já com mandado na praça no Vorstadt. A impunidade juvenil dá nisso."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O cumprimento de mandados retira de circulação indivíduos com pendências judiciais sérias."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Retira por duas semanas até o juiz mandar pra casa de novo."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "No mesmo bairro Passo Manso a PM deteve outro adolescente de 15 anos com dinheiro e celular fugindo de uma abordagem por tráfico de drogas."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Quinze anos correndo da polícia com maço de notas no bolso. O mercado informal do crime não para na periferia."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A apreensão de menores envolvidos no tráfico tenta interromper a cooptação pelo crime organizado."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Tenta mas o incentivo pra molecada continuar no crime é gigantesco."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Em Rio do Sul uma mulher de 28 anos foi presa pela Guarda Municipal às 10h de sexta-feira após furtar produtos de uma farmácia no Centro."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Farmácia no Centro invadida às dez da manhã. A comerciante paga imposto de segurança e tem que virar vigia de balcão."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Os agentes da Guarda Municipal responderam rapidamente ao chamado e recuperaram os materiais."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Graças ao alarme privado que denunciou a ladra na hora."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Mudando o tom mandamos um abraço aos aniversariantes da região como a Adriana Coelho o Adriano de Andrade em Leoberto Leal e o doutor Juliano Schmitt."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Desejamos saúde e paz para essa turma porque aturar a burocracia local exige coração forte."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Celebrar a vida comunitária fortalece os laços do nosso Vale."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Forte mesmo é quem faz aniversário e ainda sorri pagando boleto."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "No setor de transportes a Azul foi a única companhia interessada em operar a rota Blumenau a Florianópolis pelo programa estadual Voa +SC no Aeroporto Quero-Quero."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Única interessada porque só voa com subsídio do governo estadual Peter. Se fosse livre o mercado resolvia sem edital gordo."
+    },
+    {
+      "quadro": "SAÚDE",

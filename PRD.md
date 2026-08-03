@@ -64,15 +64,21 @@ Ver `SKILL.md` seções 5 e 6 para as fichas completas. Resumo:
 
 ## Roadmap
 
-1. ~~Coleta automatizada~~ — concluído, 14 fontes operando
-2. ~~Filtro IA + Categorização~~ — concluído
+1. ~~Coleta automatizada~~ — concluído, 30+ fontes operando (locais + nacionais + internacionais)
+2. ~~Filtro IA + Categorização~~ — concluído com scoring de credibilidade e relevância
 3. ~~Geração de roteiro~~ — concluído via `generate_script.py` + `pipeline.py init`
-4. ~~TTS multi-locutor~~ — concluído
-5. Corrigir duplicação de notícia no `_fill_roteiro_from_raw` — em andamento
-6. Integrar `x_collector.py` (X/Twitter) — mencionado no histórico, arquivo não existe ainda
-7. Automatizar 100% a geração do roteiro sem intervenção manual — parcial (o pipeline
-   auto-preenche, mas o conteúdo gerado ainda é enxuto comparado ao roteiro manual)
-8. Distribuição em plataformas de podcast (Spotify, Apple Podcasts) — planejado
+4. ~~TTS multi-locutor~~ — concluído com chunking, pausas reais e EBU R128 2-pass
+5. ~~Corrigir duplicação de notícia~~ — resolvido; `_fill_roteiro_from_raw` desativado, roteiro via JSON
+6. ~~Integrar `x_collector.py`~~ — concluído, integração resiliente no pipeline
+7. ~~Rate limiting Gemini~~ — concluído (`GeminiClient` com RPM/RPD/TPM + backoff exponencial)
+8. ~~Portal web dinâmico com player, transcrição, Auth Supabase e R2~~ — concluído (Fase 7 do ROADMAP)
+9. Distribuição em plataformas de podcast (feed RSS automático) — planejado (Fase 8 do ROADMAP)
+
+10. Engine TTS híbrida local (Kokoro/Piper, custo zero) — planejado (Fase 9 do ROADMAP)
+11. Chat interativo com personas Peter/Ricardo no portal — planejado (Fase 10 do ROADMAP)
+12. Sonoplastia, vinhetas e inserção de anúncios (Monetização) — planejado (Fase 11 do ROADMAP)
+
+> Ver `ROADMAP.md` para planos detalhados de execução de cada fase.
 
 ---
-*Mantido por: Hermes Agent | Última atualização: 2026-06-20*
+*Mantido por: Hermes Agent | Última atualização: 2026-06-24*

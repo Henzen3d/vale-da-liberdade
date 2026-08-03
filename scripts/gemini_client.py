@@ -28,21 +28,26 @@ if not log.handlers:
 
 # Configuração de limites padrões por categoria de modelo
 DEFAULT_LIMITS = {
+    # Limites REAIS (máximos) da chave AI Studio do web-jornal (tabela do usuário, 2026-07-25).
+    # Formato: <usado> / <limite> — usamos o LIMITE (máximo).
+    # flash: gemini-3.6/2.5/3/3.5-flash = 5 RPM / 250K TPM / 20 RPD.
     "flash": {
-        "rpm": 15,
-        "rpd": 1000,
-        "tpm": 30000,  # 30k (margem de segurança sobre os 40k limite)
+        "rpm": 5,
+        "rpd": 20,
+        "tpm": 250000,
     },
+    # lite: gemini-3.5/3.1-flash-lite = 15 RPM / 250K TPM / 500 RPD.
     "lite": {
         "rpm": 15,
-        "rpd": 1500,
-        "tpm": 35000,
+        "rpd": 500,
+        "tpm": 250000,
     },
+    # tts: gemini-2.5/3.1-flash-tts = 3 RPM / 10K TPM / 10 RPD.
     "tts": {
-        "rpm": 10,
-        "rpd": 1000,
-        "tpm": 35000,
-    }
+        "rpm": 3,
+        "rpd": 10,
+        "tpm": 10000,
+    },
 }
 
 
@@ -124,6 +129,7 @@ class GeminiClient:
 
         # Tentar carregar limites customizados das variáveis de ambiente
         self.limits = {}
+        self.api_key = api_key or os.environ.get("GEMINI_API_KEY") or ""
         for category, default_vals in DEFAULT_LIMITS.items():
             prefix = f"GEMINI_{category.upper()}_"
             self.limits[category] = {
@@ -137,17 +143,25 @@ class GeminiClient:
         return self.limits[category]
 
     def _enforce_rate_limit(self, model: str, estimated_tokens: int):
-        """Bloqueia a execução (dorme) até que haja cotas disponíveis ou levanta exceção caso estoure o limite diário."""
+        """Bloqueia a execução (dorme) até que haja cotas disponíveis OU levanta exceção caso estoure o limite diário.
+
+        A quota é POR CHAVE (cada GEMINI_API_KEY tem sua própria cota de
+        3 RPM / 10 RPD na AI Studio). O arquivo de uso é indexado por
+        chave mascarada para isolar a contagem de cada conta/projeto.
+        """
         limits = self._get_limits(model)
         rpm = limits["rpm"]
         rpd = limits["rpd"]
         tpm = limits["tpm"]
+        key_id = (self.api_key[:4] + "…" + self.api_key[-4:]) if len(self.api_key) >= 12 else (self.api_key or "default")
 
         while True:
             now = time.time()
             usage = _load_usage(self.usage_file)
 
-            model_data = usage.setdefault(model, {"requests": [], "tokens": []})
+            # Contagem isolation por chave
+            key_data = usage.setdefault(key_id, {})
+            model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
 
             # Filtrar e manter apenas requisições da última 1 hora (para RPD de 24h, limpamos separadamente)
             # Na verdade, RPD monitora as últimas 24 horas (86.400s)
@@ -202,7 +216,9 @@ class GeminiClient:
         """Atualiza a estimativa de tokens do minuto pelo valor real retornado pela API."""
         try:
             usage = _load_usage(self.usage_file)
-            model_data = usage.get(model)
+            key_id = (self.api_key[:4] + "…" + self.api_key[-4:]) if len(self.api_key) >= 12 else (self.api_key or "default")
+            key_data = usage.get(key_id, {})
+            model_data = key_data.get(model)
             if model_data and "tokens" in model_data:
                 # Procura a transição mais próxima do request_time
                 for entry in model_data["tokens"]:
@@ -219,7 +235,7 @@ class GeminiClient:
         """
         estimated_tokens = _estimate_tokens(contents)
         
-        # Garante cota sob os limites RPM/RPD/TPM
+        # Garante cota sob os limites RPM/RPD/TPM (por chave)
         self._enforce_rate_limit(model, estimated_tokens)
         
         request_time = time.time()
@@ -282,6 +298,43 @@ class GeminiClient:
         # Caso saia do loop sem retornar (incomum por causa do raise exc acima)
         if last_exception:
             raise last_exception
+
+
+class GeminiMultiClient:
+    """Wrapper que intercala MÚLTIPLAS chaves Gemini (contas/projetos diferentes).
+
+    Cada chave tem sua prória quota (3 RPM / 10 RPD na AI Studio).
+    Se uma chave estoura (RuntimeError do rate-limit interno), tenta a
+    próxima chave da lista. Usado pelo TTS e pelo roteiro para
+    multiplicar a capacidade sem estourar cotas.
+    """
+    def __init__(self, api_keys: list[str]):
+        from typing import Any
+        self._clients: list[Any] = [GeminiClient(api_key=k) for k in api_keys if k]
+        if not self._clients:
+            self._clients = [GeminiClient()]
+
+    @property
+    def models(self):
+        return _ModelsProxy(self)
+
+    def generate_content(self, model: str, contents, config=None, **kwargs):
+        last_exc = None
+        for client in self._clients:
+            try:
+                return client.generate_content(model, contents, config=config, **kwargs)
+            except RuntimeError as exc:
+                msg = str(exc).lower()
+                # Quota/RPD estourada nesta chave → tenta a próxima
+                if "limite diário" in msg or "rpd" in msg or "quota" in msg:
+                    log.warning(f"Chave estourou quota: {exc} — tentando próxima chave...")
+                    last_exc = exc
+                    continue
+                raise
+            except Exception as exc:
+                last_exc = exc
+                continue
+        raise last_exc or RuntimeError("Nenhuma chave Gemini disponível")
 
 
 # Atributo models exposto para emular o comportamento do genai.Client

@@ -477,6 +477,42 @@ def fetch_source_wrapper(source, hours=48):
 
 
 
+def sync_registry_metrics(cache: dict) -> None:
+    """Sincroniza artigos coletados/scrape-error do cache.json para o registry.
+
+    O registry (sources_registry.json) é a base de governança; o collector
+    grava estatísticas em cache.json (source_stats). Esta função copia essas
+    contagens para o registry para alimentar o período probatório.
+    """
+    reg_path = PROJECT_ROOT / "sources" / "sources_registry.json"
+    if not reg_path.exists():
+        return
+    try:
+        reg = json.loads(reg_path.read_text(encoding="utf-8"))
+    except Exception:
+        return
+    stats = cache.get("source_stats", {})
+    changed = False
+    for s in reg.get("sources", []):
+        sid = s.get("id")
+        st = stats.get(sid)
+        if not st:
+            continue
+        m = s.setdefault("metrics", {})
+        m["articles_collected"] = m.get("articles_collected", 0) + st.get("count", 0)
+        total = st.get("total_fetches", 0)
+        success = st.get("success_count", 0)
+        m["scrape_error_rate"] = round(1 - (success / total), 3) if total else None
+        m["last_scored_at"] = datetime.datetime.now().isoformat()
+        changed = True
+    if changed:
+        reg["last_updated"] = datetime.datetime.now().isoformat()
+        try:
+            reg_path.write_text(json.dumps(reg, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception as exc:
+            log.warning(f"Falha ao sincronizar registry: {exc}")
+
+
 def collect_all_news(hours=48, parallel=True):
     """Executa a coleta de notícias de todas as fontes habilitadas."""
     config = load_config()
@@ -615,6 +651,7 @@ def collect_all_news(hours=48, parallel=True):
     }
     
     save_cache(cache)
+    sync_registry_metrics(cache)
     
     # Converter datas para strings serializáveis em JSON
     for art in unique_articles:

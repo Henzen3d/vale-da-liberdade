@@ -1,0 +1,48 @@
+# Vale da Liberdade — site estático + Cloudflare Tunnel + proxy Supabase
+#
+# 1) Public hostname news.mob.tec.br → http://web:80
+# 2) CLOUDFLARE_TUNNEL_TOKEN + SITE_URL no .env
+# 3) docker compose --env-file ../.env -f deploy/docker-compose.yml up -d
+#    (tunnel): docker compose --env-file ../.env --profile tunnel up -d
+#
+# Supabase Google OAuth: web joins supabase_default so nginx can reach supabase-kong:8000
+#
+services:
+  web:
+    image: nginx:1.27-alpine
+    container_name: vale-liberdade-web
+    restart: unless-stopped
+    volumes:
+      - ../public:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8090:80"
+    networks:
+      - default
+      - supabase_default
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: vale-liberdade-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - web
+    networks:
+      - default
+    profiles:
+      - tunnel
+
+networks:
+  supabase_default:
+    external: true
+    name: supabase_default

@@ -37,10 +37,11 @@ EPISODES_DIR = PROJECT_ROOT / "episodes"
 
 PERSONAS = {
     "Peter": {
-        "style": "libertário provocador",
+        "style": "anarcocapitalista provocador",
         "voice": "Charon",
         "guidelines": [
             "Anti-estado: rejeita soluções estatais, destaca coerção, questiona burocracia",
+            "Defende mercado livre, liberdade individual, descentralização; imposto é roubo",
             "Nunca elogia eficiência do Estado; expõe custos ocultos e incentivos perversos",
             "Tom irônico, cético, provocador — como quem desafia o status quo",
             "Foca no indivíduo, na liberdade, na responsabilidade pessoal",
@@ -49,10 +50,11 @@ PERSONAS = {
         ]
     },
     "Ricardo": {
-        "style": "analista pragmático",
+        "style": "social-democrata pragmático",
         "voice": "Schedar",
         "guidelines": [
             "Contraponto racional, institucional, baseado em dados e evidências",
+            "Defende reformas estatais, serviços públicos eficientes, planejamento",
             "Reconhece problemas mas contextualiza com perspectivas práticas",
             "Não defende o Estado cegamente, mas evita anarquismo ingenuamente",
             "Tom calmo, medido, equilibrado — analista sério",
@@ -172,11 +174,16 @@ Sua tarefa: escrever o roteiro COMPLETO do episódio de {date} a partir das not�
 1. **MANCHETES** (5-6 manchetes curtas de impacto, uma por linha, sem locutor)
 2. **INTRODUÇÃO EDITORIAL** — cold open: gancho de impacto ≤30s, NÃO use saudação temporal
    (Peter abre com gancho forte, Ricardo reage, Peter apresenta o roteiro do dia)
-3. **QUADROS TEMÁTICOS** (ordem fixa abaixo, cada um com:
-   - Transição criativa DO quadro anterior (não genérica)
-   - Locutor designado apresenta a notícia principal com dados concretos
-   - Outro locutor faz análise/comentário no seu estilo característico
-   - Primeiro locutor dá réplica final e fecha o quadro)
+3. **QUADROS TEMÁTICOS** (ordem fixa abaixo). Se um quadro contiver múltiplas notícias, elas **NUNCA** devem ser aglomeradas em uma única fala ou apresentadas em sequência sem debate. Adote o fluxo de **Bate-Volta Individual por Notícia**:
+   - Para **cada** notícia no quadro:
+     - O locutor da vez apresenta a notícia com seus fatos e números concretos.
+     - Esse mesmo locutor faz um comentário opinativo rápido (estilo característico).
+     - O outro locutor responde imediatamente com o contraponto/análise.
+     - O primeiro locutor faz uma réplica curta (fechando o minidebate daquela notícia).
+     - Passam para a próxima notícia reagindo ao último ponto (eco de número/fato) — SEM muleta forçada.
+   - NÃO use "Ainda nessa área..." / "Ainda sobre..." (soa telejornal).
+   - NÃO comece toda fala com "Vai daí", "Segura essa", "Pois é e tem mais", "Peraí".
+   - Transição entre notícias = reação natural ("Seis acidentes?" / "E o pior:") no máximo 1x a cada 2–3 notícias.
 4. **FECHAMENTO EDITORIAL** (Peter frase provocativa, Ricardo reflexão/CTA)
 
 ORDEM DOS QUADROS E LOCUTOR DE ABERTURA:
@@ -195,13 +202,71 @@ ORDEM DOS QUADROS E LOCUTOR DE ABERTURA:
 - NÃO invente dados — use apenas o que está nas notícias abaixo
 - Especificidade extrema: R$, %, datas, nomes, números exatos
 - Voz ativa sempre ("Câmara aprova" não "É aprovado")
-- Peter SEMPRE traz ângulo libertário/anti-estado
+- Peter SEMPRE traz ângulo libertário/anti-estado — mas NÃO em toda fala com a mesma fórmula (ver 7.1)
 - Ricardo SEMPRE traz contraponto racional/dados
-- Diálogo natural: eles se interrompem, completam, discordam
+- Diálogo natural: eles se interrompem, completam, discordam. Chamar o outro pelo nome COM PARCIMÔNIA (sem vírgula: "estado Peter", não "estado, Peter")
+- **DEBATE POR NOTÍCIA (PROIBIDO MONÓLOGOS)**: Se houver mais de uma notícia em um quadro, divida o quadro em ciclos individuais de apresentação-comentário-contraponto-réplica para cada notícia. Não junte tudo no início do quadro nem faça exposições longas sem interrupção. O ouvinte deve perceber um diálogo dinâmico e constante.
 - Target: ~2000-2500 palavras total (~15 min de áudio)
 - NÃO use frases genéricas como "Isso mesmo", "Exatamente", "E para detalhar:"
 - Transições entre quadros devem ser variadas — nunca repetir a mesma frase de transição
 - Quadros Brasil e Mundo devem ser CONCISOS (máx. 3 falas cada, não ofuscar local)
+
+=== 7.1 DINÂMICA CONVERSACIONAL (OBRIGATÓRIO — substitui muletas de telejornal) ===
+1. Proibido abrir fala com formato de telejornal.
+   Nunca começar uma fala com "Na segurança pública...", "Ainda sobre...", "E em [cidade]...", "No quadro X...".
+   Também proibido: "Na saúde...", "Na educação...", "Na política...", "Indo para...", "Na mesma segunda-feira...",
+   "E fechando o quadro...", "Vamos à segurança...".
+   Essas são muletas de apresentador formal. A notícia deve entrar naturalmente dentro da fala, não como manchete lida.
+
+2. Toda fala (exceto a primeira de cada quadro) precisa reagir à fala anterior antes de emendar o próprio ponto.
+   Regra prática: pegue uma palavra, número ou ideia específica que o outro acabou de dizer e repita/questione/ironize
+   sobre ela antes de introduzir argumento novo. Proibido simplesmente trocar de assunto com uma crítica genérica ao Estado.
+   Exemplo ruim: "Estrada pública, manutenção pública, resultado público."
+   Exemplo bom: "Setenta metros de fiação, você disse? Sumiu setenta metros e ninguém viu nada?"
+
+3. Limite rígido: 2-3 frases curtas por fala, nunca 4+.
+   Se uma fala passar de 3 frases, cortar. Ritmo de podcast é troca rápida, não parágrafo de opinião.
+
+4. Variar a reação do Peter — proibido repetir sempre a fórmula "fato → crítica ao Estado".
+   Alternar entre: pergunta retórica, interrupção ("Espera, deixa eu entender..."), ironia seca, incredulidade,
+   ou concordância parcial antes de discordar. Nem toda fala do Peter precisa terminar em tese anti-Estado —
+   variedade é mais crível que repetição.
+
+5. Trocas por notícia: 3 a 5, mas curtas — nunca infladas pra bater cota.
+   Se a notícia é simples, 3 trocas curtas bastam. Não esticar fala pra parecer "completo".
+   Densidade de informação por fala deve ser baixa; ritmo de conversa, não de relatório.
+
+6. Transições: RARAS e naturais — proibido spam de muleta.
+   - NÃO repetir "Vai daí", "Agora segura essa", "Pois é e tem mais", "Peraí" em falas seguidas.
+   - No máximo ~1 expressão dessas por quadro (não por fala).
+   - Preferir reação ao conteúdo: ecoar número/fato ("Duzentos mil?" / "Treze anos?") em vez de muleta vazia.
+   - PROIBIDO empilhar: "Olha, vai daí…", "Olha, Ricardo: vai daí…", "Pois é, e tem mais: peter,".
+   - Lista de reserva (usar no máx. 1x/quadro, se couber): "E o pior:", "Sabe o que mais?", "Espera aí —".
+
+7. Chamar o outro pelo nome — COM PARCIMÔNIA (voz única no áudio).
+   - Meta: ~1 chamada a cada 5–6 falas (não em toda fala).
+   - SEM vírgula antes/depois do nome (TTS pausa e fica artificial):
+     Bom:  "Isso é falha do Estado Peter." / "Peter você viu os números?"
+     Ruim: "Isso é falha do Estado, Peter." / "Peter, você viu os números?"
+   - Preferir o nome no meio/fim da frase, não só no começo.
+   - Não empilhar "Olha Peter" / "Mas Ricardo" em toda réplica.
+
+O validador automático (`validate_naturalidade`) REPROVA aberturas de telejornal, falas com 4+ frases
+e EXCESSO de muletas de transição.
+
+=== EXEMPLO BOM (imitate este ritmo — 1 notícia, 4 trocas curtas) ===
+Ricardo: Um jovem de 21 anos foi soterrado no Tribess por volta das 8h25.
+Peter: Vinte e um anos, Ricardo. Colega puxando gente da terra enquanto a fiscalização olha papel.
+Ricardo: Espera, deixa eu entender: a vítima já estava fora quando o bombeiro chegou?
+Peter: Exato. Sinal vital estável — e ninguém tinha olhado o talude.
+Ricardo: No mesmo dia, seis acidentes com moto em Blumenau.
+Peter: Seis? Pista de eleição, não de trânsito.
+
+=== EXEMPLO RUIM (NÃO faça assim) ===
+Ricardo: Na segurança pública, um trabalhador foi soterrado e ainda sobre acidentes...
+Peter: Vai daí… o Estado falhou. Agora segura essa: o Estado falhou de novo.
+Ricardo: Pois é, e tem mais: peter, o Estado...
+Peter: Olha, Ricardo: vai daí… justiça feita.
 
 === NOTÍCIAS CURADAS POR QUADRO ===
 {news_json}
