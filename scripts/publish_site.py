@@ -797,7 +797,7 @@ def publish(limit: int = 60, only_date: str | None = None) -> dict:
 
 
 def sync_ux_assets() -> None:
-    """Copia shell estático de new-ux/public → public (CSS/JS/HTML/cover)."""
+    """Copia shell estático de new-ux/public → public (HTML/CSS/JS/manifest/offline/llms/icons/ads/supabase)."""
     if not NEW_UX_PUBLIC.is_dir():
         print("  ⚠️  new-ux/public ausente — pulando sync UX")
         return
@@ -808,6 +808,13 @@ def sync_ux_assets() -> None:
         (NEW_UX_PUBLIC / "assets" / "js", PUBLIC / "assets" / "js"),
         (NEW_UX_PUBLIC / "assets" / "cover.jpg", PUBLIC / "assets" / "cover.jpg"),
         (NEW_UX_PUBLIC / "assets" / "cover.png", PUBLIC / "assets" / "cover.png"),
+        # Shell estático que o build NÃO regenera (auditoria 2026-08-03)
+        (NEW_UX_PUBLIC / "manifest.webmanifest", PUBLIC / "manifest.webmanifest"),
+        (NEW_UX_PUBLIC / "offline.html", PUBLIC / "offline.html"),
+        (NEW_UX_PUBLIC / "llms.txt", PUBLIC / "llms.txt"),
+        (NEW_UX_PUBLIC / "icons", PUBLIC / "icons"),
+        (NEW_UX_PUBLIC / "ads.txt", PUBLIC / "ads.txt"),
+        (NEW_UX_PUBLIC / "js" / "supabase_client.js", PUBLIC / "js" / "supabase_client.js"),
     ]
     for src, dst in pairs:
         if not src.exists():

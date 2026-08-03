@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-08-03T11:13:19",
+  "page_size": 12,
+  "total_episodes": 60,
+  "categories": {
+    "todos": {
+      "total_episodes": 60,
+      "total_pages": 5,
+      "pages": [
+        "./data/episodes-todos-page-1.json",
+        "./data/episodes-todos-page-2.json",
+        "./data/episodes-todos-page-3.json",
+        "./data/episodes-todos-page-4.json",
+        "./data/episodes-todos-page-5.json"
+      ]
+    },
+    "diario": {
+      "total_episodes": 27,
+      "total_pages": 3,
+      "pages": [
+        "./data/episodes-diario-page-1.json",
+        "./data/episodes-diario-page-2.json",
+        "./data/episodes-diario-page-3.json"
+      ]
+    },
+    "especial": {
+      "total_episodes": 33,
+      "total_pages": 3,
+      "pages": [
+        "./data/episodes-especial-page-1.json",
+        "./data/episodes-especial-page-2.json",
+        "./data/episodes-especial-page-3.json"
+      ]
+    }
+  }
+}

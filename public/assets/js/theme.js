@@ -1,0 +1,58 @@
+/* Vale da Liberdade — Gerenciador de Tema (Claro / Escuro) */
+(() => {
+  const THEME_KEY = "vale-theme";
+  const html = document.documentElement;
+
+  function getTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved) return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  const SUN_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+  const MOON_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
+  function updateToggleIcon(theme) {
+    const btn = document.getElementById("themeToggle");
+    if (btn) {
+      btn.innerHTML = theme === "dark" ? SUN_ICON : MOON_ICON;
+    }
+  }
+
+  function setTheme(theme) {
+    if (theme === "dark") {
+      html.setAttribute("data-theme", "dark");
+      localStorage.setItem(THEME_KEY, "dark");
+    } else {
+      html.removeAttribute("data-theme");
+      localStorage.setItem(THEME_KEY, "light");
+    }
+    updateToggleIcon(theme);
+    window.dispatchEvent(new CustomEvent("themechange", { detail: { theme } }));
+  }
+
+  function toggleTheme() {
+    const current = html.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    setTheme(current === "light" ? "dark" : "light");
+  }
+
+  // Inicialização imediata para evitar FOUC
+  const initialTheme = getTheme();
+  setTheme(initialTheme);
+
+  // Expõe na API global da página
+  window.ThemeManager = {
+    getTheme,
+    setTheme,
+    toggleTheme
+  };
+
+  // Bind do botão quando o DOM estiver pronto
+  document.addEventListener("DOMContentLoaded", () => {
+    updateToggleIcon(getTheme());
+    const btn = document.getElementById("themeToggle");
+    if (btn) {
+      btn.addEventListener("click", () => toggleTheme());
+    }
+  });
+})();

@@ -1,0 +1,283 @@
+{
+  "generated_at": "2026-08-03T11:13:19",
+  "category": "especial",
+  "page": 1,
+  "page_size": 12,
+  "total_pages": 3,
+  "episodes": [
+    {
+      "id": "especial-7a7he338aUM",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 23:11:40 +0000",
+      "type": "especial",
+      "title": "A Esquerda Entra em Pânico: Por Que o Status Quo Estatista Está com os Dias Contados",
+      "excerpt": "A imprensa chapa-branca tenta vender a narrativa de que a eleição já está liquidadíssima, mas até a militância mais radical da esquerda percebeu que a casa caiu. Basta dar uma olha...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "impostos"
+      ],
+      "duration_min": 4.5,
+      "words": 843,
+      "audio_url": "./audio/especial-7a7he338aUM.mp3",
+      "script_url": "./episodes/especial-7a7he338aUM.md",
+      "audio_bytes": 6496383,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-7c-fGt1Zbs0",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 21:12:46 +0000",
+      "type": "especial",
+      "title": "Convenção Fantasma do PT: Quando o Fracasso Vira Reunião Interna",
+      "excerpt": "Se tem uma coisa que a burocracia estatal adora fazer quando passa um vexame público diante de todo o país, é inventar eufemismos ridículos pra tentar mascarar a própria irrelevânc...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições"
+      ],
+      "duration_min": 5.0,
+      "words": 838,
+      "audio_url": "./audio/especial-7c-fGt1Zbs0.mp3",
+      "script_url": "./episodes/especial-7c-fGt1Zbs0.md",
+      "audio_bytes": 7176612,
+      "sources": [
+        "CNN Brasil"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-hark0V_ofGg",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 19:11:59 +0000",
+      "type": "especial",
+      "title": "A Farsa Eleitoral: Lula Debocha da Lei Sabendo que Você Paga a Conta",
+      "excerpt": "Sabe qual é a diferença entre um criminoso comum e um político no poder? O criminoso comum tenta esconder o crime. O político comete a infração ao vivo na televisão, debocha da leg...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.8,
+      "words": 812,
+      "audio_url": "./audio/especial-hark0V_ofGg.mp3",
+      "script_url": "./episodes/especial-hark0V_ofGg.md",
+      "audio_bytes": 6980380,
+      "sources": [
+        "Saiba o que diz a lei sobre propaganda eleitoral antecipada"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-xirpBLhFoEs",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 17:11:38 +0000",
+      "type": "especial",
+      "title": "A Chantagem do STF em Minas Gerais e o Teatro das Eleições",
+      "excerpt": "Você ainda acredita que vive numa democracia onde o seu voto decide alguma coisa? Deixa eu te contar como o circo estatal funciona na prática: a elite política e o judiciário não s...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "eleições"
+      ],
+      "duration_min": 4.8,
+      "words": 794,
+      "audio_url": "./audio/especial-xirpBLhFoEs.mp3",
+      "script_url": "./episodes/especial-xirpBLhFoEs.md",
+      "audio_bytes": 6979126,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-I0Rxpiyusak",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 16:11:41 +0000",
+      "type": "especial",
+      "title": "A Ilusão do Voto Obrigatório e o Pânico da Ditadura Judiciária",
+      "excerpt": "A máfia estatal alcançou um nível de paranoia tão absurdo no Brasil que agora até a memória do passado assusta a burocracia de Brasília. A última estripulia do consórcio político-j...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "política",
+        "eleições"
+      ],
+      "duration_min": 5.0,
+      "words": 817,
+      "audio_url": "./audio/especial-I0Rxpiyusak.mp3",
+      "script_url": "./episodes/especial-I0Rxpiyusak.md",
+      "audio_bytes": 7179746,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-epVVOLHqPT0",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 14:11:42 +0000",
+      "type": "especial",
+      "title": "Déficit Fiscal Zero Salário: Milei Corta na Carne dos Políticos Argentinos",
+      "excerpt": "Imagine a cena: o governo entra em déficit fiscal, a conta não fecha e, de forma automática, a folha de pagamento do alto escalão estatal é zerada. Sem salário para o presidente, v...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.1,
+      "words": 697,
+      "audio_url": "./audio/especial-epVVOLHqPT0.mp3",
+      "script_url": "./episodes/especial-epVVOLHqPT0.md",
+      "audio_bytes": 5927123,
+      "sources": [
+        "Infobae"
+      ],
+      "published_at": "2026-08-03T11:13:17"
+    },
+    {
+      "id": "especial-K-2Fbsw8lYg",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 10:01:43 +0000",
+      "type": "especial",
+      "title": "O Segredo Sob o Chapéu de Lula e o Desespero da Máquina Estatal",
+      "excerpt": "Sabe qual é a mais nova comédia no circo político brasileiro? O chefe do executivo simplesmente se recusa a tirar o chapéu da cabeça. O grande líder da máquina de extorsão nacional...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições"
+      ],
+      "duration_min": 4.6,
+      "words": 782,
+      "audio_url": "./audio/especial-K-2Fbsw8lYg.mp3",
+      "script_url": "./episodes/especial-K-2Fbsw8lYg.md",
+      "audio_bytes": 6686346,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-Kz_qqV2QybE",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:59:22 +0000",
+      "type": "especial",
+      "title": "Show de Propina: Como o PT e o Banco Master Usaram Ingressos VIP e Viagens Internacionais",
+      "excerpt": "Enquanto você se esfola de trabalhar para sustentar o estamento burocrático e paga impostos abusivos até no ar que respira, a elite política brasileira usa a máquina estatal e a pr...",
+      "manchetes": [],
+      "quadros": [
+        "corrupção",
+        "política",
+        "economia"
+      ],
+      "duration_min": 5.0,
+      "words": 868,
+      "audio_url": "./audio/especial-Kz_qqV2QybE.mp3",
+      "script_url": "./episodes/especial-Kz_qqV2QybE.md",
+      "audio_bytes": 7228648,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-rHNthJlszdc",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:57:29 +0000",
+      "type": "especial",
+      "title": "A Ilusão da Faria Lima e a Blindagem dos Bancos perante a Gastança Estatal",
+      "excerpt": "O mercado financeiro adora se enganar com o abraço do urso estatal. Parte da Faria Lima continua flertando abertamente com a perspectiva de um quarto mandato do Lula, achando que d...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "política",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.7,
+      "words": 779,
+      "audio_url": "./audio/especial-rHNthJlszdc.mp3",
+      "script_url": "./episodes/especial-rHNthJlszdc.md",
+      "audio_bytes": 6803583,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-ezixwD_sLHM",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:54:45 +0000",
+      "type": "especial",
+      "title": "Move Brasil e Desenrola: O Fiasco Estatal que Enriquece Bancos e Endivida o Povo",
+      "excerpt": "O Estado adora vender a ilusão de que vai te salvar, te dar um carro zero e limpar todas as suas dívidas com uma simples canetada. Mas a realidade é sempre uma surra de fatos: os p...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "política",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.6,
+      "words": 754,
+      "audio_url": "./audio/especial-ezixwD_sLHM.mp3",
+      "script_url": "./episodes/especial-ezixwD_sLHM.md",
+      "audio_bytes": 6582901,
+      "sources": [
+        "ANCAP.SU"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-_f8bffSUBek",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:52:07 +0000",
+      "type": "especial",
+      "title": "A Armadilha do Leviatã: Como o Sistema Criou Sua Própria Ameaça Existencial",
+      "excerpt": "O jogo do poder estatal é implacável, meus amigos. Quando a elite togada e os parasitas de Brasília decidem usar o monopólio da violência para destruir um oponente político, eles j...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "eleições"
+      ],
+      "duration_min": 4.4,
+      "words": 698,
+      "audio_url": "./audio/especial-_f8bffSUBek.mp3",
+      "script_url": "./episodes/especial-_f8bffSUBek.md",
+      "audio_bytes": 6320840,
+      "sources": [
+        "ANCAP.SU"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-ZFTttTq30N0",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:50:22 +0000",
+      "type": "especial",
+      "title": "O Ato Falho do Tirano: A Decadência do Líder Supremo e o Desespero Estatal",
+      "excerpt": "Sabe qual é a grande vantagem quando o cacique da máquina estatal envelhece? A carcaça fraqueja, a mente falha e ele começa a falar a verdade sem querer....",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "socialismo/comunismo"
+      ],
+      "duration_min": 3.3,
+      "words": 567,
+      "audio_url": "./audio/especial-ZFTttTq30N0.mp3",
+      "script_url": "./episodes/especial-ZFTttTq30N0.md",
+      "audio_bytes": 4780452,
+      "sources": [
+        "Pleno.News"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    }
+  ]
+}

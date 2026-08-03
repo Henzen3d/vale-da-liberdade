@@ -1,0 +1,279 @@
+{
+  "generated_at": "2026-08-03T11:13:19",
+  "category": "todos",
+  "page": 2,
+  "page_size": 12,
+  "total_pages": 5,
+  "episodes": [
+    {
+      "id": "especial-ipBrgxe6cBg",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:48:34 +0000",
+      "type": "especial",
+      "title": "A Farsa da Neutralidade do PP: Como o Monopólio da Violência Coagiu o Centrão",
+      "excerpt": "A imprensa militante e a isentosfera estão em festa porque a cúpula do PP decidiu declarar neutralidade na disputa presidencial de 2026. A narrativa oficial vendida pelos analistas...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.3,
+      "words": 743,
+      "audio_url": "./audio/especial-ipBrgxe6cBg.mp3",
+      "script_url": "./episodes/especial-ipBrgxe6cBg.md",
+      "audio_bytes": 6239965,
+      "sources": [
+        "CNN Brasil"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-7ZcrqTiGC5E",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:46:58 +0000",
+      "type": "especial",
+      "title": "O Balcão de Negócios do Lulinha na Dataprev e a Farra do Tráfico de Influência",
+      "excerpt": "O leviatã estatal ataca novamente, meus amigos, e adivinhem quem está surfando nas estruturas do aparelho governamental? Ele mesmo: o filho do presidente. O ministro André Mendonça...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.2,
+      "words": 684,
+      "audio_url": "./audio/especial-7ZcrqTiGC5E.mp3",
+      "script_url": "./episodes/especial-7ZcrqTiGC5E.md",
+      "audio_bytes": 6026179,
+      "sources": [
+        "ANCAP.SU"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial--G7PwtSmQ7Q",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 15:11:00 +0000",
+      "type": "especial",
+      "title": "A Falha da Coldcard e a Lição Inflexível do Livre Mercado",
+      "excerpt": "Se você confiava cegamente na sua hardware wallet para proteger sua liberdade financeira, acorda. O livre mercado não tolera ingenuidade....",
+      "manchetes": [],
+      "quadros": [
+        "economia"
+      ],
+      "duration_min": 4.0,
+      "words": 675,
+      "audio_url": "./audio/especial--G7PwtSmQ7Q.mp3",
+      "script_url": "./episodes/especial--G7PwtSmQ7Q.md",
+      "audio_bytes": 5736533,
+      "sources": [
+        "Massive, Surprise Bitcoin Attack Sparks Sudden Price Crash F"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-fl5t9sMYZZI",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 15:05:48 +0000",
+      "type": "especial",
+      "title": "A Grande Mentira do Estado Sobre a Guerra do Paraguai",
+      "excerpt": "O Estado adora reescrever a história para se fingir de bonzinho, e no Brasil essa prática é quase uma arte oficial. O atual presidente da República resolveu dar palpite sobre a Gue...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "guerras"
+      ],
+      "duration_min": 4.6,
+      "words": 783,
+      "audio_url": "./audio/especial-fl5t9sMYZZI.mp3",
+      "script_url": "./episodes/especial-fl5t9sMYZZI.md",
+      "audio_bytes": 6578512,
+      "sources": [
+        "ANCAP.SU"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-V_kyrgr6RvE",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:17:28 +0000",
+      "type": "especial",
+      "title": "A PF chora na AGU enquanto o leviatã se engole no escândalo do INSS",
+      "excerpt": "A burocracia estatal adora brincar com o poder absoluto, até o momento exato em que a criatura se vira contra o próprio criador. A Polícia Federal acionou a Advocacia-Geral da Uniã...",
+      "manchetes": [],
+      "quadros": [
+        "corrupção",
+        "ditadura judiciária",
+        "política"
+      ],
+      "duration_min": 4.7,
+      "words": 828,
+      "audio_url": "./audio/especial-V_kyrgr6RvE.mp3",
+      "script_url": "./episodes/especial-V_kyrgr6RvE.md",
+      "audio_bytes": 6745278,
+      "sources": [
+        "PF troca delegado que pediu investigação contra Lulinha e ch"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-HnH-IpVxtig",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:15:47 +0000",
+      "type": "especial",
+      "title": "A Máfia de Brasília e a Farsa das Coligações Eleitorais",
+      "excerpt": "Vocês ainda acreditam que vivem em uma democracia onde o eleitor escolhe alguma coisa? Olhem o teatro grotesco que está acontecendo nas negociações eleitorais em Brasília. Teresa C...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.5,
+      "words": 772,
+      "audio_url": "./audio/especial-HnH-IpVxtig.mp3",
+      "script_url": "./episodes/especial-HnH-IpVxtig.md",
+      "audio_bytes": 6421777,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:17"
+    },
+    {
+      "id": "especial-IITMtjZ6DOU",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:14:15 +0000",
+      "type": "especial",
+      "title": "A PF Foi Obrigada a Investigar o Lulinha: A Blindagem Estatal Ruuiu",
+      "excerpt": "O teatrinho da burocracia estatal é fascinante, não é? A Polícia Federal, essa corporação sustentada com o seu imposto arrancado à força, estava fazendo absolutamente tudo o que po...",
+      "manchetes": [],
+      "quadros": [
+        "corrupção",
+        "política",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.2,
+      "words": 726,
+      "audio_url": "./audio/especial-IITMtjZ6DOU.mp3",
+      "script_url": "./episodes/especial-IITMtjZ6DOU.md",
+      "audio_bytes": 6037464,
+      "sources": [
+        "Estadão"
+      ],
+      "published_at": "2026-08-03T11:13:17"
+    },
+    {
+      "id": "especial-dId9ZQ7wLkc",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:12:43 +0000",
+      "type": "especial",
+      "title": "A Falência Moral e Financeira das Estatais e o Triunfo das AgriTechs",
+      "excerpt": "Sabe qual é a maior prova de que o Estado é um parasita incapaz de gerir qualquer coisa? É a facilidade inacreditável com que a máfia estatal transforma instituições e empresas em ...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "impostos",
+        "politica"
+      ],
+      "duration_min": 5.0,
+      "words": 827,
+      "audio_url": "./audio/especial-dId9ZQ7wLkc.mp3",
+      "script_url": "./episodes/especial-dId9ZQ7wLkc.md",
+      "audio_bytes": 7204197,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-WODHuq9Qfco",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:11:08 +0000",
+      "type": "especial",
+      "title": "Dois Pesos e Dez Dedos: A Seletividade da Justiça Eleitoral sobre a Inteligência Artificial",
+      "excerpt": "A Justiça Eleitoral do Estado brasileiro prova, dia após dia, que a legislação não passa de um cassetete político usado para esmagar os inimigos do regime e proteger os amigos do r...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "eleições",
+        "política"
+      ],
+      "duration_min": 3.5,
+      "words": 606,
+      "audio_url": "./audio/especial-WODHuq9Qfco.mp3",
+      "script_url": "./episodes/especial-WODHuq9Qfco.md",
+      "audio_bytes": 5080129,
+      "sources": [
+        "VEJA"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-QLsSeRypTPQ",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:10:54 +0000",
+      "type": "especial",
+      "title": "A Farsa das Pesquisas e a Descentralização do Voto no Brasil",
+      "excerpt": "A imprensa alinhada ao establishment adora fazer um verdadeiro malabarismo estatístico para consolar o leviatã de plantão. Quando a narrativa do regime começa a esfarelar diante da...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política",
+        "economia"
+      ],
+      "duration_min": 5.4,
+      "words": 911,
+      "audio_url": "./audio/especial-QLsSeRypTPQ.mp3",
+      "script_url": "./episodes/especial-QLsSeRypTPQ.md",
+      "audio_bytes": 7738976,
+      "sources": [
+        "CNN Brasil"
+      ],
+      "published_at": "2026-08-03T11:13:18"
+    },
+    {
+      "id": "especial-D8DPQOLbqsE",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:08:12 +0000",
+      "type": "especial",
+      "title": "Felipe Neto, Igor 3K e o Parasitismo no Monopólio Estatal da Justiça",
+      "excerpt": "Fala, pessoal! Peter Albuquerque na área. Olha só quem resolveu sair das sombras do esquecimento para bater na porta do monopólio estatal da coerção: Felipe Neto ingressou com uma ...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "política"
+      ],
+      "duration_min": 4.9,
+      "words": 843,
+      "audio_url": "./audio/especial-D8DPQOLbqsE.mp3",
+      "script_url": "./episodes/especial-D8DPQOLbqsE.md",
+      "audio_bytes": 7030535,
+      "sources": [
+        "Felipe Neto vai à Justiça contra Igor 3K por publicidade ind"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    },
+    {
+      "id": "especial-rIVKnoa90V0",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:06:35 +0000",
+      "type": "especial",
+      "title": "A Ilusão das Fronteiras Estatais: O Colapso de Ceuta Diante da Imigração Coordenada",
+      "excerpt": "Imagens chocantes mostram o exato momento em que uma multidão invade a cidade de Ceuta, território espanhol cravado no norte da África. Milhares de imigrantes vindos do Marrocos pu...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia"
+      ],
+      "duration_min": 4.2,
+      "words": 720,
+      "audio_url": "./audio/especial-rIVKnoa90V0.mp3",
+      "script_url": "./episodes/especial-rIVKnoa90V0.md",
+      "audio_bytes": 6107681,
+      "sources": [
+        "Visão Libertária"
+      ],
+      "published_at": "2026-08-03T11:13:19"
+    }
+  ]
+}

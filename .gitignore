@@ -21,6 +21,8 @@ __pycache__/
 audio/*.mp3
 audio/*.wav
 audio/chunks/
+public/audio/
+public/brasil-e-mundo/audio/
 edge.mp3
 piper.wav
 kokoro-v1.0.onnx
