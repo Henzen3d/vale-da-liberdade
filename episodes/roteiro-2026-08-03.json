@@ -1,0 +1,410 @@
+{
+  "manchetes": [
+    "Homem é preso em Agronômica após agressão com pedaço de madeira",
+    "Parapentista cai em árvore no Morro Azul e mobiliza helicóptero em Timbó",
+    "Campanha Nacional de Multivacinação e AGFs abertos no fim de semana em Blumenau",
+    "Concurso Literário Manoel Karam bate recorde com 173 inscritos em Rio do Sul",
+    "Via Mar em Joinville aguarda PPP e partidos definem candidaturas em convenções em SC"
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "O cidadão paga imposto para ter proteção e no fim precisa se virar sozinho para ter segurança ou saúde. É o resumo deste três de agosto de dois mil e vinte e seis no Vale do Itajaí."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Não é bem assim Peter. As instituições funcionaram no fim de semana e os serviços essenciais seguem operando com planejamento na nossa região."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Planejamento estatal é o nome bonito para gastos sem conta e burocracia sem fim. Hoje temos agressões no Alto Vale, resgate de helicóptero no Morro Azul, convenções partidárias e a novela da Via Mar."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Em Agronômica a Polícia Militar foi acionada às nove horas de sábado após denúncia na Central Regional de Emergências. Uma mulher embriagada e abalada denunciou que foi ameaçada de morte e agredida com pedaço de madeira pelo companheiro."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Pedaço de madeira e ameaça de morte com a polícia chegando só depois que a agressão já tinha acontecido. O Estado promete proteção total mas na hora do aperto a vítima está completamente indefesa na própria casa."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A resposta foi rápida Peter e o agressor acabou preso em flagrante evitando um mal maior. É para isso que serve o patrulhamento ostensivo e o atendimento de emergência."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Preso em flagrante para responder ao processo com o dinheiro do contribuinte bancando toda a papelada da estrutura policial e judiciária."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Na Alameda Aristiliano Ramos em Rio do Sul a Guarda Municipal interveio em uma briga generalizada na frente de uma casa de shows. A equipe usou equipamentos de menor potencial ofensivo para dispersar a confusão e controlar os frequentadores."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Menor potencial ofensivo para conter briga de balada às custas do pagador de impostos. Se a segurança privada do evento não dá conta a conta sobra para o contribuinte municipal."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A ordem pública na rua é responsabilidade do município e o patrulhamento preventivo evitou feridos graves. O espaço público precisa de presença municipal para garantir a convivência civilizada."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Presença municipal que custa caro e só entra em ação quando a confusão já tomou a calçada inteira."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "No Morro Azul em Timbó um praticante de parapente caiu na copa de uma árvore na localidade de Mulde Alta por volta das doze e cinquenta de domingo. O Corpo de Bombeiros Militar acionou a equipe do helicóptero para resgatar o piloto em área de difícil acesso."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Helicóptero militar mobilizado porque o sujeito ficou preso na árvore durante o lazer de domingo. A aventura privada vira despesa pública na hora do resgate."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A vida humana é prioridade absoluta Peter e os bombeiros militares estão treinados para salvamentos complexos. O serviço de busca e salvamento beneficia toda a comunidade em momentos de risco."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Se a contratação de seguro privado fosse exigida para esportes radicais a conta do voo não ficava para a sociedade."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Em Blumenau a Polícia Militar atendeu duas ocorrências de tentativa de furto no sábado dia primeiro de agosto. Às dezesseis horas no Centro o gerente de uma loja flagrou três mulheres tentando sair com mercadorias sem pagar."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Três mulheres furtando no Centro em pleno horário comercial. O lojista precisa manter vigilância própria constante porque o Estado só aparece depois que o alarme toca."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A ação do gerente combinada com a chegada rápida da PM impediram o prejuízo do estabelecimento. Essa integração entre comércio e patrulhamento fortalece a prevenção."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Integração que obriga o comerciante a gastar fortunas com câmeras e seguranças particulares para não ter a loja esvaziada."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Na madrugada de domingo antes das três horas e vinte e sete minutos na Rua Adão Schwartz no bairro Rio Branco em Brusque um VW Fox bateu num poste e pegou fogo. O motorista abandonou o veículo em chamas e fugiu antes da chegada das duas viaturas dos bombeiros."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Três horas e vinte e sete da manhã o sujeito destrói o poste da rede elétrica e corre para não assumir a conta. Adivinha quem vai pagar o prejuízo na conta de luz Ricardo?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A polícia investiga o caso para identificar o condutor e responsabilizar o infrator pelos danos causados ao patrimônio público. O atendimento dos bombeiros evitou que o fogo atingisse a fiação da rua inteira."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Boa sorte tentando reaver o dinheiro do motorista fujão enquanto o pagador de imposto financia a substituição da estrutura."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Blumenau inicia nesta segunda-feira dia três a Campanha Nacional de Multivacinação para atualizar a caderneta de crianças e adolescentes. A ação vai até primeiro de setembro com o Dia D marcado para o sábado vinte e dois de agosto com salas abertas em toda a cidade."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Um mês inteiro de mobilização estatal para fazer o que os próprios pais deveriam gerenciar voluntariamente. O governo precisa criar um evento com nome chamativo para lembrar a família das obrigações básicas?"
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A imunização em massa protege toda a sociedade e evita o retorno de doenças graves. O Dia D no sábado é uma facilidade essencial para pais que trabalham em horário comercial."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Se o mercado de saúde fosse desregulamentado o cidadão atualizaria vacinas em qualquer farmácia de esquina sem depender de cronograma oficial."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Durante os fins de semana de agosto os Ambulatórios Gerais da Família do Garcia da Velha e da Itoupava estarão abertos das oito às dezessete horas. Moradores de Blumenau poderão buscar atendimento ambulatorial e vacinação aos sábados e domingos."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Abrem no fim de semana porque a fila do posto durante a semana é impraticável para quem trabalha Ricardo. É a tentativa de remediar a ineficiência crônica do atendimento público."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Essa escala de fim de semana reduz a sobrecarga nas emergências hospitalares e atende a população no momento de folga. Os dados das edições anteriores comprovam a eficiência dessa extensão de horário."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Eficiência paga com impostos elevados cobrados de quem muitas vezes prefere pagar consulta particular para não esperar o posto."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "O médico e ex-presidente do CRM de Santa Catarina Doutor Marcelo Reis teve a candidatura a deputado federal oficializada pelo PL na convenção de sábado. Ele afirmou que quer levar sua experiência de gestão em saúde para o Congresso Nacional."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Mais um médico trocando a medicina pela carreira política sob a promessa de consertar o sistema estatal. Quando o profissional entra na máquina a receita costuma ser mais orçamento público e mais regulação."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A presença de gestores técnicos da saúde na elaboração de leis federais ajuda a direcionar verbas com mais critério. Ter alguém que conhece o cotidiano dos hospitais traz ganho de qualidade para os debates em Brasília."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "O verdadeiro ganho seria descentralizar os recursos para que a população não precisasse de deputados intermediando verbas da saúde."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Em Rio do Sul o oitavo Concurso Literário Manoel Karam registrou recorde com cento e setenta e três trabalhos de alunos de dezoito escolas públicas e privadas. A prefeitura distribuindo Kindles e vale-livros para premiar contos e poemas."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Incentivar a leitura e a escrita nos jovens é uma medida pedagógica excelente Peter. A integração entre dezoito escolas demonstra o impacto comunitário positivo do concurso."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Se a escola pública ensinasse o básico com excelência durante as aulas diárias não precisaria de prêmio eletrônico e evento governamental para estimular o aluno a escrever."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "O concurso atua como atividade complementar que estimula talentos artísticos em toda a região. A participação recorde mostra o interesse dos estudantes pela produção cultural."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Estímulo promovido pela máquina municipal em vez de deixar entidades culturais privadas ou colégios organizarem seus próprios prêmios."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O trecho da Via Mar em Joinville agora depende de uma futura Parceria Público-Privada para sair do papel. O Estado passa anos prometendo a rodovia para no fim confessar que precisa da iniciativa privada para fazer a obra."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "As PPPs são soluções modernas para viabilizar investimentos pesados em infraestrutura sem comprometer o caixa direto do Estado. O modelo permite atrair capital privado com regulação pública para garantir o serviço."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Se o governo saísse da frente e concedesse a via sem trava burocrática e sem licitação travada a rodovia estaria pronta faz tempo."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A regulação contratual é fundamental para evitar tarifas abusivas no pedágio e exigir padrões de manutenção permanente. O interesse público exige fiscalização sobre o concessionário."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Fiscalização que encarece o contrato e atrasa o início das obras enquanto o motorista sofre com o trânsito travado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O ex-prefeito de Blumenau Mário Hildebrandt teve a candidatura a deputado estadual homologada pelo PL na convenção de sábado. Ele afirmou que quer colocar a experiência da gestão e da Defesa Civil a serviço do estado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Mário Hildebrandt traz na bagagem a experiência executiva na prefeitura de Blumenau e na gestão da Defesa Civil catarinense. Essa vivência prática traz contribuições importantes para a Assembleia Legislativa em temas de prevenção de desastres."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Experiência de gestão executiva significa anos expandindo a máquina pública e administrando cargos comissionados mantidos pelo pagador de impostos."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Conhecer a burocracia por dentro permite propor leis mais realistas e fiscalizar as ações do governo estadual com propriedade. O legislativo ganha com nomes que conhecem a administração direta."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O legislativo ganharia mais se tivesse representantes comprometidos em cortar tributos e reduzir o número de secretarias no estado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O União Brasil fez convenção no sábado confirmando apoio a João Rodrigues do PSD ao governo e indicou o ex-prefeito de Araquari Clenilton Pereira como primeiro suplente de Antídio Lunelli do MDB na disputa ao Senado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A construção dessas alianças partidárias busca dar estabilidade política e governabilidade às propostas regionais Peter. A união de diferentes forças consolida um projeto representativo para Santa Catarina."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O tradicional arranjo de bastidor onde caciques partidários distribuem vagas de suplência e fundo eleitoral entre si."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "As convenções são instâncias legítimas do processo eleitoral para acomodar correntes políticas diversas. A composição busca equilibrar o peso eleitoral de diferentes regiões do estado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Equilíbrio de lideranças que usam recursos milionários do fundo partidário financiado obrigatoriamente por todos nós."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "O domingo em Blumenau teve predomínio de sol com a máxima atingindo vinte e sete graus devido à massa de ar seco. A estação do AlertaBlu no Água Verde indicou vinte e três vírgula dois graus às ten e trinta após uma mínima de dezesseis vírgula cinco às quatro da manhã."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Vinte e sete graus de sol com o contribuinte financiado estação de monitoramento para dar informação que qualquer celular fornece de graça."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A estrutura do AlertaBlu é vital para a prevenção de cheias e monitoramento do rio Itajaí-Açu em momentos críticos. A medição contínua garante dados confiáveis para alertar a população em emergências."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Para constatar vinte e sete graus em um dia ensolarado não é necessária uma estrutura pesada mantida pelo orçamento municipal."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Na noite de domingo o Blog do Jaime e a TV Galega transmitiram ao vivo a Santa Missa e Novena com o grupo musical Alexandre Deluca de Indaial. A transmissão alcançou fiéis pela internet e pela TV a cabo regional."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "A iniciativa privada e os canais comunitários mostrando que organizam e transmitem eventos sem precisar de emissores governamentais."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A integração entre mídias locais e manifestações culturais comunitárias fortalece os laços sociais das cidades do Vale. É uma colaboração voluntária com grande alcance regional."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Ações voluntárias funcionam melhor justamente porque dependem do engajamento espontâneo das pessoas e não de verbas estatais."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "Carlos Bolsonaro oficializou sua candidatura ao Senado por Santa Catarina pelo PL e definiu o ex-prefeito Rafael Caleffi como primeiro suplente. O fato ganha destaque porque em dois mil e vinte e dois Caleffi fez críticas públicas à gestão do ex-presidente e o chamou de ogro."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Peter",
+      "texto": "A política partidária nacional é uma demonstração de incoerência onde quem criticava severamente o grupo político agora ocupa a primeira suplência ao Senado."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "O pragmatismo eleitoral busca construir alianças amplas para somar forças na disputa majoritária. As divergências passadas são superadas em nome de um projeto político unificado no estado."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Peter",
+      "texto": "Superação de divergências que mostra como os discursos dos políticos se adaptam rapidamente conforme o interesse de cada eleição."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Em Uganda o governo inaugurou uma estátua em memória de Yonatan Netanyahu militar israelense morto durante a missão que resgatou mais de cem reféns no aeroporto de Entebbe."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Ricardo",
+      "texto": "O monumento reconhece o valor histórico de uma operação militar decisiva que salvou vidas civis em um momento de crise internacional. A memória da ação permanece como marco diplomático e militar."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Uma homenagem a uma ação direta e corajosa de resgate privado de liberdade contra atos terroristas."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "E nas rapidinhas da loucura estatal o governo estadual descobre que precisa de Parceria Público-Privada para pavimentar um trecho rodoviário em Joinville enquanto os partidos torram milhões de fundo público em convenções."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "As PPPs são modelos eficientes para captação de recursos técnicos sem sobrecarregar a arrecadação direta dos impostos catarinenses."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "A sobrecarga já existe quando o cidadão paga imposto em tudo e ainda precisa esperar anos pela liberação ambiental de uma obra básica."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "A análise ambiental rigorosa garante que os investimentos em infraestrutura não causem danos irreversíveis às bacias hidrográficas da região."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Análise rigorosa que serve como pretexto para a burocracia atrasar o desenvolvimento enquanto as estradas continuam cheias de gargalos."
+    }
+  ],
+  "fechamento": [
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "O Estado cobra impostos em cada atividade do seu dia e quando você precisa de estradas ou segurança o serviço depende de concessão ou da sorte."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "A realidade mostra que as instituições públicas e os serviços organizados mantêm a estrutura que atende a sociedade diariamente no Vale do Itajaí."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Quem realmente resolve a sua vida é a sua iniciativa individual e a sua liberdade. Até o próximo episódio do Webjornal Vale da Liberdade."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Acompanhe nossos conteúdos e até o nosso próximo encontro."
+    }
+  ]
+}
