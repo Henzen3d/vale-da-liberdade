@@ -1,10 +1,120 @@
+# ==========================================
+# 1. SEGREDOS, CHAVES E VARIÁVEIS DE AMBIENTE
+# ==========================================
 .env
-*.wav
-*.mp3
-audio/chunks/
-__pycache__/
-*.pyc
+.env.*
+!.env.example
+*.env
+*.pem
+*.crt
+*.key
+*.pfx
+*.p12
+*.asc
+secrets/
+credentials/
+keys/
+*_key.json
+*_secret.json
+service_account.json
+gcp-key.json
+aws-credentials
+sources/x_cookies.json
+sources/x_cookies*.json
+
+# ==========================================
+# 2. AMBIENTES VIRTUAIS E CACHE PYTHON
+# ==========================================
 .venv/
 venv/
+venv_win/
+env/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# 3. DEPENDÊNCIAS NODE E BUILDS
+# ==========================================
 node_modules/
+dist/
+build/
+.next/
+.nuxt/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# 4. ÁUDIO, MÍDIAS GERADAS E OUTPUTS DE PIPELINE
+# ==========================================
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+*.aac
+audio/
+!audio/.gitkeep
+output/
+public/episodes/*.mp3
+public/episodes/*.wav
+
+# ==========================================
+# 5. MODELOS IA / PESOS TTS E DIRETÓRIOS DE TRABALHO IA
+# ==========================================
+*.onnx
+*.onnx.json
+*.bin
+*.pth
+*.pt
+*.safetensors
+*.tflite
+*.model
+kokoro_work/
+moss-tts-nano/
+
+# ==========================================
+# 6. CACHES DE RUNTIME E ARQUIVOS DE LOG
+# ==========================================
+logs/
+*.log
+sources/cache.json
+sources/cache.json.bak
+sources/x_tweets_cache.json
+sources/gemini_limits.json
+sources/gemini_usage.json
+sources/news_memory_test.json
+
+# ==========================================
+# 7. BACKUPS E ARQUIVOS TEMPORÁRIOS
+# ==========================================
+BACKUP-*/
+BACKUP*
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# ==========================================
+# 8. SISTEMA OPERACIONAL E EDITORES / IDES
+# ==========================================
+.DS_Store
+Thumbs.db
+Desktop.ini
 nul
+.vscode/
+.idea/
+*.suo
+*.user
+.gemini/
+.claude/
