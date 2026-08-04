@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Reutiliza instância do Supabase da página pai (evita conflito de instâncias)
+ * Usa instância local do Supabase (página independente)
  */
 
 const AdminAuth = (() => {
@@ -10,12 +10,24 @@ const AdminAuth = (() => {
   let authCallbacks = [];
 
   function init() {
-    // Tenta reutilizar instância do Supabase já carregada na página pai
-    if (window.supabaseClient && typeof window.supabaseClient.auth !== 'undefined') {
-      supabase = window.supabaseClient;
-      console.log('[admin_auth] Reutilizando instância do Supabase da página pai');
-    } else if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-      // Cria nova instância apenas se necessário
+    console.log('[admin_auth] Iniciando inicialização...');
+    console.log('[admin_auth] window.supabase:', !!window.supabase);
+    console.log('[admin_auth] window.SUPABASE_URL:', window.SUPABASE_URL);
+    console.log('[admin_auth] window.SUPABASE_ANON_KEY:', window.SUPABASE_ANON_KEY ? 'definida' : 'NÃO definida');
+    
+    if (!window.supabase) {
+      console.error('[admin_auth] Supabase SDK não carregado!');
+      alert('Erro: Supabase SDK não encontrado. Verifique a conexão.');
+      return;
+    }
+
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      console.error('[admin_auth] Credenciais do Supabase não definidas!');
+      alert('Erro: Credenciais do Supabase não encontradas.');
+      return;
+    }
+
+    try {
       supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
         auth: {
           detectSessionInUrl: true,
@@ -24,14 +36,14 @@ const AdminAuth = (() => {
           flowType: 'pkce',
         },
       });
-      console.log('[admin_auth] Criando nova instância do Supabase');
-    } else {
-      console.error('[admin_auth] Supabase não disponível');
-      alert('Erro: Supabase não configurado. Verifique as credenciais.');
+      console.log('[admin_auth] Instância do Supabase criada com sucesso');
+    } catch (err) {
+      console.error('[admin_auth] Erro ao criar instância:', err);
+      alert('Erro ao criar conexão com Supabase: ' + err.message);
       return;
     }
 
-    console.log('[admin_auth] Iniciando verificação de sessão...');
+    console.log('[admin_auth] Verificando sessão existente...');
     
     // Check existing session
     supabase.auth.getSession().then(({ data, error }) => {
@@ -47,7 +59,7 @@ const AdminAuth = (() => {
         console.log('[admin_auth] Sessão encontrada:', currentUser.email);
         checkAdminRole();
       } else {
-        console.log('[admin_auth] Nenhuma sessão ativa — aguardando login');
+        console.log('[admin_auth] Nenhuma sessão ativa — mostrando tela de login');
         showAuthScreen();
       }
     }).catch(err => {
