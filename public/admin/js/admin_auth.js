@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Versão simplificada usando a sessão da página principal
+ * Página independente: cria um único client Supabase e compartilha com os módulos.
  */
 
 const AdminAuth = (() => {
@@ -8,57 +8,110 @@ const AdminAuth = (() => {
   let currentUser = null;
   let isAdmin = false;
   let authCallbacks = [];
+  let initialized = false;
+  let buttonsBound = false;
+
+  function getConfig() {
+    return {
+      url: window.SUPABASE_URL || 'https://news.mob.tec.br',
+      key: window.SUPABASE_ANON_KEY || '',
+    };
+  }
+
+  function createClient() {
+    const { url, key } = getConfig();
+    if (!window.supabase || !window.supabase.createClient) {
+      throw new Error('Supabase SDK não carregado');
+    }
+    if (!key) {
+      throw new Error('SUPABASE_ANON_KEY ausente');
+    }
+
+    // Mesma storage key padrão do hostname (sb-news-auth-token) —
+    // assim a sessão da home e do admin é compartilhada no mesmo domínio.
+    const client = window.supabase.createClient(url, key, {
+      auth: {
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true,
+        flowType: 'pkce',
+      },
+    });
+
+    window.supabaseClient = client;
+    return client;
+  }
 
   function init() {
-    console.log('[admin_auth] Iniciando inicialização...');
-    
-    // Tenta usar a instância do Supabase da página principal
-    if (window.supabaseClient) {
-      supabase = window.supabaseClient;
-      console.log('[admin_auth] Usando instância existente da página principal');
-      checkExistingSession();
-    } else if (window.supabase) {
-      // Cria instância local se SDK estiver disponível
-      supabase = window.supabase.createClient(
-        'https://news.mob.tec.br',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cXV3cXpueGxrdGJxZGNsZGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM4ODg0NjEsImV4cCI6MjAxOTQ2NDQ2MX0.u4GE3s6c6X3y2s0V5m6l4t0v6s3u6y0x3s3y2s0V5m6',
-        {
-          auth: {
-            detectSessionInUrl: true,
-            persistSession: true,
-            autoRefreshToken: true,
-            flowType: 'pkce',
-            storageKey: 'admin-supabase-auth-token',
-          },
-        }
-      );
-      console.log('[admin_auth] Criando instância local do Supabase');
-      checkExistingSession();
-    } else {
-      console.error('[admin_auth] Supabase não disponível!');
-      showAuthError('Erro: Supabase não encontrado. Verifique a conexão.');
+    if (initialized && supabase) {
+      console.log('[admin_auth] Já inicializado');
+      return supabase;
     }
+
+    console.log('[admin_auth] Iniciando...');
+    console.log('[admin_auth] SDK:', !!window.supabase);
+    console.log('[admin_auth] URL:', getConfig().url);
+    console.log('[admin_auth] KEY:', getConfig().key ? 'ok' : 'AUSENTE');
+
+    try {
+      supabase = createClient();
+      initialized = true;
+      console.log('[admin_auth] Client criado');
+    } catch (err) {
+      console.error('[admin_auth]', err.message);
+      showAuthError('Configuração do Supabase não encontrada: ' + err.message);
+      return null;
+    }
+
+    bindButtons();
+    watchAuth();
+    checkExistingSession();
+    return supabase;
+  }
+
+  function watchAuth() {
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[admin_auth] Auth state:', event, {
+        hasSession: !!session,
+        email: session?.user?.email,
+      });
+
+      currentUser = session?.user || null;
+      if (currentUser) {
+        checkAdminRole();
+      } else if (event === 'SIGNED_OUT') {
+        isAdmin = false;
+        showAuthScreen();
+        notifyCallbacks();
+      }
+    });
   }
 
   async function checkExistingSession() {
-    if (!supabase) return;
-    
-    console.log('[admin_auth] Verificando sessão existente...');
-    
+    // Limpa erros de OAuth na URL (ex.: ?error=server_error)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('error')) {
+        const desc = params.get('error_description') || params.get('error');
+        console.error('[admin_auth] OAuth error na URL:', desc);
+        showAuthError('Falha no login: ' + decodeURIComponent(desc));
+        // remove query suja
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch (_) { /* ignore */ }
+
+    console.log('[admin_auth] Verificando sessão...');
     const { data, error } = await supabase.auth.getSession();
-    console.log('[admin_auth] getSession:', { 
-      hasSession: !!data?.session, 
-      userId: data?.session?.user?.id,
+    console.log('[admin_auth] getSession:', {
+      hasSession: !!data?.session,
       email: data?.session?.user?.email,
-      error: error?.message 
+      error: error?.message,
     });
-    
+
     currentUser = data?.session?.user || null;
     if (currentUser) {
-      console.log('[admin_auth] Sessão encontrada:', currentUser.email);
-      checkAdminRole();
+      await checkAdminRole();
     } else {
-      console.log('[admin_auth] Nenhuma sessão ativa — mostrando tela de login');
       showAuthScreen();
     }
   }
@@ -66,37 +119,32 @@ const AdminAuth = (() => {
   async function checkAdminRole() {
     if (!supabase || !currentUser) return;
 
-    console.log('[admin_auth] Verificando permissão de admin para:', currentUser.email);
-    
+    console.log('[admin_auth] Checando admin:', currentUser.email);
     try {
       const { data, error } = await supabase.rpc('is_admin_user');
-      
-      console.log('[admin_auth] Resultado RPC is_admin_user:', {
-        data: data,
-        error: error?.message || error
-      });
-      
+      console.log('[admin_auth] is_admin_user:', { data, error: error?.message || error });
+
       if (error) {
-        console.error('[admin_auth] Erro na RPC is_admin_user:', error);
         isAdmin = false;
         showAuthError('Erro ao verificar permissão: ' + error.message);
         return;
       }
 
       isAdmin = !!data;
-      console.log('[admin_auth] É admin?', isAdmin);
-
       if (isAdmin) {
-        console.log('[admin_auth] Acesso permitido!');
+        console.log('[admin_auth] Acesso permitido');
         hideAuthScreen();
         updateUserUI();
         notifyCallbacks();
       } else {
-        console.warn('[admin_auth] Usuário não tem role=admin');
-        showAuthError('Sua conta não possui permissão de administrador.');
+        showAuthError(
+          'Sua conta não possui permissão de administrador.<br>' +
+          'Email: <strong>' + (currentUser.email || '') + '</strong>'
+        );
+        showAuthScreen();
       }
     } catch (err) {
-      console.error('[admin_auth] Exceção:', err);
+      console.error('[admin_auth] exceção admin:', err);
       isAdmin = false;
       showAuthError('Erro na verificação: ' + err.message);
     }
@@ -104,30 +152,27 @@ const AdminAuth = (() => {
 
   async function signInWithGoogle() {
     if (!supabase) {
-      console.error('[admin_auth] supabase não inicializado');
-      alert('Erro: Supabase não inicializado.');
+      init();
+    }
+    if (!supabase) {
+      alert('Supabase não inicializado.');
       return;
     }
 
-    console.log('[admin_auth] Iniciando login com Google...');
-    
-    // Redireciona para a própria página do admin após o login
-    const redirectUrl = 'https://news.mob.tec.br/admin/';
-    console.log('[admin_auth] Redirect URL:', redirectUrl);
-    
+    const redirectTo = window.location.origin + '/admin/';
+    console.log('[admin_auth] OAuth Google →', redirectTo);
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl,
-        queryParams: { access_type: 'offline', prompt: 'consent' },
+        redirectTo,
+        queryParams: { access_type: 'offline', prompt: 'select_account' },
       },
     });
 
     if (error) {
-      console.error('[admin_auth] Erro no OAuth:', error);
+      console.error('[admin_auth] OAuth error:', error);
       alert('Falha ao iniciar login: ' + error.message);
-    } else {
-      console.log('[admin_auth] Redirecionando para Google...');
     }
   }
 
@@ -141,100 +186,117 @@ const AdminAuth = (() => {
   }
 
   function showAuthScreen() {
-    document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('dashboardLayout').style.display = 'none';
-    document.getElementById('authError').style.display = 'none';
+    const auth = document.getElementById('authScreen');
+    const dash = document.getElementById('dashboardLayout');
+    if (auth) auth.style.display = 'flex';
+    if (dash) dash.style.display = 'none';
   }
 
   function hideAuthScreen() {
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('dashboardLayout').style.display = 'flex';
+    const auth = document.getElementById('authScreen');
+    const dash = document.getElementById('dashboardLayout');
+    if (auth) auth.style.display = 'none';
+    if (dash) dash.style.display = 'flex';
+    const err = document.getElementById('authError');
+    if (err) err.style.display = 'none';
   }
 
   function showAuthError(message) {
     const errorEl = document.getElementById('authError');
-    if (errorEl) {
-      errorEl.querySelector('.alert-message').innerHTML = message;
-      errorEl.style.display = 'flex';
-    }
+    if (!errorEl) return;
+    const msg = errorEl.querySelector('.alert-message');
+    if (msg) msg.innerHTML = message;
+    errorEl.style.display = 'flex';
+    showAuthScreen();
   }
 
   function updateUserUI() {
     if (!currentUser) return;
-
-    const name = currentUser.user_metadata?.full_name || 
-                 currentUser.user_metadata?.name || 
-                 currentUser.email?.split('@')[0] || 'Admin';
-    const avatar = currentUser.user_metadata?.avatar_url || 
-                   currentUser.user_metadata?.picture || '';
+    const name =
+      currentUser.user_metadata?.full_name ||
+      currentUser.user_metadata?.name ||
+      currentUser.email?.split('@')[0] ||
+      'Admin';
+    const avatar =
+      currentUser.user_metadata?.avatar_url ||
+      currentUser.user_metadata?.picture ||
+      '';
     const initials = name.substring(0, 2).toUpperCase();
 
     const avatarEl = document.getElementById('sidebarAvatar');
     const nameEl = document.getElementById('sidebarUserName');
-
     if (avatarEl) {
-      if (avatar) {
-        avatarEl.innerHTML = `<img src="${avatar}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
-      } else {
-        avatarEl.textContent = initials;
-      }
+      avatarEl.innerHTML = avatar
+        ? `<img src="${avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+        : initials;
     }
-
-    if (nameEl) {
-      nameEl.textContent = name;
-    }
+    if (nameEl) nameEl.textContent = name;
   }
 
   function onAdminReady(callback) {
     authCallbacks.push(callback);
-    if (isAdmin) {
-      callback();
-    }
+    if (isAdmin) callback();
   }
 
   function notifyCallbacks() {
-    authCallbacks.forEach(cb => {
-      if (isAdmin) cb();
+    if (!isAdmin) return;
+    authCallbacks.forEach((cb) => {
+      try { cb(); } catch (e) { console.error(e); }
     });
   }
 
-  function getCurrentUser() {
-    return currentUser;
+  function bindButtons() {
+    if (buttonsBound) return;
+    buttonsBound = true;
+    const loginBtn = document.getElementById('btnGoogleLogin');
+    if (loginBtn) loginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      signInWithGoogle();
+    });
+    const logoutBtn = document.getElementById('btnLogout');
+    if (logoutBtn) logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      signOut();
+    });
   }
 
-  function isAdminUser() {
-    return isAdmin;
+  function getClient() {
+    return supabase || window.supabaseClient || null;
   }
 
-  // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
+  // Boot: espera DOM + SDK (script do SDK não usa defer; modules usam defer)
+  function boot() {
+    bindButtons();
+    // Se SDK ainda não estiver pronto (ordem rara), tenta de novo
+    if (!window.supabase) {
+      let tries = 0;
+      const t = setInterval(() => {
+        tries += 1;
+        if (window.supabase || tries > 50) {
+          clearInterval(t);
+          init();
+        }
+      }, 100);
+      return;
+    }
     init();
   }
 
-  // Setup login button
-  document.addEventListener('DOMContentLoaded', () => {
-    const loginBtn = document.getElementById('btnGoogleLogin');
-    if (loginBtn) {
-      loginBtn.addEventListener('click', signInWithGoogle);
-    }
-
-    const logoutBtn = document.getElementById('btnLogout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', signOut);
-    }
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 
   return {
     init,
     signInWithGoogle,
     signOut,
     onAdminReady,
-    getCurrentUser,
-    isAdminUser,
+    getCurrentUser: () => currentUser,
+    isAdminUser: () => isAdmin,
+    getClient,
   };
 })();
 
-// Expose to window
 window.AdminAuth = AdminAuth;

@@ -6,9 +6,15 @@
   <title>Admin — Vale da Liberdade</title>
   <link rel="stylesheet" href="./admin.css">
   
-  <!-- Supabase SDK will be loaded by parent page -->
-  
-  <!-- Recharts for charts (needs React + ReactDOM) -->
+  <!-- Supabase JS Client (página admin é independente da home) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.SUPABASE_URL = "https://news.mob.tec.br";
+    window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE";
+  </script>
+
+  <!-- Recharts: prop-types needed by UMD build -->
+  <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.js" defer></script>

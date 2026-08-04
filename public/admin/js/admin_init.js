@@ -1,55 +1,46 @@
 /**
  * admin_init.js — Inicialização da Dashboard Admin
- * Orquestra a carga dos módulos e navegação entre abas
+ * Usa o client único criado por admin_auth.js (sem segunda instância GoTrue).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  const supabaseUrl = window.SUPABASE_URL;
-  const supabaseKey = window.SUPABASE_ANON_KEY;
+  console.log('[admin_init] boot');
 
-  if (!window.supabase || !supabaseUrl || !supabaseKey) {
-    console.error('[admin_init] Supabase SDK ou chaves ausentes');
-    alert('Configuração do Supabase não encontrada.');
+  // Garante init do auth (idempotente)
+  if (window.AdminAuth) {
+    AdminAuth.init();
+  } else {
+    console.error('[admin_init] AdminAuth ausente');
     return;
   }
 
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      detectSessionInUrl: true,
-      persistSession: true,
-      autoRefreshToken: true,
-      flowType: 'pkce',
-    },
-  });
-
-  // Initialize auth first
-  AdminAuth.init();
-
-  // When admin is ready, initialize other modules
   AdminAuth.onAdminReady(() => {
-    // Initialize modules
-    AdminAds.init(supabaseClient);
-    AdminUsers.init(supabaseClient);
-    AdminCharts.init(supabaseClient);
+    const supabaseClient = AdminAuth.getClient();
+    if (!supabaseClient) {
+      console.error('[admin_init] client Supabase ausente após auth');
+      return;
+    }
 
-    // Load chart metrics
-    AdminCharts.loadMetrics(30);
+    console.log('[admin_init] admin ready — carregando módulos');
 
-    // Setup navigation
+    if (window.AdminAds) AdminAds.init(supabaseClient);
+    if (window.AdminUsers) AdminUsers.init(supabaseClient);
+    if (window.AdminCharts) AdminCharts.init(supabaseClient);
+
+    if (window.AdminCharts && AdminCharts.loadMetrics) {
+      AdminCharts.loadMetrics(30);
+    }
+
     setupNavigation();
 
-    // Setup kill switch button
     const killSwitchBtn = document.getElementById('btnGlobalKillSwitch');
-    if (killSwitchBtn) {
+    if (killSwitchBtn && window.AdminAds) {
       killSwitchBtn.addEventListener('click', AdminAds.toggleGlobalKillSwitch);
     }
 
-    // Setup export CSV button
     const exportBtn = document.getElementById('btnExportCSV');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', () => {
-        AdminCharts.exportMetricsCSV();
-      });
+    if (exportBtn && window.AdminCharts) {
+      exportBtn.addEventListener('click', () => AdminCharts.exportMetricsCSV());
     }
   });
 });
@@ -66,37 +57,30 @@ function setupNavigation() {
     reports: 'Relatórios & Gráficos',
   };
 
-  navItems.forEach(item => {
+  navItems.forEach((item) => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
-      
       const panelId = item.dataset.panel;
-      
-      // Update nav active state
-      navItems.forEach(n => n.classList.remove('active'));
+
+      navItems.forEach((n) => n.classList.remove('active'));
       item.classList.add('active');
 
-      // Show corresponding panel
-      panels.forEach(p => p.classList.remove('active'));
+      panels.forEach((p) => p.classList.remove('active'));
       const targetPanel = document.getElementById(`panel-${panelId}`);
-      if (targetPanel) {
-        targetPanel.classList.add('active');
-      }
+      if (targetPanel) targetPanel.classList.add('active');
 
-      // Update page title
       if (pageTitle && panelTitles[panelId]) {
         pageTitle.textContent = panelTitles[panelId];
       }
 
-      // Reload data when switching panels
-      if (panelId === 'ads') {
+      if (panelId === 'ads' && window.AdminAds) {
         AdminAds.loadCampaigns();
         AdminAds.loadSponsors();
-      } else if (panelId === 'users') {
+      } else if (panelId === 'users' && window.AdminUsers) {
         AdminUsers.loadUsersAndSubs();
-      } else if (panelId === 'reports') {
+      } else if (panelId === 'reports' && window.AdminCharts) {
         AdminCharts.loadMetrics(30);
-      } else if (panelId === 'overview') {
+      } else if (panelId === 'overview' && window.AdminAds) {
         AdminAds.loadCampaigns();
       }
     });

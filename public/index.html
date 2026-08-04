@@ -39,12 +39,13 @@
 
   <link rel="stylesheet" href="./assets/css/tokens.css?v=202608022030">
   <link rel="stylesheet" href="./assets/css/base.css?v=202608022030">
-  <link rel="stylesheet" href="./assets/css/components.css?v=202608022030">
+  <link rel="stylesheet" href="./assets/css/audio-wave.css?v=20260803d">
+  <link rel="stylesheet" href="./assets/css/components.css?v=202608032100">
 
   <!-- Supabase JS Client (deferred — era render-blocking 55KB / ~1.9s) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script>
-      window.SUPABASE_URL = "http://192.168.31.22:8080";
+      window.SUPABASE_URL = "https://news.mob.tec.br";
       window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE";
   </script>
 </head>
@@ -167,8 +168,8 @@
 
     <!-- Mini player (Google Stitch MiniPlayer design) -->
     <div id="miniPlayer" class="mini-player hidden" role="region" aria-label="Player">
-      <!-- Hairline progress bar no topo da card -->
-      <div class="mini-seek-bar-container" id="miniSeekBar">
+      <!-- Hairline progress bar no topo da card do miniplayer -->
+      <div class="mini-seek-bar-container" id="miniSeekBar" role="slider" aria-label="Progresso do áudio" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="mini-progress-track">
           <div class="mini-progress-fill"></div>
         </div>
@@ -178,9 +179,6 @@
       <div class="mini-player-left" id="miniOpenFull">
         <div class="mini-cover-wrapper">
           <img id="miniCover" class="mini-cover" src="./assets/cover.jpg" alt="Capa do Episódio" />
-          <div class="mini-equalizer-overlay">
-            <svg class="mini-equalizer-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-          </div>
         </div>
         
         <div class="mini-details">
@@ -238,6 +236,11 @@
         </div>
         
         <div class="scrubber-container">
+          <div class="scrubber-wave">
+            <div class="progress-wave paused" id="fullProgressWave" style="--progress: 0%" aria-hidden="true">
+              <!-- barras injetadas por app.js (buildProgressWave) -->
+            </div>
+          </div>
           <input type="range" id="fullScrubberSlider" class="scrubber-slider" min="0" max="100" value="0" step="0.1" aria-label="Progresso do Áudio" />
           <div class="scrubber-time">
             <span id="fullCurrentTime">0:00</span>
@@ -392,10 +395,46 @@
     </div>
   </div>
 
+  <!-- Overlay Interstitial de Anúncios (Tipo 2) -->
+  <div id="adInterstitialOverlay" class="ad-interstitial-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Anúncio em reprodução">
+    <div class="ad-overlay-backdrop"></div>
+    <div class="ad-overlay-card">
+      <div class="ad-overlay-header">
+        <div class="ad-sponsor-info">
+          <span class="ad-badge">Patrocínio</span>
+          <span class="ad-advertiser-name" id="adAdvertiserName">Patrocinador</span>
+        </div>
+        <button type="button" id="adSkipBtn" class="ad-skip-btn" disabled aria-disabled="true" aria-label="Pular anúncio">
+          <span id="adSkipText" aria-live="polite">Pular em 7s</span>
+        </button>
+      </div>
+
+      <div class="ad-media-container" id="adMediaContainer">
+        <!-- Renderizado dinamicamente: <img> ou <video> -->
+      </div>
+
+      <a id="adCtaLink" href="#" target="_blank" rel="noopener noreferrer" class="ad-cta-link" hidden>
+        <span>Saiba mais</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+
+      <div class="ad-overlay-footer">
+        <div class="ad-progress-bar">
+          <div class="ad-progress-fill" id="adProgressFill"></div>
+        </div>
+        <div class="ad-next-up">
+          <span class="ad-next-label">A seguir:</span>
+          <span class="ad-next-title" id="adNextTitle">Próximo episódio</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="./assets/js/theme.js?v=202608022030" defer></script>
   <script src="./assets/js/player.js?v=202608031311" defer></script>
-  <script src="./js/supabase_client.js?v=202608022030" defer></script>
-  <script src="./assets/js/app.js?v=202608031311" defer></script>
+  <script src="./js/supabase_client.js?v=202608032048" defer></script>
+  <script src="./assets/js/ad_manager.js?v=202608032048" defer></script>
+  <script src="./assets/js/app.js?v=202608032045" defer></script>
 
   <!-- Speculation Rules para prerender de próximas páginas (LCP nas navegações) -->
   <script type="speculationrules">

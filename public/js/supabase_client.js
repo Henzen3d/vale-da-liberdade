@@ -27,6 +27,7 @@ function initSupabase() {
       flowType: "pkce",
     },
   });
+  window.supabaseClient = supabaseClient;
 
   supabaseClient.auth.getSession().then(({ data }) => {
     currentUser = data?.session?.user || null;
