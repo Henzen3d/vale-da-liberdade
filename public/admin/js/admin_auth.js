@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Usa a sessão existente da página principal (não cria nova instância)
+ * Usa instância isolada com storageKey único
  */
 
 const AdminAuth = (() => {
@@ -12,16 +12,31 @@ const AdminAuth = (() => {
   function init() {
     console.log('[admin_auth] Iniciando inicialização...');
     
-    // Tenta usar a instância do Supabase da página principal
-    if (window.supabaseClient) {
-      supabase = window.supabaseClient;
-      console.log('[admin_auth] Usando instância existente da página principal');
-    } else if (window.supabase) {
-      supabase = window.supabase;
-      console.log('[admin_auth] Usando instância global do Supabase');
-    } else {
-      console.error('[admin_auth] Supabase não disponível!');
-      alert('Erro: Supabase não encontrado.');
+    // Verifica se o Supabase está disponível
+    if (!window.supabase) {
+      console.error('[admin_auth] Supabase SDK não carregado!');
+      alert('Erro: Supabase SDK não encontrado.');
+      return;
+    }
+
+    // Cria instância isolada com storageKey único
+    const supabaseUrl = 'https://news.mob.tec.br';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cXV3cXpueGxrdGJxZGNsZGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM4ODg0NjEsImV4cCI6MjAxOTQ2NDQ2MX0.u4GE3s6c6X3y2s0V5m6l4t0v6s3u6y0x3s3y2s0V5m6';
+    
+    try {
+      supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true,
+          flowType: 'pkce',
+          storageKey: 'admin-supabase-auth-token', // Storage único para evitar conflitos
+        },
+      });
+      console.log('[admin_auth] Instância isolada criada com storageKey único');
+    } catch (err) {
+      console.error('[admin_auth] Erro ao criar instância:', err);
+      alert('Erro ao criar conexão: ' + err.message);
       return;
     }
 
@@ -120,7 +135,7 @@ const AdminAuth = (() => {
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    // Usa a URL do admin como redirect
+    // Usa URL absoluta com domínio completo
     const redirectUrl = 'https://news.mob.tec.br/admin/';
     console.log('[admin_auth] Redirect URL:', redirectUrl);
     
