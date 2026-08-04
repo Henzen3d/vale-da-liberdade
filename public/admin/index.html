@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Vale da Liberdade</title>
-  <link rel="stylesheet" href="./admin.css">
+  <link rel="stylesheet" href="./admin.css?v=202608041324">
   
   <!-- Supabase JS Client (página admin é independente da home) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -512,10 +512,11 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
-  <script src="./js/admin_auth.js" defer></script>
-  <script src="./js/admin_ads.js" defer></script>
-  <script src="./js/admin_users.js" defer></script>
-  <script src="./js/admin_charts.js" defer></script>
-  <script src="./js/admin_init.js" defer></script>
+  <!-- Cache-busting: bump ?v= a cada alteração nos módulos (convenção YYYYMMDDHHMM) -->
+  <script src="./js/admin_auth.js?v=202608041324" defer></script>
+  <script src="./js/admin_ads.js?v=202608041324" defer></script>
+  <script src="./js/admin_users.js?v=202608041324" defer></script>
+  <script src="./js/admin_charts.js?v=202608041324" defer></script>
+  <script src="./js/admin_init.js?v=202608041324" defer></script>
 </body>
 </html>

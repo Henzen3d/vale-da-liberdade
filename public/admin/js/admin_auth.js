@@ -84,6 +84,11 @@ const AdminAuth = (() => {
 
       currentUser = session?.user || null;
       if (currentUser) {
+        // Garante limpeza da URL também quando o SIGNED_IN do OAuth chega
+        // antes do checkExistingSession (cleanAuthUrl é idempotente).
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          cleanAuthUrl();
+        }
         checkAdminRole();
       } else if (event === 'SIGNED_OUT') {
         isAdmin = false;
@@ -116,10 +121,29 @@ const AdminAuth = (() => {
 
     currentUser = data?.session?.user || null;
     if (currentUser) {
+      cleanAuthUrl();
       await checkAdminRole();
     } else {
       showAuthScreen();
     }
+  }
+
+  // Remove artefatos de OAuth (?code=, ?state=, tokens) da barra de endereços
+  // DEPOIS que a sessão já foi processada. Sem isso, o ?code= fica na URL e o
+  // SDK re-processa a troca de token a cada refresh/reload da página.
+  // Idempotente: se a query já está limpa, não faz nada.
+  function cleanAuthUrl() {
+    try {
+      const search = window.location.search;
+      if (!search) return;
+      const hasAuthArtifact =
+        /[?&](code|state|access_token|refresh_token|token_type|expires_in|expires_at|error_description)=/.test(search);
+      if (hasAuthArtifact) {
+        const cleanUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: window.location.pathname }, '', cleanUrl);
+        console.log('[admin_auth] Parâmetros OAuth removidos da URL');
+      }
+    } catch (_) { /* ignore */ }
   }
 
   async function checkAdminRole() {
