@@ -73,22 +73,31 @@ CREATE POLICY "Usuários podem atualizar ou criar seu histórico de escuta"
 
 -- Trigger para criar perfil automaticamente no primeiro login
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-    INSERT INTO public.user_profiles (id, email, full_name, avatar_url)
+    -- role default MUST be one of admin|editor|reader (CHECK constraint).
+    -- Postgres validates INSERT defaults even on ON CONFLICT, so set role explicitly.
+    INSERT INTO public.user_profiles (id, email, full_name, avatar_url, role)
     VALUES (
-        new.id,
-        new.email,
-        new.raw_user_meta_data->>'full_name',
-        new.raw_user_meta_data->>'avatar_url'
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name'),
+        COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture'),
+        'reader'
     )
     ON CONFLICT (id) DO UPDATE SET
-        full_name = EXCLUDED.full_name,
-        avatar_url = EXCLUDED.avatar_url,
+        email = EXCLUDED.email,
+        full_name = COALESCE(EXCLUDED.full_name, public.user_profiles.full_name),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, public.user_profiles.avatar_url),
         updated_at = NOW();
-    RETURN new;
+    -- never overwrite role on conflict (preserves admin)
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Ativar o Trigger ao cadastrar/logar novo usuário
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
