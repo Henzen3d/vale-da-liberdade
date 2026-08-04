@@ -126,7 +126,7 @@ const AdminAuth = (() => {
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    // Usa a mesma URL de redirecionamento da página principal
+    // Usa a URL principal como redirect (não /admin/)
     const redirectUrl = window.location.origin + '/';
     console.log('[admin_auth] Redirect URL:', redirectUrl);
     
