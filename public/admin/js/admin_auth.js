@@ -1,10 +1,9 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Usa instância isolada com storageKey único
+ * Versão simplificada usando a sessão da página principal
  */
 
 const AdminAuth = (() => {
-  let supabase = null;
   let currentUser = null;
   let isAdmin = false;
   let authCallbacks = [];
@@ -12,38 +11,34 @@ const AdminAuth = (() => {
   function init() {
     console.log('[admin_auth] Iniciando inicialização...');
     
-    // Verifica se o Supabase está disponível
-    if (!window.supabase) {
-      console.error('[admin_auth] Supabase SDK não carregado!');
-      alert('Erro: Supabase SDK não encontrado.');
-      return;
-    }
+    // Aguarda a página principal carregar o Supabase
+    const waitForSupabase = setInterval(() => {
+      if (window.supabaseClient) {
+        clearInterval(waitForSupabase);
+        console.log('[admin_auth] Supabase da página principal encontrado!');
+        setupAuth(window.supabaseClient);
+      } else if (window.__supabaseReady) {
+        // Já tentou inicializar mas falhou
+        console.error('[admin_auth] Supabase não disponível');
+        clearInterval(waitForSupabase);
+      }
+    }, 100);
 
-    // Cria instância isolada com storageKey único
-    const supabaseUrl = 'https://news.mob.tec.br';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cXV3cXpueGxrdGJxZGNsZGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM4ODg0NjEsImV4cCI6MjAxOTQ2NDQ2MX0.u4GE3s6c6X3y2s0V5m6l4t0v6s3u6y0x3s3y2s0V5m6';
-    
-    try {
-      supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-        auth: {
-          detectSessionInUrl: true,
-          persistSession: true,
-          autoRefreshToken: true,
-          flowType: 'pkce',
-          storageKey: 'admin-supabase-auth-token', // Storage único para evitar conflitos
-        },
-      });
-      console.log('[admin_auth] Instância isolada criada com storageKey único');
-    } catch (err) {
-      console.error('[admin_auth] Erro ao criar instância:', err);
-      alert('Erro ao criar conexão: ' + err.message);
-      return;
-    }
+    // Timeout de 5 segundos
+    setTimeout(() => {
+      clearInterval(waitForSupabase);
+      if (!currentUser) {
+        console.error('[admin_auth] Timeout ao aguardar Supabase');
+        showAuthError('Erro ao conectar com o servidor. Tente novamente.');
+      }
+    }, 5000);
+  }
 
-    console.log('[admin_auth] Verificando sessão existente...');
+  function setupAuth(supabaseClient) {
+    console.log('[admin_auth] Configurando autenticação...');
     
     // Check existing session
-    supabase.auth.getSession().then(({ data, error }) => {
+    supabaseClient.auth.getSession().then(({ data, error }) => {
       console.log('[admin_auth] getSession:', { 
         hasSession: !!data?.session, 
         userId: data?.session?.user?.id,
@@ -54,7 +49,7 @@ const AdminAuth = (() => {
       currentUser = data?.session?.user || null;
       if (currentUser) {
         console.log('[admin_auth] Sessão encontrada:', currentUser.email);
-        checkAdminRole();
+        checkAdminRole(supabaseClient);
       } else {
         console.log('[admin_auth] Nenhuma sessão ativa — mostrando tela de login');
         showAuthScreen();
@@ -65,7 +60,7 @@ const AdminAuth = (() => {
     });
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       console.log('[admin_auth] Auth state change:', event, {
         hasSession: !!session,
         userId: session?.user?.id,
@@ -75,7 +70,7 @@ const AdminAuth = (() => {
       currentUser = session ? session.user : null;
       if (currentUser) {
         console.log('[admin_auth] Usuário logado:', currentUser.email);
-        checkAdminRole();
+        checkAdminRole(supabaseClient);
       } else {
         console.log('[admin_auth] Usuário desconectado');
         showAuthScreen();
@@ -85,8 +80,8 @@ const AdminAuth = (() => {
     });
   }
 
-  async function checkAdminRole() {
-    if (!supabase || !currentUser) {
+  async function checkAdminRole(supabaseClient) {
+    if (!supabaseClient || !currentUser) {
       console.log('[admin_auth] checkAdminRole: supabase ou currentUser não disponíveis');
       return;
     }
@@ -94,7 +89,7 @@ const AdminAuth = (() => {
     console.log('[admin_auth] Verificando permissão de admin para:', currentUser.email);
     
     try {
-      const { data, error } = await supabase.rpc('is_admin_user');
+      const { data, error } = await supabaseClient.rpc('is_admin_user');
       
       console.log('[admin_auth] Resultado RPC is_admin_user:', {
         data: data,
@@ -128,18 +123,19 @@ const AdminAuth = (() => {
   }
 
   async function signInWithGoogle() {
-    if (!supabase) {
-      console.error('[admin_auth] supabase não inicializado');
+    if (!window.supabaseClient) {
+      console.error('[admin_auth] supabaseClient não disponível');
+      alert('Erro: Supabase não inicializado.');
       return;
     }
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    // Usa URL absoluta com domínio completo
+    // Redireciona para a própria página do admin após o login
     const redirectUrl = 'https://news.mob.tec.br/admin/';
     console.log('[admin_auth] Redirect URL:', redirectUrl);
     
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await window.supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
@@ -156,8 +152,8 @@ const AdminAuth = (() => {
   }
 
   async function signOut() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    if (!window.supabaseClient) return;
+    await window.supabaseClient.auth.signOut();
     currentUser = null;
     isAdmin = false;
     showAuthScreen();
