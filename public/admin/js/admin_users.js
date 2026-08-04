@@ -6,24 +6,52 @@ const AdminUsers = (() => {
   let supabase = null;
   let users = [];
   let subscriptions = [];
+  let isLoading = false;
 
   function init(supabaseClient) {
     supabase = supabaseClient;
     loadUsersAndSubs();
   }
 
+  // Fallback: se a referência local ficou null, recupera do AdminAuth (padrão vale-admin-fix)
+  function getClient() {
+    return supabase || (window.AdminAuth ? window.AdminAuth.getClient() : null);
+  }
+
   async function loadUsersAndSubs() {
+    // Evita requisições duplicadas concorrentes (ex.: init + click na aba ao mesmo tempo)
+    if (isLoading) return;
+    isLoading = true;
+
+    const tbody = document.getElementById('usersTableBody');
+
     try {
-      const { data, error } = await supabase.rpc('get_admin_users_and_subs');
+      const client = getClient();
+      if (!client) throw new Error('Supabase client não disponível');
+
+      const { data, error } = await client.rpc('get_admin_users_and_subs');
       if (error) throw error;
 
-      users = data?.filter(u => u.user_id) || [];
-      subscriptions = data?.filter(u => u.sub_id) || [];
-      
+      const rows = Array.isArray(data) ? data : [];
+      users = rows.filter(u => u.user_id) || [];
+      subscriptions = rows.filter(u => u.sub_id) || [];
+
       renderUsersTable();
     } catch (err) {
       console.error('[admin_users] Error loading users:', err);
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-state-title" style="color:#ef4444;">Erro ao carregar usuários</div><div class="empty-state-desc">${escapeHtml(err.message || String(err))}</div></td></tr>`;
+      }
       showToast('Erro ao carregar usuários', 'error');
+    } finally {
+      isLoading = false;
+      // Segurança extra: se por qualquer motivo o spinner ainda estiver no DOM, remove
+      if (tbody) {
+        tbody.querySelectorAll('tr .spinner').forEach(sp => {
+          const row = sp.closest('tr');
+          if (row) row.remove();
+        });
+      }
     }
   }
 
@@ -130,6 +158,7 @@ const AdminUsers = (() => {
   async function saveUser() {
     const name = document.getElementById('userName').value.trim();
     const email = document.getElementById('userEmail').value.trim();
+    const password = document.getElementById('userPassword').value;
     const role = document.getElementById('userRole').value;
     const plan = document.getElementById('userPlan').value;
 
@@ -138,10 +167,35 @@ const AdminUsers = (() => {
       return;
     }
 
-    // Note: Creating users in Supabase Auth requires admin privileges
-    // This is a simplified version for demo purposes
-    showToast('Funcionalidade de criação de usuário requer configuração adicional no Supabase Auth');
-    closeUserModal();
+    const saveBtn = document.querySelector('#userModal .modal-footer .btn-primary');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
+
+    try {
+      const client = getClient();
+      if (!client) throw new Error('Supabase client não disponível');
+
+      const { data, error } = await client.rpc('create_user_by_admin', {
+        p_email: email,
+        p_password: password || null,
+        p_full_name: name,
+        p_role: role,
+        p_plan_name: plan,
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data || data.ok !== true) {
+        throw new Error(data?.error || 'Erro desconhecido ao criar usuário');
+      }
+
+      showToast(`Usuário criado: ${email}`, 'success');
+      closeUserModal();
+      await loadUsersAndSubs(); // atualiza a tabela com o novo usuário
+    } catch (err) {
+      console.error('[admin_users] Error creating user:', err);
+      showToast('Erro ao criar usuário: ' + (err.message || err), 'error');
+    } finally {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Salvar'; }
+    }
   }
 
   function showToast(message, type = 'success') {
@@ -187,3 +241,4 @@ const AdminUsers = (() => {
 })();
 
 window.adminUsers = AdminUsers;
+window.AdminUsers = AdminUsers; // alias: admin_init.js referencia AdminUsers (capital A)

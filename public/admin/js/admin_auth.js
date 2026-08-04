@@ -10,6 +10,12 @@ const AdminAuth = (() => {
   let authCallbacks = [];
   let initialized = false;
   let buttonsBound = false;
+  // Guard contra loop: callbacks de "admin ready" disparam UMA vez por usuário.
+  // onAuthStateChange emite INITIAL_SESSION + SIGNED_IN + TOKEN_REFRESHED,
+  // e cada checkAdminRole() antigo re-disparava todos os módulos (loop de init).
+  let modulesLoadedForUserId = null;
+  // Dedupe de chamadas concorrentes de checkAdminRole (3 eventos de auth no boot).
+  let adminCheckInFlight = null;
 
   function getConfig() {
     return {
@@ -119,6 +125,31 @@ const AdminAuth = (() => {
   async function checkAdminRole() {
     if (!supabase || !currentUser) return;
 
+    // Se este usuário já foi validado como admin nesta sessão, não re-checa.
+    // Evita RPCs redundantes a cada evento onAuthStateChange (TOKEN_REFRESHED etc.)
+    if (isAdmin && modulesLoadedForUserId === currentUser.id) {
+      console.log('[admin_auth] Admin já validado para', currentUser.email, '— pulando re-check');
+      return;
+    }
+
+    // Dedupe de chamadas concorrentes: no boot, getSession() + INITIAL_SESSION +
+    // SIGNED_IN disparam 3 checkAdminRole() quase juntos. O primeiro emite a RPC;
+    // os demais aguardam o mesmo resultado em vez de disparar RPCs extras.
+    const uid = currentUser.id;
+    if (adminCheckInFlight && adminCheckInFlight.uid === uid) {
+      console.log('[admin_auth] checkAdminRole já em voo para', currentUser.email, '— reutilizando');
+      return adminCheckInFlight.promise;
+    }
+
+    adminCheckInFlight = { uid, promise: doCheckAdminRole() };
+    try {
+      return await adminCheckInFlight.promise;
+    } finally {
+      adminCheckInFlight = null;
+    }
+  }
+
+  async function doCheckAdminRole() {
     console.log('[admin_auth] Checando admin:', currentUser.email);
     try {
       const { data, error } = await supabase.rpc('is_admin_user');
@@ -181,6 +212,7 @@ const AdminAuth = (() => {
     await supabase.auth.signOut();
     currentUser = null;
     isAdmin = false;
+    modulesLoadedForUserId = null; // permite re-init ao logar novamente
     showAuthScreen();
     notifyCallbacks();
   }
@@ -239,7 +271,14 @@ const AdminAuth = (() => {
   }
 
   function notifyCallbacks() {
-    if (!isAdmin) return;
+    if (!isAdmin || !currentUser) return;
+    // Guard: notifica apenas UMA vez por usuário logado.
+    if (modulesLoadedForUserId === currentUser.id) {
+      console.log('[admin_auth] Módulos já carregados para', currentUser.email, '— ignorando notify duplicado');
+      return;
+    }
+    modulesLoadedForUserId = currentUser.id;
+    console.log('[admin_auth] Admin validado — carregando módulos uma única vez');
     authCallbacks.forEach((cb) => {
       try { cb(); } catch (e) { console.error(e); }
     });

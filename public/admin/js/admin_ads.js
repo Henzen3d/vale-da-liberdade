@@ -14,6 +14,10 @@ const AdminAds = (() => {
     loadCampaigns();
   }
 
+  function getClient() {
+    return supabase || (window.AdminAuth ? window.AdminAuth.getClient() : null);
+  }
+
   async function loadSponsors() {
     try {
       const { data, error } = await supabase.rpc('get_admin_sponsors');
@@ -258,7 +262,8 @@ const AdminAds = (() => {
   }
 
   async function saveCampaign() {
-    if (!supabase) {
+    const client = getClient();
+    if (!client) {
       showToast('Cliente Supabase não inicializado', 'error');
       console.error('[admin_ads] supabase é null em saveCampaign');
       return;
@@ -281,7 +286,7 @@ const AdminAds = (() => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('upsert_campaign_admin', {
+      const { data, error } = await client.rpc('upsert_campaign_admin', {
         p_campaign_id: id || null,
         p_sponsor_id: sponsorId,
         p_name: name,
@@ -340,7 +345,8 @@ const AdminAds = (() => {
   }
 
   async function saveSponsor() {
-    if (!supabase) {
+    const client = getClient();
+    if (!client) {
       showToast('Cliente Supabase não inicializado', 'error');
       console.error('[admin_ads] supabase é null em saveSponsor');
       return;
@@ -360,7 +366,7 @@ const AdminAds = (() => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('upsert_sponsor_admin', {
+      const { data, error } = await client.rpc('upsert_sponsor_admin', {
         p_sponsor_id: id || null,
         p_name: name,
         p_cnpj: cnpj || null,
@@ -495,3 +501,4 @@ const AdminAds = (() => {
 })();
 
 window.adminAds = AdminAds;
+window.AdminAds = AdminAds; // alias: admin_init.js referencia AdminAds (capital A)

@@ -14,7 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  let modulesInitialized = false; // guard local: mesmo se onAdminReady disparar 2x, módulos initam 1x
+
   AdminAuth.onAdminReady(() => {
+    if (modulesInitialized) {
+      console.log('[admin_init] módulos já inicializados — ignorando callback duplicado');
+      return;
+    }
+    modulesInitialized = true;
+
     const supabaseClient = AdminAuth.getClient();
     if (!supabaseClient) {
       console.error('[admin_init] client Supabase ausente após auth');

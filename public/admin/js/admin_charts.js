@@ -310,3 +310,4 @@ const AdminCharts = (() => {
 })();
 
 window.adminCharts = AdminCharts;
+window.AdminCharts = AdminCharts; // alias: admin_init.js referencia AdminCharts (capital A)
