@@ -13,8 +13,15 @@ const AdminAuth = (() => {
     const supabaseUrl = window.SUPABASE_URL;
     const supabaseKey = window.SUPABASE_ANON_KEY;
     
+    console.log('[admin_auth] Iniciando...', {
+      url: supabaseUrl,
+      hasSdk: !!window.supabase,
+      hasKeys: !!(supabaseUrl && supabaseKey)
+    });
+    
     if (!window.supabase || !supabaseUrl || !supabaseKey) {
       console.error('[admin_auth] Supabase SDK ou chaves ausentes');
+      alert('Erro: Configuração do Supabase não encontrada.');
       return;
     }
 
@@ -28,21 +35,37 @@ const AdminAuth = (() => {
     });
 
     // Check existing session
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      console.log('[admin_auth] getSession:', { 
+        hasSession: !!data?.session, 
+        userId: data?.session?.user?.id,
+        error: error?.message 
+      });
+      
       currentUser = data?.session?.user || null;
       if (currentUser) {
+        console.log('[admin_auth] Usuário identificado:', currentUser.email);
         checkAdminRole();
       } else {
+        console.log('[admin_auth] Nenhuma sessão encontrada');
         showAuthScreen();
       }
     });
 
     // Listen for auth changes
     supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[admin_auth] Auth state change:', event, {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        email: session?.user?.email
+      });
+      
       currentUser = session ? session.user : null;
       if (currentUser) {
+        console.log('[admin_auth] Usuário logado:', currentUser.email);
         checkAdminRole();
       } else {
+        console.log('[admin_auth] Usuário desconectado');
         showAuthScreen();
         isAdmin = false;
         notifyCallbacks();
@@ -51,38 +74,56 @@ const AdminAuth = (() => {
   }
 
   async function checkAdminRole() {
-    if (!supabase || !currentUser) return;
+    if (!supabase || !currentUser) {
+      console.log('[admin_auth] checkAdminRole: supabase ou currentUser não disponíveis');
+      return;
+    }
 
+    console.log('[admin_auth] Verificando permissão de admin...');
+    
     try {
       const { data, error } = await supabase.rpc('is_admin_user');
       
+      console.log('[admin_auth] Resultado RPC is_admin_user:', {
+        data: data,
+        error: error?.message || error
+      });
+      
       if (error) {
-        console.error('[admin_auth] Error checking admin role:', error);
+        console.error('[admin_auth] Erro na RPC is_admin_user:', error);
         isAdmin = false;
-        showAuthError('Erro ao verificar permissão de administrador.');
+        showAuthError('Erro ao verificar permissão: ' + error.message);
+        // Não faz signOut — apenas mostra o erro
         return;
       }
 
       isAdmin = !!data;
+      console.log('[admin_auth] É admin?', isAdmin);
 
       if (isAdmin) {
         hideAuthScreen();
         updateUserUI();
         notifyCallbacks();
       } else {
-        showAuthError('Sua conta não possui permissão de administrador.');
-        await supabase.auth.signOut();
+        console.warn('[admin_auth] Usuário não é admin');
+        showAuthError('Sua conta não possui permissão de administrador. Execute no Supabase:\n\nUPDATE public.user_profiles SET role = \'admin\' WHERE email = \'henzen3d@gmail.com\';');
+        // Não faz signOut — permite que o usuário veja o erro e tente novamente
       }
     } catch (err) {
-      console.error('[admin_auth] Exception:', err);
+      console.error('[admin_auth] Exceção ao verificar admin:', err);
       isAdmin = false;
-      showAuthError('Erro na verificação de permissão.');
+      showAuthError('Erro na verificação: ' + err.message);
     }
   }
 
   async function signInWithGoogle() {
-    if (!supabase) return;
+    if (!supabase) {
+      console.error('[admin_auth] supabase não inicializado');
+      return;
+    }
 
+    console.log('[admin_auth] Iniciando login com Google...');
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -92,7 +133,7 @@ const AdminAuth = (() => {
     });
 
     if (error) {
-      console.error('[admin_auth] Google OAuth error:', error);
+      console.error('[admin_auth] Erro no OAuth:', error);
       alert('Falha ao iniciar login com Google: ' + error.message);
     }
   }
@@ -120,7 +161,7 @@ const AdminAuth = (() => {
   function showAuthError(message) {
     const errorEl = document.getElementById('authError');
     if (errorEl) {
-      errorEl.querySelector('.alert-message').textContent = message;
+      errorEl.querySelector('.alert-message').innerHTML = message.replace(/\n/g, '<br>');
       errorEl.style.display = 'flex';
     }
   }
