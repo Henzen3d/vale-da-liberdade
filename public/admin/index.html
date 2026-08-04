@@ -6,12 +6,9 @@
   <title>Admin — Vale da Liberdade</title>
   <link rel="stylesheet" href="./admin.css">
   
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script>
-    window.SUPABASE_URL = "https://news.mob.tec.br";
-    window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cXV3cXpueGxrdGJxZGNsZGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM4ODg0NjEsImV4cCI6MjAxOTQ2NDQ2MX0.u4GE3s6c6X3y2s0V5m6l4t0v6s3u6y0x3s3y2s0V5m6";
-  </script>
+  <!-- Supabase JS Client (shared with main page) -->
+  <!-- NOTE: If main page already loads Supabase, this may create a duplicate instance -->
+  <!-- To avoid conflicts, we try to reuse the existing instance from window.supabaseClient -->
   
   <!-- Recharts for charts (needs React + ReactDOM) -->
   <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" defer></script>

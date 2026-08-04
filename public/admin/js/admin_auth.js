@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Verifica se a sessão do Supabase tem role = 'admin' via RPC is_admin_user()
+ * Reutiliza instância do Supabase da página pai (evita conflito de instâncias)
  */
 
 const AdminAuth = (() => {
@@ -10,46 +10,49 @@ const AdminAuth = (() => {
   let authCallbacks = [];
 
   function init() {
-    const supabaseUrl = window.SUPABASE_URL;
-    const supabaseKey = window.SUPABASE_ANON_KEY;
-    
-    console.log('[admin_auth] Iniciando...', {
-      url: supabaseUrl,
-      hasSdk: !!window.supabase,
-      hasKeys: !!(supabaseUrl && supabaseKey)
-    });
-    
-    if (!window.supabase || !supabaseUrl || !supabaseKey) {
-      console.error('[admin_auth] Supabase SDK ou chaves ausentes');
-      alert('Erro: Configuração do Supabase não encontrada.');
+    // Tenta reutilizar instância do Supabase já carregada na página pai
+    if (window.supabaseClient && typeof window.supabaseClient.auth !== 'undefined') {
+      supabase = window.supabaseClient;
+      console.log('[admin_auth] Reutilizando instância do Supabase da página pai');
+    } else if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+      // Cria nova instância apenas se necessário
+      supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true,
+          flowType: 'pkce',
+        },
+      });
+      console.log('[admin_auth] Criando nova instância do Supabase');
+    } else {
+      console.error('[admin_auth] Supabase não disponível');
+      alert('Erro: Supabase não configurado. Verifique as credenciais.');
       return;
     }
 
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        detectSessionInUrl: true,
-        persistSession: true,
-        autoRefreshToken: true,
-        flowType: 'pkce',
-      },
-    });
-
+    console.log('[admin_auth] Iniciando verificação de sessão...');
+    
     // Check existing session
     supabase.auth.getSession().then(({ data, error }) => {
       console.log('[admin_auth] getSession:', { 
         hasSession: !!data?.session, 
         userId: data?.session?.user?.id,
+        email: data?.session?.user?.email,
         error: error?.message 
       });
       
       currentUser = data?.session?.user || null;
       if (currentUser) {
-        console.log('[admin_auth] Usuário identificado:', currentUser.email);
+        console.log('[admin_auth] Sessão encontrada:', currentUser.email);
         checkAdminRole();
       } else {
-        console.log('[admin_auth] Nenhuma sessão encontrada');
+        console.log('[admin_auth] Nenhuma sessão ativa — aguardando login');
         showAuthScreen();
       }
+    }).catch(err => {
+      console.error('[admin_auth] Erro ao obter sessão:', err);
+      showAuthScreen();
     });
 
     // Listen for auth changes
@@ -79,7 +82,7 @@ const AdminAuth = (() => {
       return;
     }
 
-    console.log('[admin_auth] Verificando permissão de admin...');
+    console.log('[admin_auth] Verificando permissão de admin para:', currentUser.email);
     
     try {
       const { data, error } = await supabase.rpc('is_admin_user');
@@ -93,7 +96,6 @@ const AdminAuth = (() => {
         console.error('[admin_auth] Erro na RPC is_admin_user:', error);
         isAdmin = false;
         showAuthError('Erro ao verificar permissão: ' + error.message);
-        // Não faz signOut — apenas mostra o erro
         return;
       }
 
@@ -101,13 +103,13 @@ const AdminAuth = (() => {
       console.log('[admin_auth] É admin?', isAdmin);
 
       if (isAdmin) {
+        console.log('[admin_auth] Acesso permitido!');
         hideAuthScreen();
         updateUserUI();
         notifyCallbacks();
       } else {
-        console.warn('[admin_auth] Usuário não é admin');
-        showAuthError('Sua conta não possui permissão de administrador. Execute no Supabase:\n\nUPDATE public.user_profiles SET role = \'admin\' WHERE email = \'henzen3d@gmail.com\';');
-        // Não faz signOut — permite que o usuário veja o erro e tente novamente
+        console.warn('[admin_auth] Usuário não tem role=admin');
+        showAuthError('Sua conta não possui permissão de administrador.<br><br><strong>Para resolver, execute no Supabase:</strong><br><code>UPDATE public.user_profiles SET role = \'admin\' WHERE email = \'henzen3d@gmail.com\';</code>');
       }
     } catch (err) {
       console.error('[admin_auth] Exceção ao verificar admin:', err);
@@ -124,17 +126,22 @@ const AdminAuth = (() => {
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    const { error } = await supabase.auth.signInWithOAuth({
+    const redirectUrl = window.location.origin + '/admin/';
+    console.log('[admin_auth] Redirect URL:', redirectUrl);
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/admin/',
+        redirectTo: redirectUrl,
         queryParams: { access_type: 'offline', prompt: 'consent' },
       },
     });
 
     if (error) {
       console.error('[admin_auth] Erro no OAuth:', error);
-      alert('Falha ao iniciar login com Google: ' + error.message);
+      alert('Falha ao iniciar login: ' + error.message);
+    } else {
+      console.log('[admin_auth] Redirecionando para Google...');
     }
   }
 
@@ -161,7 +168,7 @@ const AdminAuth = (() => {
   function showAuthError(message) {
     const errorEl = document.getElementById('authError');
     if (errorEl) {
-      errorEl.querySelector('.alert-message').innerHTML = message.replace(/\n/g, '<br>');
+      errorEl.querySelector('.alert-message').innerHTML = message;
       errorEl.style.display = 'flex';
     }
   }
