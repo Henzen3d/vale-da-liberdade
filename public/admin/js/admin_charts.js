@@ -1,12 +1,11 @@
 /**
  * admin_charts.js — Gráficos de Métricas e Exportador CSV
- * Usa Recharts via CDN com React
+ * Usa Recharts + React via CDN
  */
 
 const AdminCharts = (() => {
   let supabase = null;
   let metricsData = [];
-  let chartsInitialized = false;
 
   function init(supabaseClient) {
     supabase = supabaseClient;
@@ -32,7 +31,6 @@ const AdminCharts = (() => {
       renderCharts();
     } catch (err) {
       console.error('[admin_charts] Error loading metrics:', err);
-      // Use fallback mock data if RPC fails
       metricsData = generateMockMetrics(days);
       renderCharts();
     }
@@ -61,14 +59,13 @@ const AdminCharts = (() => {
 
   function renderCharts() {
     if (!window.Recharts || !window.React || !window.ReactDOM) {
-      console.warn('[admin_charts] Recharts or React not loaded yet');
+      console.warn('[admin_charts] Recharts/React not loaded yet');
       return;
     }
 
     renderImpressionsClicksChart();
     renderSkipsErrorsChart();
     renderRevenueChart();
-    chartsInitialized = true;
   }
 
   function renderImpressionsClicksChart() {
@@ -81,16 +78,15 @@ const AdminCharts = (() => {
       clicks: d.clicks,
     }));
 
-    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
-
     container.innerHTML = '';
     
+    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
+    const React = window.React;
+    const ReactDOM = window.ReactDOM;
+
     const chart = document.createElement('div');
     chart.style.height = '100%';
     container.appendChild(chart);
-
-    const ReactDOM = window.ReactDOM;
-    const React = window.React;
 
     ReactDOM.render(
       React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
@@ -124,8 +120,8 @@ const AdminCharts = (() => {
     }));
 
     const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
-    const ReactDOM = window.ReactDOM;
     const React = window.React;
+    const ReactDOM = window.ReactDOM;
 
     container.innerHTML = '';
     
@@ -164,8 +160,8 @@ const AdminCharts = (() => {
     }));
 
     const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.Recharts;
-    const ReactDOM = window.ReactDOM;
     const React = window.React;
+    const ReactDOM = window.ReactDOM;
 
     container.innerHTML = '';
     
