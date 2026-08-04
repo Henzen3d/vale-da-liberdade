@@ -140,8 +140,8 @@ const AdminAuth = (() => {
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    // Redireciona para a própria página do admin após o login
-    const redirectUrl = window.location.origin + '/admin/';
+    // Usa URL absoluta com domínio completo
+    const redirectUrl = 'https://news.mob.tec.br/admin/';
     console.log('[admin_auth] Redirect URL:', redirectUrl);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
