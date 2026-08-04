@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Solução: Usa a sessão existente da página principal
+ * Versão simplificada usando a sessão da página principal
  */
 
 const AdminAuth = (() => {
@@ -13,34 +13,31 @@ const AdminAuth = (() => {
     console.log('[admin_auth] Iniciando inicialização...');
     
     // Tenta usar a instância do Supabase da página principal
-    const waitForSupabase = setInterval(() => {
-      if (window.supabaseClient) {
-        clearInterval(waitForSupabase);
-        console.log('[admin_auth] Supabase da página principal encontrado!');
-        supabase = window.supabaseClient;
-        checkExistingSession();
-      } else if (window.__supabaseReady || window.supabase) {
-        // Supabase SDK disponível mas instância não criada ainda
-        console.log('[admin_auth] Aguardando inicialização do Supabase...');
-        setTimeout(() => {
-          if (window.supabaseClient) {
-            clearInterval(waitForSupabase);
-            console.log('[admin_auth] Supabase encontrado!');
-            supabase = window.supabaseClient;
-            checkExistingSession();
-          }
-        }, 500);
-      }
-    }, 100);
-
-    // Timeout de 5 segundos
-    setTimeout(() => {
-      clearInterval(waitForSupabase);
-      if (!supabase) {
-        console.error('[admin_auth] Timeout ao aguardar Supabase');
-        showAuthError('Erro ao conectar com o servidor. Certifique-se de estar na página principal e fazer login primeiro.');
-      }
-    }, 5000);
+    if (window.supabaseClient) {
+      supabase = window.supabaseClient;
+      console.log('[admin_auth] Usando instância existente da página principal');
+      checkExistingSession();
+    } else if (window.supabase) {
+      // Cria instância local se SDK estiver disponível
+      supabase = window.supabase.createClient(
+        'https://news.mob.tec.br',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cXV3cXpueGxrdGJxZGNsZGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM4ODg0NjEsImV4cCI6MjAxOTQ2NDQ2MX0.u4GE3s6c6X3y2s0V5m6l4t0v6s3u6y0x3s3y2s0V5m6',
+        {
+          auth: {
+            detectSessionInUrl: true,
+            persistSession: true,
+            autoRefreshToken: true,
+            flowType: 'pkce',
+            storageKey: 'admin-supabase-auth-token',
+          },
+        }
+      );
+      console.log('[admin_auth] Criando instância local do Supabase');
+      checkExistingSession();
+    } else {
+      console.error('[admin_auth] Supabase não disponível!');
+      showAuthError('Erro: Supabase não encontrado. Verifique a conexão.');
+    }
   }
 
   async function checkExistingSession() {
@@ -52,7 +49,8 @@ const AdminAuth = (() => {
     console.log('[admin_auth] getSession:', { 
       hasSession: !!data?.session, 
       userId: data?.session?.user?.id,
-      email: data?.session?.user?.email
+      email: data?.session?.user?.email,
+      error: error?.message 
     });
     
     currentUser = data?.session?.user || null;
@@ -105,20 +103,19 @@ const AdminAuth = (() => {
   }
 
   async function signInWithGoogle() {
-    // Se não tiver Supabase, redireciona para a página principal fazer login
-    if (!window.supabaseClient) {
-      console.log('[admin_auth] Supabase não disponível, redirecionando para página principal...');
-      window.location.href = 'https://news.mob.tec.br/';
+    if (!supabase) {
+      console.error('[admin_auth] supabase não inicializado');
+      alert('Erro: Supabase não inicializado.');
       return;
     }
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    // O callback vai para a página principal, que depois redireciona para admin
-    const redirectUrl = 'https://news.mob.tec.br/';
+    // Redireciona para a própria página do admin após o login
+    const redirectUrl = 'https://news.mob.tec.br/admin/';
     console.log('[admin_auth] Redirect URL:', redirectUrl);
     
-    const { error } = await window.supabaseClient.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
@@ -129,6 +126,8 @@ const AdminAuth = (() => {
     if (error) {
       console.error('[admin_auth] Erro no OAuth:', error);
       alert('Falha ao iniciar login: ' + error.message);
+    } else {
+      console.log('[admin_auth] Redirecionando para Google...');
     }
   }
 
