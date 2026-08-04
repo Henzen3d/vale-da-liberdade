@@ -258,6 +258,12 @@ const AdminAds = (() => {
   }
 
   async function saveCampaign() {
+    if (!supabase) {
+      showToast('Cliente Supabase não inicializado', 'error');
+      console.error('[admin_ads] supabase é null em saveCampaign');
+      return;
+    }
+
     const id = document.getElementById('campaignId').value;
     const sponsorId = document.getElementById('campaignSponsor').value;
     const name = document.getElementById('campaignName').value.trim();
@@ -334,6 +340,12 @@ const AdminAds = (() => {
   }
 
   async function saveSponsor() {
+    if (!supabase) {
+      showToast('Cliente Supabase não inicializado', 'error');
+      console.error('[admin_ads] supabase é null em saveSponsor');
+      return;
+    }
+
     const id = document.getElementById('sponsorId').value;
     const name = document.getElementById('sponsorName').value.trim();
     const cnpj = document.getElementById('sponsorCnpj').value.trim();
