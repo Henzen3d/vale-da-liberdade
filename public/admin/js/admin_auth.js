@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Usa instância local do Supabase (página independente)
+ * Usa instância local do Supabase com storage único
  */
 
 const AdminAuth = (() => {
@@ -28,15 +28,17 @@ const AdminAuth = (() => {
     }
 
     try {
+      // Usa storage local único para evitar conflito com a página principal
       supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
         auth: {
           detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true,
           flowType: 'pkce',
+          storageKey: 'admin-supabase-auth-token', // Storage único para admin
         },
       });
-      console.log('[admin_auth] Instância do Supabase criada com sucesso');
+      console.log('[admin_auth] Instância do Supabase criada com storage único');
     } catch (err) {
       console.error('[admin_auth] Erro ao criar instância:', err);
       alert('Erro ao criar conexão com Supabase: ' + err.message);
