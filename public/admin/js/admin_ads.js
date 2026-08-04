@@ -8,6 +8,31 @@ const AdminAds = (() => {
   let campaigns = [];
   let globalKillSwitch = false;
 
+  // Placeholder SVG local — substitui via.placeholder.com (serviço fora do ar,
+  // causa net::ERR_CONNECTION_CLOSED no console).
+  const DEFAULT_LOGO_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="50" viewBox="0 0 150 50">' +
+    '<rect width="100%" height="100%" fill="#374151"/>' +
+    '<text x="50%" y="50%" fill="#9CA3AF" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12">Logo Anúncio</text>' +
+    '</svg>'
+  );
+
+  // Troca URLs quebradas (vazias ou via.placeholder.com) pelo placeholder SVG.
+  function resolveImgUrl(url) {
+    if (!url || typeof url !== 'string' || url.indexOf('via.placeholder.com') !== -1) {
+      return DEFAULT_LOGO_PLACEHOLDER;
+    }
+    return url;
+  }
+
+  // Fallback onerror: qualquer imagem que falhar cai no placeholder SVG.
+  function handleImgError(img) {
+    if (img && img.src !== DEFAULT_LOGO_PLACEHOLDER) {
+      img.onerror = null;
+      img.src = DEFAULT_LOGO_PLACEHOLDER;
+    }
+  }
+
   function init(supabaseClient) {
     supabase = supabaseClient;
     loadSponsors();
@@ -58,7 +83,7 @@ const AdminAds = (() => {
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
             ${s.logo_url 
-              ? `<img src="${s.logo_url}" alt="${escapeHtml(s.name)}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);">`
+              ? `<img src="${resolveImgUrl(s.logo_url)}" alt="${escapeHtml(s.name)}" onerror="AdminAds._handleImgError(this)" style="width:32px;height:32px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);">`
               : `<div style="width:32px;height:32px;border-radius:6px;background:rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#10b981;">${s.name.charAt(0)}</div>`
             }
             <span style="font-weight:600;color:#fff;">${escapeHtml(s.name)}</span>
@@ -89,11 +114,9 @@ const AdminAds = (() => {
   }
 
   function renderCampaignsTables() {
-    const globalPaused = globalKillSwitch;
-
     // Overview panel table
     renderCampaignTable('campaignsTableBody', campaigns);
-    
+
     // Ads panel table
     renderCampaignTable('campaignsTableBodyAds', campaigns);
   }
@@ -107,14 +130,20 @@ const AdminAds = (() => {
       return;
     }
 
+    // BUGFIX: antes lia "globalPaused" diretamente, variável que só existia
+    // no escopo de renderCampaignsTables() => ReferenceError interrompia o render.
+    const isGlobalPaused = typeof window.globalPaused !== 'undefined'
+      ? !!window.globalPaused
+      : globalKillSwitch;
+
     tbody.innerHTML = campList.map(c => {
-      const isPaused = !c.is_active || globalPaused;
+      const isPaused = !c.is_active || isGlobalPaused;
       return `
         <tr>
           <td>
             <div style="display:flex;align-items:center;gap:10px;">
               ${c.media_url 
-                ? `<img src="${c.media_url}" alt="" style="width:40px;height:28px;border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);">`
+                ? `<img src="${resolveImgUrl(c.media_url)}" alt="" onerror="AdminAds._handleImgError(this)" style="width:40px;height:28px;border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);">`
                 : `<div style="width:40px;height:28px;border-radius:4px;background:rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#10b981;">${(c.format_type || 'audio').substring(0,3).toUpperCase()}</div>`
               }
               <div>
@@ -145,7 +174,7 @@ const AdminAds = (() => {
           <td>
             <button class="btn btn-sm ${isPaused ? 'btn-primary' : 'btn-danger'}" 
                     onclick="AdminAds.toggleCampaign('${c.campaign_id}')"
-                    ${globalPaused ? 'disabled style="opacity:0.5;"' : ''}>
+                    ${isGlobalPaused ? 'disabled style="opacity:0.5;"' : ''}>
               ${isPaused ? 'Reativar' : 'Kill-Switch'}
             </button>
             <button class="btn btn-sm btn-secondary" style="margin-left:6px;" 
@@ -497,6 +526,7 @@ const AdminAds = (() => {
     closeSponsorModal,
     saveSponsor,
     editSponsor,
+    _handleImgError: handleImgError, // fallback onerror das imagens das tabelas
   };
 })();
 
