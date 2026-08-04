@@ -1,6 +1,6 @@
 /**
  * admin_auth.js — Guard RBAC para Dashboard Admin
- * Usa instância local do Supabase com storage único
+ * Usa a sessão existente da página principal (não cria nova instância)
  */
 
 const AdminAuth = (() => {
@@ -11,37 +11,17 @@ const AdminAuth = (() => {
 
   function init() {
     console.log('[admin_auth] Iniciando inicialização...');
-    console.log('[admin_auth] window.supabase:', !!window.supabase);
-    console.log('[admin_auth] window.SUPABASE_URL:', window.SUPABASE_URL);
-    console.log('[admin_auth] window.SUPABASE_ANON_KEY:', window.SUPABASE_ANON_KEY ? 'definida' : 'NÃO definida');
     
-    if (!window.supabase) {
-      console.error('[admin_auth] Supabase SDK não carregado!');
-      alert('Erro: Supabase SDK não encontrado. Verifique a conexão.');
-      return;
-    }
-
-    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-      console.error('[admin_auth] Credenciais do Supabase não definidas!');
-      alert('Erro: Credenciais do Supabase não encontradas.');
-      return;
-    }
-
-    try {
-      // Usa storage local único para evitar conflito com a página principal
-      supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
-        auth: {
-          detectSessionInUrl: true,
-          persistSession: true,
-          autoRefreshToken: true,
-          flowType: 'pkce',
-          storageKey: 'admin-supabase-auth-token', // Storage único para admin
-        },
-      });
-      console.log('[admin_auth] Instância do Supabase criada com storage único');
-    } catch (err) {
-      console.error('[admin_auth] Erro ao criar instância:', err);
-      alert('Erro ao criar conexão com Supabase: ' + err.message);
+    // Tenta usar a instância do Supabase da página principal
+    if (window.supabaseClient) {
+      supabase = window.supabaseClient;
+      console.log('[admin_auth] Usando instância existente da página principal');
+    } else if (window.supabase) {
+      supabase = window.supabase;
+      console.log('[admin_auth] Usando instância global do Supabase');
+    } else {
+      console.error('[admin_auth] Supabase não disponível!');
+      alert('Erro: Supabase não encontrado.');
       return;
     }
 
@@ -140,7 +120,7 @@ const AdminAuth = (() => {
 
     console.log('[admin_auth] Iniciando login com Google...');
     
-    // Usa URL absoluta com domínio completo
+    // Usa a URL do admin como redirect
     const redirectUrl = 'https://news.mob.tec.br/admin/';
     console.log('[admin_auth] Redirect URL:', redirectUrl);
     
