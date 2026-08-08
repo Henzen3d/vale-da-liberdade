@@ -57,8 +57,8 @@ except ImportError:
     PILImage = None  # type: ignore[assignment,misc]
     HAS_PIL = False
 
-ROOT = Path(__file__).resolve().parents[1]
-NEW_UX_PUBLIC = ROOT / "new-ux" / "public"
+ROOT = Path(__file__).resolve().parent.parent
+# NEW_UX_PUBLIC removido (2026-08-06): new-ux/ aposentado, public/ agora é a única fonte.
 load_dotenv(ROOT / ".env")
 
 EPISODES_DIR = ROOT / "episodes"
@@ -67,6 +67,8 @@ PUBLIC = ROOT / "public"
 PUBLIC_DATA = PUBLIC / "data"
 PUBLIC_AUDIO = PUBLIC / "audio"
 PUBLIC_EPS = PUBLIC / "episodes"
+THUMBNAILS_PUBLIC = PUBLIC / "thumbnails"
+THUMBNAILS_DIR = ROOT / "thumbnails"
 SW_PATH = PUBLIC / "sw.js"
 FEED_PATH = PUBLIC / "feed.xml"
 FEED_JSON_PATH = PUBLIC / "feed.json"
@@ -99,6 +101,35 @@ def site_url() -> str:
     return (os.environ.get("SITE_URL") or DEFAULT_SITE_URL).strip().rstrip("/")
 
 
+def r2_public_domain() -> str:
+    """Retorna o domínio público do bucket R2, se configurado."""
+    return (os.environ.get("R2_PUBLIC_DOMAIN") or "").strip().rstrip("/")
+
+
+def r2_catalog_url(date_str: str) -> str | None:
+    """
+    Verifica se existe sidecar R2 para o episódio e retorna a URL pública.
+    Retorna None se não houver sidecar ou se o R2 não estiver configurado.
+    """
+    r2_domain = r2_public_domain()
+    if not r2_domain:
+        return None
+
+    sidecar_path = EPISODES_DIR / f"{date_str}-r2.json"
+    if not sidecar_path.exists():
+        return None
+
+    try:
+        with open(sidecar_path, 'r', encoding='utf-8') as f:
+            meta = json.load(f)
+        if meta.get("r2_uploaded") and meta.get("catalog_url"):
+            return meta["catalog_url"]
+    except Exception:
+        pass
+
+    return None
+
+
 def abs_url(path: str) -> str:
     base = site_url()
     if not path:
@@ -126,6 +157,21 @@ def human_title(date_str: str, episode: int | None = None) -> str:
     if episode:
         return f"Episódio {episode} · {base}"
     return f"Edição de {base}"
+
+
+def read_optimized_title(date_str: str) -> str | None:
+    """Retorna o título otimizado (episodes/{date}-title.txt) se existir.
+
+    O arquivo é gravado por scripts/title_optimizer.py na pipeline. Quando
+    presente, substitui o título genérico humano no catálogo/RSS.
+    """
+    p = EPISODES_DIR / f"{date_str}-title.txt"
+    if not p.exists():
+        return None
+    title = p.read_text(encoding="utf-8").strip().lstrip("•-–— ").strip()
+    if not title or "manchetes" in title.lower():
+        return None
+    return title
 
 
 def rfc2822_from_date(date_str: str, hour: int = 6, minute: int = 15) -> str:
@@ -279,6 +325,58 @@ def discover_dates() -> list[str]:
     return sorted(dates, reverse=True)
 
 
+def episode_sponsors_static(date: str) -> list[dict]:
+    """Fallback estático de patrocinadores (Tipo 1) a partir de ads/schedule.json.
+
+    Usado pelo frontend quando a RPC get_episode_sponsors() está indisponível.
+    Retorna [] se não houver anúncio para a data.
+    """
+    sched = ROOT / "ads" / "schedule.json"
+    if not sched.exists():
+        return []
+    try:
+        data = json.loads(sched.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    ads = data.get("ads", {})
+    out = []
+    seen = set()
+    for h in data.get("history", []):
+        if h.get("date") != date or h.get("status") != "done":
+            continue
+        ad = ads.get(h.get("ad_id"))
+        if not ad:
+            continue
+        slug = ad.get("sponsor_slug") or ad.get("sponsor")
+        if slug in seen:
+            continue
+        seen.add(slug)
+        out.append({
+            "name": ad.get("sponsor"),
+            "website_url": ad.get("website_url"),
+            "logo_url": ad.get("logo_url"),
+            "placement": "mid-roll",
+        })
+    return out
+
+
+
+def _thumbnail_url(date: str, episode_id: str) -> str | None:
+    """Retorna a URL relativa da thumbnail do episódio, ou None se não existir."""
+    # episode_id can be:
+    #   "YYYY-MM-DD" (daily) → file is ep_YYYY-MM-DD.webp
+    #   "bm_XXXX" (especial) → file is bm_XXXX.webp
+    date_str = date
+    if episode_id.startswith("bm_"):
+        thumb_id = episode_id  # bm_XXXX
+    else:
+        thumb_id = f"ep_{episode_id}"  # daily: ep_YYYY-MM-DD
+    for ext in (".webp", ".jpg"):
+        thumb = THUMBNAILS_PUBLIC / date_str / f"{thumb_id}{ext}"
+        if thumb.exists():
+            return f"./thumbnails/{date_str}/{thumb_id}{ext}"
+    return None
+
 def build_episode(date: str) -> dict | None:
     meta = load_metadata(date)
     audio = pick_audio(date)
@@ -298,7 +396,10 @@ def build_episode(date: str) -> dict | None:
             duration = probed
 
     episode_num = meta.get("episodio")
-    title = human_title(date, episode_num if isinstance(episode_num, int) else None)
+    title = (
+        read_optimized_title(date)
+        or human_title(date, episode_num if isinstance(episode_num, int) else None)
+    )
 
     audio_url = None
     audio_bytes = None
@@ -329,6 +430,11 @@ def build_episode(date: str) -> dict | None:
         audio_url = f"./audio/{date}.mp3"
         audio_bytes = dest.stat().st_size if dest.exists() else audio.stat().st_size
 
+        # Verificar sidecar R2 e usar URL pública se disponível
+        r2_url = r2_catalog_url(date)
+        if r2_url:
+            audio_url = r2_url
+
     script_url = None
     if md.exists():
         PUBLIC_EPS.mkdir(parents=True, exist_ok=True)
@@ -349,6 +455,8 @@ def build_episode(date: str) -> dict | None:
         "script_url": script_url,
         "audio_bytes": audio_bytes,
         "sources": meta.get("fontes_utilizadas") or [],
+        "sponsors": episode_sponsors_static(date),
+        "cover_url": _thumbnail_url(date, date),
         "published_at": datetime.now().isoformat(timespec="seconds"),
     }
 
@@ -459,11 +567,26 @@ def write_rss(episodes: list[dict]) -> Path:
         ep_num = ""
         if isinstance(ep.get("episode"), int):
             ep_num = f"      <itunes:episode>{ep['episode']}</itunes:episode>\n"
+        # Per-episode thumbnail: diário → ep_{date}.webp, especial → bm_{id}.webp
+        ep_cover = cover  # fallback genérico
+        ep_id = ep.get("id", ep["date"])
+        if ep_id.startswith("bm_"):
+            thumb_id = ep_id
+        elif ep_id.startswith("especial-"):
+            thumb_id = "bm_" + ep_id.replace("especial-", "")
+        else:
+            thumb_id = f"ep_{ep['date']}"
+        date_str = ep["date"]
+        for ext in (".webp", ".jpg"):
+            thumb_path = THUMBNAILS_PUBLIC / date_str / f"{thumb_id}{ext}"
+            if thumb_path.exists():
+                ep_cover = abs_url(f"/thumbnails/{date_str}/{thumb_id}{ext}")
+                break
         items_xml.append(
             f"""    <item>
       <title>{esc(title)}</title>
-      <link>{esc(abs_url(f"/?ep={ep['date']}"))}</link>
-      <guid isPermaLink="false">vld-{esc(ep['date'])}</guid>
+      <link>{esc(abs_url(f"/?ep={ep_id}"))}</link>
+      <guid isPermaLink="false">vld-{esc(ep_id)}</guid>
       <pubDate>{rfc2822_from_date(ep['date'])}</pubDate>
       <description>{esc(description)}</description>
       <enclosure url="{esc(abs_url(ep['audio_url']))}" length="{length}" type="audio/mpeg"/>
@@ -472,7 +595,7 @@ def write_rss(episodes: list[dict]) -> Path:
       <itunes:duration>{dur}</itunes:duration>
       <itunes:explicit>{PODCAST_EXPLICIT}</itunes:explicit>
       <itunes:episodeType>full</itunes:episodeType>
-{ep_num}      <itunes:image href="{esc(cover)}"/>
+{ep_num}      <itunes:image href="{esc(ep_cover)}"/>
     </item>"""
         )
 
@@ -524,8 +647,8 @@ def write_feed_json(episodes: list[dict]) -> None:
         if not ep.get("audio_url") or ep.get("type") == "especial":
             continue
         items.append({
-            "id": f"vld-{ep['date']}",
-            "url": abs_url(f"/?ep={ep['date']}"),
+            "id": f"vld-{ep.get('id', ep['date'])}",
+            "url": abs_url(f"/?ep={ep.get('id', ep['date'])}"),
             "title": ep.get("title"),
             "content_text": ep.get("excerpt") or "",
             "date_published": f"{ep['date']}T06:15:00Z",
@@ -580,9 +703,23 @@ def discover_especial_episodes() -> list[dict]:
         # Encontrar áudio em output/brasil_e_mundo/audio/
         audio_files = list(bm_audio_dir.glob(f"{video_id}_*.mp3"))
         audio_path = None
-        date_str = datetime.now().strftime("%Y-%m-%d")
+        # Try to get date from audio filename or mtime
+        date_str = None
         if audio_files:
             # Pegar o áudio mais recente ou o primeiro
+            audio_path = audio_files[0]
+            # Extrair data do nome do arquivo: video_id_YYYY-MM-DD.mp3
+            m = re.search(r"_(\d{4}-\d{2}-\d{2})\.mp3$", audio_path.name)
+            if m:
+                date_str = m.group(1)
+            else:
+                # Fallback: usar data de modificação do arquivo
+                import os as _os
+                from datetime import datetime as _datetime, timezone as _timezone
+                mtime = _os.path.getmtime(audio_path)
+                date_str = _datetime.fromtimestamp(mtime, tz=_timezone.utc).strftime("%Y-%m-%d")
+        if not date_str:
+            date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             audio_path = audio_files[0]
             m = re.search(r"_(\d{4}-\d{2}-\d{2})\.mp3$", audio_path.name)
             if m:
@@ -622,6 +759,11 @@ def discover_especial_episodes() -> list[dict]:
             except Exception as e:
                 print(f"  ⚠️ Falha ao copiar áudio {video_id}: {e}")
             audio_url = f"./audio/especial-{video_id}.mp3"
+
+            # Verificar sidecar R2 e usar URL pública se disponível
+            r2_url = r2_catalog_url(f"especial-{video_id}")
+            if r2_url:
+                audio_url = r2_url
 
         script_url = None
         if md_file.exists():
@@ -672,13 +814,111 @@ def discover_especial_episodes() -> list[dict]:
             "script_url": script_url,
             "audio_bytes": audio_bytes,
             "sources": [data.get("fonte_veiculo")] if data.get("fonte_veiculo") else [],
+            "cover_url": _thumbnail_url(date_str, f"bm_{video_id}"),
             "published_at": datetime.now().isoformat(timespec="seconds"),
         })
 
     return eps
 
 
-def publish(limit: int = 60, only_date: str | None = None) -> dict:
+def write_share_pages(episodes: list) -> None:
+    """Gera páginas estáticas /ep/<id>.html com meta OG corretos por episódio +
+    redirecionamento para o player. Servem de 'bridge' de preview: o WhatsApp/
+    Telegram NÃO executam JS e leem só os <meta> estáticos do HTML; como o site é
+    nginx estático, o ?ep= sempre devolve o index.html genérico. Essas páginas
+    dão meta por episódio e redirecionam para o deep link do player."""
+    from urllib.parse import quote
+    share_dir = PUBLIC / "ep"
+    share_dir.mkdir(parents=True, exist_ok=True)
+    base = site_url()
+    generic_img = abs_url("/assets/cover-1200.webp")
+    def slug(eid: str) -> str:
+        return re.sub(r"[^A-Za-z0-9_.-]+", "-", str(eid)) or "ep"
+    seen = set()
+    for ep in episodes:
+        eid = str(ep.get("id") or "")
+        if not eid:
+            continue
+        fname = slug(eid)
+        seen.add(fname)
+        title = ep.get("title") or f"Episódio {ep.get('date') or ''}"
+        excerpt = ep.get("excerpt") or ""
+        if not excerpt and isinstance(ep.get("manchetes"), list) and ep["manchetes"]:
+            excerpt = ep["manchetes"][0]
+        desc = (excerpt or "").strip()[:160] or f"Ouça o episódio de {ep.get('date') or ''} do Vale da Liberdade."
+        img = ep.get("cover_url_abs") or generic_img
+        og_url = f"{base}/ep/{quote(eid)}.html"
+        target = f"{base}/?ep={quote(eid)}"
+        js_target = target.replace("\\", "\\\\").replace('"', '\\"')
+        page = (
+            "<!DOCTYPE html>\n"
+            '<html lang="pt-BR">\n<head>\n'
+            '<meta charset="UTF-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            f"<title>{html.escape(title)} — Vale da Liberdade</title>\n"
+            f'<meta name="description" content="{html.escape(desc, quote=True)}">\n'
+            '<meta property="og:type" content="article">\n'
+            '<meta property="og:site_name" content="Vale da Liberdade">\n'
+            f'<meta property="og:title" content="{html.escape(title, quote=True)}">\n'
+            f'<meta property="og:description" content="{html.escape(desc, quote=True)}">\n'
+            f'<meta property="og:image" content="{html.escape(img, quote=True)}">\n'
+            '<meta property="og:image:width" content="1280">\n'
+            '<meta property="og:image:height" content="720">\n'
+            f'<meta property="og:url" content="{html.escape(og_url, quote=True)}">\n'
+            '<meta name="twitter:card" content="summary_large_image">\n'
+            f'<meta name="twitter:title" content="{html.escape(title, quote=True)}">\n'
+            f'<meta name="twitter:description" content="{html.escape(desc, quote=True)}">\n'
+            f'<meta name="twitter:image" content="{html.escape(img, quote=True)}">\n'
+            f'<link rel="canonical" href="{html.escape(og_url, quote=True)}">\n'
+            f'<meta http-equiv="refresh" content="0; url={html.escape(target, quote=True)}">\n'
+            "</head>\n<body>\n"
+            f'<script>location.replace("{js_target}");</script>\n'
+            f'<p>Ouvir <a href="{html.escape(target, quote=True)}">{html.escape(title)}</a> no Vale da Liberdade.</p>\n'
+            "</body>\n</html>\n"
+        )
+        (share_dir / f"{fname}.html").write_text(page, encoding="utf-8")
+    # Remove páginas órfãs (episódios que saíram do catálogo)
+    for f in share_dir.glob("*.html"):
+        if f.stem not in seen:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+    print(f"  🔗 Páginas de compartilhamento OG: {len(seen)} em /ep/")
+
+
+def deploy_noticias_pages() -> None:
+    """Deploy do espelho /noticias para Cloudflare Pages (vale-liberdade-noticias).
+
+    Roda dentro do publish para o espelho CDN acompanhar o local. Falhas nunca
+    bloqueiam o publish (o local é a fonte canônica)."""
+    import glob
+    import shutil
+    import subprocess
+    wrangler = shutil.which("wrangler")
+    if not wrangler:
+        nvm = sorted(glob.glob(str(Path.home() / ".nvm/versions/node/*/bin/wrangler")))
+        if nvm:
+            wrangler = nvm[-1]
+    if not wrangler:
+        print("  ⚠️ wrangler não encontrado — espelho Pages não atualizado")
+        return
+    try:
+        r = subprocess.run(
+            [wrangler, "pages", "deploy", str(PUBLIC / "noticias"),
+             "--project-name", "vale-liberdade-noticias",
+             "--branch", "main", "--commit-dirty=true"],
+            capture_output=True, text=True, timeout=300,
+        )
+        if r.returncode == 0:
+            print("  ✅ Espelho Cloudflare Pages atualizado (/noticias)")
+        else:
+            print(f"  ⚠️ Deploy Pages falhou: {(r.stderr or r.stdout)[-300:]}")
+    except Exception as e:
+        print(f"  ⚠️ Deploy Pages falhou: {e}")
+
+
+def publish(limit: int = 200, only_date: str | None = None) -> dict:
     PUBLIC_DATA.mkdir(parents=True, exist_ok=True)
     PUBLIC_AUDIO.mkdir(parents=True, exist_ok=True)
     PUBLIC_EPS.mkdir(parents=True, exist_ok=True)
@@ -731,6 +971,8 @@ def publish(limit: int = 60, only_date: str | None = None) -> dict:
             ep["audio_url_abs"] = abs_url(ep["audio_url"])
         if ep.get("script_url"):
             ep["script_url_abs"] = abs_url(ep["script_url"])
+        if ep.get("cover_url"):
+            ep["cover_url_abs"] = abs_url(ep["cover_url"])
 
     base = site_url()
     today = datetime.now().strftime("%Y-%m-%d")
@@ -749,6 +991,15 @@ def publish(limit: int = 60, only_date: str | None = None) -> dict:
     write_rss(ordered)
     write_feed_json(ordered)
     write_paginated_catalog(ordered, catalog)
+    write_share_pages(ordered)
+    # Páginas de notícia /noticias (BBC-style) — regenera a cada publish para
+    # artigos novos subirem automaticamente em news.mob.tec.br/noticias
+    try:
+        from gen_noticias import main as _gen_noticias_main
+        _gen_noticias_main()
+    except Exception as e:
+        print(f"  ⚠️ Falha ao regenerar /noticias: {e}")
+    deploy_noticias_pages()
     bump_sw_cache_version()
 
     (PUBLIC / "robots.txt").write_text(
@@ -758,8 +1009,14 @@ def publish(limit: int = 60, only_date: str | None = None) -> dict:
         encoding="utf-8",
     )
 
-    # Sincronizar shell UX (new-ux → public) antes de minificar/otimizar
-    sync_ux_assets()
+    # (removido) Sincronizar shell UX — new-ux/ aposentado em 2026-08-06
+    # sync_ux_assets()
+
+    # Sincronizar thumbnails (origem → public)
+    sync_thumbnails()
+
+    # Injetar variáveis de ambiente no index.html (substituir placeholders)
+    inject_env_vars()
 
     # Minificar CSS/JS se possivel
     if HAS_MINIFIERS:
@@ -796,39 +1053,62 @@ def publish(limit: int = 60, only_date: str | None = None) -> dict:
     return catalog
 
 
-def sync_ux_assets() -> None:
-    """Copia shell estático de new-ux/public → public (HTML/CSS/JS/manifest/offline/llms/icons/ads/supabase)."""
-    if not NEW_UX_PUBLIC.is_dir():
-        print("  ⚠️  new-ux/public ausente — pulando sync UX")
+def inject_env_vars() -> None:
+    """Substitui placeholders {{VAR}} no index.html com valores do .env"""
+    index_path = PUBLIC / "index.html"
+    if not index_path.exists():
+        print("  ⚠️  index.html não encontrado — pulando injeção de env vars")
         return
+    
+    content = index_path.read_text(encoding="utf-8")
+    
+    # Substituir placeholders com valores do .env
+    replacements = {
+        "{{SUPABASE_URL}}": os.environ.get("SUPABASE_URL", ""),
+        "{{SUPABASE_ANON_KEY}}": os.environ.get("SUPABASE_ANON_KEY", ""),
+    }
+    
+    changed = False
+    for placeholder, value in replacements.items():
+        if placeholder in content:
+            content = content.replace(placeholder, value)
+            changed = True
+            print(f"  🔐 Injetado: {placeholder} → {value[:20]}...")
+    
+    if changed:
+        index_path.write_text(content, encoding="utf-8")
+        print("  ✅ Env vars injetadas no index.html")
+    else:
+        print("  ℹ️  Nenhum placeholder encontrado no index.html")
 
-    pairs = [
-        (NEW_UX_PUBLIC / "index.html", PUBLIC / "index.html"),
-        (NEW_UX_PUBLIC / "assets" / "css", PUBLIC / "assets" / "css"),
-        (NEW_UX_PUBLIC / "assets" / "js", PUBLIC / "assets" / "js"),
-        (NEW_UX_PUBLIC / "assets" / "cover.jpg", PUBLIC / "assets" / "cover.jpg"),
-        (NEW_UX_PUBLIC / "assets" / "cover.png", PUBLIC / "assets" / "cover.png"),
-        # Shell estático que o build NÃO regenera (auditoria 2026-08-03)
-        (NEW_UX_PUBLIC / "manifest.webmanifest", PUBLIC / "manifest.webmanifest"),
-        (NEW_UX_PUBLIC / "offline.html", PUBLIC / "offline.html"),
-        (NEW_UX_PUBLIC / "llms.txt", PUBLIC / "llms.txt"),
-        (NEW_UX_PUBLIC / "icons", PUBLIC / "icons"),
-        (NEW_UX_PUBLIC / "ads.txt", PUBLIC / "ads.txt"),
-        (NEW_UX_PUBLIC / "js" / "supabase_client.js", PUBLIC / "js" / "supabase_client.js"),
-    ]
-    for src, dst in pairs:
-        if not src.exists():
+
+def sync_thumbnails() -> None:
+    """Copia thumbnails de thumbnails/ → public/thumbnails/."""
+    if not THUMBNAILS_DIR.is_dir():
+        return
+    THUMBNAILS_PUBLIC.mkdir(parents=True, exist_ok=True)
+    count = 0
+    for date_dir in THUMBNAILS_DIR.iterdir():
+        if not date_dir.is_dir():
             continue
-        if src.is_dir():
-            dst.mkdir(parents=True, exist_ok=True)
-            for f in src.iterdir():
-                if f.is_file():
-                    shutil.copy2(f, dst / f.name)
-            print(f"  🔁 UX sync dir: {src.relative_to(ROOT)} → {dst.relative_to(ROOT)}")
-        else:
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dst)
-            print(f"  🔁 UX sync: {src.name}")
+        pub_dir = THUMBNAILS_PUBLIC / date_dir.name
+        pub_dir.mkdir(parents=True, exist_ok=True)
+        for f in date_dir.iterdir():
+            if f.is_file() and f.suffix in ('.webp', '.jpg'):
+                dest = pub_dir / f.name
+                if not dest.exists() or dest.stat().st_mtime < f.stat().st_mtime:
+                    shutil.copy2(f, dest)
+                    count += 1
+    if count:
+        print(f"  🖼️  Thumbnails sync: {count} arquivo(s) copiado(s)")
+
+
+def sync_ux_assets() -> None:
+    """DESABILITADO (2026-08-06): new-ux/ aposentado. public/ agora é a única fonte.
+
+    Mantido como stub para não quebrar chamadas antigas.
+    """
+    return
 
 
 def optimize_cover_images() -> None:
@@ -859,11 +1139,6 @@ def optimize_cover_images() -> None:
             f"  🖼️  Cover WebP: {webp_path.name} "
             f"({webp_kb:.1f} KiB, era {jpg_kb:.1f} KiB JPEG, −{saved:.1f} KiB)"
         )
-
-        # Espelha no new-ux para próxima edição
-        ux_webp = NEW_UX_PUBLIC / "assets" / "cover.webp"
-        if NEW_UX_PUBLIC.is_dir():
-            shutil.copy2(webp_path, ux_webp)
     except Exception as e:
         print(f"  ⚠️  Falha ao gerar cover.webp: {e}")
 
@@ -871,7 +1146,7 @@ def optimize_cover_images() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Publica catálogo + RSS do Web Jornal")
     parser.add_argument("--date", help="Publica/atualiza só esta data YYYY-MM-DD")
-    parser.add_argument("--limit", type=int, default=60, help="Máx. episódios no feed")
+    parser.add_argument("--limit", type=int, default=200, help="Máx. episódios no feed")
     args = parser.parse_args()
     print("📡 publish_site — Vale da Liberdade")
     print(f"   SITE_URL={site_url()}")
