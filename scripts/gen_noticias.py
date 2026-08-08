@@ -244,46 +244,67 @@ def write_ads_js() -> None:
     (NOTICIAS_DIR / "ads.js").write_text(js, encoding="utf-8")
 
 
+MESES_PT = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+
 def build_home(eps: list) -> str:
     hero = eps[0] if eps else None
     rest = eps[1:] if eps else []
-    grade_items = []
-    for ep in rest:
+
+    def item_html(ep: dict) -> str:
         title = ep.get("title") or f"Edição {ep.get('date') or ''}"
         slug = slugify(title)
         img = ep.get("cover_url_abs") or GENERIC_IMG
         ed = editoria_of(ep)
         ed_label, _ = EDITORIAS[ed]
         dur = ep.get("duration_min")
-        grade_items.append(
+        return (
             f'<a class="grade-item" data-ed="{ed}" href="{slug}.html">'
-            f'<img class="grade-thumb" src="{html.escape(img, quote=True)}" alt="" loading="lazy">'
+            f'<img class="grade-thumb" src="{html.escape(img, quote=True)}" alt="{html.escape(title, quote=True)}" loading="lazy">'
             f'<div><p class="grade-eyebrow">{html.escape(ed_label, quote=True)}</p>'
             f'<h2 class="grade-title">{html.escape(title, quote=True)}</h2>'
             f'<div class="grade-meta">{html.escape(date_br(ep.get("date") or ""), quote=True)} · {html.escape(str(dur) if dur else "—", quote=True)} min</div>'
             f"</div></a>"
         )
-    # Espaços de publicidade intercalados na grade
-    for pos in (8, 44):
-        if len(grade_items) > pos:
-            grade_items.insert(pos, AD_SLOT_HTML)
-    hero_html = ""
-    if hero:
-        title = hero.get("title") or f"Edição {hero.get('date') or ''}"
-        ed = editoria_of(hero)
-        ed_label, kicker = EDITORIAS[ed]
-        excerpt = hero.get("excerpt") or ""
-        if not excerpt and isinstance(hero.get("manchetes"), list) and hero["manchetes"]:
-            excerpt = hero["manchetes"][0]
-        hero_html = (
-            f'<a class="hero-link" href="{slugify(title)}.html">'
-            f'<img class="hero-img" src="{html.escape(hero.get("cover_url_abs") or GENERIC_IMG, quote=True)}" alt="" loading="eager">'
-            f"<div><p class=\"hero-eyebrow\">{html.escape(kicker, quote=True)}</p>"
-            f'<h1 class="hero-title">{html.escape(title, quote=True)}</h1>'
-            f'<div class="hero-meta">{html.escape(date_br(hero.get("date") or ""), quote=True)} · {html.escape(str(hero.get("duration_min") or "—"), quote=True)} min</div>'
-            f'<p class="hero-desc">{html.escape((excerpt or "")[:200], quote=True)}</p>'
-            f"</div></a>"
+
+    # Agrupa os itens por mês (chave YYYY-MM da data do episódio)
+    meses: dict[str, list] = {}
+    for ep in rest:
+        chave = str(ep.get("date") or "")[:7]
+        if len(chave) != 7:
+            chave = "0000-00"
+        meses.setdefault(chave, []).append(ep)
+
+    sections = []
+    for i, chave in enumerate(sorted(meses.keys(), reverse=True)):
+        itens = meses[chave]
+        try:
+            ano, mes = chave.split("-")
+            label = f"{MESES_PT[int(mes) - 1]} {ano}"
+        except Exception:
+            label = chave
+        expandido = i == 0  # mês mais recente (atual) expandido
+        itens_html = "\n".join(item_html(e) for e in itens)
+        colapsado = "" if expandido else " colapsado"
+        ver_mais = ""
+        if not expandido and len(itens) > 6:
+            extra = len(itens) - 6
+            ver_mais = (
+                f'<button class="mes-ver-mais" type="button">Ver todos de {html.escape(label, quote=True)} → '
+                f'<span class="mes-ver-mais-count">+{extra}</span></button>'
+            )
+        sections.append(
+            f'<section class="grade-mes" data-mes="{chave}">'
+            f'<div class="mes-header"><h2 class="mes-titulo">{html.escape(label, quote=True)}</h2>'
+            f'<span class="mes-count">{len(itens)} artigos</span></div>'
+            f'<div class="mes-itens{colapsado}">\n{itens_html}\n</div>\n{ver_mais}'
+            f"</section>"
         )
+        # Espaços de publicidade ENTRE as seções mensais (fora das .grade-mes)
+        if i in (0, 1):
+            sections.append(AD_SLOT_HTML)
+    grade_items = "\n".join(sections)
     return HOME_TMPL.format(
         css=SHARED_CSS + HOME_CSS,
         url=f"{BASE}/noticias/",
@@ -291,11 +312,12 @@ def build_home(eps: list) -> str:
         img=GENERIC_IMG,
         hero_url=f"{slugify(hero.get('title') or '')}.html" if hero else "#",
         hero_img=html.escape(hero.get("cover_url_abs") or GENERIC_IMG, quote=True) if hero else GENERIC_IMG,
+        hero_alt=html.escape(hero.get("title") or "", quote=True) if hero else "",
         hero_kicker=html.escape(EDITORIAS[editoria_of(hero)][1], quote=True) if hero else "",
         hero_title=html.escape(hero.get("title") or "", quote=True) if hero else "",
         hero_meta=html.escape(f"{date_br(hero.get('date') or '')} · {hero.get('duration_min') or '—'} min", quote=True) if hero else "",
         hero_desc=html.escape((hero.get("excerpt") or "")[:200], quote=True) if hero else "",
-        grade_items="\n".join(grade_items),
+        grade_items=grade_items,
     )
 
 

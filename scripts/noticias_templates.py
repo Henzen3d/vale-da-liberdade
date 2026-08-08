@@ -22,6 +22,7 @@ a{color:inherit}
 img{display:block}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 ::selection{background:var(--accent-soft)}
+[hidden]{display:none!important}
 
 .topbar{position:sticky;top:0;z-index:20;background:rgba(0,0,0,0.92);
   backdrop-filter:blur(8px);border-bottom:1px solid var(--hairline)}
@@ -184,6 +185,24 @@ HOME_CSS = """
   .grade-thumb{width:96px}
   .grade-title{font-size:15.5px}
 }
+
+/* Separadores mensais (paginação por mês com colapsagem) */
+.grade-mes{border-top:1px solid var(--hairline-strong);padding-top:8px;margin-top:8px}
+.grade-mes:first-child{border-top:none;margin-top:0;padding-top:0}
+.mes-header{display:flex;align-items:baseline;gap:10px;padding:16px 20px 4px;
+  max-width:1080px;margin:0 auto}
+.mes-titulo{font-size:13px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;
+  color:var(--muted);margin:0}
+.mes-count{font-size:11px;color:var(--muted);opacity:.6}
+.mes-itens.colapsado .grade-item:nth-child(n+7){display:none}
+.mes-ver-mais{display:block;margin:4px 20px 16px;background:none;
+  border:1px solid var(--hairline);color:var(--muted);font:600 12px 'Inter',sans-serif;
+  padding:8px 16px;border-radius:999px;cursor:pointer;
+  transition:color .15s,border-color .15s}
+.mes-ver-mais:hover{color:var(--text);border-color:var(--hairline-strong)}
+.mes-ver-mais.hidden{display:none}
+.grade-mes.mes-vazio .mes-header{display:none}
+.grade-mes.mes-vazio .mes-ver-mais{display:none}
 """
 
 HOME_TMPL = """<!DOCTYPE html>
@@ -217,7 +236,7 @@ HOME_TMPL = """<!DOCTYPE html>
 
 <section class="hero" aria-label="Destaque">
   <a class="hero-link" href="{hero_url}">
-    <img class="hero-img" src="{hero_img}" alt="" loading="eager">
+    <img class="hero-img" src="{hero_img}" alt="{hero_alt}" loading="eager">
     <div>
       <p class="hero-eyebrow">{hero_kicker}</p>
       <h1 class="hero-title">{hero_title}</h1>
@@ -246,6 +265,7 @@ HOME_TMPL = """<!DOCTYPE html>
 (function(){{
   var btns=document.querySelectorAll('.editorias button');
   var items=document.querySelectorAll('.grade-item');
+  var sections=document.querySelectorAll('.grade-mes');
   var note=document.getElementById('gradeNote');
   function apply(ed){{
     var shown=0;
@@ -254,6 +274,12 @@ HOME_TMPL = """<!DOCTYPE html>
       it.hidden=!show;
       if(show)shown++;
     }});
+    // meses sem itens visíveis: esconder cabeçalho e botão
+    sections.forEach(function(sec){{
+      var vis=0;
+      sec.querySelectorAll('.grade-item').forEach(function(it){{ if(!it.hidden)vis++; }});
+      sec.classList.toggle('mes-vazio', vis===0);
+    }});
     if(note)note.hidden=shown!==0;
     btns.forEach(function(b){{
       var active=b.getAttribute('data-ed')===ed;
@@ -261,6 +287,14 @@ HOME_TMPL = """<!DOCTYPE html>
       b.setAttribute('aria-pressed',active?'true':'false');
     }});
   }}
+  // Expansão de meses colapsados
+  document.querySelectorAll('.mes-ver-mais').forEach(function(btn){{
+    btn.addEventListener('click',function(){{
+      var mesItens=btn.previousElementSibling;
+      mesItens.classList.remove('colapsado');
+      btn.classList.add('hidden');
+    }});
+  }});
   btns.forEach(function(b){{
     b.addEventListener('click',function(){{apply(b.getAttribute('data-ed'));}});
   }});

@@ -195,4 +195,70 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 
 ---
 
-*Mantido por: Hermes Agent | Última atualização: 2026-06-23*
+## [2026-08-08] Duplo autoplay no `ended` — player.js avança direto e derrota o interstitial (race)
+
+- **Contexto:** transição automática entre episódios; afeta todos os ouvintes, principalmente na tab Brasil e Mundo.
+- **O que acontece:** no `ended`, o próximo episódio começa a tocar imediatamente E o interstitial de anúncio é mostrado ~0,3–1s depois (áudio do episódio por trás do ad). `playEpisode` é chamado 2× por transição → `incrementView` 2× (double view).
+- **Causa raiz:** `player.js` L2 tem listener nativo `ended` que chama `window.playEpisode(nextEp.id)` DIRETO; `app.js` L188 também escuta `playerevent` type `ended` e chama `handleAutoPlayNext()` (busca ad → pause → showInterstitial). Dois caminhos concorrentes; o direto do player.js vence o timing. Encontrado na auditoria agy Fase 3 (Claude Opus 4.6).
+- **Solução:** Aplicada 2026-08-08 (aprovada por Osmar) — removido o autoplay direto do `ended` handler do `player.js` (ficou só o `WakeLock.release`); `handleAutoPlayNext()` passou a ser o ÚNICO caminho de autoplay. Também eliminou o double-view (`incrementView` 2× por transição).
+- **Como evitar no futuro:** regra: navegação/autoplay de episódio SEMPRE passa por UMA função central (`handleAutoPlayNext`), nunca por dois caminhos paralelos; verificar `grep -n "playEpisode" player.js` em qualquer mudança de autoplay.
+
+## [2026-08-08] XSS em thumbnails via `ep.cover_url_abs` interpolada sem escape (app.js)
+
+- **Contexto:** renderRow (feed) e renderContinueRail (rail "Continuar ouvindo") montavam `<img src="${rowThumb}" ...>` com URL vinda do JSON/Supabase sem `escapeHtml()`.
+- **O que acontece:** URL malformada com aspas (dado externo) quebrava a marcação e permitia injeção de atributos/HTML.
+- **Causa raiz:** `public/assets/js/app.js:103` e `:145` (minificado) — interpolação direta de `rowThumb`/`rowThumbJpg`/`railThumb`/`railThumbJpg`.
+- **Solução:** Aplicada automaticamente — `escapeHtml()` nas 4 interpolações (auditoria 2A ∩ 2E concordaram; validado por node --check).
+- **Como evitar no futuro:** Toda interpolação de dado externo em template string de innerHTML usa `escapeHtml()`; auditorias futuras devem grep `src="\${` em app.js.
+
+## [2026-08-08] XSS via pseudo-protocolo `javascript:` em URLs de patrocinadores e CTA de anúncio
+
+- **Contexto:** `renderSponsorsHtml()` (app.js:327) e CTA da sidebar (app.js:329) aceitavam qualquer URL como `href`/`ctaEl.href`.
+- **O que acontece:** `href="javascript:..."` executaria script no clique (dado controlável pelo admin no Supabase; defesa em profundidade).
+- **Causa raiz:** falta de validação de protocolo `^https?:\/\/` nas URLs de ad/sponsor.
+- **Solução:** Aplicada automaticamente — validação de protocolo com fallback `'#'`/`hidden=true`.
+- **Como evitar no futuro:** qualquer URL vinda de Supabase exige validação de protocolo antes de entrar em href/src; grep `click_url`/`website_url` em mudanças de ad.
+
+## [2026-08-08] offline.html referencia `./styles.css` que não existe — página offline sem estilo
+
+- **Contexto:** PWA offline; usuários sem conexão veem a página de fallback.
+- **O que acontece:** `public/offline.html` L8 carrega `./styles.css` (não existe no projeto — só `assets/css/*.css`); a página offline renderiza sem estilo (texto puro).
+- **Causa raiz:** `public/offline.html:8` — href de stylesheet apontando para arquivo removido/movido.
+- **Solução:** Pendente aprovação — corrigir href para os CSS reais (`./assets/css/tokens.css` + `base.css` + `components.css`) ou um bundle offline dedicado.
+- **Como evitar no futuro:** validar todos os hrefs de `offline.html`/`index.html` contra `ls public/` após reestruturações de CSS; a auditoria 2C não viu, o Hermes achou na verificação manual de existência de arquivo.
+
+## [2026-08-08] Service Worker devolve `offline.html` para qualquer fetch falho (não só navegação)
+
+- **Contexto:** SW genérico cache-first; recursos quebrados (imagens, etc.).
+- **O que acontece:** `sw.js:102` cai em `caches.match("./offline.html")` para QUALQUER requisição que falhe — o browser recebe um documento HTML onde esperava imagem/asset (comportamento bizarro de parsing).
+- **Causa raiz:** fallback offline incondicional no catch do fetch handler.
+- **Solução:** Pendente aprovação — guard `if (req.mode === "navigate")` antes de servir offline.html; demais recursos retornam erro.
+- **Como evitar no futuro:** revisar o catch do SW sempre que tocar em estratégia de cache; navegação ≠ sub-recurso.
+
+## [2026-08-08] Memory leak no interstitial: `fakeInterval` de imagem continuava rodando após fechar o anúncio
+
+- **Contexto:** ad_manager.js; anúncios de imagem sem áudio (fake timer de 10s).
+- **O que acontece:** ao pular/fechar o anúncio antes dos 10s, o `fakeInterval` (200ms) continuava ativo até completar o ciclo (timer + callback) — até 10s de CPU por anúncio fechado.
+- **Causa raiz:** `fakeInterval` declarado no escopo do bloco `else` (imagem), inacessível ao `cleanupAndClose()`.
+- **Solução:** Aplicada automaticamente — variável movida para o escopo pai e `clearInterval(fakeInterval)` adicionado ao cleanup (auditoria 2D).
+- **Como evitar no futuro:** todo `setInterval` criado em módulo de mídia precisa de cleanup no mesmo escopo da função que o cria; regra: timers locais → escopo do ciclo de vida do componente.
+
+## [2026-08-08] Preview de compartilhamento errado no WhatsApp — crawler não executa JS (OG estático por episódio)
+
+- **Contexto:** ao compartilhar links de episódio no WhatsApp/Telegram, o card mostrava a imagem/título/descrição genéricos do canal, não os do episódio.
+- **O que acontece:** WhatsApp/Telegram montam o preview lendo SOMENTE os `<meta og:*>` estáticos do HTML; eles não executam JavaScript. As tags dinâmicas por episódio eram injetadas pelo `updateFullPlayerMetadata()` (app.js) só depois do JS rodar — tarde demais para o crawler.
+- **Causa raiz:** site 100% nginx estático; `?ep=` sempre devolve `index.html` com og genérico da home.
+- **Solução:** Aplicada — geradas páginas estáticas `/ep/<id>.html` por episódio (título, resumo, thumbnail absoluta via `cover_url_abs` + `og:image`/twitter + canonical) que redirecionam para `?ep=<id>`. O `episodeUrl()` no app.js passou a gerar `/ep/<id>.html`, então compartilhar/copiar usam o preview correto. Geração integrada ao `publish_site.py` (`write_share_pages`), então cada publish re-sincroniza (e remove páginas órfãs).
+- **Como evitar no futuro:** NUNCA depender de JS para meta de compartilhamento em site estático. Toda vez que um episódio for publicado/preview de share for necessário, ele precisa de um HTML estático alcançável com os `<meta>` certos (ou SSR/edge). Limitação conhecida: links `?ep=` antigos continuam com preview genérico — só os novos `/ep/` têm preview correto (corrigir os antigos exige nginx SSI/edge/SSR, documentado como futura Opção B).
+
+## [2026-08-08] Página /noticias: filtro "não funcionava" (hidden anulado por display:grid) + scroll infinito (mês colapsável)
+
+- **Contexto:** home do portal /noticias gerada por `gen_noticias.py`; dono reportou que os filtros de editoria não escondiam nada e que a lista única de 124 artigos era má UX.
+- **O que acontece:** (1) clicar em "Diário"/"Brasil e Mundo" não escondia os itens; (2) página única infinita sem separação temporal.
+- **Causa raiz:** (1) o script de filtro setava `it.hidden=true`, mas o CSS `.grade-item{display:grid}` ANULA a regra UA `[hidden]{display:none}` (mesmo pitfall do app, mas aqui sem a regra `[hidden]{display:none!important}` no CSS inline). Meu teste CDP inicial checava o ATRIBUTO `hidden`, não o `display` computado — o dono estava certo e o teste estava errado. (2) não havia agrupamento.
+- **Solução:** aplicada — `[hidden]{display:none!important}` no CSS; grade agrupada em `<section class="grade-mes">` por mês (mês atual expandido; anteriores colapsados com 6 itens + botão "Ver todos de Mês"); filtro combinado com colapsagem (seções sem itens visíveis ganham `.mes-vazio` e escondem o header); anúncios entre seções; `alt` descritivo nas imagens (hero via template — o `hero_html` inline era código morto). **PITFALL de geração: `"\n".join(grade_items)` em cima de um `grade_items` que JÁ era string** → separa caractere por caractere (HTML inteiro com newline a cada char, sem erro de sintaxe!). Ao mudar a estrutura de uma lista para string unida, REMOVER o join do return (o .format recebe a string pronta).
+- **Como evitar no futuro:** (a) em testes de filtro, medir `getComputedStyle(el).display`, nunca só o atributo `hidden`; (b) regra `[hidden]{display:none!important}` em qualquer folha que use `display:*` em elementos ocultáveis; (c) ao refatorar geradores, conferir joins duplos (join de string = separa chars).
+
+---
+
+*Mantido por: Hermes Agent | Última atualização: 2026-08-08*
