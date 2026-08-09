@@ -1,10 +1,26 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## O Ato Falho do Tirano: A Decadência do Líder Supremo e o Desespero Estatal
 
-> Fonte: Pleno.News
+> Fonte: Poder360
 > URL do vídeo: https://www.youtube.com/watch?v=ZFTttTq30N0
 > Tags: política, eleições, socialismo/comunismo
 > video_id: ZFTttTq30N0
+
+> Referências:
+> - Poder360: https://www.poder360.com.br/poder-eleicoes-2026/em-novo-lapso-lula-diz-nao-ter-certeza-de-que-vai-ganhar-eleicao/
+> - Osul: https://www.osul.com.br/lula-diz-que-nao-perdera-a-eleicao/
+> - Pleno: https://pleno.news/brasil/eleicoes-2026/mesmo-se-so-errarmos-a-gente-nao-perde-essas-eleicoes-diz-lula.html
+> - Estadão: https://www.estadao.com.br/politica/se-quiser-vir-trump-que-venha-se-quiser-vir-milei-que-venha-nao-quero-ajuda-de-fora-diz-lula/
+> - Blogdoalberesxavier: https://blogdoalberesxavier.com/noticias/76152/coluna-do-sabado-lula-chega-fortalecido-a-reta-final-do-terceiro-mandato
+> - Veja: https://veja.abril.com.br/politica/no-nordeste-pt-enfrenta-dificuldade-mas-lula-continua-a-nadar-de-bracada/
+> - Movimentoeconomico: https://movimentoeconomico.com.br/estados/ceara/2026/07/30/quaest-no-ceara-ciro-tem-43-e-elmano-33-as-vesperas-da-convencao-com-lula/
+> - G1: https://g1.globo.com/politica/noticia/2026/07/31/em-entrevista-no-alvorada-lula-comenta-tamanho-do-palacio-cafe-chega-frio-cerveja-chega-quente.ghtml
+> - Brasil 247: https://www.brasil247.com/blog/aos-80-vitalidade-de-lula-e-barreira-fisica-contra-extrema-direita-no-brasil-e-no-mundo/
+> - Claudio Dantas: https://claudiodantas.com.br/lula-diz-que-falta-sucessor-e-afirma-que-disputa-eleicao-por-falta-de-alternativa/
+> - O Globo: https://oglobo.globo.com/blogs/miriam-leitao/coluna/2026/07/o-risco-que-lula-corre-na-eleicao.ghtml
+> - BBC: https://www.bbc.com/portuguese/articles/c04kdz2ql01o
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-ZFTttTq30N0.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-ZFTttTq30N0.md
 
 ---
 

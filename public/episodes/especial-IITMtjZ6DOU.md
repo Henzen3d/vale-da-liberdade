@@ -1,10 +1,20 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A PF Foi Obrigada a Investigar o Lulinha: A Blindagem Estatal Ruuiu
 
-> Fonte: Estadão
+> Fonte: Poder360
 > URL do vídeo: https://www.youtube.com/watch?v=IITMtjZ6DOU
 > Tags: corrupção, política, ditadura judiciária
 > video_id: IITMtjZ6DOU
+
+> Referências:
+> - Poder360: https://www.poder360.com.br/poder-justica/pf-pede-ao-stf-para-investigar-lulinha-por-trafico-de-influencia/
+> - YouTube: https://www.youtube.com/@PalacioAssombrado
+> - X: https://x.com/palacioassombra
+> - Instagram: https://www.instagram.com/palacioassombra
+> - Tiktok: https://www.tiktok.com/@palacioassombrado
+> - Estadão: https://www.estadao.com.br/politica/andre-mendonca-autoriza-pf-a-abrir-inquerito-para-apurar-trafico-de-influencia-de-lulinha-no-governo/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-IITMtjZ6DOU.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-IITMtjZ6DOU.md
 
 ---
 

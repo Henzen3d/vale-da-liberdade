@@ -37,6 +37,7 @@ const AdminAds = (() => {
     supabase = supabaseClient;
     loadSponsors();
     loadCampaigns();
+    loadMonetizationConfig();
   }
 
   function getClient() {
@@ -66,6 +67,63 @@ const AdminAds = (() => {
     } catch (err) {
       console.error('[admin_ads] Error loading campaigns:', err);
       showToast('Erro ao carregar campanhas', 'error');
+    }
+  }
+
+  async function loadMonetizationConfig() {
+    const statusEl = document.getElementById('monetizationConfigStatus');
+    try {
+      const client = getClient();
+      if (!client) return;
+      const { data, error } = await client.rpc('get_admin_monetization_config');
+      if (error) throw error;
+      const cfg = Array.isArray(data) ? data[0] : data;
+      if (!cfg) return;
+      const enabledEl = document.getElementById('adsenseEnabledToggle');
+      const clientIdEl = document.getElementById('adsenseClientId');
+      const feedSlotEl = document.getElementById('adsenseFeedSlotId');
+      const sidebarSlotEl = document.getElementById('adsenseSidebarSlotId');
+      const fallbackEl = document.getElementById('adsenseFallbackToggle');
+      if (enabledEl) enabledEl.checked = !!cfg.adsense_enabled;
+      if (clientIdEl) clientIdEl.value = cfg.adsense_client_id || '';
+      if (feedSlotEl) feedSlotEl.value = cfg.feed_slot_id || '';
+      if (sidebarSlotEl) sidebarSlotEl.value = cfg.sidebar_slot_id || '';
+      if (fallbackEl) fallbackEl.checked = !!cfg.fallback_adsense;
+      if (statusEl) statusEl.textContent = 'Configuração carregada.';
+    } catch (err) {
+      console.error('[admin_ads] Error loading monetization config:', err);
+      if (statusEl) statusEl.textContent = 'Erro ao carregar configuração.';
+    }
+  }
+
+  async function saveMonetizationConfig() {
+    const statusEl = document.getElementById('monetizationConfigStatus');
+    const client = getClient();
+    if (!client) {
+      if (statusEl) statusEl.textContent = 'Erro: cliente Supabase não inicializado.';
+      return;
+    }
+    const enabledEl = document.getElementById('adsenseEnabledToggle');
+    const clientIdEl = document.getElementById('adsenseClientId');
+    const feedSlotEl = document.getElementById('adsenseFeedSlotId');
+    const sidebarSlotEl = document.getElementById('adsenseSidebarSlotId');
+    const fallbackEl = document.getElementById('adsenseFallbackToggle');
+    if (statusEl) statusEl.textContent = 'Salvando...';
+    try {
+      const { data, error } = await client.rpc('upsert_admin_monetization_config', {
+        p_adsense_enabled: enabledEl ? enabledEl.checked : false,
+        p_adsense_client_id: clientIdEl ? clientIdEl.value.trim() : '',
+        p_feed_slot_id: feedSlotEl ? feedSlotEl.value.trim() : '',
+        p_sidebar_slot_id: sidebarSlotEl ? sidebarSlotEl.value.trim() : '',
+        p_fallback_adsense: fallbackEl ? fallbackEl.checked : false,
+      });
+      if (error) throw error;
+      if (statusEl) statusEl.textContent = '✓ Configuração salva com sucesso.';
+      showToast('Configuração AdSense salva!');
+    } catch (err) {
+      console.error('[admin_ads] Error saving monetization config:', err);
+      if (statusEl) statusEl.textContent = 'Erro ao salvar: ' + (err.message || String(err));
+      showToast('Erro ao salvar configuração AdSense', 'error');
     }
   }
 
@@ -515,6 +573,8 @@ const AdminAds = (() => {
     init,
     loadCampaigns,
     loadSponsors,
+    loadMonetizationConfig,
+    saveMonetizationConfig,
     toggleGlobalKillSwitch,
     toggleCampaign,
     toggleSponsor,

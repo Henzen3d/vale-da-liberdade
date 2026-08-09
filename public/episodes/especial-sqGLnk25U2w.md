@@ -1,10 +1,22 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Delação que Apavora os Parasitas Estatais
 
-> Fonte: Visão Libertária
+> Fonte: Revista Fórum
 > URL do vídeo: https://www.youtube.com/watch?v=sqGLnk25U2w
 > Tags: política, corrupção, eleições
 > video_id: sqGLnk25U2w
+
+> Referências:
+> - Revista Fórum: https://revistaforum.com.br/blogs/blog-do-rovai/trump-homem-chavez-maduro-golpe-lula-saab/
+> - Revista Fórum: https://revistaforum.com.br/global/consulado-dos-eua-convoca-influenciadores-anti-lula/
+> - O Globo: https://oglobo.globo.com/politica/noticia/2023/08/11/enquanto-lula-lanca-novo-pac-janja-se-encontra-com-influenciadores-e-ex-bbbs-no-rio.ghtml
+> - Infobae: https://www.infobae.com/venezuela/2025/12/04/carta-del-pollo-carvajal-a-trump-ofrece-mas-datos-de-la-relacion-del-chavismo-con-el-narcotrafico-y-las-redes-delictivas-en-eeuu/
+> - Reuters: https://www.reuters.com/world/americas/alex-saab-ally-venezuelas-maduro-pleads-not-guilty-to-us-charges-2026-07-24/
+> - Justice: https://www.justice.gov/opa/pr/maduro-regime-ally-alex-saab-arrested-money-laundering-charges-involving-venezuelan-food
+> - Foxnews: https://www.foxnews.com/politics/maduros-alleged-bag-man-alex-saab-arrested-less-3-years-biden-pardon-report
+> - CNN: https://edition.cnn.com/2026/04/26/americas/carvajal-pollo-maduro-venezuela-trial-latam-intl
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-sqGLnk25U2w.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-sqGLnk25U2w.md
 
 ---
 

@@ -159,22 +159,46 @@ def build_article(ep: dict, md_text: str, src_names: dict) -> tuple[str, str]:
     duracao = str(dur) if dur else "—"
     md_clean = strip_frontmatter(md_text)
     body = md_to_html(md_clean)
-    # Citação de fontes: prioridade ao "Fonte:" do frontmatter (especiais); senão mapeia ids
-    fonte = extract_fonte(md_text)
-    if fonte:
-        sources_html = (
-            '<div class="sources"><b>Fonte:</b> ' + html.escape(fonte, quote=True) + "</div>"
-        )
-    else:
-        src_ids = [s for s in (ep.get("sources") or []) if s in src_names][:8]
-        if src_ids:
+    # Citação de fontes no fim da matéria: especiais com `referencias`
+    # (links da seção "Referências:" da descrição do YouTube + nosso site)
+    # viram lista de links; senão, mantém o comportamento anterior.
+    refs = ep.get("referencias") or []
+    if refs:
+        items = []
+        for r in refs:
+            url = (r.get("url") or "").strip()
+            if not url:
+                continue
+            veic = (r.get("veiculo") or "").strip() or url
+            self_tag = '<span class="ref-self">nosso site</span>' if r.get("self") else ""
+            items.append(
+                '<li><a href="{}" target="_blank" rel="noopener noreferrer">{}</a>{}</li>'
+                .format(html.escape(url, quote=True), html.escape(veic, quote=True), self_tag)
+            )
+        if items:
             sources_html = (
-                '<div class="sources"><b>Fontes desta edição:</b> '
-                + " · ".join(html.escape(src_names[s]) for s in src_ids)
-                + "</div>"
+                '<div class="sources"><b>Referências:</b>'
+                '<ul class="ref-list">' + "".join(items) + "</ul></div>"
             )
         else:
             sources_html = ""
+    else:
+        # Prioridade ao "Fonte:" do frontmatter (especiais antigos); senão mapeia ids
+        fonte = extract_fonte(md_text)
+        if fonte:
+            sources_html = (
+                '<div class="sources"><b>Fonte:</b> ' + html.escape(fonte, quote=True) + "</div>"
+            )
+        else:
+            src_ids = [s for s in (ep.get("sources") or []) if s in src_names][:8]
+            if src_ids:
+                sources_html = (
+                    '<div class="sources"><b>Fontes desta edição:</b> '
+                    + " · ".join(html.escape(src_names[s]) for s in src_ids)
+                    + "</div>"
+                )
+            else:
+                sources_html = ""
     page = ARTICLE_TMPL.format(
         title=html.escape(title, quote=True),
         desc=html.escape(desc, quote=True),

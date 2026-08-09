@@ -6,6 +6,13 @@
 > Tags: eleições, ditadura judiciária
 > video_id: ipBrgxe6cBg
 
+> Referências:
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/analise-neutralidade-do-pp-e-vitoria-politica-de-lula/
+> - Metrópoles: https://www.metropoles.com/blog-do-noblat/flavio-voce-nao-e-da-direita-e-do-seu-pai-e-nao-convence-ninguem
+> - Folha de S.Paulo: https://www1.folha.uol.com.br/poder/2026/08/tarcisio-e-lancado-candidato-a-reeleicao-ao-lado-de-flavio-bolsonaro-em-convencao-em-sp.shtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-ipBrgxe6cBg.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-ipBrgxe6cBg.md
+
 ---
 
 [QUADRO: BRASIL E MUNDO — Abertura]

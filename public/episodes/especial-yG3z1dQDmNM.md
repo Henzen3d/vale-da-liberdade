@@ -1,10 +1,22 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A chantagem das emendas: Como o STF aparelha as eleições usando seu dinheiro
 
-> Fonte: ANCAP.SU
+> Fonte: Veja
 > URL do vídeo: https://www.youtube.com/watch?v=yG3z1dQDmNM
 > Tags: política, ditadura judiciária, eleições
 > video_id: yG3z1dQDmNM
+
+> Referências:
+> - Veja: https://veja.abril.com.br/politica/flavio-confirma-que-tereza-aceitou-ser-vice-mas-pp-reforca-preferencia-por-neutralidade/
+> - O Globo: https://oglobo.globo.com/politica/eleicoes-2026/noticia/2026/07/31/pp-reafirma-neutralidade-nas-eleicoes-e-comunica-tereza-cristina-de-que-ela-nao-sera-vice-de-flavio.ghtml
+> - O Globo: https://oglobo.globo.com/blogs/malu-gaspar/post/2026/07/fator-stf-ajudou-a-aumentar-resistencia-do-centrao-a-fazer-alianca-com-flavio-bolsonaro.ghtml
+> - Gazeta do Povo: https://www.gazetadopovo.com.br/republica/por-que-moraes-ameaca-a-candidatura-de-flavio-bolsonaro-a-presidencia/
+> - Metrópoles: https://www.metropoles.com/blog-do-noblat/ricardo-noblat/entrou-pela-perna-do-pinto-o-fim-precoce-da-chapa-flavio-tereza
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/flavio-diz-que-vaga-de-vice-esta-em-aberto-e-que-conversa-com-partidos/
+> - Folha de S.Paulo: https://media.folha.uol.com.br/datafolha/2026/07/27/dubjq-vjpukmyk3aldqcpq.pdf
+> - Arvor (Brasil): https://brasil.arvor.co/datafolha_072026.html
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-yG3z1dQDmNM.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-yG3z1dQDmNM.md
 
 ---
 

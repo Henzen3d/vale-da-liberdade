@@ -126,7 +126,15 @@ Bloco isolado no início do roteiro, **antes** da introdução editorial:
 ---
 ```
 
-### 3.4 Proibições de formatação
+### 3.4 Dinâmica Conversacional (Bate-Volta por Notícia)
+
+Quando um quadro temático contiver mais de uma notícia, elas **NUNCA** devem ser apresentadas de uma vez só no início do quadro ou aglomeradas em falas longas. O debate deve ser fatiado notícia por notícia:
+1. **Apresentação + Comentário**: O apresentador da vez apresenta a notícia com seus dados concretos e faz seu comentário opinativo (ácido ou pragmático) de imediato.
+2. **Contraponto**: O outro apresentador rebate imediatamente com seu ponto de vista ou dados complementares.
+3. **Réplica**: Uma troca curta de turnos (fala curta de cada um) para fechar o minidebate daquela pauta.
+4. **Transição Conversacional**: O locutor da vez usa um gancho natural para introduzir a próxima notícia do mesmo quadro, reiniciando o ciclo de minidebate.
+
+### 3.5 Proibições de formatação
 
 - ❌ Não usar "bom dia", "boa tarde", "boa noite"
 - ❌ Não usar saudações temporais — o conteúdo é atemporal
@@ -415,12 +423,14 @@ O agente de geração do roteiro DEVE seguir estas regras de ferro, sem exceçõ
 1. **PROIBIDO Consenso Fácil**: Peter e Ricardo NUNCA devem concordar educadamente de imediato ou repetir o argumento um do outro. A dinâmica baseia-se em debate e contraponto. Se Ricardo trouxer um fato atenuante, Peter deve rebater com ironia e ceticismo radical.
 2. **PROIBIDO Personagens Polidos**: Peter DEVE ser agressivamente irônico, ancap radical e provocador. Ricardo DEVE ser calmo, mas firme em dados e razões práticas. Não suavize o tom deles.
 3. **PROIBIDO Comentários Genéricos**: Toda discussão deve ser conectada à realidade geográfica de Blumenau e do Vale do Itajaí. Se a notícia for estadual, comente como ela impacta diretamente a prefeitura de Blumenau ou os moradores locais.
+4. **PROIBIDO Agrupamento de Pautas (Monólogos)**: Se houver mais de uma notícia em um quadro, é proibido apresentá-las todas de uma vez ou agrupadas sem debate imediato. Cada notícia deve ser tratada como um minidebate individual (Apresentação/Comentário -> Contraponto -> Réplica -> Próxima Notícia).
 
 | Desculpa Comum do Modelo | Realidade Exigida |
 |---|---|
 | "Para manter a conversa fluida, fiz eles concordarem rapidamente." | A conversa flui através do conflito de ideias e visões diferentes. Debata até o fim. |
 | "Achei que o tom de Peter estava muito rude e o suavizei." | O tom de Peter é radical e ácido. Mantenha os espinhos na voz dele. |
 | "Não havia dados locais na notícia, então fiz um comentário geral." | Use busca online ou conecte o fato com analogias da infraestrutura de Blumenau (ex: pontes da cidade, BR-470). |
+| "Agrupei as notícias para que o quadro ficasse mais curto." | Divida em minidebates individuais e dinâmicos para cada notícia. Não crie monólogos longos. |
 
 ---
 
@@ -486,9 +496,39 @@ Ricardo: [contraponto racional]
 Peter: [frase provocativa de encerramento]
 Ricardo: [reflexão ou chamada à ação]
 ```
-
 ---
+## 7.1 Regras de Dinâmica Conversacional
+**(substituem/complementam a seção de checklist de estilo; OBRIGATÓRIAS em todo roteiro)**
 
+1. Proibido abrir fala com formato de telejornal
+Nunca começar uma fala com "Na segurança pública...", "Ainda sobre...", "E em [cidade]...", "No quadro X...". Essas são muletas de apresentador formal. A notícia deve entrar naturalmente dentro da fala, não como manchete lida.
+
+2. Toda fala (exceto a primeira de cada quadro) precisa reagir à fala anterior antes de emendar o próprio ponto
+Regra prática: pegue uma palavra, número ou ideia específica que o outro acabou de dizer e repita/questione/ironize sobre ela antes de introduzir argumento novo. Proibido simplesmente trocar de assunto com uma crítica genérica ao Estado.
+Exemplo ruim: "Estrada pública, manutenção pública, resultado público."
+Exemplo bom: "Setenta metros de fiação, você disse? Sumiu setenta metros e ninguém viu nada?"
+
+3. Limite rígido: 2-3 frases curtas por fala, nunca 4+
+Se uma fala passar de 3 frases, cortar. Ritmo de podcast é troca rápida, não parágrafo de opinião.
+
+4. Variar a reação do Peter — proibido repetir sempre a fórmula "fato → crítica ao Estado"
+Alternar entre: pergunta retórica, interrupção ("Espera, deixa eu entender..."), ironia seca, incredulidade, ou concordância parcial antes de discordar. Nem toda fala do Peter precisa terminar em tese anti-Estado — variedade é mais crível que repetição.
+
+5. Trocas por notícia: 3 a 5, mas curtas — nunca infladas pra bater cota
+Se a notícia é simples, 3 trocas curtas bastam. Não esticar fala pra parecer "completo". Densidade de informação por fala deve ser baixa; ritmo de conversa, não de relatório.
+
+6. Usar expressões de transição de fato, não só ter a lista disponível
+Pelo menos 1-2 por quadro: "Vai daí...", "Agora segura essa...", "Pois é, e tem mais...", "Espera, deixa eu entender direito...", "Isso aí é sério?", "Peraí..."
+
+7. Chamar o outro pelo nome (voz única no TTS)
+Com voz única fica difícil distinguir quem fala. Em boa parte das falas, cite o nome do outro:
+- Peter: "Mas Ricardo, você está vendo o que está acontecendo em Blumenau?"
+- Ricardo: "Peter, isso não é exatamente o que está acontecendo."
+Meta: ~1 chamada de nome a cada 2–3 falas.
+
+Validação automática: `python3 scripts/validate_naturalidade.py episodes/YYYY-MM-DD.md`
+(integrada em `pipeline.py validate` / `full` — bloqueia áudio se houver ❌ crítico)
+---
 ## 8. Configuração TTS
 
 ### 8.1 Mapeamento de vozes sugerido
@@ -504,18 +544,28 @@ Ricardo: [reflexão ou chamada à ação]
 # Substituições obrigatórias antes de enviar para TTS
 TTS_SUBSTITUTIONS = {
     # Siglas — pronúncia soletrada
+    "web": "ueb",
+    "BR-470": "B-R quatrocentos e setenta",
+    "BR-163": "B-R cento e sessenta e três",
     "STF": "S-T-F",
     "STJ": "S-T-J",
     "SEMED": "Secretaria Municipal de Educação",
     "UPA": "U-P-A",
-    "SUS": "S-U-S",
+    "SUS": "SUS",
     "PM": "Polícia Militar",
-    "PC": "Polícia Civil",
     "MP": "Ministério Público",
+    "MPSC": "M-P-S-C",
     "TCE": "Tribunal de Contas do Estado",
     "CGM": "Controladoria Geral do Município",
-    # Símbolos
+    "JASC": "jasc",
+    "Univali": "UNIVALE",
+    "RG": "R-G",
+    "CNH": "C-N-H",
+    # Entidades / termos específicos
+    "GRAC": "grac",
+    # Símbolos e unidades / números
     "R$": "reais",
+    "1 milhão": "um milhão",
     "%": "por cento",
     "m²": "metros quadrados",
     "km": "quilômetros",

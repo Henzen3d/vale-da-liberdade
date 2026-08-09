@@ -1,10 +1,24 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Falha da Coldcard e a Lição Inflexível do Livre Mercado
 
-> Fonte: Massive, Surprise Bitcoin Attack Sparks Sudden Price Crash F
+> Fonte: CoinDesk
 > URL do vídeo: https://www.youtube.com/watch?v=-G7PwtSmQ7Q
 > Tags: economia
 > video_id: -G7PwtSmQ7Q
+
+> Referências:
+> - CoinDesk: https://www.coindesk.com/business/2026/07/31/coldcard-s-usd38-million-so-far-exploit-shakes-faith-in-self-custody-may-push-investors-to-etfs
+> - Forbes: https://www.forbes.com/sites/digital-assets/2026/07/31/massive-surprise-bitcoin-attack-sparks-sudden-price-crash-fears/
+> - Reddit: https://www.reddit.com/r/Bitcoin/comments/1vcfl2a/the_coldcard_wallet_exploit_estimates_have_almost/?solution=37394df5bced5fd237394df5bced5fd2&js_challenge=1&token=7afd7253fec22262ff1c52b1703fe9ec68e743264a306aa43260009769545a47&jsc_orig_r=
+> - CyberNews: https://cybernews.com/security/ai-suspected-coldcard-bitcoin-wallet-theft/
+> - Coldcard: https://coldcard.com/docs/upgrade/
+> - Blog: https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/
+> - Github: https://github.com/Coldcard/firmware
+> - Github: https://github.com/Coldcard/firmware/commit/b18723dddb6d751c39978e4364b56b2414f68b47#diff-0b40e13a1f8d0a157dc4db2e973ac743a000ff6917a62a9d25b3f02a7a44d843
+> - Engineering: https://engineering.block.xyz/blog/predictable-rng-fallback-and-32-bit-reseed-in-coldcard-firmware
+> - Google: https://www.google.com/search?q=btc+usd&oq=btc+usd&sourceid=chrome&ie=UTF-8
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial--G7PwtSmQ7Q.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial--G7PwtSmQ7Q.md
 
 ---
 

@@ -1,10 +1,17 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Ilusão do Voto Obrigatório e o Pânico da Ditadura Judiciária
 
-> Fonte: Visão Libertária
+> Fonte: Terra
 > URL do vídeo: https://www.youtube.com/watch?v=I0Rxpiyusak
 > Tags: ditadura judiciária, política, eleições
 > video_id: I0Rxpiyusak
+
+> Referências:
+> - Terra: https://www.terra.com.br/noticias/eleicoes/alvo-de-moraes-flavio-participa-de-convencao-do-pl-em-sc-e-exibe-novo-video-com-voz-e-imagens-de-bolsonaro,b3facc95d11a2b881f4b7f31b8be9470lt6zjqxy.html
+> - BBC: https://www.bbc.com/portuguese/articles/c04kdz2ql01o
+> - Folha de S.Paulo: https://www1.folha.uol.com.br/poder/2026/07/abstencao-crescente-desafia-voto-obrigatorio-e-entra-no-calculo-de-candidatos.shtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-I0Rxpiyusak.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-I0Rxpiyusak.md
 
 ---
 

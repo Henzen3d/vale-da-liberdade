@@ -6,6 +6,18 @@
 > Tags: política, eleições
 > video_id: 7c-fGt1Zbs0
 
+> Referências:
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/lula-e-lancado-a-presidencia-em-reuniao-interna-do-pt-antes-de-evento/
+> - Poder360: https://www.poder360.com.br/poder-eleicoes-2026/pt-confirma-lula-na-disputa-por-um-inedito-4o-mandato/
+> - X: https://x.com/mairton_costa/status/2083522290659082489
+> - Revistaoeste: https://revistaoeste.com/politica/lula-marca-lancamento-da-campanha-para-16-de-agosto-e-deve-faltar-ao-1o-debate/
+> - YouTube: https://www.youtube.com/watch?v=WGVXlZCrFcU
+> - YouTube: https://www.youtube.com/watch?v=0xgNCnjmVHM
+> - Poder360: https://www.poder360.com.br/poder-eleicoes-2026/veja-fotos-da-convencao-do-pt-que-lancou-lula-ao-planalto/
+> - UOL: https://noticias.uol.com.br/colunas/leonardo-sakamoto/2026/08/02/lula-salva-evento-de-vexame-ao-chamar-janja-para-discursar-no-palco.htm
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-7c-fGt1Zbs0.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-7c-fGt1Zbs0.md
+
 ---
 
 [QUADRO: BRASIL E MUNDO — Abertura]

@@ -6,6 +6,17 @@
 > Tags: política, corrupção, impostos, taxas e tarifas
 > video_id: 0T7yObl8opQ
 
+> Referências:
+> - Estadão: https://www.estadao.com.br/politica/pf-detectou-74-ligacoes-e-5h30-de-conversas-entre-jaques-wagner-e-ex-socio-do-master/
+> - Veja: https://veja.abril.com.br/brasil/jaques-articulou-encontro-discreto-de-messias-e-socio-de-vorcaro-diz-pf/
+> - Claudio Dantas: https://claudiodantas.com.br/vorcaro-apontou-ministros-de-lula-favoraveis-a-venda-do-master/
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/pf-detalha-vinculos-pessoais-e-politicos-de-jaques-wagner-com-banco-master/
+> - Diário do Poder: https://diariodopoder.com.br/coluna-claudio-humberto/governo-lula-se-blinda-escondendo-visitas-a-vorcaro
+> - CNN Brasil: https://www.cnnbrasil.com.br/blogs/isabel-mega/politica/aliados-de-lula-veem-timing-inadequado-em-decisoes-de-mendonca/
+> - Metrópoles: https://www.metropoles.com/colunas/igor-gadelha/mendonca-autorizou-investigacao-de-flavio-um-dia-apos-parecer-da-pgr
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-0T7yObl8opQ.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-0T7yObl8opQ.md
+
 ---
 
 [QUADRO: BRASIL E MUNDO — Abertura]

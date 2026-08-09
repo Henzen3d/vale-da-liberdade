@@ -1,0 +1,440 @@
+{
+  "manchetes": [
+    "Jovem de vinte anos é encontrado morto em cela de delegacia em Rio do Sul",
+    "Prefeitura de Pouso Redondo decreta luto oficial após atropelamento fatal de irmãos na BR-470",
+    "Balneário Piçarras é condenado a indenizar jovem por erro e atraso em diagnóstico médico",
+    "Blumenau rompe contrato de carro caça-buracos a quatro meses do término do serviço",
+    "Justiça de Joinville valida cancelamento de apostas esportivas feitas durante revisão do VAR"
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Uma cela estatal que deveria custodiar devolve um cadáver de vinte anos em Rio do Sul. O Estado promete proteção nas ruas e entrega tragédias na BR-470 e diagnósticos mutiladores em Piçarras."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "Situações extremas exigem apuração rigorosa e fiscalização das instituições de serviço público. Não dá para transformar tragédias isoladas em julgamento sumário de toda a estrutura social."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "No programa de hoje analisamos as falhas na segurança em Rio do Sul e os contratos rompidos em Blumenau. Trazemos também o escândalo da saúde no litoral e o luto nas rodovias do Alto Vale."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Um jovem de vinte anos morador de Ituporanga foi encontrado morto dentro de uma cela na Central de Plantão Policial de Rio do Sul na madrugada desta terça-feira. Ele havia sido detido poucas horas antes por suspeita de assalto a um comércio no bairro Vila Nova."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O sujeito entra vivo sob a responsabilidade total do aparato estatal e sai de lá no rabecão. Se o monopólio da violência não consegue nem manter um preso vivo por doze horas, quem vai confiar a vida a esse sistema?"
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A Polícia Civil já abriu um procedimento investigativo formal para apurar as circunstâncias exatas da morte no bairro Jardim América. É preciso aguardar o laudo pericial antes de tirar conclusões precipitadas sobre os agentes."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Investigação interna no próprio departamento é o clássico burocrata carimbando a própria eficiência. O cidadão paga imposto para ter custódia segura e recebe um inquérito sem prazo para terminar."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Por outro lado no combate às drogas o presidente do Conselho Estadual de Entorpecentes defende a ampliação dos conselhos municipais e o fortalecimento de redes comunitárias. O trabalho integrado em Santa Catarina busca barrar o avanço das facções."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Mais conselhos e mais viagens de assessores para debater o óbvio não tiram nenhum traficante da rua Ricardo. Enquanto a proibição estatal criar margens de lucro gigantescas para o crime organizado, nenhum seminário vai resolver o problema."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Essa visão ignora o apoio prestado pelas comunidades terapêuticas que recuperam milhares de dependentes. Sem coordenação governamental e investimentos públicos nessa área o caos social seria incomensuravelmente maior."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Comunidades terapêuticas privadas funcionam apesar do Estado, não por causa dele. O parasitismo oficial só sabe criar burocracia e tomar recursos de quem realmente produz."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Nas estradas um grave acidente entre um carro e um trator agrícola deixou sete pessoas feridas na SC-281 na localidade de Lageado Águas Negras em Ituporanga. O Corpo de Bombeiros Militar foi acionado às sete da manhã para o resgate."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Sete feridos em uma rodovia estadual sem acostamento adequado e sem sinalização descentralizada. O Estado cobra IPVA e pedágio velado para entregar asfalto lunar e trator disputando espaço com carro de passeio."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A equipe de socorro agiu rápido e encontrou todas as vítimas já fora dos veículos acidentados. A manutenção viária é contínua e os motoristas também precisam respeitar os limites de velocidade nas SCs."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Limites de velocidade estabelecidos por burocratas atrás de mesas em Florianópolis. Se as estradas fossem privadas e sob gestão de empresas concorrentes, o padrão de segurança e pavimentação seria totalmente diferente."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Em Blumenau o sistema de monitoramento por câmeras ajudou a Polícia Militar a identificar e prender dois suspeitos de furtos no bairro Ponta Aguda. Os crimes ocorreram pela manhã e foram solucionados em poucas horas."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Câmeras pagas pelo comerciante e pelo morador privado para fazer o trabalho que a patrulha estatal não faz. O cidadão compra o equipamento, monitora o próprio bairro e a polícia só aparece para assinar o boletim."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A integração entre tecnologia de vigilância e resposta policial rápida mostra a eficácia do trabalho ostensivo. Os suspeitos foram levados diretamente para a Central de Polícia Civil graças à agilidade das guarnições."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Resposta rápida depois do prejuízo consumado e do imóvel invadido. Se a legítima defesa e a segurança privada fossem plenamente livres, o ladrão nem pensaria em pular o muro."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "O GAECO e a Polícia Civil cumpriram mandados de busca e apreensão em Blumenau e Corupá durante a Operação Rede Interrompida nesta terça-feira. A investigação mira grupos nas redes sociais que planejavam possíveis ataques durante os debates eleitorais do segundo turno."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "O aparato de inteligência gasta milhares de horas vigiando grupos de mensagem enquanto o crime violento domina as periferias. Usam a desculpa de defender a democracia para monitorar a fala do cidadão comum na internet."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Prevenir atentados a bomba contra o processo democrático é dever primórdio do Estado de Direito Peter. Operações interestaduais como essa no Paraná, São Paulo e Pernambuco evitam tragédias de proporções imensuráveis."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Ameaças em redes sociais viraram o pretexto perfeito para a ampliação do controle estatal sobre a comunicação. A burocracia do GAECO adora criar alarde para justificar o aumento do próprio orçamento."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "O jovem deu entrada no posto com dores fortes e náuseas mas teve o atendimento negligenciado."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Perder um órgão por pura incompetência da fila do posto de saúde estatal é a prova cabal do colapso desse sistema. O garoto entrou com uma emergência simples e a burocracia médica do município entregou uma mutilação vitalícia."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "O juiz da Terceira Vara da Fazenda Pública de Joinville reconheceu a falha grave na prestação do serviço público e fixou reparações estéticas e morais. O município terá que arcar com as reparações financeiras pela negligência constatada."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "O município paga com o dinheiro do próprio contribuinte que continua refém desse atendimento nefasto. Ninguém é demitido, nenhum administrador perde o registro e a conta da indenização vai direto para o pagador de imposto."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Os irmãos Arthur de sete anos e Beatriz de catorze morreram atropelados na BR-470 enquanto tentavam atravessar a pista para pegar o ônibus escolar em Pouso Redondo. A prefeitura decretou três dias de luto oficial após a tragédia na rodovia."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Uma dor incomensurável para toda a comunidade do Alto Vale e para os colegas da Escola Letícia Possamai. Esse tipo de drama exige passarelas urgentes e intervenções de engenharia pesada por parte do DNIT nas travessias urbanas."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Anos e anos de promessas de duplicação da BR-470 e o governo federal não consegue nem colocar uma passarela onde crianças pegam transporte público. Decretar luto oficial de três dias é fácil para o prefeito, duro é ver o Estado matar por omissão infraestrutural."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "A duplicação da BR-470 vem avançando com investimentos pesados do governo federal apesar dos gargalos orçamentários. Não se pode usar a dor de uma família para atacar servidores que trabalham no planejamento viário."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Investimento pesado com o dinheiro tomado do trabalhador e prazos estourados há mais de uma década. Se essa rodovia estivesse sob concessão privada séria com clausula de penalidade, as passarelas teriam sido instaladas no primeiro mês."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Enquanto isso em Blumenau o Projeto Agente Mirim reuniu alunos das escolas João Joaquim Fronza, José Vieira Corte e Adelaide Starke Peter. As crianças receberam orientações diretas do Exército, da Polícia Militar e do Clube de Radioamadores sobre defesa civil."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Doutrinação militarista aplicada dentro de escola pública para ensinar criança a obedecer farda desde cedo. Em vez de ensinar matemática, ciência e empreendedorismo, colocam o Exército para dar palestra de cidadania estatal."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Saber como agir em emergências e enchentes é um aprendizado vital em uma cidade historicamente castigada por desastres como Blumenau. O engajamento com forças de apoio prepara cidadãos mais conscientes e solidários."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Se quisessem preparar os jovens ensinariam autonomia e raciocínio crítico, não desfile de fardados no pátio. A educação estatal usa o medo de desastres para transformar alunos em massa de manobra obediente."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Em Rio do Sul o Conselho Tutelar notificou a direção da escola Paulo Zimmermann após alunos ficarem sem uniforme e deixarem a unidade durante as aulas. O órgão exige explicações sobre a retenção ou liberação dos estudantes na última segunda-feira."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "O garoto esquece a camiseta da escola e a direção o impede de assistir aula para depois o Conselho Tutelar acionar a burocracia das redes sociais. O sistema trata vestuário com mais rigor do que o aprendizado do aluno."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "A identificação por uniforme garante a segurança dos próprios alunos dentro e fora do perímetro escolar. O Conselho Tutelar atua justamente para proteger o direito dos jovens e evitar que fiquem perambulando na rua."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Proteger o direito barrando a entrada na sala de aula por causa de pano com logotipo do governo. Isso é a perfeita demonstração do autoritarismo mesquinho que reina nas instituições públicas."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Na área profissional a Associação dos Municípios do Alto Vale do Itajaí abriu cento e vinte vagas para cursos técnicos gratuitos de enfermagem e saúde bucal. As inscrições pela Amavi terminam nesta sexta-feira dia sete."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Cursos chamados de gratuitos que são custeados por impostos escorchantes cobrados das próprias famílias dos alunos. O governo tira dez da carteira do trabalhador e devolve um em forma de vaga técnica com processo seletivo burocrático."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Trata-se de uma formação estratégica para suprir a demanda urgente por profissionais de saúde nos postos e hospitais da região. Sem essa iniciativa da associação municipal muitos jovens não teriam acesso ao ensino técnico."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Se a medicina e o ensino técnico fossem desregulamentados e livres de taxas corporativas, o mercado privado ofereceria cursos dez vezes mais baratos e eficientes sem precisar de subsídio estatal."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "A prefeitura de Blumenau decidiu romper o contrato com a empresa responsável pelo carro caça-buracos faltando apenas quatro meses para o fim da vigência. Gastaram milhões para rodar uma parafernália que não tampou a metade dos buracos da cidade."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Se a empresa contratada descumpriu as metas operacionais e o nível de serviço exigido, o dever da administração é rescindir o contrato. Romper com o fornecedor ineficiente demonstra zelo e rigor com o dinheiro do contribuinte."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Zelo depois de passar anos pagando fatura milionária por um carro que só servia para fazer propaganda eleitoral. Demoraram o contrato inteiro para perceberem o que qualquer motorista em Blumenau já sabia no primeiro dia."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Processos administrativos exigem prazos legais de contraditório para evitar multas e indenizações contra o município. A decisão de cancelar o serviço mostra que os mecanismos de controle interno da prefeitura funcionam."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Mecanismos que demoram quatro anos para cancelar um serviço inútil. Se fosse uma empresa privada contratando outra, o contrato teria sido rasgado na primeira semana de descumprimento."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Peter na Câmara de Blumenau o vereador Almir Vieira do PP prepara o retorno ao cargo após o encerramento do prazo de afastamento preventivo de cento e oitenta dias determinado pela Justiça. A volta do parlamentar deve ocorrer na próxima semana."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Cento e oitenta dias de afastamento remunerado pelo pagador de impostos sem produzir absolutamente nada para a cidade. O sujeito fica suspenso por ordem judicial e a sociedade continua bancando o salário e os penduricalhos do gabinete."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O afastamento cautelar cumpre o princípio da presunção de inocência até o trânsito em julgado das investigações. Encerrado o prazo fixado pelo juiz sem renovação, o mandato conferido pelas urnas precisa ser respeitado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Presunção de inocência com holofote e salário garantido só existe para a classe política. O cidadão comum suspenso do trabalho perde o sustento no primeiro mês sem qualquer compaixão da legislação trabalhista."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "No cenário eleitoral o deputado Gilson Marques e o ex-promotor Odair Tramontin anunciaram dobradinha pelo partido NOVO nas eleições de 2026. A aliança visa consolidar votos no Vale do Itajaí com discurso de combate à corrupção."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Políticos prometendo enxugar a máquina enquanto disputam cargos pagos pela própria máquina estatal. Por mais bem intencionada que seja a dobradinha, o sistema partidário devora qualquer um que tente mudar as regras do jogo por dentro."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Ter representantes que defendem a eficiência do gasto público e a fiscalização orçamentária é essencial para o equilíbrio das contas em Brasília e Florianópolis. O debate democrático ganha com nomes qualificados na disputa."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Equilíbrio de contas dentro de uma estrutura que consome quarenta por cento do PIB é ilusão pura. O único voto realmente eficiente é aquele que tira o poder de taxar da mão do burocrata."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A previsão do tempo do AlertaBlu aponta máxima de vinte e sete graus nesta terça-feira em Blumenau após nevoeiro matinal, com chance de chuva fraca à noite. Paralelamente o INMET emitiu alerta para a formação de um ciclone bomba no Atlântico Sul até quinta-feira."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Diante de um ciclone bomba a única certeza é que a Defesa Civil vai enviar SMS e as empresas estatais de energia vão deixar metade do estado no escuro por três dias sem indenizar ninguém pelos prejuízos."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Os alertas meteorológicos do INMET e da Defesa Civil servem para prevenir acidentes e orientar ações de contingência em áreas de risco. A tecnologia de previsão salva vidas ao permitir o manuseio prévio de barragens no Alto Vale."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Manuseio de barragens que ano após ano falha ou alaga cidades vizinhas por falta de manutenção privada e concorrência no setor de infraestrutura."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Em Indaial a prefeitura abriu a Semana Municipal de Segurança no Trânsito no Ginásio Sérgio Luiz Petters com a presença do Detran e da Polícia Rodoviária Federal. O evento visa conscientizar jovens estudantes sobre atitudes preventivas no tráfego."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Reúnem general do Detran, chefes de polícia e vereadores no ginásio para fazer discurso bonito enquanto as multas de trânsito batiam recorde de arrecadação nas avenidas de Indaial. A conscientização estatal sempre vem acompanhada de uma fábrica de multas escondida na esquina."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Ações de educação no trânsito reduzem índices de atropelamento e formam condutores mais responsáveis nas cidades do Vale. Unir órgãos estaduais e municipais na formação escolar é um investimento direto na preservação de vidas."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Se quisessem salvar vidas retiravam a indústria da multa e investiam em engenharia de tráfego feita por iniciativa privada competente."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A Assembleia Legislativa de Santa Catarina retomou as sessões plenárias e comissões nesta semana após o fim do recesso parlamentar em Florianópolis. As reuniões da CCJ e da Comissão de Esportes abriram os trabalhos nesta terça-feira."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Acabou o descanso pago dos deputados estaduais e a fábrica de criar leis inúteis voltou a funcionar a todo vapor em Florianópolis Ricardo. Preparem os bolsos porque cada sessão plenária custa milhões e resulta em mais proibições para o cidadão."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "O parlamento é o espaço legítimo para a discussão de projetos vitais de infraestrutura, incentivo ao esporte e orçamento estadual. É através das comissões que a sociedade civil acompanha e fiscaliza os projetos de lei."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Sociedade civil que só é lembrada na hora de pagar a conta da estrutura parlamentar e dos cargos comissionados das comissões."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Na área jurídica a Quarta Vara Cível de Joinville validou a decisão de uma casa de apostas que cancelou dois palpites feitos por um usuário enquanto o VAR analisava um pênalti nos Estados Unidos. O tribunal negou o pedido de indenização moral do apostador."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "O sujeito acha que pode ser mais esperto que o algoritmo e recorre ao Judiciário estatal para tentar validar uma aposta maliciosa. A Justiça gasta tempo de juiz pago com imposto para julgar picuinha de cassino online."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A decisão fixa um precedente importante sobre a boa-fé contratual e os termos de uso em sistemas de apostas em tempo real. Regulamentar a relação de consumo impede fraudes de ambos os lados da operação."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Contrato privado se resolve pelos termos assinados na plataforma, sem necessidade de interferência de magistrado estatal."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "A quarta-feira dia cinco de agosto traz os jogos decisivos de volta das oitavas de final da Copa do Brasil com destaque para o clássico entre Fluminense e Vasco no Maracanã após empate sem gols na primeira partida."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Peter",
+      "texto": "Milhões gastos em esquemas de segurança pública para um jogo de futebol no Maracanã enquanto bairros inteiros do Rio de Janeiro são governados pelo crime. O Estado gasta contingente policial para cuidar de torcida organizada."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "Grandes eventos esportivos movimentam a economia nacional, geram empregos diretos e exigem planejamento de segurança pública nas metrópoles. O futebol é patrimônio cultural do país."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "A União Europeia elogiou a ação do governo espanhol que devolveu rapidamente setenta mil dos setenta e dois mil migrantes que entraram ilegalmente no enclave de Ceuta vindos do Marrocos."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Ricardo",
+      "texto": "O controle de fronteiras é um direito soberano da Espanha e da União Europeia para garantir a ordem institucional e o acolhimento estruturado. A cooperação internacional com o Marrocos evitou uma crise humanitária de proporções desastrosas no Mediterrâneo."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "A burocracia europeia adora pregar compaixão e fronteiras abertas até que a realidade bate à porta do enclave. Na primeira oportunidade praticam deportação em massa sem qualquer hesitação mostrando a hipocrisia dos blocos estatais."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "E nas rapidinhas do hospício estatal blumenauense a prefeitura pagou anos de contrato por um carro caça-buracos para no final admitir que o serviço não funcionava e cancelar a quatro meses do fim do prazo."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Identificar falhas no cumprimento das cláusulas e romper o contrato é o caminho legal e responsável adotado pela administração pública."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Enquanto isso em Rio do Sul o Conselho Tutelar gasta horas de expediente investigando o drama do uniforme faltante na escola como se fosse um crime internacional. A burocracia adora se meter onde não é chamada."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "O acompanhamento das regras escolares protege a integridade e a rotina dos alunos na rede pública de ensino."
+    }
+  ],
+  "fechamento": [
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Seja na cela em Rio do Sul no contrato de Blumenau ou na saúde em Piçarras o Estado mostra sua ineficiência crônica e cobra caro por isso. Quanto mais você depende do governo mais vulnervál você fica."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "A fiscalização contínua das instituições e o aprimoramento das leis são os únicos caminhos reais para construir uma sociedade mais justa no Vale do Itajaí. Siga nossas redes e compartilhe o Webjornal."
+    }
+  ]
+}

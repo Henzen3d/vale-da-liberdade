@@ -15,6 +15,7 @@
 
 - **Voice ID:** Schedar (Google Gemini TTS prebuilt)
 - **Perfil:** Voz masculina, média-grave, ritmo calmo, tom ponderado
+- **Sotaque:** pt-BR **neutro** (padrão telejornal/podcast), leve coloração sulista de SC/Vale do Itajaí — **sem** carioca, **sem** gaúcho carregado, **sem** manezinho/Floripa. Ver `ACCENT_GUIDANCE` em `scripts/generate_gemini_tts_multi.py`.
 
 ## Crenças Centrais
 

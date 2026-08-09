@@ -1,10 +1,18 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Move Brasil e Desenrola: O Fiasco Estatal que Enriquece Bancos e Endivida o Povo
 
-> Fonte: ANCAP.SU
+> Fonte: O Globo
 > URL do vídeo: https://www.youtube.com/watch?v=ezixwD_sLHM
 > Tags: economia, política, impostos, taxas e tarifas
 > video_id: ezixwD_sLHM
+
+> Referências:
+> - O Globo: https://oglobo.globo.com/opiniao/editorial/coluna/2026/07/fracasso-do-move-brasil-e-extensao-do-desenrola-expoem-interesse-eleitoreiro.ghtml
+> - Em: https://www.em.com.br/economia/2026/08/7472237-governo-lula-altera-medidas-para-ampliar-credito-e-estimular-renegociacao-de-dividas.html
+> - Terra: https://www.terra.com.br/noticias/programa-desenrola-20-e-prorrogado-apos-inadimplencia-bancaria-manter-recorde-no-brasil,804613530a8e2c8e32d1975e029b8034pirqxbxi.html
+> - Correiodamanha: https://www.correiodamanha.com.br/colunistas/paulo-cappelli/2026/07/305854-cv-e-pcc-usam-programas-do-governo-lula-para-aplicar-golpes-diz-tcu.html
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-ezixwD_sLHM.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-ezixwD_sLHM.md
 
 ---
 

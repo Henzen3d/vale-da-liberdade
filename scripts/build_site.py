@@ -63,6 +63,17 @@ def load_episodes():
                 # Tentar fallback ou URL pública
                 audio_url = f"https://audio.mob.tec.br/audio/{date_str}-vale-da-liberdade.mp3"
 
+            # Verificar sidecar R2 e usar URL pública se disponível
+            r2_path = EPISODES_DIR / f"{date_str}-r2.json"
+            if r2_path.exists():
+                try:
+                    with open(r2_path, 'r', encoding='utf-8') as rf:
+                        r2_meta = json.load(rf)
+                    if r2_meta.get("r2_uploaded") and r2_meta.get("catalog_url"):
+                        audio_url = r2_meta["catalog_url"]
+                except Exception:
+                    pass
+
             episodes.append({
                 "date": date_str,
                 "metadata": metadata,

@@ -1,10 +1,16 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Armadilha do Leviatã: Como o Sistema Criou Sua Própria Ameaça Existencial
 
-> Fonte: ANCAP.SU
+> Fonte: O Globo
 > URL do vídeo: https://www.youtube.com/watch?v=_f8bffSUBek
 > Tags: política, ditadura judiciária, eleições
 > video_id: _f8bffSUBek
+
+> Referências:
+> - O Globo: https://oglobo.globo.com/opiniao/thais-oyama/coluna/2026/08/bolsonarismo-e-agora-ameaca-existencial-a-moraes.ghtml
+> - Estadão: https://www.estadao.com.br/politica/carlos-andreazza/txe-o-tribunal-xandonico-eleitoral/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-_f8bffSUBek.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-_f8bffSUBek.md
 
 ---
 

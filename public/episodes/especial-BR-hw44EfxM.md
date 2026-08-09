@@ -1,10 +1,18 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## PF e STF TENTAM BLINDAR LULINHA E TOMAM INVERSÃO DE DESTINO
 
-> Fonte: ANCAP.SU
+> Fonte: Metrópoles
 > URL do vídeo: https://www.youtube.com/watch?v=BR-hw44EfxM
 > Tags: política, corrupção, ditadura judiciária
 > video_id: BR-hw44EfxM
+
+> Referências:
+> - Metrópoles: https://www.metropoles.com/colunas/andreza-matais/andre-mendonca-investiga-se-diretor-geral-da-pf-obstruiu-justica-em-caso-do-inss
+> - Sbtnews: https://sbtnews.sbt.com.br/colunas/coluna-do-cezar/stf-ve-tentativa-da-pf-de-tirar-casos-de-lulinha-de-mendonca
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/waack-investigacoes-da-pf-contaminam-as-eleicoes/
+> - X: https://x.com/Maxcardoso/status/2083230702686912642
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-BR-hw44EfxM.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-BR-hw44EfxM.md
 
 ---
 

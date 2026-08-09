@@ -189,7 +189,8 @@ def step_audio(video_id: str) -> bool:
 
     tts_script = SCRIPT_DIR / "generate_gemini_tts_multi.py"
 
-    # Tentar Gemini TTS (single speaker Peter)
+    # Tentar Gemini TTS (single speaker Peter) — modelo 2.5 para BM (mesma cota RPD,
+    # isola o budget do diário que usa 3.1; disponível nas 3 keys do projeto)
     ok = run_step(
         [PY, str(tts_script),
          "--episode", str(tts_path),
@@ -197,8 +198,9 @@ def step_audio(video_id: str) -> bool:
          "--speakers", "Peter",
          "--single-speaker", "Peter",
          "--mode", "turns",
+         "--model", "gemini-2.5-flash-preview-tts",
          "--skip-preprocess"],
-        "Geração TTS Gemini (voz Peter/Charon)",
+        "Geração TTS Gemini 2.5 (voz Peter/Charon) — BM",
     )
 
     # Verificar se MP3 foi gerado pelo pós-processamento do TTS
@@ -227,6 +229,64 @@ def step_audio(video_id: str) -> bool:
     return False
 
 
+def resolve_bm_mp3(video_id: str) -> Path | None:
+    """Retorna o MP3 mais recente de output/brasil_e_mundo/audio/{video_id}_*.mp3."""
+    if not AUDIO_DIR.exists():
+        return None
+    files = sorted(
+        AUDIO_DIR.glob(f"{video_id}_*.mp3"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    for p in files:
+        if p.stat().st_size > 200_000:
+            return p
+    return files[0] if files else None
+
+
+def step_upload_r2_especial(video_id: str) -> bool:
+    """Fase 4c: Upload do áudio especial para Cloudflare R2 + sidecar.
+
+    Catálogo usa id especial-{video_id} e chave R2 audio/especial-{video_id}.mp3.
+    """
+    mp3 = resolve_bm_mp3(video_id)
+    if not mp3:
+        print(f"  ⚠️  Sem MP3 para upload R2 (video_id={video_id})")
+        return False
+
+    especial_id = f"especial-{video_id}"
+    r2_script = SCRIPT_DIR / "upload_r2.py"
+    if not r2_script.exists():
+        print(f"  ❌ upload_r2.py não encontrado: {r2_script}")
+        return False
+
+    print(f"  ☁️  Upload R2 especial disparado: {especial_id} ← {mp3.name}")
+    ok = run_step(
+        [PY, str(r2_script), "--date", especial_id, "--file", str(mp3)],
+        f"Upload R2 ({especial_id})",
+    )
+    if ok:
+        domain = (os.environ.get("R2_PUBLIC_DOMAIN") or "https://audio.mob.tec.br").rstrip("/")
+        print(f"  ✅ R2 especial OK: {domain}/audio/{especial_id}.mp3")
+    else:
+        print(f"  ❌ Upload R2 falhou para {especial_id} — publish_site NÃO será executado")
+    return ok
+
+
+def step_publish_site_catalog() -> bool:
+    """Reconstroi catálogo/RSS do portal (public/data + feed)."""
+    pub_script = SCRIPT_DIR / "publish_site.py"
+    if not pub_script.exists():
+        print(f"  ❌ publish_site.py não encontrado: {pub_script}")
+        return False
+    ok = run_step([PY, str(pub_script)], "Publish site catalog")
+    if ok:
+        print("  ✅ Catálogo/site atualizado (publish_site.py)")
+    else:
+        print("  ❌ publish_site.py falhou")
+    return ok
+
+
 def step_publish_feed(video_id: str) -> bool:
     """Fase 4c: Atualizar feed RSS do Brasil e Mundo."""
     feed_path = PROJECT_ROOT / "output" / "brasil_e_mundo" / "feed.xml"
@@ -243,16 +303,24 @@ def step_publish_feed(video_id: str) -> bool:
     mp3_size = mp3_path.stat().st_size if mp3_path.exists() else 0
 
     # Ler feed existente ou criar novo
-    site_url = os.environ.get("SITE_URL", "https://radio.mob.tec.br")
+    site_url = os.environ.get("SITE_URL", "https://news.mob.tec.br")
     audio_url = f"{site_url}/brasil-e-mundo/audio/{mp3_name}"
 
     # Gerar item RSS
     pub_date = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
     tags_str = "".join(f"  <category>{tag}</category>\n" for tag in episode_data.get("tags", []))
+    refs = episode_data.get("fonte_referencias") or []
+    refs_text = ""
+    if refs:
+        refs_text = " Referências: " + " | ".join(
+            f"{r.get('veiculo', '').strip()}: {r.get('url', '').strip()}".strip(" :")
+            for r in refs if r.get("url")
+        )
     show_notes = (
         f"Comentário do Peter sobre notícias do Brasil e do Mundo. "
         f"Fonte original: {episode_data.get('fonte_veiculo') or episode_data.get('fonte_canal', 'ANCAPSU')}. "
-        f"Vídeo de referência: {episode_data.get('fonte_url', '')}"
+        f"Vídeo de referência: {episode_data.get('fonte_url', '')}."
+        + refs_text
     )
 
     new_item = f"""  <item>
@@ -279,17 +347,7 @@ def step_publish_feed(video_id: str) -> bool:
 
     feed_path.write_text(content, encoding="utf-8")
     print(f"  ✅ Feed RSS atualizado: {feed_path}")
-
-    # Atualizar o catálogo do portal principal (public/data/episodes.json + áudio/md)
-    try:
-        pub_script = PROJECT_ROOT / "scripts" / "publish_site.py"
-        if pub_script.exists():
-            print("  🌐 Atualizando catálogo e arquivos no portal (publish_site.py)...")
-            # Usar o mesmo Python do Hermes (sys.executable do orquestrador = PY)
-            subprocess.run([PY, str(pub_script)], cwd=str(PROJECT_ROOT), check=False)
-    except Exception as e:
-        print(f"  ⚠️ Falha ao publicar no portal: {e}")
-
+    # publish_site.py roda depois do upload R2 (step_upload_r2_especial + step_publish_site_catalog)
     return True
 
 
@@ -370,10 +428,78 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         if not step_audio(video_id):
             print("⚠️  Falha na geração de áudio (continuando...)")
 
+    # 4.5. Thumbnail automática (não-bloqueante)
+    print("\n🖼️  Etapa 4.5/6 — Thumbnail automática")
+    try:
+        from thumbnail_generator import generate_thumbnail_safe
+        # tenta ler título/resumo/data do JSON do especial
+        eps_json_pre = EPS_DIR / f"especial-{video_id}.json"
+        h, s = video_id, video_id
+        # FONTE DE VERDADE da data = nome do arquivo de áudio {video_id}_{YYYY-MM-DD}.mp3
+        # (mesma fonte que publish_site.discover_especial_episodes usa p/ o catálogo).
+        # NUNCA usar datetime.now() como fallback primário — o JSON do especial
+        # não tem campo de data e datetime.now() grava a thumbnail na pasta do dia
+        # de PROCESSAMENTO, não do dia de PUBLICAÇÃO (bug: thumbnail "sumia").
+        date_str = None
+        try:
+            mp3s = sorted(AUDIO_DIR.glob(f"{video_id}_*.mp3"))
+            if mp3s:
+                m = re.search(r"_(\d{4}-\d{2}-\d{2})\.mp3$", mp3s[0].name)
+                if m:
+                    date_str = m.group(1)
+        except Exception:
+            pass
+        if not date_str:
+            date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if eps_json_pre.exists():
+            try:
+                _d = json.loads(eps_json_pre.read_text(encoding="utf-8"))
+                h = _d.get("titulo") or _d.get("title") or h
+                s = _d.get("resumo") or _d.get("summary") or h
+                # Derive date from pubDate/published_at/published (se existir no JSON)
+                pub = _d.get("pubDate") or _d.get("published_at") or _d.get("published") or ""
+                if pub and not date_str:
+                    if re.match(r"^\d{8}$", str(pub)):
+                        # Format "20260807" (YYYYMMDD) — from YouTube 'published' field
+                        date_str = f"{pub[:4]}-{pub[4:6]}-{pub[6:8]}"
+                    else:
+                        # Parse RFC 2822 date: "Thu, 06 Aug 2026 01:14:10 +0000"
+                        from email.utils import parsedate_to_datetime
+                        dt = parsedate_to_datetime(str(pub))
+                        date_str = dt.strftime("%Y-%m-%d")
+            except Exception:
+                pass
+        thumb = generate_thumbnail_safe(
+            date=date_str,
+            episode_id=f"bm_{video_id}",
+            headline=str(h),
+            summary=str(s)[:600],
+        )
+        if thumb.get("path"):
+            print(
+                f"  ✅ thumbnail: {thumb.get('path')} "
+                f"(model={thumb.get('image_model_used')} placeholder={thumb.get('is_placeholder')})"
+            )
+        else:
+            print(f"  ⚠️  thumbnail sem path (não bloqueia): {thumb.get('error', thumb)}")
+    except Exception as e:
+        print(f"⚠️  thumbnail falhou (não bloqueia): {e}")
+
     # 5. Feed + Persona
-    print("\n📡 Etapa 5/5 — Feed RSS + Persona watch")
+    print("\n📡 Etapa 5/7 — Feed RSS + Persona watch")
     step_publish_feed(video_id)
     step_persona_watch(video_id)
+
+    # 6. Upload R2 do especial + catálogo do portal
+    # Ordem importa: sidecar R2 precisa existir antes do publish_site escolher a URL.
+    print("\n☁️  Etapa 6/7 — Upload R2 especial + publish_site")
+    if skip_audio and not resolve_bm_mp3(video_id):
+        print("  ℹ️  Sem áudio e --skip-audio — pulando R2/publish")
+    else:
+        if step_upload_r2_especial(video_id):
+            step_publish_site_catalog()
+        else:
+            print("  ⚠️  Upload R2 falhou — publish_site NÃO executado (evita URL local no catálogo)")
 
     # Marcar como processado
     eps_json = EPS_DIR / f"especial-{video_id}.json"
@@ -387,6 +513,10 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
     print(f"   Roteiro: {EPS_DIR / f'especial-{video_id}.md'}")
     print(f"   Áudio:   {AUDIO_DIR}")
     print(f"   Feed:    {PROJECT_ROOT / 'output' / 'brasil_e_mundo' / 'feed.xml'}")
+    mp3 = resolve_bm_mp3(video_id)
+    if mp3:
+        print(f"   MP3:     {mp3}")
+        print(f"   R2 id:   especial-{video_id}")
 
 
 def cmd_process_queue(skip_audio: bool = False) -> None:
@@ -491,6 +621,13 @@ Comandos:
             sys.exit(2)
         if not step_audio(args.video_id):
             sys.exit(2)
+        # Após gerar o MP3 do especial: upload R2 + catálogo
+        print("\n☁️  Upload R2 especial + publish_site (pós-áudio)")
+        if step_upload_r2_especial(args.video_id):
+            step_publish_site_catalog()
+        else:
+            print("  ⚠️  Upload R2 falhou — publish_site NÃO executado")
+            sys.exit(3)
 
 
 if __name__ == "__main__":

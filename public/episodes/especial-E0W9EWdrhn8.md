@@ -1,10 +1,19 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Manobra Burocrática do STF e da PF para Salvar o Filho do Rei
 
-> Fonte: ANCAP.SU
+> Fonte: Poder360
 > URL do vídeo: https://www.youtube.com/watch?v=E0W9EWdrhn8
 > Tags: política, corrupção, ditadura judiciária
 > video_id: E0W9EWdrhn8
+
+> Referências:
+> - Poder360: https://www.poder360.com.br/poder-justica/entenda-a-investigacao-da-pf-sobre-lulinha-e-trafico-de-influencia/
+> - Estadão: https://www.estadao.com.br/politica/andre-mendonca-autoriza-pf-a-abrir-inquerito-para-apurar-trafico-de-influencia-de-lulinha-no-governo/
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/entenda-a-investigacao-da-pf-envolvendo-lulinha/
+> - UOL: https://noticias.uol.com.br/colunas/josias-de-souza/2026/07/31/pf-coloca-lulinha-na-antessala-de-lulao-a-2-meses-da-eleicao.htm
+> - O Globo: https://oglobo.globo.com/blogs/bela-megale/post/2026/07/ministros-do-stf-monitoram-atuacao-de-andre-mendonca-na-nova-investigacao-contra-lulinha.ghtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-E0W9EWdrhn8.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-E0W9EWdrhn8.md
 
 ---
 

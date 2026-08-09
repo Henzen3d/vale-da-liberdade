@@ -1,0 +1,4 @@
+((window)=>{const TYPE='screen';let _lock=null;let _released=false;async function requestLock(){if(!navigator.wakeLock)return;try{_lock=await navigator.wakeLock.request(TYPE);_released=false;}catch(err){console.info('[wakeLock] request failed:',err.name||err.message);}}
+async function releaseLock(){if(!_lock)return;try{await _lock.release();_lock=null;_released=true;}catch(err){console.info('[wakeLock] release failed:',err.name||err.message);}}
+function onVisibilityChange(){if(document.hidden)return;if(window.WakeLock?.isHolding?.()&&document.visibilityState==='visible'){requestLock();}}
+document.addEventListener('visibilitychange',onVisibilityChange);window.WakeLock={request:requestLock,release:releaseLock,isHolding:()=>!!_lock&&!_released,};})(window);

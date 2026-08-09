@@ -1,10 +1,15 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Ilusão do Estado Mínimo e o Inevitável Fim das Hierarquias
 
-> Fonte: O erro do anarcocapitalismo é achar que contrato substitui c
+> Fonte: Leandroruschel
 > URL do vídeo: https://www.youtube.com/watch?v=GCcCu6tPS_s
 > Tags: política, economia
 > video_id: GCcCu6tPS_s
+
+> Referências:
+> - Leandroruschel: https://leandroruschel.substack.com/p/o-erro-do-anarcocapitalismo-e-achar
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-GCcCu6tPS_s.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-GCcCu6tPS_s.md
 
 ---
 

@@ -1,10 +1,19 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Dois Pesos e Dez Dedos: A Seletividade da Justiça Eleitoral sobre a Inteligência Artificial
 
-> Fonte: VEJA
+> Fonte: Veja
 > URL do vídeo: https://www.youtube.com/watch?v=WODHuq9Qfco
 > Tags: ditadura judiciária, eleições, política
 > video_id: WODHuq9Qfco
+
+> Referências:
+> - Veja: https://veja.abril.com.br/brasil/justica-eleitoral-nao-identifica-ia-em-video-que-lula-aparece-com-todos-os-dedos/
+> - Instagram: https://www.instagram.com/p/Dagugkwg4wq/
+> - X: https://x.com/Pri_usabr1/status/2081899092003705280
+> - UOL: https://noticias.uol.com.br/colunas/alexandre-borges/2026/07/31/o-judiciario-nao-e-tutor-do-brasil.htm
+> - G1: https://g1.globo.com/politica/noticia/2026/07/28/moraes-da-48h-para-defesa-de-bolsonaro-explicar-se-uso-de-imagem-e-voz-do-ex-presidente-foram-autorizados-para-video-feito-por-ia.ghtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-WODHuq9Qfco.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-WODHuq9Qfco.md
 
 ---
 

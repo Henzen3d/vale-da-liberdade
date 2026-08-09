@@ -120,5 +120,43 @@
     "erros_bloqueantes": [],
     "avisos": [],
     "passou": true
+  },
+  "thumbnail": {
+    "path": "thumbnails/2026-07-30/ep_2026-07-30.webp",
+    "image_model_used": "qwen-image-2.0-pro",
+    "prompt_model_used": "gemini-3.6-flash",
+    "image_prompt": "Editorial high-contrast black and white photograph of an empty, rain-slicked road with cracked asphalt and deep potholes. On the side of the road, an abandoned, solitary bicycle lies quietly on the ground near the dark silhouette of a broken speed camera tower. Dramatic shadows, minimalist composition, desolate atmosphere. A single precise accent of glowing warm amber (#B8863B) cuts through the dark scene on a thin rising graph line in the background, contrasting with the dark monochrome environment, 16:9 landscape, no text, no letters, no typography, no words, editorial news aesthetic, subtle film grain, cinematic 35mm lens",
+    "fallback_level": 1,
+    "is_placeholder": false,
+    "generated_at": "2026-08-05T14:59:40.938055-03:00",
+    "estimated_cost_usd": 0.04,
+    "generation_attempts": [
+      {
+        "model": "qwen-image-3.0",
+        "status": "failed",
+        "detail": "rate_limited HTTP 429: Throttling.RateQuota Requests rate limit exceeded, please try again later. For details, see: https://www.alibabacloud.com/help/en/model-studio/error-code#rate-limit"
+      },
+      {
+        "model": "qwen-image-2.0-pro",
+        "status": "success",
+        "latency_ms": 12952,
+        "attempt": 1
+      }
+    ],
+    "headline": "Ciclista atropelado em Gaspar — radares estatais pifados, impostos subindo",
+    "quota_remaining_today": {
+      "qwen-image-3.0": 22,
+      "qwen-image-2.0-pro": 39,
+      "qwen-image-max": 40,
+      "qwen-image-2.0": 50,
+      "qwen-image-plus": 80,
+      "wan2.7-image-pro": 30,
+      "wan2.7-image": 40,
+      "z-image-turbo": 100
+    },
+    "path_jpg": "thumbnails/2026-07-30/ep_2026-07-30.jpg",
+    "width": 1280,
+    "height": 720,
+    "bytes_webp": 131764
   }
 }

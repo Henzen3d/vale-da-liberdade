@@ -1,5 +1,5 @@
 /* Service Worker — Vale da Liberdade PWA */
-const CACHE = "vld-v1-202608031113";
+const CACHE = "vld-v1-202608090907";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -8,6 +8,8 @@ const PRECACHE = [
   "./assets/css/components.css",
   "./assets/js/theme.js",
   "./assets/js/player.js",
+  "./assets/js/listen_progress.js",
+  "./assets/js/ad_manager.js",
   "./assets/js/app.js",
   "./js/supabase_client.js",
   "./manifest.webmanifest",
@@ -49,28 +51,39 @@ self.addEventListener("fetch", (event) => {
   if (
     url.pathname.endsWith("/data/episodes.json") ||
     url.pathname.endsWith("episodes.json") ||
-    (url.pathname.includes("/data/episodes-") && url.pathname.endsWith(".json")) ||
     url.pathname.endsWith(".js") ||
     url.pathname.endsWith(".css")
   ) {
+    const isCatalog =
+      url.pathname.endsWith("/data/episodes.json") ||
+      url.pathname.endsWith("episodes.json");
+    // Cache key estável p/ catálogo (ignora ?t= se algum client ainda mandar)
+    const cacheReq = isCatalog
+      ? new Request(url.origin + url.pathname, { credentials: req.credentials })
+      : req;
     event.respondWith(
       fetch(req)
         .then((res) => {
           if (res.ok && url.origin === self.location.origin) {
             const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
+            caches.open(CACHE).then((c) => c.put(cacheReq, copy));
           }
           return res;
         })
-        .catch(() => caches.match(req))
+        .catch(() => caches.match(cacheReq).then((c) => c || caches.match(req)))
     );
     return;
   }
 
-  // Pass-through para áudio (deixa navegador lidar nativamente com Range Requests)
+  // Áudio: network-first (deixa navegador lidar com Range Requests).
+  // Offline → cache dedicado "vld-audio-v1" (baixado pelo app.js após ouvir ≥30s).
   if (url.pathname.includes("/audio/") || url.pathname.endsWith(".mp3")) {
     event.respondWith(
-      fetch(req).catch(() => caches.match(req))
+      fetch(req).catch(() =>
+        caches
+          .match(url.pathname, { cacheName: "vld-audio-v1" })
+          .then((c) => c || caches.match(req))
+      )
     );
     return;
   }
@@ -86,7 +99,7 @@ self.addEventListener("fetch", (event) => {
           }
           return res;
         })
-        .catch(() => caches.match("./offline.html"));
+        .catch(() => (req.mode === "navigate" ? caches.match("./offline.html") : new Response("", { status: 503 })));
     })
   );
 });

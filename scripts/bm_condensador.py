@@ -84,6 +84,123 @@ def load_raw(video_id: str) -> dict:
     return json.loads(raw_path.read_text(encoding="utf-8"))
 
 
+# ── Referências (links das fontes + nosso site) ─────────────────────────────
+
+SITE_URL = os.environ.get("SITE_URL", "https://news.mob.tec.br").rstrip("/")
+
+
+def _site_referencias(video_id: str) -> list[dict]:
+    """Links do PRÓPRIO site: página do episódio + matéria transcrita."""
+    return [
+        {
+            "veiculo": "Vale da Liberdade (site)",
+            "url": f"{SITE_URL}/ep/especial-{video_id}.html",
+            "self": True,
+        },
+        {
+            "veiculo": "Vale da Liberdade (matéria transcrita)",
+            "url": f"{SITE_URL}/episodes/especial-{video_id}.md",
+            "self": True,
+        },
+    ]
+
+
+def _build_fonte_referencias(raw: dict, video_id: str) -> list[dict]:
+    """Monta a lista de referências do episódio:
+    1. Raws novos: `sources` já pareado (URL↔veículo) da seção 'Referências:';
+    2. Raws antigos: re-extrai a seção 'Referências:' da descrição armazenada
+       (fallback: source_urls antigos filtrando autopromoção/redes);
+    3. Links do nosso próprio site (página + matéria transcrita).
+    """
+    from bm_transcript import (
+        _PROMO_DOMAINS,
+        domain_of,
+        extract_referencias,
+        veiculo_from_url,
+    )
+
+    refs: list[dict] = []
+    seen: set[str] = set()
+
+    def _add(url: str, veiculo: str = "") -> None:
+        url = url.strip()
+        if not url or url in seen:
+            return
+        seen.add(url)
+        refs.append(
+            {"veiculo": (veiculo.strip()[:60] or veiculo_from_url(url)), "url": url}
+        )
+
+    paired = raw.get("sources")
+    if paired:
+        for s in paired:
+            _add(s.get("url") or "", (s.get("veiculo") or "").strip())
+    else:
+        # Raws antigos: a descrição armazenada contém a seção "Referências:"
+        urls = extract_referencias(raw.get("description") or "")
+        if not urls:
+            urls = []
+            for url in raw.get("source_urls") or []:
+                dom = domain_of(url)
+                if dom and any(ex in dom for ex in _PROMO_DOMAINS):
+                    continue
+                urls.append(url)
+        for url in urls:
+            _add(url)
+
+    refs += _site_referencias(video_id)
+    return refs
+
+
+def enrich_referencias(data: dict, raw: dict, video_id: str) -> bool:
+    """Adiciona `fonte_referencias` (se ausente) e corrige `fonte_veiculo`.
+
+    `fonte_veiculo` = primeira referência EXTERNA que não seja YouTube
+    (o YouTube Live de origem é referência legítima, mas não deve ser a
+    fonte principal quando há veículos de imprensa reais na lista).
+    Retorna True se alterou o data."""
+    if data.get("fonte_referencias"):
+        return False
+    from bm_transcript import domain_of
+
+    refs = _build_fonte_referencias(raw, video_id)
+    if not refs:
+        return False
+    data["fonte_referencias"] = refs
+    externas = [r for r in refs if not r.get("self")]
+    primaria = next(
+        (r for r in externas if "youtube.com" not in domain_of(r.get("url", ""))),
+        None,
+    ) or (externas[0] if externas else None)
+    if primaria:
+        data["fonte_veiculo"] = primaria["veiculo"]
+    return True
+
+
+def write_referencias_index() -> Path:
+    """Consolida as referências de TODOS os especiais em
+    output/brasil_e_mundo/referencias.json — base para o pipeline futuro de
+    vídeos do YouTube (fundos/imagens de background por episódio)."""
+    index = {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "episodes": {},
+    }
+    for p in sorted(EPS_DIR.glob("especial-*.json")):
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        video_id = p.name[len("especial-"): -len(".json")]
+        index["episodes"][f"especial-{video_id}"] = {
+            "video_id": video_id,
+            "titulo": d.get("titulo"),
+            "referencias": d.get("fonte_referencias") or [],
+        }
+    out = PROJECT_ROOT / "output" / "brasil_e_mundo" / "referencias.json"
+    out.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+    return out
+
+
 # ── Backends LLM ─────────────────────────────────────────────────────────────
 
 def _candidate_keys(env_name: str) -> list[str]:
@@ -293,14 +410,24 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~5 minu
 {tags_str}
 
 === TRANSCRIÇÃO DO VÍDEO ({len(raw['transcript'].split())} palavras) ===
-Título: {raw['title']}
+Título original no YouTube: {raw['title']}
 Canal: {raw['channel']}
 ---
 {raw['transcript'][:6000]}
 
+=== REGRAS DO TÍTULO (OBRIGATÓRIAS) ===
+O campo "titulo" deve ser BASEADO no título original do YouTube acima, ADAPTADO às regras abaixo (não copie verbatim; reescreva mantendo o tema central):
+- 40 a 60 caracteres; NUNCA passar de 70. Entidade/tema nas primeiras palavras.
+- Curiosidade com gap, sem prometer fato que o episódio não entrega.
+- Especificidade numérica se houver (R$, %, anos).
+- PROIBIDO acusação como fato consumado ("roubou", "farsa", "mentira", "propina", "desviou") -> use "no caso", "sob suspeita", "o escândalo de", "a polêmica de".
+- PROIBIDO alarmismo sensacionalista ("pânico", "chocante", "!!!") em tema sensível.
+- MANTENHA a formatação de maiúsculas/minúsculas do título original: palavras-chave destacadas em MAIÚSCULAS e demais em minúsculas (estilo dos títulos do YouTube deste canal). Não force tudo em minúsculas nem tudo em MAIÚSCULAS — preserve o contraste do original (ex.: "Xandão Ancap? Como o STF Sem Querer Derrotou a Arrecadação da Reforma Tributária").
+- Português do Brasil, voz ativa.
+
 === FORMATO DE SAÍDA (JSON) ===
 {{
-  "titulo": "Título curto e impactante para o episódio (diferente do vídeo original)",
+  "titulo": "Título adaptado do original conforme as regras acima",
   "fonte_url": "{raw['url']}",
   "fonte_canal": "{raw['channel']}",
   "fonte_veiculo": "{raw.get('source_names', [''])[0] if raw.get('source_names') else ''}",
@@ -340,12 +467,19 @@ def render_roteiro_md(data: dict, video_id: str) -> str:
         f"> URL do vídeo: {data.get('fonte_url', '')}",
         f"> Tags: {', '.join(data.get('tags', []))}",
         f"> video_id: {video_id}",
-        "",
-        "---",
-        "",
-        "[QUADRO: BRASIL E MUNDO — Abertura]",
-        "",
     ]
+    ref_lines = []
+    for r in data.get("fonte_referencias") or []:
+        url = (r.get("url") or "").strip()
+        if not url:
+            continue
+        veic = (r.get("veiculo") or "").strip()
+        ref_lines.append(f"> - {veic}: {url}" if veic else f"> - {url}")
+    if ref_lines:
+        lines.append("")
+        lines.append("> Referências:")
+        lines.extend(ref_lines)
+    lines += ["", "---", "", "[QUADRO: BRASIL E MUNDO — Abertura]", ""]
     for item in data.get("abertura", []):
         lines.append(f"Peter: {item['texto']}")
         lines.append("")
@@ -374,6 +508,23 @@ def condense(video_id: str, force: bool = False) -> dict:
         data = json.loads(json_out.read_text(encoding="utf-8"))
         words = count_words_in_roteiro(data)
         print(f"ℹ️  Roteiro já existe ({words} palavras): {json_out}")
+        # Auto-cura: especiais antigos (sem fonte_referencias) ganham as
+        # referências sem precisar de --force.
+        if not data.get("fonte_referencias"):
+            try:
+                raw = load_raw(video_id)
+                if enrich_referencias(data, raw, video_id):
+                    json_out.write_text(
+                        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+                    )
+                    md_out.write_text(render_roteiro_md(data, video_id), encoding="utf-8")
+                    write_referencias_index()
+                    print(
+                        f"   📎 Referências retroativas adicionadas "
+                        f"({len(data['fonte_referencias'])})"
+                    )
+            except Exception as exc:
+                print(f"   ⚠️  Não foi possível adicionar referências: {exc}")
         return data
 
     config    = load_config()
@@ -419,6 +570,35 @@ def condense(video_id: str, force: bool = False) -> dict:
             else:
                 raise RuntimeError(f"Condensador falhou após {max_rounds+1} tentativas: {last_err}")
 
+    # Rede de segurança: aplicar regras da skill de otimização ao título final
+    # (limpa acusação como fato consumado, alarmismo, CAIXA ALTA, excesso de chars)
+    try:
+        from title_optimizer import enforce_skill_title, _count
+        if data.get("titulo"):
+            antes = data["titulo"]
+            # preserve_case=True: manter o estilo misto de maiúsculas/minúsculas
+            # do título original do YouTube (palavras-chave em caps)
+            data["titulo"] = enforce_skill_title(antes, preserve_case=True)
+            if data["titulo"] != antes:
+                print(f"  🎯 Título ajustado pela skill: {_count(data['titulo'])} chars")
+    except Exception as exc:
+        print(f"  ⚠️  title_optimizer indisponível p/ limpeza (não bloqueia): {exc}")
+
+    if data is None:
+        raise RuntimeError("Condensador terminou sem roteiro (data=None)")
+
+    # Referências: links da seção "Referências:" da descrição do YouTube
+    # (pareados URL↔veículo) + links do nosso próprio site (página do episódio
+    # e matéria transcrita). Salvo no JSON para o site E para uso futuro como
+    # fundo/imagens de background dos vídeos do YouTube.
+    if enrich_referencias(data, raw, video_id):
+        refs = data["fonte_referencias"]
+        externas = [r for r in refs if not r.get("self")]
+        print(
+            f"   📎 {len(refs)} referências registradas "
+            f"({len(externas)} fontes externas)"
+        )
+
     # Salvar JSON
     json_out.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -426,6 +606,13 @@ def condense(video_id: str, force: bool = False) -> dict:
     # Salvar MD
     md_text = render_roteiro_md(data, video_id)
     md_out.write_text(md_text, encoding="utf-8")
+
+    # Índice consolidado de referências (uso futuro: fundos dos vídeos YouTube)
+    try:
+        idx = write_referencias_index()
+        print(f"   🗂️  Índice de referências atualizado: {idx.name}")
+    except Exception as exc:
+        print(f"   ⚠️  Índice de referências falhou (não bloqueia): {exc}")
 
     words = count_words_in_roteiro(data)
     print(f"✅ Roteiro gerado: {words} palavras (~{words//150} min)")

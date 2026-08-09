@@ -1,10 +1,23 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Chantagem do STF em Minas Gerais e o Teatro das Eleições
 
-> Fonte: Visão Libertária
+> Fonte: Diário do Poder
 > URL do vídeo: https://www.youtube.com/watch?v=xirpBLhFoEs
 > Tags: política, ditadura judiciária, eleições
 > video_id: xirpBLhFoEs
+
+> Referências:
+> - Diário do Poder: https://diariodopoder.com.br/coluna-claudio-humberto/impedimento-de-cleitinho-serve-para-enfraquecer-flavio-em-minas-gerais
+> - Migalhas: https://www.migalhas.com.br/quentes/460100/dino-bloqueia-r-119-milhoes-de-valdemar-neto-por-suspeita-em-emendas
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/dino-intima-presidentes-de-21-partidos-para-explicar-destinacao-de-emendas/
+> - Poder360: https://www.poder360.com.br/poder-eleicoes-2026/pl-insiste-em-cleitinho-mas-deixa-decisao-em-mg-para-o-republicanos/
+> - Em: https://www.em.com.br/politica/2026/08/7472228-candidatura-de-cleitinho-sera-decidida-nesta-segunda-feira-3-8.html
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/presidente-do-republicanos-declara-apoio-a-candidatura-de-flavio-em-sp/
+> - O Globo: https://oglobo.globo.com/politica/noticia/2026/05/28/indefinicao-em-minas-preocupa-pt-e-aliados-cobram-atuacao-de-lula-para-destravar-palanque.ghtml
+> - Estadão: https://www.estadao.com.br/politica/ricardo-correa/os-erros-de-lula-em-minas-que-podem-custar-lhe-a-reeleicao/
+> - G1: https://g1.globo.com/mg/minas-gerais/eleicoes/2026/noticia/2026/07/31/pt-lanca-patrus-ananias-como-candidato-ao-governo-de-minas-gerais.ghtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-xirpBLhFoEs.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-xirpBLhFoEs.md
 
 ---
 

@@ -1,10 +1,19 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Farsa das Pesquisas e a Descentralização do Voto no Brasil
 
-> Fonte: CNN Brasil
+> Fonte: O Globo
 > URL do vídeo: https://www.youtube.com/watch?v=QLsSeRypTPQ
 > Tags: eleições, política, economia
 > video_id: QLsSeRypTPQ
+
+> Referências:
+> - O Globo: https://oglobo.globo.com/blogs/merval-pereira/coluna/2026/07/as-urnas-em-numeros.ghtml
+> - Porpre: https://porpre.com/
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/pesquisa-quaest-para-presidente-lula-tem-46-e-bolsonaro-33/
+> - UOL: https://noticias.uol.com.br/eleicoes/2022/analise/presidente-1-turno/resultado-das-eleicoes-para-presidente-considerando-os-votos-validos/?uf=sp
+> - Cartacapital: https://www.cartacapital.com.br/politica/em-convencao-do-psb-lula-chama-milei-de-coisa-e-bolsonaro-de-homicida-na-pandemia/?utm_medium=leiamais&amp;utm_source=cartacapital.com.br
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-QLsSeRypTPQ.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-QLsSeRypTPQ.md
 
 ---
 

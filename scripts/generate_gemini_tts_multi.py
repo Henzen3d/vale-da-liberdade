@@ -109,23 +109,41 @@ SPEAKERS = {
     "Ricardo": "Schedar",
 }
 
-# Persona descriptions for TTS style guidance
+# Sotaque pt-BR: neutro (sul suave) — NÃO carioca, NÃO gaúcho carregado, NÃO manezinho/Floripa
+ACCENT_GUIDANCE = (
+    "SOTAQUE (obrigatório para TODOS os locutores): português brasileiro NEUTRO, "
+    "próximo do padrão de telejornal/podcast nacional com leve coloração do Sul "
+    "(Santa Catarina / Vale do Itajaí), mas SEM sotaque carregado. "
+    "PROIBIDO: sotaque carioca (chiado em /s/, melodia do Rio); "
+    "sotaque gaúcho/RS forte (melodia e léxico típicos); "
+    "sotaque manezinho/florianopolitano carregado; "
+    "sotaque nordestino, paulistano interiorano marcado ou português de Portugal. "
+    "Dicção clara, ritmo de rádio noticioso, vogais abertas naturais do pt-BR, "
+    "sem chiado carioca e sem cadência cantada regional."
+)
+
+# Persona descriptions for TTS style guidance (tom/atitude — o sotaque vem de ACCENT_GUIDANCE)
 SPEAKER_PERSONAS = {
     "Peter": (
         "Tom irônico, provocador e libertário. Fala como quem desafia o status quo, "
         "destaca coerção estatal, questiona burocracia, rejeita soluções do governo. "
-        "Entonação confiante, cética, às vezes sarcástica. Não soa neutro."
+        "Entonação confiante, cética, às vezes sarcástica. Atitude NÃO é neutra — "
+        "mas o SOTAQUE continua o pt-BR neutro definido acima."
     ),
     "Ricardo": (
         "Tom analítico, ponderado, institucional. Contraponto racional baseado em dados "
         "e evidências. Reconhece problemas mas contextualiza com perspectivas práticas. "
-        "Entonação calma, medida, equilibrada. Soa como analista sério."
+        "Entonação calma, medida, equilibrada. Soa como analista sério. "
+        "SOTAQUE: mesmo pt-BR neutro (não regionalizar)."
     ),
 }
 
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 5  # segundos
-CHUNK_TARGET_WORDS = 200  # ~7-8 chunks p/ 1500 palavras → cabe nos 10 RPD do TTS da chave AI Studio
+CHUNK_TARGET_WORDS = 300  # ~5 chunks p/ 1500 palavras → cabe nos 10 RPD/chave; 3 keys × RR ≈ 30 RPD efetivos
+DEFAULT_TTS_MODEL = "gemini-3.1-flash-tts-preview"
+# Modelo override em runtime via --model (ex.: BM usa gemini-2.5-flash-preview-tts)
+TTS_MODEL = DEFAULT_TTS_MODEL
 
 # Duração dos silêncios (em segundos)
 PAUSA_LONGA_S = 1.5    # [PAUSA] — entre quadros
@@ -184,6 +202,7 @@ def build_prompt(segment_text: str, speakers: list[str] | None = None) -> str:
         return (
             "Você é um sistema de síntese de voz para podcast com locutor solo.\n"
             "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra.\n"
+            f"{ACCENT_GUIDANCE}\n"
             "Aplique a entonação e personalidade indicada para o locutor:\n\n"
             f"- {sp}: {SPEAKER_PERSONAS.get(sp, '')}\n\n"
             f"O texto já contém o rótulo '{sp}:' antes de cada fala. "
@@ -194,6 +213,7 @@ def build_prompt(segment_text: str, speakers: list[str] | None = None) -> str:
     return (
         "Você é um sistema de síntese de voz para podcast jornalístico com dois apresentadores.\n"
         "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra.\n"
+        f"{ACCENT_GUIDANCE}\n"
         "Aplique a entonação e personalidade indicada para cada locutor:\n\n"
         f"{personas_text}\n\n"
         "O texto já contém os rótulos 'Peter:' e 'Ricardo:' antes de cada fala. "
@@ -456,10 +476,11 @@ def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path) -> None:
     log.info(f"✅ Loudnorm EBU R128 2-pass aplicado → {output_mp3}")
 
 
-def generate_with_retry(client, prompt, speaker_voice_configs):
+def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None = None):
     """Gera áudio multi-locutor através do GeminiClient (que gerencia retries e rate limiting)."""
+    model = model or TTS_MODEL
     response = client.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
+        model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
@@ -471,11 +492,11 @@ def generate_with_retry(client, prompt, speaker_voice_configs):
         ),
     )
     data = response.candidates[0].content.parts[0].inline_data.data
-    log.info(f"Áudio multi recebido: {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
+    log.info(f"Áudio multi recebido ({model}): {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
     return data
 
 
-def generate_single_speaker_pcm(client, text: str, voice_name: str) -> bytes:
+def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str | None = None) -> bytes:
     """TTS de uma fala com UMA voz pré-definida (Charon/Schedar).
 
     Mais confiável que multi-speaker: o Gemini multi frequentemente colapsa
@@ -484,13 +505,16 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str) -> bytes:
     text = text.strip()
     if not text:
         return b""
-    # Instrução mínima de idioma; o voice_name carrega o timbre
+    model = model or TTS_MODEL
+    # Instrução mínima de idioma + sotaque; o voice_name carrega o timbre
     prompt = (
         "Leia em português do Brasil, de forma natural, apenas o texto a seguir, "
-        "sem adicionar palavras:\n\n" + text
+        "sem adicionar palavras. "
+        f"{ACCENT_GUIDANCE} "
+        "Texto:\n\n" + text
     )
     response = client.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
+        model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
@@ -838,10 +862,23 @@ def main():
         choices=["packed", "turns", "multi"],
         default="packed",
         help=(
-            "packed=EPÍSÓDIO INTEIRO em 1 chamada multi-speaker (padrão, economiza RPD); "
+            "packed=multi-speaker por CHUNKS (padrão, evita colapso de voz); "
             "turns=uma chamada TTS por fala com voz fixa Charon/Schedar; "
             "multi= API multi-speaker legado (pode colapsar em 1 voz)"
         ),
+    )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help=(
+            "Modelo TTS Gemini (default: gemini-3.1-flash-tts-preview). "
+            "Ex. BM: gemini-2.5-flash-preview-tts"
+        ),
+    )
+    parser.add_argument(
+        "--keep-wav",
+        action="store_true",
+        help="Não apagar o WAV intermediário após gerar o MP3 final (default: apaga)",
     )
     parser.add_argument(
         "--single-speaker",
@@ -849,10 +886,18 @@ def main():
     )
     args = parser.parse_args()
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        log.error("FALHA: defina GEMINI_API_KEY antes de executar.")
+    # Modelo TTS (global do módulo — usado por generate_* )
+    global TTS_MODEL
+    if args.model:
+        TTS_MODEL = args.model.strip()
+    log.info(f"Modelo TTS: {TTS_MODEL} | CHUNK_TARGET_WORDS={CHUNK_TARGET_WORDS}")
+
+    keys = _candidate_gemini_keys()
+    if not keys and not os.environ.get("GEMINI_API_KEY"):
+        log.error("FALHA: defina GEMINI_API_KEY (ou GEMINI_API_KEY_2/_3) antes de executar.")
         sys.exit(2)
+    if keys:
+        log.info(f"Chaves Gemini disponíveis: {len(keys)} (round-robin se >1)")
 
     episode_path = Path(args.episode)
     if not episode_path.exists():
@@ -1119,6 +1164,14 @@ def main():
                 f"✅ Gate BM/custom OK: {mp3_path.name} ({size/1e6:.2f} MB"
                 + (f", {dur/60:.1f} min)" if dur else ")")
             )
+        # Limpeza: apaga WAV intermediário após MP3 OK (economiza ~80–110 MB/ep)
+        if not args.keep_wav and out_path.exists() and out_path.suffix.lower() == ".wav":
+            try:
+                sz = out_path.stat().st_size
+                out_path.unlink()
+                log.info(f"🧹 WAV intermediário removido: {out_path.name} ({sz/1e6:.1f} MB liberados)")
+            except OSError as rm_err:
+                log.warning(f"Não foi possível apagar WAV {out_path}: {rm_err}")
     except Exception as e:
         log.error(f"Falha no pós-processamento / gate de áudio: {e}")
         log.info(f"WAV sem pós-processamento disponível em: {out_path}")

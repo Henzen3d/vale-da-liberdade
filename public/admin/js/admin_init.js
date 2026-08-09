@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupNavigation();
+    setupSidebarToggle();
 
     const killSwitchBtn = document.getElementById('btnGlobalKillSwitch');
     if (killSwitchBtn && window.AdminAds) {
@@ -52,6 +53,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+function setupSidebarToggle() {
+  const sidebar = document.getElementById('adminSidebar') || document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggleBtn = document.getElementById('btnSidebarToggle');
+  if (!sidebar || !toggleBtn) return;
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function toggleSidebar() {
+    if (sidebar.classList.contains('open')) closeSidebar();
+    else openSidebar();
+  }
+
+  toggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    toggleSidebar();
+  });
+
+  if (overlay) {
+    overlay.addEventListener('click', closeSidebar);
+  }
+
+  // Fecha o menu ao navegar (mobile)
+  document.querySelectorAll('.nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+
+  // Fecha ao clicar em Sair/Tema também não precisa — mas Escape ajuda
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
+  });
+}
 
 function setupNavigation() {
   const navItems = document.querySelectorAll('.nav-item');

@@ -1,10 +1,20 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Os Diários de Fauci e a Farsa Sanitária Estatal
 
-> Fonte: CNN Brasil
+> Fonte: Estadão
 > URL do vídeo: https://www.youtube.com/watch?v=a-_juUYVuk8
 > Tags: política, economia
 > video_id: a-_juUYVuk8
+
+> Referências:
+> - Estadão: https://www.estadao.com.br/ciencia/quem-e-o-medico-alvo-de-trump-por-origem-da-covid-e-por-que-ele-se-calou-em-depoimento/
+> - Paul: https://www.paul.senate.gov/wp-content/uploads/2026/07/2026.07.24_Tonys-Diary-Package.pdf
+> - YouTube: https://www.youtube.com/watch?v=qIcunPADCfM
+> - CNN Brasil: https://www.cnnbrasil.com.br/colunas/gonzalo-vecina/saude/o-julgamento-do-dr-fauci-e-o-brasil/
+> - O Antagonista: https://oantagonista.com.br/analise/bolsonarismo-so-tem-a-perder-remoendo-a-pandemia-agora/
+> - X: https://x.com/nikolas_dm/status/2084022907345252771
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-a-_juUYVuk8.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-a-_juUYVuk8.md
 
 ---
 

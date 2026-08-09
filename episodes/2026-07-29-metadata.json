@@ -123,5 +123,38 @@
       "⚠️ Naturalidade: poucos chamados pelo nome (8 em 101 falas)"
     ],
     "passou": true
+  },
+  "thumbnail": {
+    "path": "thumbnails/2026-07-29/ep_2026-07-29.webp",
+    "image_model_used": "qwen-image-3.0",
+    "prompt_model_used": "gemini-3.6-flash",
+    "image_prompt": "Minimalist black and white editorial photograph of a dark residential neighborhood grid during a severe storm, silhouettes of rooftops submerged in pitch-black shadow from a massive blackout, scattered hailstones glistening on dark wet pavement, high contrast, clean minimalist composition, a single subtle burnt amber glowing accent line running through the dark grid representing a severed power surge, stark dramatic atmosphere, 16:9 landscape, no text, no letters, no typography, no words, editorial news aesthetic, subtle film grain, cinematic 35mm lens",
+    "fallback_level": 0,
+    "is_placeholder": false,
+    "generated_at": "2026-08-05T14:59:14.913914-03:00",
+    "estimated_cost_usd": 0.05,
+    "generation_attempts": [
+      {
+        "model": "qwen-image-3.0",
+        "status": "success",
+        "latency_ms": 15955,
+        "attempt": 1
+      }
+    ],
+    "headline": "Temporal traz granizo em Blumenau — 17 mil casas no escuro no Médio Vale",
+    "quota_remaining_today": {
+      "qwen-image-3.0": 22,
+      "qwen-image-2.0-pro": 40,
+      "qwen-image-max": 40,
+      "qwen-image-2.0": 50,
+      "qwen-image-plus": 80,
+      "wan2.7-image-pro": 30,
+      "wan2.7-image": 40,
+      "z-image-turbo": 100
+    },
+    "path_jpg": "thumbnails/2026-07-29/ep_2026-07-29.jpg",
+    "width": 1280,
+    "height": 720,
+    "bytes_webp": 40922
   }
 }

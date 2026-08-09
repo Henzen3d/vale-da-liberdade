@@ -321,6 +321,9 @@ const AdminAuth = (() => {
       e.preventDefault();
       signOut();
     });
+    const themeBtn = document.getElementById('btnToggleTheme');
+    if (themeBtn) themeBtn.addEventListener('click', () => toggleTheme());
+    loadTheme();
   }
 
   function getClient() {
@@ -343,6 +346,42 @@ const AdminAuth = (() => {
       return;
     }
     init();
+  }
+
+  // ═══ Tema Claro/Escuro ═══
+  function toggleTheme() {
+    const body = document.body;
+    body.classList.toggle('light-theme');
+    const isNowLight = body.classList.contains('light-theme');
+    updateThemeUI(!isNowLight); // isDark = !isNowLight
+    try {
+      localStorage.setItem('admin-theme', isNowLight ? 'light' : 'dark');
+    } catch (_) { /* ignore */ }
+  }
+
+  function loadTheme() {
+    let theme = 'dark';
+    try {
+      theme = localStorage.getItem('admin-theme') || 'dark';
+    } catch (_) { /* ignore */ }
+    const body = document.body;
+    if (theme === 'light') {
+      body.classList.add('light-theme');
+    } else {
+      body.classList.remove('light-theme');
+    }
+    updateThemeUI(theme !== 'light'); // isDark
+  }
+
+  // isDark=true → estamos no modo escuro; botão oferece "Modo Claro"
+  function updateThemeUI(isDark) {
+    const darkIcon = document.getElementById('iconThemeDark');
+    const lightIcon = document.getElementById('iconThemeLight');
+    const label = document.getElementById('themeLabel');
+    // No escuro: mostra sol (ir para claro). No claro: mostra lua (ir para escuro).
+    if (darkIcon) darkIcon.style.display = isDark ? 'none' : 'block';
+    if (lightIcon) lightIcon.style.display = isDark ? 'block' : 'none';
+    if (label) label.textContent = isDark ? 'Modo Claro' : 'Modo Escuro';
   }
 
   if (document.readyState === 'loading') {

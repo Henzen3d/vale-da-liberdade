@@ -1,10 +1,19 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Pesquisa BTG Nexus expõe empate no primeiro turno e desespero no chiqueiro de Brasília
 
-> Fonte: Visão Libertária
+> Fonte: Poder360
 > URL do vídeo: https://www.youtube.com/watch?v=XyLLAG0KZZg
 > Tags: política, eleições
 > video_id: XyLLAG0KZZg
+
+> Referências:
+> - Poder360: https://www.poder360.com.br/poder-eleicoes-2026/lula-e-flavio-estao-tecnicamente-empatados-no-2o-turno-diz-nexus/
+> - Poder360: https://static.poder360.com.br/uploads/2026/08/BTG-Nexus-nacional-3ago2026.pdf
+> - X: https://x.com/ViLiMiGu_Tex/status/2084236410609926494
+> - X: https://x.com/wilsonlimaslz/status/2084244430203072697
+> - Tmc: https://tmc.com.br/politica/btg-pactual-nexus-flavio-bolsonaro-sobe-e-lula-cai-12-entre-beneficiarios-do-bolsa-familia/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-XyLLAG0KZZg.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-XyLLAG0KZZg.md
 
 ---
 

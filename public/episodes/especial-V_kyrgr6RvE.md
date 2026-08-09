@@ -1,10 +1,19 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A PF chora na AGU enquanto o leviatã se engole no escândalo do INSS
 
-> Fonte: PF troca delegado que pediu investigação contra Lulinha e ch
+> Fonte: Folha de S.Paulo
 > URL do vídeo: https://www.youtube.com/watch?v=V_kyrgr6RvE
 > Tags: corrupção, ditadura judiciária, política
 > video_id: V_kyrgr6RvE
+
+> Referências:
+> - Folha de S.Paulo: https://www1.folha.uol.com.br/poder/2026/07/pf-aciona-governo-contra-medidas-de-mendonca-no-caso-inss-que-envolve-lulinha.shtml
+> - UOL: https://noticias.uol.com.br/ultimas-noticias/agencia-estado/2026/05/15/pf-troca-delegado-que-pediu-investigacao-contra-lulinha-e-chefiava-inquerito-de-desvios-no-inss.htm
+> - G1: https://g1.globo.com/politica/noticia/2026/05/15/pf-troca-area-responsavel-por-investigar-fraudes-no-inss.ghtml
+> - Metrópoles: https://www.metropoles.com/colunas/mario-sabino/lulinha-e-inss-andre-mendonca-versus-pf
+> - STF: https://portal.stf.jus.br/noticias/verNoticiaDetalhe.asp?idConteudo=442298&ori=1
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-V_kyrgr6RvE.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-V_kyrgr6RvE.md
 
 ---
 

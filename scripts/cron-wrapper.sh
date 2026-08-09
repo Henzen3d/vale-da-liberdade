@@ -7,6 +7,9 @@ LOG_DIR="$PROJECT_DIR/logs"
 
 mkdir -p "$LOG_DIR"
 
+# PATH mínimo do cron + bins do usuário (yt-dlp via pipx) + venv Hermes
+export PATH="/home/osmar/.local/bin:/home/osmar/.hermes/hermes-agent/venv/bin:/usr/local/bin:/usr/bin:/bin${PATH:+:$PATH}"
+
 # Load environment variables for the project
 if [ -f "$PROJECT_DIR/.env" ]; then
   set -a

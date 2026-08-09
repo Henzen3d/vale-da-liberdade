@@ -1,10 +1,23 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Ilusão das Fronteiras Estatais: O Colapso de Ceuta Diante da Imigração Coordenada
 
-> Fonte: Visão Libertária
+> Fonte: G1
 > URL do vídeo: https://www.youtube.com/watch?v=rIVKnoa90V0
 > Tags: política, economia
 > video_id: rIVKnoa90V0
+
+> Referências:
+> - G1: https://g1.globo.com/mundo/noticia/2026/07/30/milhares-de-imigrantes-de-marrocos-invadem-cidade-na-espanha-video.ghtml
+> - Google: https://www.google.com/maps/@35.9022841,-5.3698169,14916m/data=!3m1!1e3!5m1!1e2?entry=ttu&g_ep=EgoyMDI2MDcyOC4wIKXMDSoASAFQAw%3D%3D
+> - NYT: https://www.nytimes.com/2026/07/30/world/europe/spain-morocco-ceuta-migrants.html
+> - Reuters: https://www.reuters.com/world/europe/thousands-migrants-cross-into-spains-ceuta-foot-efe-reports-2026-07-30/
+> - Cnnportugal: https://cnnportugal.iol.pt/marrocos/ceuta/italia-admite-suspender-a-livre-circulacao-com-espanha-apos-entrada-de-milhares-de-marroquinos-em-ceuta/20260730/6a6b959dd34e511da0b30c77?utm_source_platform=EB&amp;utm_medium=social&amp;utm_campaign=ed-cnnportuga
+> - X: https://x.com/Inevitablewest/status/2082810256812310758
+> - X: https://x.com/visegrad24/status/2082836335367258318
+> - X: https://x.com/davidsantosvlog/status/2082903948797595725
+> - Pt: https://pt.euronews.com/my-europe/2026/04/15/espanha-aprova-decreto-que-regulariza-cerca-de-500000-imigrantes-requisitos-datas-e-pontos
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-rIVKnoa90V0.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-rIVKnoa90V0.md
 
 ---
 

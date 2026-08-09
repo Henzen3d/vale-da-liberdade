@@ -1,10 +1,22 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Esquerda Entra em Pânico: Por Que o Status Quo Estatista Está com os Dias Contados
 
-> Fonte: Visão Libertária
+> Fonte: Brasil 247
 > URL do vídeo: https://www.youtube.com/watch?v=7a7he338aUM
 > Tags: política, eleições, impostos
 > video_id: 7a7he338aUM
+
+> Referências:
+> - Brasil 247: https://www.brasil247.com/blog/nada-esta-garantido/
+> - BBC: https://www.bbc.com/portuguese/articles/c04kdz2ql01o
+> - Esquerdaonline: https://esquerdaonline.com.br/2026/08/02/ja-ganhou-seria-um-erro-fatal/
+> - Correio Braziliense: https://www.correiobraziliense.com.br/politica/2026/08/7472376-pt-aposta-em-lula-como-simbolo-da-democracia-e-convoca-militancia.html
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/lula-busca-segunda-reeleicao-com-mote-da-soberania-e-filho-sob-investigacao/
+> - Brasil 247: https://www.brasil247.com/brasil/a-ficha-do-povo-esta-caindo-de-um-lado-o-estadista-lula-de-outro-o-golpismo-diz-simone-tebet/
+> - Infomoney: https://www.infomoney.com.br/politica/atlasintel-454-considera-familia-bolsonaro-responsavel-pelo-tarifaco-dos-eua/
+> - Brasil 247: https://www.brasil247.com/blog/se-lula-cair-o-brasil-cai-junto/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-7a7he338aUM.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-7a7he338aUM.md
 
 ---
 

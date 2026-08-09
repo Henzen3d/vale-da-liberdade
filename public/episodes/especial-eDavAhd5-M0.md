@@ -1,10 +1,17 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Financiamento Voluntário vs. O Assalto do Fundão Eleitoral
 
-> Fonte: Flávio Bolsonaro
+> Fonte: Gazeta do Povo
 > URL do vídeo: https://www.youtube.com/watch?v=eDavAhd5-M0
 > Tags: impostos, taxas e tarifas, política, eleições
 > video_id: eDavAhd5-M0
+
+> Referências:
+> - Gazeta do Povo: https://www.gazetadopovo.com.br/eleicoes/2026/flavio-arrecada-r-24-mil-no-lancamento-de-vaquinha-virtual-para-campanha-presidencial/
+> - YouTube: https://www.youtube.com/watch?v=G1JRfuZgSsM
+> - Contribua: https://www.contribua.com.br/flaviopresidente
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-eDavAhd5-M0.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-eDavAhd5-M0.md
 
 ---
 

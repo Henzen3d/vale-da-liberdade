@@ -1,10 +1,24 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Farsa Eleitoral: Lula Debocha da Lei Sabendo que Você Paga a Conta
 
-> Fonte: Saiba o que diz a lei sobre propaganda eleitoral antecipada
+> Fonte: Poder360
 > URL do vídeo: https://www.youtube.com/watch?v=hark0V_ofGg
 > Tags: eleições, política, ditadura judiciária
 > video_id: hark0V_ofGg
+
+> Referências:
+> - Poder360: https://www.poder360.com.br/poder-eleicoes-2026/lula-pede-votos-na-bahia-mas-lei-so-permite-a-partir-de-16-de-agosto/
+> - UOL: https://noticias.uol.com.br/eleicoes/2026/07/29/lula-pede-votos-para-marina-e-simone-tebet-em-sp-e-e-multado-em-r-15-mil.htm
+> - Poder360: https://www.poder360.com.br/poder-eleicoes/saiba-o-que-diz-a-lei-sobre-propaganda-eleitoral-antecipada/
+> - UOL: https://noticias.uol.com.br/eleicoes/2026/08/02/assim-como-lula-flavio-bolsonaro-pediu-votos-antes-do-prazo-legal.ghtm
+> - Jovem Pan: https://jovempan.com.br/brasil/lula-admite-ter-pedido-voto-em-convencao-na-bahia-vou-ser-multado/
+> - CNN Brasil: https://www.cnnbrasil.com.br/eleicoes/lula-diz-que-vai-ser-multado-por-pedidos-de-voto-em-convencao-na-ba/
+> - G1: https://g1.globo.com/politica/noticia/2026/08/02/novo-aciona-tse-contra-lula-e-aliados-por-suposta-propaganda-eleitoral-antecipada-em-convencao-do-pt-na-bahia.ghtml
+> - Gazeta do Povo: https://www.gazetadopovo.com.br/eleicoes/2026/andre-mendonca-julgara-pedidos-de-voto-de-lula-na-bahia/
+> - Terra: https://www.terra.com.br/noticias/eleicoes/lula-diz-que-senado-esta-num-baixo-nivel-ao-pedir-votos-para-jaques-wagner-e-rui-costa,94126264708a7ef0be20414bf1236f000c2ip7tr.html
+> - Terra: https://www.terra.com.br/noticias/brasil/politica/lista-de-presentes-de-ex-socio-do-master-tinha-wagner-rui-costa-jeronimo-bruno-reis-e-acm,beaca9115c70b7e0636caf4a7a67ca15lrn5wve1.html
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-hark0V_ofGg.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-hark0V_ofGg.md
 
 ---
 

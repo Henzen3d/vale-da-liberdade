@@ -648,10 +648,11 @@ def cmd_validate(date: str):
 def cmd_audio(date: str, allow_short: bool = False):
     """Gera áudio TTS multi-locutor para o episódio.
 
-    Cadeia de fallback:
+    Cadeia de fallback (2026-08-06):
       1) Gemini multi-TTS (vozes Charon/Schedar)
-      2) MOSS-TTS duas vozes (clone peter_ref / ricardo_ref)
-      3) Edge TTS single-voice + FX Ricardo
+      2) ElevenLabs pt-BR (Liam/Will) — se tiver API key
+      3) Edge TTS pt-BR (pt-BR-AntonioNeural) — VOZ NATURAL
+      MOSS-TTS-Nano está desabilitado — aguarda fine-tune para pt-BR
 
     Gates:
       - roteiro ≥ 1500 palavras (a menos que allow_short)
@@ -721,8 +722,8 @@ def cmd_audio(date: str, allow_short: bool = False):
         if result.stderr:
             print(result.stderr[-1500:])
 
-        moss_ok = False
         eleven_ok = False
+        edge_ok = False
 
         # ── 2) ElevenLabs pt-BR (se API key) ─────────────────────────
         el = SCRIPT_DIR / "tts_fallback_elevenlabs.py"
@@ -747,55 +748,48 @@ def cmd_audio(date: str, allow_short: bool = False):
                 if eb.stderr:
                     print(eb.stderr[-1200:])
 
-        # ── 3) MOSS duas vozes ───────────────────────────────────────
-        moss_ok = False
-        moss = SCRIPT_DIR / "tts_fallback_moss.py"
-        # Prefer dedicated nano venv; fallback to legacy moss-tts-env
-        moss_py_candidates = [
-            Path("/home/osmar/moss-nano-env/bin/python"),
-            Path("/home/osmar/moss-tts-env/bin/python"),
-        ]
-        moss_py = next((p for p in moss_py_candidates if p.exists()), None)
-        if (not eleven_ok) and moss.exists() and moss_py is not None:
-            print("🔁 Fallback #3: MOSS-TTS (Peter/Ricardo clone)...")
-            mb = subprocess.run(
-                [str(moss_py), str(moss), "--date", date],
-                capture_output=True,
-                text=True,
-                env=env,
-                cwd=str(PROJECT_ROOT),
-            )
-            if mb.stdout:
-                print(mb.stdout[-2500:])
-            if mb.returncode == 0 and _delivery_ok():
-                print("  ✅ MOSS fallback OK")
-                moss_ok = True
-            else:
-                print(f"⚠️  MOSS falhou (exit {mb.returncode})")
-                if mb.stderr:
-                    print(mb.stderr[-1500:])
-        elif not eleven_ok:
-            print("⚠️  MOSS fallback indisponível (script ou moss-nano-env ausente)")
-
-        # ── 4) Edge + FX Ricardo ─────────────────────────────────────
-        if not eleven_ok and not moss_ok:
-            fallback = SCRIPT_DIR / "tts_fallback_edge.sh"
-            if fallback.exists():
-                print("🔁 Fallback #4: Edge TTS + FX Ricardo...")
-                fb = subprocess.run(
-                    ["bash", str(fallback), date],
+        # ── 3) Edge TTS pt-BR (voz natural) ─────────────────────────
+        if not eleven_ok:
+            edge_fallback = SCRIPT_DIR / "tts_fallback_edge.sh"
+            if edge_fallback.exists():
+                print("🔁 Fallback #3: Edge TTS pt-BR (voz natural)...")
+                eb = subprocess.run(
+                    ["bash", str(edge_fallback), date],
                     capture_output=True,
                     text=True,
                     env=env,
                     cwd=str(PROJECT_ROOT),
                 )
-                print(fb.stdout[-2000:] if fb.stdout else "")
-                if fb.returncode != 0:
-                    print(f"FALHA no fallback Edge:\n{fb.stderr[-2000:]}")
-                    sys.exit(3)
+                print(eb.stdout[-2000:] if eb.stdout else "")
+                if eb.returncode == 0 and _delivery_ok():
+                    print("  ✅ Edge TTS fallback OK")
+                    edge_ok = True
+                else:
+                    print(f"⚠️  Edge TTS falhou (exit {eb.returncode})")
+                    if eb.stderr:
+                        print(eb.stderr[-1200:])
             else:
-                print("FALHA: todos os backends TTS falharam.")
-                sys.exit(3)
+                print("⚠️  Script Edge TTS não encontrado")
+
+        # ── 4) MOSS-TTS-Nano — DESABILITADO ───────────────────────
+        # Aguarda fine-tune para pt-BR antes de reativar
+        # Se necessário, descomente o bloco abaixo:
+        # moss_ok = False
+        # moss = SCRIPT_DIR / "tts_fallback_moss.py"
+        # moss_py_candidates = [
+        #     Path("/home/osmar/moss-nano-env/bin/python"),
+        #     Path("/home/osmar/moss-tts-env/bin/python"),
+        # ]
+        # moss_py = next((p for p in moss_py_candidates if p.exists()), None)
+        # if (not eleven_ok) and (not edge_ok) and moss.exists() and moss_py is not None:
+        #     print("🔁 Fallback #4: MOSS-TTS (pt-PT — último recurso)...")
+        #     ...
+
+        # ── 5) Falha total ──────────────────────────────────────────
+        if not eleven_ok and not edge_ok:
+            print("❌ TODOS os backends TTS falharam")
+            print("   (MOSS-TTS desabilitado — aguarda fine-tune pt-BR)")
+            sys.exit(3)
 
     print(f"  ✅ Áudio gerado: {out_path}")
 
@@ -872,6 +866,26 @@ def cmd_full(
     else:
         print(f"✅ Mantendo JSON existente (MD já rico): {json_path}")
 
+    # 2.5. Título otimizado (skill youtube-journalistic-title-optimizer) — NÃO bloqueia
+    print("\n🎯 Etapa 2.5/8 — Título otimizado do episódio")
+    try:
+        title_script = SCRIPT_DIR / "title_optimizer.py"
+        if title_script.exists():
+            tr = subprocess.run(
+                [sys.executable, str(title_script), "--date", date],
+                capture_output=True, text=True,
+                env=os.environ.copy(), cwd=str(PROJECT_ROOT),
+            )
+            if tr.stdout:
+                lines = [l for l in tr.stdout.splitlines() if l.strip()]
+                print("\n".join(lines[-30:]))
+            if tr.returncode != 0:
+                print(f"⚠️  title_optimizer exit {tr.returncode} (não bloqueia): {(tr.stderr or '')[-300:]}")
+        else:
+            print("  (title_optimizer.py não encontrado, pulando)")
+    except Exception as e:
+        print(f"⚠️  title_optimizer falhou (não bloqueia): {e}")
+
     # 3. Processar (render MD se template + TTS + metadados)
     print("\n📝 Etapa 3/7 — Processamento do roteiro (MD + TTS)")
     # Se MD é template ou force, re-renderiza a partir do JSON
@@ -897,12 +911,46 @@ def cmd_full(
         print("\n🎙️  Etapa 5/7 — Geração de áudio")
         cmd_audio(date, allow_short=allow_short_audio)
 
+    # 5.5. Inserção de anúncio de patrocinador (Tipo 1 — ads/schedule.json)
+    print("\n📢 Etapa 5.5/8 — Inserção de anúncio (patrocínio Tipo 1)")
+    try:
+        ads_script = SCRIPT_DIR / "ads_insert.py"
+        if ads_script.exists():
+            r = subprocess.run(
+                [sys.executable, str(ads_script), "--date", date, "--no-republish"],
+                capture_output=True, text=True, env=os.environ.copy(),
+                cwd=str(PROJECT_ROOT),
+            )
+            if r.stdout:
+                print(r.stdout[-1200:])
+            if r.returncode != 0:
+                print(f"⚠️  ads_insert exit {r.returncode} (não bloqueia): {(r.stderr or '')[-400:]}")
+        else:
+            print("  (ads_insert.py não encontrado, pulando)")
+    except Exception as e:
+        print(f"⚠️  ads_insert falhou (não bloqueia): {e}")
+
+    # 5.6. Thumbnail/capa automática (DashScope cascade) — NÃO bloqueia o pipeline
+    print("\n🖼️  Etapa 5.6/8 — Thumbnail automática do episódio")
+    try:
+        from thumbnail_generator import generate_thumbnail_safe
+        thumb = generate_thumbnail_safe(date=date, episode_id=f"ep_{date}")
+        if thumb.get("path"):
+            print(
+                f"  ✅ thumbnail: {thumb.get('path')} "
+                f"(model={thumb.get('image_model_used')} placeholder={thumb.get('is_placeholder')})"
+            )
+        else:
+            print(f"  ⚠️  thumbnail sem path (não bloqueia): {thumb.get('error', thumb)}")
+    except Exception as e:
+        print(f"⚠️  thumbnail falhou (não bloqueia): {e}")
+
     # 6. Atualizar arquivo
-    print("\n📁 Etapa 6/7 — Atualização do índice")
+    print("\n📁 Etapa 6/8 — Atualização do índice")
     cmd_update_archive(date)
 
     # 7. Publicar site estático
-    print("\n🌐 Etapa 7/7 — Publicar site (public/)")
+    print("\n🌐 Etapa 7/8 — Publicar site (public/)")
     cmd_publish_site(date)
 
     print("\n" + "=" * 50)

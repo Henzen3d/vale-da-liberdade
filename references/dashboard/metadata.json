@@ -1,0 +1,6 @@
+{
+  "name": "Jornal Vale da Liberdade - Admin Dashboard",
+  "description": "Painel de controle administrativo do Jornal Vale da Liberdade para gestão de anúncios, patrocinadores, usuários, assinaturas e relatórios estatísticos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

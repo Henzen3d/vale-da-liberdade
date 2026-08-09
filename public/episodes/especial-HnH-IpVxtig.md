@@ -1,10 +1,22 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Máfia de Brasília e a Farsa das Coligações Eleitorais
 
-> Fonte: Visão Libertária
+> Fonte: Metrópoles
 > URL do vídeo: https://www.youtube.com/watch?v=HnH-IpVxtig
 > Tags: política, eleições, ditadura judiciária
 > video_id: HnH-IpVxtig
+
+> Referências:
+> - Metrópoles: https://www.metropoles.com/brasil/tereza-cristina-avisa-aliados-que-aceitou-ser-vice-de-flavio-bolsonaro
+> - Cbn: https://cbn.globo.com/politica/noticia/2026/07/30/senadora-tereza-cristina-e-a-principal-cotada-para-candidata-a-vice-na-chapa-de-flavio-bolsonaro.ghtml
+> - O Antagonista: https://oantagonista.com.br/brasil/flavio-troca-marketing-da-campanha-e-convoca-duda-lima/
+> - Poder360: https://www.poder360.com.br/poderdata/lula-tem-41-e-flavio-35-no-1o-turno/
+> - Poder360: https://www.poder360.com.br/poderdata/leia-os-resultados-da-pesquisa-poderdata-aya-para-presidente/
+> - Diário do Poder: https://diariodopoder.com.br/brasil-e-regioes/e10-brasil/poderdata-avaliacao-negativa-de-lula-dispara-e-chega-a-47
+> - Valor Econômico: https://valor.globo.com/politica/eleicoes-2026/noticia/2026/07/30/cleitinho-se-reune-com-cupula-do-republicanos-para-discutir-candidatura-ao-governo-de-mg.ghtml
+> - O Globo: https://oglobo.globo.com/politica/eleicoes-2026/noticia/2026/07/30/republicanos-mantem-veto-a-cleitinho-e-deve-comunicar-decisao-definitiva-em-reuniao-com-senador.ghtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-HnH-IpVxtig.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-HnH-IpVxtig.md
 
 ---
 

@@ -148,5 +148,38 @@
       "⚠️ Naturalidade: poucos chamados pelo nome (0 em 32 falas)"
     ],
     "passou": false
+  },
+  "thumbnail": {
+    "path": "thumbnails/2026-07-31/ep_2026-07-31.webp",
+    "image_model_used": "qwen-image-3.0",
+    "prompt_model_used": "gemini-3.6-flash",
+    "image_prompt": "Editorial photograph of a minimalist high-contrast scene, dark monochromatic black and white aesthetic. On a dark reflective desk, a sleek silhouette of an off-hook telephone receiver rests in shadow. A dense web of glowing amber-gold signal lines and wave frequencies arcs through the dark air, representing dozens of rapid calls, linking the phone to a distant, shadowy silhouette of classic bank architecture in the background. Deep chiaroscuro lighting, dark gray tones, high contrast, with a single burnt amber accent color highlighting the glowing connectivity lines. 16:9 landscape, no text, no letters, no typography, no words, editorial news aesthetic, subtle film grain, cinematic 35mm lens",
+    "fallback_level": 0,
+    "is_placeholder": false,
+    "generated_at": "2026-08-05T15:00:25.066426-03:00",
+    "estimated_cost_usd": 0.05,
+    "generation_attempts": [
+      {
+        "model": "qwen-image-3.0",
+        "status": "success",
+        "latency_ms": 17506,
+        "attempt": 1
+      }
+    ],
+    "headline": "PF investiga ligações entre Jaques Wagner e Banco Master — 74 chamadas em 5 horas",
+    "quota_remaining_today": {
+      "qwen-image-3.0": 21,
+      "qwen-image-2.0-pro": 39,
+      "qwen-image-max": 40,
+      "qwen-image-2.0": 50,
+      "qwen-image-plus": 80,
+      "wan2.7-image-pro": 30,
+      "wan2.7-image": 40,
+      "z-image-turbo": 100
+    },
+    "path_jpg": "thumbnails/2026-07-31/ep_2026-07-31.jpg",
+    "width": 1280,
+    "height": 720,
+    "bytes_webp": 45652
   }
 }

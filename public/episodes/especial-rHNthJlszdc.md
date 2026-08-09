@@ -1,10 +1,20 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Ilusão da Faria Lima e a Blindagem dos Bancos perante a Gastança Estatal
 
-> Fonte: Visão Libertária
+> Fonte: Folha de S.Paulo
 > URL do vídeo: https://www.youtube.com/watch?v=rHNthJlszdc
 > Tags: economia, política, impostos, taxas e tarifas
 > video_id: rHNthJlszdc
+
+> Referências:
+> - Folha de S.Paulo: https://www1.folha.uol.com.br/colunas/adriana-fernandes/2026/07/os-rumos-da-economia-num-eventual-lula-4.shtml
+> - Veja: https://veja.abril.com.br/coluna/radar-economico/durigan-vende-ao-mercado-ajuste-que-lula-ainda-nao-comprou/
+> - Poder360: https://www.poder360.com.br/poder-economia/propostas-de-gabrielli-divergem-da-linha-economica-de-durigan/
+> - O Globo: https://oglobo.globo.com/economia/noticia/2026/07/30/lula-critica-mercado-e-diz-que-e-preciso-gastar-dinheiro-para-melhorar-as-coisas.ghtml
+> - Moneytimes: https://www.moneytimes.com.br/adeus-santander-sanb11-brasil-matriz-espanhola-propoe-troca-de-acoes-por-bdrs-premio-e-de-15/
+> - O Globo: https://oglobo.globo.com/economia/negocios/noticia/2026/07/30/bradesco-anuncia-aumento-de-capital-de-r-10-bilhoes-acionistas-terao-preferencia-na-subscricao.ghtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-rHNthJlszdc.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-rHNthJlszdc.md
 
 ---
 

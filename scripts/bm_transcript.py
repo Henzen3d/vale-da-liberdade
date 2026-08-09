@@ -33,12 +33,27 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 OUTPUT_DIR = PROJECT_ROOT / "output" / "brasil_e_mundo" / "raw"
 
 # Garante que o binário `yt-dlp` seja encontrável mesmo sob o PATH mínimo do cron.
-# yt-dlp costuma residir em ~/.local/bin (instalação pip --user). Sem isto, o
+# yt-dlp costuma residir em ~/.local/bin (instalação pip --user / pipx). Sem isto, o
 # subprocess lança [Errno 2] No such file or directory: 'yt-dlp' e toda a fila BM
 # falha em "Extração de transcrição (yt-dlp)".
+import shutil
+
 _LOCAL_BIN = str(Path.home() / ".local" / "bin")
-if _LOCAL_BIN not in os.environ.get("PATH", ""):
+_path_parts = os.environ.get("PATH", "").split(os.pathsep) if os.environ.get("PATH") else []
+if _LOCAL_BIN not in _path_parts:
     os.environ["PATH"] = _LOCAL_BIN + os.pathsep + os.environ.get("PATH", "")
+
+# Resolve once to absolute path — robust against PATH stripping in nested subprocesses.
+_YT_DLP = (
+    shutil.which("yt-dlp")
+    or (str(Path(_LOCAL_BIN) / "yt-dlp") if (Path(_LOCAL_BIN) / "yt-dlp").exists() else None)
+    or "yt-dlp"
+)
+
+
+def _yt_dlp_cmd(*args: str) -> list[str]:
+    """Build yt-dlp argv using the absolute binary when available."""
+    return [_YT_DLP, *args]
 
 
 def extract_video_id(url: str) -> str | None:
@@ -59,7 +74,7 @@ def get_video_metadata(url: str) -> dict:
     """Usa yt-dlp --dump-json para obter metadata do vídeo."""
     try:
         result = subprocess.run(
-            ["yt-dlp", "--dump-json", "--no-download", url],
+            _yt_dlp_cmd("--dump-json", "--no-download", url),
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -81,25 +96,174 @@ def get_video_metadata(url: str) -> dict:
     return {}
 
 
-def extract_source_urls(description: str) -> list[str]:
-    """Extrai URLs de fontes da descrição do vídeo."""
+_URL_RE = re.compile(
+    r"https?://(?:[^\s()<>\"']|\([^\s()<>\"']*\))+(?<![.,;:!?)\]\"'])"
+)
+
+# Domínios de autopromoção/redes que NUNCA são fonte de matéria.
+_PROMO_DOMAINS = {
+    "youtube.com", "youtu.be", "twitter.com", "x.com",
+    "instagram.com", "facebook.com", "t.me", "telegram.me",
+    "bit.ly", "tinyurl.com", "goo.gl", "amzn.to",
+    "rumble.com", "odysee.com",
+    "ancap.su", "pimentanocafe.com.br",
+}
+
+# Domínios conhecidos → nome do veículo (fallback OFFLINE, sem fetch de página).
+KNOWN_VEICULOS = {
+    "cnnbrasil.com.br": "CNN Brasil",
+    "g1.globo.com": "G1",
+    "oglobo.globo.com": "O Globo",
+    "veja.abril.com.br": "Veja",
+    "epoca.globo.com": "Época",
+    "valor.globo.com": "Valor Econômico",
+    "exame.com": "Exame",
+    "folha.uol.com.br": "Folha de S.Paulo",
+    "www1.folha.uol.com.br": "Folha de S.Paulo",
+    "media.folha.uol.com.br": "Folha de S.Paulo",
+    "estadao.com.br": "Estadão",
+    "gazetadopovo.com.br": "Gazeta do Povo",
+    "metropoles.com": "Metrópoles",
+    "oantagonista.com.br": "O Antagonista",
+    "poder360.com.br": "Poder360",
+    "static.poder360.com.br": "Poder360",
+    "brasil.arvor.co": "Arvor (Brasil)",
+    "uol.com.br": "UOL",
+    "terra.com.br": "Terra",
+    "r7.com": "R7",
+    "recordnews.r7.com": "R7",
+    "sbtnews.com.br": "SBT News",
+    "jovempan.com.br": "Jovem Pan",
+    "band.com.br": "Band",
+    "ig.com.br": "iG",
+    "istoe.com.br": "IstoÉ",
+    "brasil247.com": "Brasil 247",
+    "diariodocomercio.com.br": "Diário do Comércio",
+    "planalto.gov.br": "Governo Federal",
+    "gov.br": "Governo Federal",
+    "senado.leg.br": "Senado Federal",
+    "camara.leg.br": "Câmara dos Deputados",
+    "stf.jus.br": "STF",
+    "tse.jus.br": "TSE",
+    "wikipedia.org": "Wikipédia",
+    "youtube.com": "YouTube",
+    "youtu.be": "YouTube",
+    "coindesk.com": "CoinDesk",
+    "forbes.com": "Forbes",
+    "reddit.com": "Reddit",
+    "cybernews.com": "CyberNews",
+    "npr.org": "NPR",
+    "medium.com": "Medium",
+    "claudiodantas.com.br": "Claudio Dantas",
+    "diariodopoder.com.br": "Diário do Poder",
+    "cnn.com": "CNN",
+    "bbc.com": "BBC",
+    "bbc.co.uk": "BBC",
+    "reuters.com": "Reuters",
+    "apnews.com": "AP",
+    "dw.com": "DW",
+    "aljazeera.com": "Al Jazeera",
+    "nytimes.com": "NYT",
+    "theguardian.com": "The Guardian",
+    "washingtonpost.com": "Washington Post",
+    "bloomberg.com": "Bloomberg",
+    "economist.com": "The Economist",
+    "cointelegraph.com": "CoinTelegraph",
+    "decrypt.co": "Decrypt",
+    "theblock.co": "The Block",
+    "bitcoinmagazine.com": "Bitcoin Magazine",
+    "infobae.com": "Infobae",
+    "elpais.com": "El País",
+    "elpais.com.br": "El País Brasil",
+    "theintercept.com": "The Intercept",
+    "theinterceptbrasil.com": "The Intercept Brasil",
+    "diariodocentrodomundo.com.br": "Diário do Centro do Mundo",
+    "correiobraziliense.com.br": "Correio Braziliense",
+    "revistaforum.com.br": "Revista Fórum",
+    "yahoo.com": "Yahoo",
+    "msn.com": "MSN",
+}
+
+
+def domain_of(url: str) -> str:
+    m = re.match(r"https?://(?:www\.)?([^/:]+)", url or "")
+    return m.group(1).lower() if m else ""
+
+
+def veiculo_from_url(url: str) -> str:
+    """Nome do veículo inferido do domínio (sem rede)."""
+    dom = domain_of(url)
+    if not dom:
+        return ""
+    for key, name in KNOWN_VEICULOS.items():
+        if key in dom:
+            return name
+    if dom.endswith(".gov.br") or dom == "gov.br":
+        return "Governo"
+    parts = dom.split(".")
+    # Remove sufixo de país / genérico (ex.: "claudiodantas.com.br" → "claudiodantas")
+    if len(parts) >= 3 and parts[-1] in (
+        "br", "ar", "co", "uk", "mx", "cl", "pe", "uy", "ve", "ec", "bo", "py", "com",
+    ):
+        parts = parts[:-2] if parts[-2] in ("com", "org", "net", "gov", "edu") else parts[:-1]
+    name = parts[0] if parts else dom
+    return name[:1].upper() + name[1:] if name else dom
+
+
+def _clean_url(url: str) -> str:
+    url = url.strip().rstrip(".,;:!?)]")
+    # Corta parêntese não fechado (ex.: "https://x (descrição)")
+    if url.count("(") > url.count(")"):
+        url = url[: url.rfind("(")]
+    return url
+
+
+def extract_referencias(description: str) -> list[str]:
+    """Extrai SOMENTE os links da seção 'Referências:' da descrição do vídeo.
+
+    Formato típico (ANCAPSU):
+        Referências:
+
+        https://veja.abril.com.br/...
+        https://oglobo.globo.com/...
+    """
     if not description:
         return []
-    # Capturar URLs, excluindo links do próprio YouTube/redes sociais
-    url_pattern = r"https?://[^\s<>\"')\]]+(?<![.,;:!?)])"
-    urls = re.findall(url_pattern, description)
-    exclude_domains = {
-        "youtube.com", "youtu.be", "twitter.com", "x.com",
-        "instagram.com", "facebook.com", "t.me", "telegram.me",
-        "bit.ly", "tinyurl.com", "goo.gl", "amzn.to",
-        "rumble.com", "odysee.com",
-    }
-    filtered = []
-    for url in urls:
-        domain = re.search(r"https?://(?:www\.)?([^/]+)", url)
-        if domain and not any(ex in domain.group(1) for ex in exclude_domains):
-            filtered.append(url)
-    return filtered[:10]  # Limitar a 10 fontes
+    m = re.search(r"(?:^|\n)\s*[Rr]efer[eê]ncias?\s*:?\s*\n+([\s\S]*)", description)
+    if not m:
+        return []
+    section = m.group(1)
+    # Corta na próxima linha que pareça cabeçalho de seção (ex.: "CONTATO:", "REDES:")
+    section = re.split(
+        r"\n\s*[A-ZÀ-Ú][A-Za-zÀ-ú0-9 ]{2,40}:\s*(?:\n|$)", section
+    )[0]
+    urls = []
+    for u in _URL_RE.findall(section):
+        u = _clean_url(u)
+        if u and u not in urls:
+            urls.append(u)
+    return urls[:15]
+
+
+def extract_source_urls(description: str) -> list[str]:
+    """URLs de fontes da descrição: PRIORIZA a seção 'Referências:'.
+
+    Se a descrição não tiver essa seção, varre o texto inteiro excluindo
+    domínios de autopromoção/redes sociais.
+    """
+    refs = extract_referencias(description)
+    if refs:
+        return refs
+    if not description:
+        return []
+    urls = []
+    for u in _URL_RE.findall(description):
+        u = _clean_url(u)
+        dom = domain_of(u)
+        if dom and not any(ex in dom for ex in _PROMO_DOMAINS):
+            if u not in urls:
+                urls.append(u)
+    return urls[:10]  # Limitar a 10 fontes
 
 
 def fetch_source_name(url: str) -> str:
@@ -130,15 +294,14 @@ def download_subtitles(url: str, work_dir: Path) -> str | None:
     # Tentar legendas em português (manual → automática)
     for lang in ["pt", "pt-BR", "pt-PT"]:
         for sub_type in ["--write-sub", "--write-auto-sub"]:
-            cmd = [
-                "yt-dlp",
+            cmd = _yt_dlp_cmd(
                 sub_type,
                 "--sub-lang", lang,
                 "--skip-download",
                 "--convert-subs", "srt",
                 "-o", str(work_dir / "%(id)s.%(ext)s"),
                 url,
-            ]
+            )
             try:
                 result = subprocess.run(
                     cmd, capture_output=True, text=True, encoding="utf-8", timeout=120
@@ -151,14 +314,13 @@ def download_subtitles(url: str, work_dir: Path) -> str | None:
                 continue
 
     # Fallback: qualquer idioma disponível
-    cmd = [
-        "yt-dlp",
+    cmd = _yt_dlp_cmd(
         "--write-auto-sub",
         "--skip-download",
         "--convert-subs", "srt",
         "-o", str(work_dir / "%(id)s.%(ext)s"),
         url,
-    ]
+    )
     try:
         subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=120)
         for f in work_dir.iterdir():
@@ -201,14 +363,13 @@ def parse_srt(srt_path: str) -> str:
 def download_audio_for_stt(url: str, work_dir: Path) -> str | None:
     """Baixa apenas o áudio para STT fallback."""
     out_template = str(work_dir / "audio.%(ext)s")
-    cmd = [
-        "yt-dlp",
+    cmd = _yt_dlp_cmd(
         "-x",
         "--audio-format", "mp3",
         "--audio-quality", "5",  # qualidade média (suficiente para STT)
         "-o", out_template,
         url,
-    ]
+    )
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=300)
         if result.returncode == 0:
@@ -303,14 +464,16 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
         print(f"   ❌ Falha: transcrição vazia ou muito curta")
         return None
 
-    # 4. Fontes da descrição
+    # 4. Fontes da descrição (seção "Referências:" tem prioridade)
     source_urls = extract_source_urls(meta.get("description", ""))
-    source_names = []
-    for src_url in source_urls[:5]:  # Limitar a 5 para não travar
-        name = fetch_source_name(src_url)
-        if name:
-            source_names.append(name)
-            print(f"   📰 Fonte: {name}")
+    sources: list[dict] = []
+    for i, src_url in enumerate(source_urls[:8]):
+        if i < 5:
+            name = fetch_source_name(src_url) or veiculo_from_url(src_url)
+        else:
+            name = veiculo_from_url(src_url)
+        sources.append({"url": src_url, "veiculo": name[:60]})
+        print(f"   📰 Fonte: {name} — {src_url}")
 
     # Montar resultado
     result = {
@@ -320,11 +483,12 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
         "url": url,
         "duration_s": meta.get("duration_s", 0),
         "published": meta.get("published", ""),
-        "description": meta.get("description", "")[:2000],
+        "description": meta.get("description", "")[:4000],
         "transcript": transcript_text,
         "transcript_words": len(transcript_text.split()),
-        "source_urls": source_urls,
-        "source_names": list(set(source_names)),
+        "source_urls": [s["url"] for s in sources],
+        "source_names": list(dict.fromkeys(s["veiculo"] for s in sources)),
+        "sources": sources,
         "extracted_at": __import__("datetime").datetime.now(
             __import__("datetime").timezone.utc
         ).isoformat(),

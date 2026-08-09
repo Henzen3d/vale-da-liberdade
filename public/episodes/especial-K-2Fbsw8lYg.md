@@ -1,10 +1,19 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## O Segredo Sob o Chapéu de Lula e o Desespero da Máquina Estatal
 
-> Fonte: Visão Libertária
+> Fonte: Poder360
 > URL do vídeo: https://www.youtube.com/watch?v=K-2Fbsw8lYg
 > Tags: política, eleições
 > video_id: K-2Fbsw8lYg
+
+> Referências:
+> - Poder360: https://www.poder360.com.br/poder-saude/lula-usara-curativo-e-chapeu-por-1-mes-apos-cirurgia-diz-kalil/
+> - YouTube: https://www.youtube.com/@palacioassombrado
+> - G1: https://g1.globo.com/politica/noticia/2026/08/01/convencao-do-pt-na-bahia-com-lula-tem-pedidos-de-votos-lei-eleitoral-preve-propaganda-somente-a-partir-de-16-de-agosto.ghtml
+> - O Globo: https://oglobo.globo.com/politica/noticia/2026/07/08/lula-inaugura-inicio-de-obra-de-ponte-na-bahia-e-vira-alvo-de-acm-neto-so-existe-no-instagram-da-turma-do-governo.ghtml
+> - UOL: https://noticias.uol.com.br/colunas/carla-araujo/2026/08/01/lula-une-esquerda-pela-1-vez-mas-sofre-com-investigacao-contra-filho.htm
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-K-2Fbsw8lYg.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-K-2Fbsw8lYg.md
 
 ---
 

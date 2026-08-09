@@ -56,3 +56,43 @@ config/*.yaml
 kokoro_work/
 *.onnx
 *.bin
+
+# ---- Lixos/estado local (2026-08-09, limpeza de árvore) ----
+# Dir de trabalho do agente e caches locais
+.hermes/
+.wrangler/
+scripts/.wrangler/
+# Outputs de teste/experimentos
+test_output/
+voices/
+ads/
+branding/
+comparison/
+pipelines/
+youtube/
+thumbnails/
+new-ux.backup-20260806/
+metrics/
+audio/*filelist.txt
+# Relatórios de teste one-off
+TEST_REPORT.md
+IMAGEN4_TEST_REPORT.md
+MODEL_TEST_REPORT.json
+MODEL_TEST_REPORT.md
+NIM_TEST_REPORT.md
+# Patch de thumbnail avulso
+public/assets/js/app.js.thumbnail.patch.js
+# Conteúdo gerado pelo publish (não versionar; scripts são a fonte)
+public/ep/
+public/noticias/
+public/thumbnails/
+public/screenshots/
+# Estado runtime do pipeline
+sources/gemini_limits.json
+sources/gemini_usage.json
+sources/image_quota_tracker.json
+sources/news_memory_test.json
+sources/sources_candidates.json
+sources/sources_registry.json
+sources/sources_weekly_report.json
+sources/thumbnail_cascade_rank.json

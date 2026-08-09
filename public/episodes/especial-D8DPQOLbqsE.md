@@ -1,10 +1,26 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Felipe Neto, Igor 3K e o Parasitismo no Monopólio Estatal da Justiça
 
-> Fonte: Felipe Neto vai à Justiça contra Igor 3K por publicidade ind
+> Fonte: Metrópoles
 > URL do vídeo: https://www.youtube.com/watch?v=D8DPQOLbqsE
 > Tags: ditadura judiciária, política
 > video_id: D8DPQOLbqsE
+
+> Referências:
+> - Metrópoles: https://www.metropoles.com/colunas/fabia-oliveira/felipe-neto-aciona-igor-3k-na-justica-e-pede-r-30-mil
+> - Instagram: https://www.instagram.com/reels/DaQ7q44Bn7O/
+> - Diário do Centro do Mundo: https://www.diariodocentrodomundo.com.br/felipe-neto-vai-a-justica-contra-igor-3k-por-publicidade-indevida-no-instagram/
+> - YouTube: https://www.youtube.com/@ancap_su/search?query=felipe
+> - YouTube: https://www.youtube.com/@PalacioAssombrado
+> - X: https://x.com/palacioassombra
+> - Instagram: https://www.instagram.com/palacioassombra
+> - Tiktok: https://www.tiktok.com/@palacioassombrado
+> - Palacioassombrado: https://palacioassombrado.com/#sobre
+> - MSN: https://www.msn.com/pt-br/saude/other/felipe-neto-revela-diagn%C3%B3stico-de-transtorno-mental/ar-AA1RCjc4?ocid=winp2fptaskbarhover&amp;cvid=09c73a4355024013c8397db9e9c038da&amp;ei=5
+> - X: https://x.com/felipeneto/status/2082217835778945086
+> - Gazeta do Povo: https://www.gazetadopovo.com.br/republica/lula-condecora-janja-moraes-e-felipe-neto-por-servicos-prestados-a-educacao/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-D8DPQOLbqsE.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-D8DPQOLbqsE.md
 
 ---
 

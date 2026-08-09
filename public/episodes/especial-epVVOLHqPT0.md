@@ -1,10 +1,18 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Déficit Fiscal Zero Salário: Milei Corta na Carne dos Políticos Argentinos
 
-> Fonte: Infobae
+> Fonte: Zerohedge
 > URL do vídeo: https://www.youtube.com/watch?v=epVVOLHqPT0
 > Tags: política, economia, impostos, taxas e tarifas
 > video_id: epVVOLHqPT0
+
+> Referências:
+> - Zerohedge: https://www.zerohedge.com/economics/argentinas-milei-borrows-warren-buffetts-idea-punish-deficit-spending
+> - X: https://x.com/vendel_tomas/status/2083363413317615906
+> - O Globo: https://oglobo.globo.com/economia/noticia/2026/07/30/milei-propoe-reforma-do-bc-da-argentina-que-proibiria-financiar-gastos-publicos.ghtml
+> - Infobae: https://www.infobae.com/economia/2026/07/31/grillete-fiscal-liberalizacion-del-mercado-de-capitales-y-desregulacion-de-los-seguros-como-son-los-proyectos-que-anuncio-milei/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-epVVOLHqPT0.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-epVVOLHqPT0.md
 
 ---
 

@@ -1,10 +1,18 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## Show de Propina: Como o PT e o Banco Master Usaram Ingressos VIP e Viagens Internacionais
 
-> Fonte: Visão Libertária
+> Fonte: O Globo
 > URL do vídeo: https://www.youtube.com/watch?v=Kz_qqV2QybE
 > Tags: corrupção, política, economia
 > video_id: Kz_qqV2QybE
+
+> Referências:
+> - O Globo: https://oglobo.globo.com/blogs/malu-gaspar/post/2026/06/socio-de-vorcaro-pagou-shows-da-taylor-swift-para-jaques-wagner-no-eua-e-em-sp.ghtml
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/pf-wagner-pediu-ingresso-ate-para-amiga-da-neta-em-show-de-taylor-swift/
+> - O Globo: https://oglobo.globo.com/cultura/noticia/2023/06/cambistas-de-show-de-taylor-swift-podem-receber-pena-de-ate-dois-anos-de-prisao.ghtml
+> - G1: https://g1.globo.com/rj/rio-de-janeiro/noticia/2023/11/18/fa-que-morreu-em-show-de-taylor-swif.ghtml
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-Kz_qqV2QybE.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-Kz_qqV2QybE.md
 
 ---
 

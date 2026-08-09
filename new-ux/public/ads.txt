@@ -1,4 +1,0 @@
-# ads.txt — Google AdSense (preencha quando ativar a conta)
-# https://support.google.com/adsense/answer/7532444
-# Formato: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
-# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

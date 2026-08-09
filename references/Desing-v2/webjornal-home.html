@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webjornal Vale da Liberdade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#000000;
+    --white:#ffffff;
+    --gray-900:#0a0a0a;
+    --gray-850:#0f0f0f;
+    --gray-800:#141414;
+    --gray-700:#242424;
+    --gray-600:#3a3a3a;
+    --gray-500:#6b6b6b;
+    --gray-400:#9a9a9a;
+    --amber:#c9a227;
+    --amber-soft:rgba(201,162,39,0.14);
+    --line:#1c1c1c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{
+    background:var(--black);
+    color:var(--white);
+    font-family:'Inter',sans-serif;
+    padding-bottom:90px;
+  }
+  a{color:inherit; text-decoration:none;}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    background:rgba(0,0,0,0.92);
+    backdrop-filter:blur(8px);
+    z-index:10;
+  }
+  .brand{
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .brand span{color:var(--amber);}
+  .icon-btn{
+    width:30px; height:30px;
+    border-radius:50%;
+    border:1px solid var(--gray-700);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn svg{width:14px; height:14px; stroke:var(--gray-400); fill:none; stroke-width:2;}
+
+  .wrap{max-width:640px; margin:0 auto;}
+
+  /* ===== Hero ===== */
+  .hero{
+    padding:22px 20px 24px;
+    border-bottom:1px solid var(--line);
+  }
+  .hero .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-weight:700;
+    margin-bottom:12px;
+  }
+  .eyebrow .live-dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 0 3px var(--amber-soft);
+  }
+  .hero-media{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:6px;
+    background:
+      radial-gradient(circle at 25% 20%, #1c1c1c, transparent 60%),
+      linear-gradient(160deg,#161616,#050505 70%);
+    border:1px solid var(--gray-700);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .hero-media .waveform{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:38%;
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    padding:0 16px 14px;
+    opacity:0.5;
+  }
+  .hero-media .waveform span{
+    flex:1;
+    background:var(--gray-500);
+    border-radius:2px;
+  }
+  .hero-media .play-lg{
+    width:56px; height:56px;
+    border-radius:50%;
+    background:var(--white);
+    display:flex; align-items:center; justify-content:center;
+    z-index:2;
+  }
+  .hero-media .play-lg svg{width:20px; height:20px; fill:var(--black); margin-left:2px;}
+
+  .hero-title{
+    font-size:21px;
+    font-weight:800;
+    line-height:1.28;
+    letter-spacing:-0.015em;
+    margin-top:16px;
+  }
+  .hero-sub{
+    font-size:13px;
+    color:var(--gray-400);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .hero-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+    font-size:11.5px;
+    color:var(--gray-500);
+  }
+  .hero-meta .dot{width:3px; height:3px; border-radius:50%; background:var(--gray-600);}
+
+  /* ===== Tabs ===== */
+  .tabs{
+    display:flex;
+    gap:4px;
+    padding:16px 20px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .tab{
+    padding:10px 4px 12px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--gray-500);
+    position:relative;
+    margin-right:20px;
+  }
+  .tab.active{color:var(--white);}
+  .tab.active::after{
+    content:'';
+    position:absolute;
+    bottom:-1px; left:0; right:0;
+    height:2px;
+    background:var(--amber);
+  }
+  .tab .count{
+    font-size:10px;
+    color:var(--gray-600);
+    margin-left:4px;
+  }
+  .tab.active .count{color:var(--amber);}
+
+  /* ===== Continuar ouvindo ===== */
+  section.continue{
+    padding:20px 0 4px;
+    border-bottom:1px solid var(--line);
+  }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:0 20px 12px;
+  }
+  .section-head h2{
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--gray-400);
+    font-weight:700;
+  }
+  .section-head .see-all{
+    font-size:11.5px;
+    color:var(--gray-500);
+  }
+  .rail{
+    display:flex;
+    gap:12px;
+    overflow-x:auto;
+    padding:0 20px 20px;
+    scrollbar-width:none;
+  }
+  .rail::-webkit-scrollbar{display:none;}
+  .rail-card{
+    flex:0 0 188px;
+    background:var(--gray-900);
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .rail-thumb{
+    position:relative;
+    height:104px;
+    background:linear-gradient(150deg,#191919,#080808);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rail-thumb .play{
+    width:30px; height:30px;
+    border-radius:50%;
+    border:1.5px solid var(--white);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rail-thumb .play svg{width:10px; height:10px; fill:var(--white);}
+  .progress-track{
+    position:absolute; bottom:0; left:0; right:0;
+    height:3px;
+    background:rgba(255,255,255,0.14);
+  }
+  .progress-fill{height:100%; background:var(--amber);}
+  .rail-body{padding:10px 11px 12px;}
+  .rail-body .tag{font-size:9px; color:var(--gray-500); letter-spacing:0.05em; text-transform:uppercase; font-weight:600;}
+  .rail-body .title{font-size:12px; font-weight:600; margin-top:5px; line-height:1.32;}
+  .rail-body .meta{font-size:10px; color:var(--amber); margin-top:7px; font-weight:600;}
+
+  /* ===== Feed ===== */
+  section.feed{padding-top:6px;}
+  .feed-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 20px 6px;
+  }
+  .feed-head h2{
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--gray-400);
+    font-weight:700;
+  }
+  .toggle{
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; color:var(--gray-500);
+  }
+  .switch{
+    width:30px; height:17px;
+    border-radius:10px;
+    background:var(--gray-700);
+    position:relative;
+  }
+  .switch::after{
+    content:'';
+    position:absolute; top:2px; left:2px;
+    width:13px; height:13px;
+    border-radius:50%;
+    background:var(--gray-400);
+  }
+
+  .row{
+    display:flex;
+    gap:14px;
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .row-thumb{
+    position:relative;
+    width:92px; height:69px;
+    flex:0 0 92px;
+    background:linear-gradient(150deg,#191919,#080808);
+    border-radius:3px;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .row-thumb .play{
+    width:26px; height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--white);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .row-thumb .play svg{width:9px; height:9px; fill:var(--white);}
+  .row-thumb .progress-track{height:3px;}
+
+  .row-body{flex:1; min-width:0;}
+  .row-body .tag-line{display:flex; align-items:center; gap:6px;}
+  .row-body .tag{
+    font-size:9px; font-weight:700;
+    letter-spacing:0.05em; text-transform:uppercase;
+    color:var(--amber);
+  }
+  .row-body .tag.bm{color:var(--gray-400);}
+  .row-body .date{font-size:9.5px; color:var(--gray-600);}
+  .row-body .title{font-size:14px; font-weight:600; margin-top:5px; line-height:1.35;}
+  .row-body .meta{font-size:11px; color:var(--gray-500); margin-top:6px; display:flex; align-items:center; gap:6px;}
+
+  .status-dot{width:6px; height:6px; border-radius:50%; display:inline-block;}
+  .status-dot.empty{border:1px solid var(--gray-500); background:transparent;}
+  .status-dot.partial{background:var(--amber);}
+  .status-dot.done{background:var(--gray-500);}
+
+  .row.done{opacity:0.48;}
+  .row.done .row-thumb{filter:grayscale(0.5);}
+
+  .check{
+    width:14px; height:14px; border-radius:50%;
+    background:var(--gray-700);
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 14px; align-self:flex-start; margin-top:2px;
+  }
+  .check svg{width:8px; height:8px; fill:none; stroke:var(--gray-400); stroke-width:2.5;}
+
+  /* ===== Bottom nav ===== */
+  .bottomnav{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    display:flex;
+    justify-content:space-around;
+    padding:12px 0 18px;
+    background:rgba(0,0,0,0.94);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+  }
+  .navitem{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    font-size:9.5px; color:var(--gray-600); font-weight:600;
+  }
+  .navitem.active{color:var(--white);}
+  .navitem svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:2;}
+  .navitem.active svg{stroke:var(--amber);}
+
+  /* ===== Mini player ===== */
+  .miniplayer{
+    position:fixed;
+    left:12px; right:12px;
+    bottom:78px;
+    max-width:616px;
+    margin:0 auto;
+    background:var(--gray-850);
+    border:1px solid var(--gray-700);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 8px 24px rgba(0,0,0,0.55);
+    z-index:20;
+  }
+  .mini-progress{
+    height:2px;
+    background:rgba(255,255,255,0.1);
+    width:100%;
+  }
+  .mini-progress-fill{height:100%; background:var(--amber); width:42%;}
+  .mini-row{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:9px 10px;
+  }
+  .mini-thumb{
+    width:38px; height:38px;
+    border-radius:5px;
+    flex:0 0 38px;
+    background:linear-gradient(150deg,#1c1c1c,#080808);
+    border:1px solid var(--gray-700);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mini-thumb svg{width:14px; height:14px; fill:var(--gray-500);}
+  .mini-info{flex:1; min-width:0;}
+  .mini-info .title{
+    font-size:12.5px; font-weight:600;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .mini-info .sub{
+    font-size:10.5px; color:var(--gray-500);
+    margin-top:2px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .mini-controls{
+    display:flex; align-items:center; gap:4px;
+    flex:0 0 auto;
+  }
+  .mini-btn{
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:50%;
+  }
+  .mini-btn svg{width:15px; height:15px; stroke:var(--white); fill:none; stroke-width:2;}
+  .mini-btn.play{
+    background:var(--white);
+    width:34px; height:34px;
+  }
+  .mini-btn.play svg{fill:var(--black); stroke:none; width:13px; height:13px; margin-left:1px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Webjornal <span>Vale da Liberdade</span></div>
+  <div class="icon-btn">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/></svg>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="eyebrow"><span class="live-dot"></span> Novo hoje</div>
+    <div class="hero-media">
+      <div class="play-lg"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="waveform">
+        <span style="height:30%"></span><span style="height:60%"></span><span style="height:40%"></span>
+        <span style="height:80%"></span><span style="height:50%"></span><span style="height:70%"></span>
+        <span style="height:35%"></span><span style="height:55%"></span><span style="height:45%"></span>
+        <span style="height:65%"></span><span style="height:30%"></span><span style="height:75%"></span>
+        <span style="height:40%"></span><span style="height:60%"></span><span style="height:50%"></span>
+        <span style="height:35%"></span><span style="height:70%"></span><span style="height:45%"></span>
+        <span style="height:55%"></span><span style="height:30%"></span>
+      </div>
+    </div>
+    <div class="hero-title">Milei corta mais um ministério: o que isso ensina sobre Estado mínimo</div>
+    <div class="hero-sub">Peter e Ricardo discutem se a redução de pastas na Argentina é sinal real de austeridade ou apenas rearranjo de siglas.</div>
+    <div class="hero-meta">
+      <span>Diário</span><span class="dot"></span><span>24 min</span><span class="dot"></span><span>Hoje, 07:40</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active">Diário <span class="count">128</span></div>
+    <div class="tab">Brasil e Mundo <span class="count">12</span></div>
+  </div>
+
+  <!-- CONTINUAR OUVINDO -->
+  <section class="continue">
+    <div class="section-head">
+      <h2>Continuar ouvindo</h2>
+      <span class="see-all">ver tudo</span>
+    </div>
+    <div class="rail">
+      <div class="rail-card">
+        <div class="rail-thumb">
+          <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="progress-track"><div class="progress-fill" style="width:42%"></div></div>
+        </div>
+        <div class="rail-body">
+          <div class="tag">Ep. 214</div>
+          <div class="title">Reforma tributária e o mito da simplificação</div>
+          <div class="meta">18 min restantes</div>
+        </div>
+      </div>
+      <div class="rail-card">
+        <div class="rail-thumb">
+          <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="progress-track"><div class="progress-fill" style="width:78%"></div></div>
+        </div>
+        <div class="rail-body">
+          <div class="tag">Ep. 211</div>
+          <div class="title">Banco Central e a ilusão do controle monetário</div>
+          <div class="meta">6 min restantes</div>
+        </div>
+      </div>
+      <div class="rail-card">
+        <div class="rail-thumb">
+          <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="progress-track"><div class="progress-fill" style="width:20%"></div></div>
+        </div>
+        <div class="rail-body">
+          <div class="tag">B&M · 04</div>
+          <div class="title">ANCAPSU: o mito do dinheiro estatal explicado</div>
+          <div class="meta">15 min restantes</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEED -->
+  <section class="feed">
+    <div class="feed-head">
+      <h2>Todos os episódios</h2>
+      <div class="toggle">Ocultar ouvidos <div class="switch"></div></div>
+    </div>
+
+    <div class="row">
+      <div class="row-thumb">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      </div>
+      <div class="row-body">
+        <div class="tag-line"><span class="tag">Diário</span><span class="date">· Hoje</span></div>
+        <div class="title">Milei corta mais um ministério: o que isso ensina sobre Estado mínimo</div>
+        <div class="meta"><span class="status-dot empty"></span> Novo · 24 min</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row-thumb">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="progress-track"><div class="progress-fill" style="width:55%"></div></div>
+      </div>
+      <div class="row-body">
+        <div class="tag-line"><span class="tag">Diário</span><span class="date">· Ontem</span></div>
+        <div class="title">Bitcoin como reserva de valor: os dois lados do debate</div>
+        <div class="meta"><span class="status-dot partial"></span> 55% ouvido · 11 min restantes</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row-thumb">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      </div>
+      <div class="row-body">
+        <div class="tag-line"><span class="tag bm">Brasil e Mundo</span><span class="date">· 2 dias</span></div>
+        <div class="title">ANCAPSU: o mito do dinheiro estatal explicado por Peter</div>
+        <div class="meta"><span class="status-dot empty"></span> Novo · 15 min</div>
+      </div>
+    </div>
+
+    <div class="row done">
+      <div class="row-thumb">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="row-body">
+        <div class="tag-line"><span class="tag">Diário</span><span class="date">· 3 dias</span></div>
+        <div class="title">Reforma tributária e o mito da simplificação</div>
+        <div class="meta"><span class="status-dot done"></span> Ouvido completo</div>
+      </div>
+      <div class="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+    </div>
+
+    <div class="row done">
+      <div class="row-thumb">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="row-body">
+        <div class="tag-line"><span class="tag">Diário</span><span class="date">· 4 dias</span></div>
+        <div class="title">Por que subsídios agrícolas destroem quem deveriam salvar</div>
+        <div class="meta"><span class="status-dot done"></span> Ouvido completo</div>
+      </div>
+      <div class="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+    </div>
+
+    <div class="row">
+      <div class="row-thumb">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      </div>
+      <div class="row-body">
+        <div class="tag-line"><span class="tag">Diário</span><span class="date">· 5 dias</span></div>
+        <div class="title">Educação domiciliar: liberdade dos pais ou risco ao Estado?</div>
+        <div class="meta"><span class="status-dot empty"></span> Novo · 19 min</div>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<div class="miniplayer">
+  <div class="mini-progress"><div class="mini-progress-fill"></div></div>
+  <div class="mini-row">
+    <div class="mini-thumb"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    <div class="mini-info">
+      <div class="title">Reforma tributária e o mito da simplificação</div>
+      <div class="sub">Peter & Ricardo · 18 min restantes</div>
+    </div>
+    <div class="mini-controls">
+      <div class="mini-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 5L6 12l6 7"/><path d="M18 5l-6 7 6 7"/></svg>
+      </div>
+      <div class="mini-btn play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="mini-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 5l6 7-6 7"/><path d="M6 5l6 7-6 7"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <div class="navitem active">
+    <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    Início
+  </div>
+  <div class="navitem">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    Buscar
+  </div>
+  <div class="navitem">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M4 9h16"/></svg>
+    Categorias
+  </div>
+  <div class="navitem">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/></svg>
+    Perfil
+  </div>
+</div>
+
+</body>
+</html>

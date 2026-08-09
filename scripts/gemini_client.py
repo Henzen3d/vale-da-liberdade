@@ -303,36 +303,67 @@ class GeminiClient:
 class GeminiMultiClient:
     """Wrapper que intercala MÚLTIPLAS chaves Gemini (contas/projetos diferentes).
 
-    Cada chave tem sua prória quota (3 RPM / 10 RPD na AI Studio).
-    Se uma chave estoura (RuntimeError do rate-limit interno), tenta a
-    próxima chave da lista. Usado pelo TTS e pelo roteiro para
-    multiplicar a capacidade sem estourar cotas.
+    Cada chave tem sua própria quota (3 RPM / 10 RPD na AI Studio).
+
+    Estratégia (2026-08-03):
+      1. ROUND-ROBIN por chamada — chunk 1 → key1, chunk 2 → key2, …
+         Isso espalha RPM (3/min) e RPD (10/dia) entre as chaves, em vez
+         de esgotar a primeira e só então cair na segunda.
+      2. Se a chave escolhida estoura RPD/RPM/quota, tenta as demais em
+         ordem (failover). RPM local dorme dentro de GeminiClient antes
+         de levantar; RPD levanta RuntimeError e cai no failover.
+
+    Usado pelo TTS e pelo roteiro para multiplicar a capacidade.
     """
     def __init__(self, api_keys: list[str]):
         from typing import Any
         self._clients: list[Any] = [GeminiClient(api_key=k) for k in api_keys if k]
         if not self._clients:
             self._clients = [GeminiClient()]
+        self._rr_index = 0  # round-robin cursor
 
     @property
     def models(self):
         return _ModelsProxy(self)
 
     def generate_content(self, model: str, contents, config=None, **kwargs):
+        n = len(self._clients)
+        if n == 1:
+            return self._clients[0].generate_content(model, contents, config=config, **kwargs)
+
+        # Round-robin: começa na próxima chave e tenta as N em ordem cíclica
+        start = self._rr_index % n
+        self._rr_index = (self._rr_index + 1) % n
+
         last_exc = None
-        for client in self._clients:
+        for offset in range(n):
+            idx = (start + offset) % n
+            client = self._clients[idx]
+            key_hint = (client.api_key[:4] + "…" + client.api_key[-4:]) if len(getattr(client, "api_key", "") or "") >= 12 else f"#{idx}"
             try:
+                if offset == 0:
+                    log.info(f"RR key[{idx}] {key_hint} para {model}")
+                else:
+                    log.warning(f"Failover → key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
                 return client.generate_content(model, contents, config=config, **kwargs)
             except RuntimeError as exc:
                 msg = str(exc).lower()
                 # Quota/RPD estourada nesta chave → tenta a próxima
-                if "limite diário" in msg or "rpd" in msg or "quota" in msg:
-                    log.warning(f"Chave estourou quota: {exc} — tentando próxima chave...")
+                if "limite diário" in msg or "rpd" in msg or "quota" in msg or "resource_exhausted" in msg or "429" in msg:
+                    log.warning(f"Chave {key_hint} estourou quota: {exc} — tentando próxima...")
                     last_exc = exc
                     continue
                 raise
             except Exception as exc:
+                msg = str(exc).lower()
+                # 429 / resource exhausted da API Google também deve rotacionar
+                if "429" in msg or "resource_exhausted" in msg or "quota" in msg:
+                    log.warning(f"Chave {key_hint} 429/quota da API: {exc} — tentando próxima...")
+                    last_exc = exc
+                    continue
                 last_exc = exc
+                # Erros de rede/auth transitórios: tenta próxima; se todas falharem, re-raise
+                log.warning(f"Chave {key_hint} erro: {exc} — tentando próxima...")
                 continue
         raise last_exc or RuntimeError("Nenhuma chave Gemini disponível")
 

@@ -1,10 +1,21 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Falência Moral e Financeira das Estatais e o Triunfo das AgriTechs
 
-> Fonte: Visão Libertária
+> Fonte: Gazeta do Povo
 > URL do vídeo: https://www.youtube.com/watch?v=dId9ZQ7wLkc
 > Tags: economia, impostos, politica
 > video_id: dId9ZQ7wLkc
+
+> Referências:
+> - Gazeta do Povo: https://www.gazetadopovo.com.br/economia/petismo-leva-estatais-a-deficit-recorde-com-aparelhamento-e-filosofia-do-nao-lucro/
+> - G1: https://g1.globo.com/economia/noticia/2026/06/01/correios-registram-prejuizo-de-r-31-bilhoes-no-primeiro-trimestre-de-2026-aponta-relatorio.ghtml
+> - Revistaoeste: https://revistaoeste.com/agronegocio/interferencia-politica-nas-chefias-da-embrapa-ameaca-o-agronegocio-brasileiro/
+> - Gazeta do Povo: https://www.gazetadopovo.com.br/agronegocio/na-embrapa-sindicalizada-do-governo-lula-agronegocio-vira-tabu-e-meritocracia-perde-espaco/
+> - YouTube: https://www.youtube.com/watch?v=hxdzcYB_MO0
+> - X: https://x.com/cabreraagro/status/2080640730297499676
+> - Theagribiz: https://www.theagribiz.com/agronegocio/politica-agricola-agronegocio/a-embrapa-envelheceu-mas-uma-nova-ja-nasceu-longe-do-estado/
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-dId9ZQ7wLkc.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-dId9ZQ7wLkc.md
 
 ---
 

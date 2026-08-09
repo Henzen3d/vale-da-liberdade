@@ -75,7 +75,7 @@ FEED_JSON_PATH = PUBLIC / "feed.json"
 
 PAGE_SIZE = 12
 
-DEFAULT_SITE_URL = "https://radio.mob.tec.br"
+DEFAULT_SITE_URL = "https://news.mob.tec.br"
 
 PODCAST_TITLE = "Vale da Liberdade"
 PODCAST_AUTHOR = "Peter Albuquerque & Ricardo Souto"
@@ -799,6 +799,7 @@ def discover_especial_episodes() -> list[dict]:
             mtime = _os.path.getmtime(audio_path)
             pub_date = _datetime.fromtimestamp(mtime, tz=_timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000')
 
+        refs = data.get("fonte_referencias") or []
         eps.append({
             "id": f"especial-{video_id}",
             "date": date_str,
@@ -813,7 +814,13 @@ def discover_especial_episodes() -> list[dict]:
             "audio_url": audio_url,
             "script_url": script_url,
             "audio_bytes": audio_bytes,
-            "sources": [data.get("fonte_veiculo")] if data.get("fonte_veiculo") else [],
+            # Fonte do site = links da seção "Referências:" da descrição do
+            # YouTube (inclui os links do nosso próprio site: página do
+            # episódio + matéria transcrita).
+            "sources": [r.get("veiculo") for r in refs if r.get("veiculo")]
+            or ([data.get("fonte_veiculo")] if data.get("fonte_veiculo") else []),
+            "referencias": refs,
+            "share_url": f"./ep/especial-{video_id}.html",
             "cover_url": _thumbnail_url(date_str, f"bm_{video_id}"),
             "published_at": datetime.now().isoformat(timespec="seconds"),
         })
@@ -971,6 +978,8 @@ def publish(limit: int = 200, only_date: str | None = None) -> dict:
             ep["audio_url_abs"] = abs_url(ep["audio_url"])
         if ep.get("script_url"):
             ep["script_url_abs"] = abs_url(ep["script_url"])
+        if ep.get("share_url"):
+            ep["share_url_abs"] = abs_url(ep["share_url"])
         if ep.get("cover_url"):
             ep["cover_url_abs"] = abs_url(ep["cover_url"])
 

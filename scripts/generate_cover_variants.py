@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Gera variações da capa padrão (WebP + JPEG em 400/800/1200) a partir de
-new-ux/public/assets/cover.jpg.
+"""Gera variações da capa padrão (WebP + JPEG em 400/800/1200) a partir de
+public/assets/cover.jpg.
 
 NÃO roda no publish_site.py — executar **uma única vez** quando a capa mudar.
 Quando a feature futura de capa por episódio existir, aí sim o publish passa
@@ -9,7 +9,7 @@ a gerar variações automaticamente.
 
 Uso:
   python3 scripts/generate_cover_variants.py
-Saída: public/assets/cover-{400,800,1200}.{webp,jpg} + cópia em new-ux/public/assets/
+Saída: public/assets/cover-{400,800,1200}.{webp,jpg}
 """
 from __future__ import annotations
 
@@ -23,10 +23,9 @@ except ImportError:
     raise SystemExit(1)
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "new-ux" / "public" / "assets" / "cover.jpg"
+SRC = ROOT / "public" / "assets" / "cover.jpg"
 OUT_DIRS = [
     ROOT / "public" / "assets",
-    ROOT / "new-ux" / "public" / "assets",
 ]
 SIZES = [400, 800, 1200]
 WEBP_Q = 82

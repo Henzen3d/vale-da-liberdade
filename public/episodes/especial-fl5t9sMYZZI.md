@@ -1,10 +1,18 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## A Grande Mentira do Estado Sobre a Guerra do Paraguai
 
-> Fonte: ANCAP.SU
+> Fonte: G1
 > URL do vídeo: https://www.youtube.com/watch?v=fl5t9sMYZZI
 > Tags: política, guerras
 > video_id: fl5t9sMYZZI
+
+> Referências:
+> - G1: https://g1.globo.com/mundo/noticia/2026/07/31/governo-paraguaio-se-reune-com-embaixador-brasileiro-manifesta-desagrado-com-fala-de-lula.ghtml
+> - Poder360: https://www.poder360.com.br/poder-internacional/paraguai-pede-ao-brasil-devolucao-de-trofeus-da-guerra/
+> - Wikipédia: https://pt.wikipedia.org/wiki/Declara%C3%A7%C3%A3o_de_Independ%C3%AAncia_
+> - Wikipédia: https://pt.wikipedia.org/wiki/Guerra_do_Paraguai
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-fl5t9sMYZZI.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-fl5t9sMYZZI.md
 
 ---
 

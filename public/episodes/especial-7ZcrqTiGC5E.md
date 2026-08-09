@@ -1,10 +1,22 @@
 # BRASIL E MUNDO — Web Jornal Vale da Liberdade
 ## O Balcão de Negócios do Lulinha na Dataprev e a Farra do Tráfico de Influência
 
-> Fonte: ANCAP.SU
+> Fonte: CNN Brasil
 > URL do vídeo: https://www.youtube.com/watch?v=7ZcrqTiGC5E
 > Tags: política, corrupção, impostos, taxas e tarifas
 > video_id: 7ZcrqTiGC5E
+
+> Referências:
+> - CNN Brasil: https://www.cnnbrasil.com.br/blogs/matheus-teixeira/politica/pf-pede-e-mendonca-autoriza-inquerito-sobre-atuacao-de-lulinha-na-dataprev/
+> - 3structure: https://3structure.com.br/
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/em-dois-dias-mendonca-amplia-cerco-a-lulinha-e-atrito-com-a-pf-escala/
+> - CNN Brasil: https://www.cnnbrasil.com.br/politica/defesa-de-lulinha-avalia-pedir-julgamento-de-caso-na-1a-instancia/
+> - O Antagonista: https://oantagonista.com.br/analise/crusoe-cafezinho-com-moraes-foi-para-falar-de-lulinha/
+> - Veja: https://veja.abril.com.br/brasil/chefe-da-pf-vira-alvo-de-procedimento-no-stf-por-suposta-interferencia-no-caso-lulinha/
+> - Veja: https://veja.abril.com.br/politica/o-impacto-que-o-novo-capitulo-do-caso-lulinha-pode-ter-na-eleicao-segundo-cientista-politico/
+> - X: https://x.com/RomeuZema/status/2083325409312030760
+> - Vale da Liberdade (site): https://news.mob.tec.br/ep/especial-7ZcrqTiGC5E.html
+> - Vale da Liberdade (matéria transcrita): https://news.mob.tec.br/episodes/especial-7ZcrqTiGC5E.md
 
 ---
 

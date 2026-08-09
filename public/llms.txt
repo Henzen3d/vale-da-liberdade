@@ -1,15 +1,54 @@
-# Vale da Liberdade
+# Vale da Liberdade - Web Jornal
 
-> Web jornal diário em formato de podcast, com análise crítica sob viés libertário de notícias de Blumenau, Alto Vale e Santa Catarina, apresentado por Peter Albuquerque e Ricardo Souto.
+Para mais informações, visite nosso site principal: https://news.mob.tec.br
 
-Episódios diários cobrindo Jornalismo Diário, Brasil & Mundo, Investimentos, Tecnologia e Especiais. Peter Albuquerque traz a voz libertária/provocativa; Ricardo Souto, a voz conservadora racional/pragmática. Publicado como PWA instalável, com feed RSS/JSON padrão para agregadores e apps de podcast.
+## Sobre o Projeto
 
-## Conteúdo
+Web Jornal diário em formato de podcast sobre notícias de Blumenau, Alto Vale e Santa Catarina.
 
-- [Home](https://news.mob.tec.br/): página principal com o episódio do dia e histórico de episódios anteriores
-- [Feed RSS](https://news.mob.tec.br/feed.xml): feed padrão de podcast, compatível com Apple Podcasts, Spotify e demais agregadores
-- [Feed JSON](https://news.mob.tec.br/feed.json): mesmo catálogo em formato JSON Feed, para consumo programático
+### Apresentadores
+- Peter Albuquerque
+- Ricardo Souto
 
-## Optional
+### Formato
+- Episódios diários com análise crítica e viés libertário
+- Cobertura local: Blumenau, Alto Vale, Santa Catarina
+- Seções: Jornalismo Diário, Brasil & Mundo, Investimentos, Tecnologia, Especiais
 
-- [Manifesto PWA](https://news.mob.tec.br/manifest.webmanifest): metadados de instalação do app
+## Estrutura do Site
+
+### Endereços Principais
+- Home: /
+- Feed RSS: /feed.xml
+- Feed JSON: /feed.json
+- Manifesto PWA: /manifest.webmanifest
+
+### Assets
+- CSS: /assets/css/
+  - tokens.css: Design tokens (cores, tipografia, espaçamento)
+  - base.css: Estilos base e reset
+  - components.css: Componentes UI
+- JavaScript: /assets/js/
+  - app.js: Aplicação principal
+  - player.js: Player de áudio
+  - theme.js: Alternância de tema claro/escuro
+  - supabase_client.js: Cliente Supabase (auth e feedback)
+
+### Dados
+- Catálogo de episódios: /data/episodes.json
+
+## Tecnologias
+
+- HTML5/CSS3/JavaScript vanilla
+- PWA (Progressive Web App)
+- Supabase (autenticação e funções RPC)
+- Design System customizado com Geist, Inter e JetBrains Mono
+
+## Funcionalidades
+
+- Player de áudio flutuante (mini-player e modo expandido)
+- Sistema de feedback (like/dislike)
+- Compartilhamento de episódios
+- Filtro por categoria (tabs)
+- Tema claro/escuro
+- Navegação offline via Service Worker

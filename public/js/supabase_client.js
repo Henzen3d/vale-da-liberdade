@@ -27,21 +27,31 @@ function initSupabase() {
       flowType: "pkce",
     },
   });
+  // Exponha a instância para outros scripts (interaction_bar.js, supabase_client hooks, etc.)
   window.supabaseClient = supabaseClient;
 
   supabaseClient.auth.getSession().then(({ data }) => {
     currentUser = data?.session?.user || null;
     updateAuthUI(currentUser);
     if (currentUser) loadUserFeedback();
+    if (currentUser) loadProgress();
+  }).catch((err) => {
+    console.warn("[auth] getSession error:", err);
+    updateAuthUI(null);
   });
 
   supabaseClient.auth.onAuthStateChange((_event, session) => {
     currentUser = session ? session.user : null;
     updateAuthUI(currentUser);
     if (currentUser) loadUserFeedback();
+    if (currentUser) loadUserFavorites();
+    if (currentUser) loadProgress();
+    if (currentUser) syncSavedEpisodes();
     else {
       _userFeedback = {};
+      _userFavorites = {};
       applyThumbsToDom();
+      applyFavoritesToDom();
     }
   });
 }
@@ -66,7 +76,11 @@ async function signInWithGoogle() {
 
 async function signOutUser() {
   if (!supabaseClient) return;
-  await supabaseClient.auth.signOut();
+  try {
+    await supabaseClient.auth.signOut();
+  } catch (err) {
+    console.warn("[auth] signOut error:", err);
+  }
   currentUser = null;
   updateAuthUI(null);
 }
@@ -116,7 +130,8 @@ async function loadUserFeedback() {
     const { data, error } = await supabaseClient
       .from("user_feedback")
       .select("episode_date, thumbs_up, thumbs_down")
-      .eq("user_id", currentUser.id);
+      .eq("user_id", currentUser.id)
+      .limit(1000);
     if (error) throw error;
     _userFeedback = {};
     (data || []).forEach((row) => {
@@ -188,6 +203,269 @@ window.__supabaseSetThumbs = setThumbs;
 window.__supabaseLogEvent = logEvent;
 window.__supabaseApplyThumbs = applyThumbsToDom;
 
+// ---------- Favoritos ----------
+let _userFavorites = {}; // date → true
+
+/* LOTE 6 (3.3): sync de "Ouvir depois" no login — puxa os remotos e empurra
+ * os locais (merge por união; nunca apaga). Roda fire-and-forget. */
+async function syncSavedEpisodes() {
+  if (!currentUser || !supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from("user_saved_episodes")
+      .select("episode_date")
+      .eq("user_id", currentUser.id)
+      .limit(500);
+    if (error) throw error;
+
+    const remote = new Set((data || []).map((r) => r.episode_date));
+    const local = (typeof window.InteractionBar?.getSavedEpisodes === "function")
+      ? window.InteractionBar.getSavedEpisodes()
+      : [];
+
+    // Puxa remotos → local
+    const merged = new Set(local);
+    remote.forEach((d) => merged.add(d));
+    if (typeof window.InteractionBar?.setSavedEpisodes === "function") {
+      window.InteractionBar.setSavedEpisodes([...merged]);
+    }
+
+    // Empurra locais que faltam no servidor
+    const toPush = [...merged].filter((d) => !remote.has(d));
+    if (toPush.length) {
+      try {
+        await supabaseClient
+          .from("user_saved_episodes")
+          .insert(toPush.map((episode_date) => ({ user_id: currentUser.id, episode_date })));
+      } catch (err) {
+        console.warn("[saved] push local→server:", err);
+      }
+    }
+  } catch (err) {
+    console.warn("[saved] sync:", err);
+  }
+}
+
+async function loadUserFavorites() {
+  if (!currentUser || !supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from("user_favorites")
+      .select("episode_date")
+      .eq("user_id", currentUser.id)
+      .limit(500);
+    if (error) throw error;
+    _userFavorites = {};
+    (data || []).forEach((row) => {
+      _userFavorites[row.episode_date] = true;
+    });
+    applyFavoritesToDom();
+  } catch (err) {
+    console.warn("[auth] favorites load:", err);
+  }
+}
+
+function applyFavoritesToDom() {
+  document.querySelectorAll("#fullFavBtn").forEach((btn) => {
+    const date = btn.dataset.favDate;
+    if (!date) return;
+    btn.classList.toggle("active", !!_userFavorites[date]);
+  });
+  // LOTE 5 (3.4): avisa o app (lista de favoritos no drawer) que o conjunto mudou
+  try {
+    window.dispatchEvent(new CustomEvent("favoriteschange"));
+  } catch { /* non-blocking */ }
+}
+
+async function toggleFavoriteEpisode(date, title) {
+  if (!currentUser || !supabaseClient) {
+    throw new Error("not_authenticated");
+  }
+  const isFav = !!_userFavorites[date];
+  try {
+    if (isFav) {
+      const { error } = await supabaseClient
+        .from("user_favorites")
+        .delete()
+        .match({ user_id: currentUser.id, episode_date: date });
+      if (error) throw error;
+      delete _userFavorites[date];
+    } else {
+      const { error } = await supabaseClient
+        .from("user_favorites")
+        .insert({ user_id: currentUser.id, episode_date: date, title });
+      if (error) throw error;
+      _userFavorites[date] = true;
+    }
+    applyFavoritesToDom();
+    return { favorited: !isFav };
+  } catch (err) {
+    console.warn("[auth] toggleFavorite:", err);
+    throw err;
+  }
+}
+
+// ---------- Progresso de audição (UX-009) ----------
+let _progressSaveQueue = Promise.resolve();
+
+async function loadProgress() {
+  if (!currentUser || !supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from("episode_progress")
+      .select("episode_id, episode_date, progress_seconds, duration_seconds, percent, completed, first_played_at, last_played_at, completed_at")
+      .eq("user_id", currentUser.id)
+      .order("last_played_at", { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    if (typeof window.ListenProgress === "undefined") return;
+    // Merge no store local: maior progresso vence por episode_id.
+    const behindIds = window.ListenProgress.mergeServer(data || []);
+    // Empurra progresso local que está à frente do servidor (nunca regride:
+    // o RPC usa GREATEST no servidor).
+    for (const id of behindIds || []) {
+      const rec = window.ListenProgress.get(id);
+      if (!rec) continue;
+      try {
+        await supabaseClient.rpc("fn_upsert_episode_progress", {
+          p_episode_id: id,
+          p_episode_date: rec.episode_date || "",
+          p_progress_seconds: rec.progress_seconds,
+          p_duration_seconds: rec.duration_seconds || 0,
+        });
+      } catch (err) {
+        console.warn("[progress] push local→server:", err);
+      }
+    }
+  } catch (err) {
+    console.warn("[progress] load:", err);
+  }
+}
+
+function saveProgress(episodeId, episodeDate, progressSeconds, durationSeconds) {
+  if (!currentUser || !supabaseClient || !episodeId) return Promise.resolve(null);
+  // Serializa saves do mesmo episódio para não enviar ordem trocada
+  _progressSaveQueue = _progressSaveQueue
+    .then(() =>
+      supabaseClient.rpc("fn_upsert_episode_progress", {
+        p_episode_id: episodeId,
+        p_episode_date: episodeDate || "",
+        p_progress_seconds: Math.max(0, Math.floor(progressSeconds || 0)),
+        p_duration_seconds: Math.max(0, Math.floor(durationSeconds || 0)),
+      })
+    )
+    .then(({ data, error }) => {
+      if (error) throw error;
+      return data;
+    })
+    .catch((err) => {
+      console.warn("[progress] save:", err.message || err);
+      return null;
+    });
+  return _progressSaveQueue;
+}
+
+window.toggleFavoriteEpisode = toggleFavoriteEpisode;
+window.__supabaseLoadProgress = loadProgress;
+window.__supabaseSaveProgress = saveProgress;
+/* LOTE 5 (3.4): acesso ao conjunto de favoritos p/ a lista do drawer */
+window.__supabaseGetFavorites = () => Object.keys(_userFavorites);
+window.__supabaseIsLoggedIn = () => !!currentUser;
+/* LOTE 6 (3.3): id do usuário p/ sync de "Ouvir depois" (interaction_bar) */
+window.__supabaseUserId = () => currentUser ? currentUser.id : null;
+
+/* LOTE 4: Newsletter real — insere e-mail em newsletter_subscribers (anon INSERT via RLS).
+ * Retorna { ok, error? }. Sem supabaseClient disponível, resolve com erro. */
+async function subscribeNewsletter(email, source = "site") {
+  const value = String(email || "").trim().toLowerCase();
+  if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return { ok: false, error: "email inválido" };
+  }
+  if (!supabaseClient) {
+    return { ok: false, error: "serviço indisponível" };
+  }
+  try {
+    const { error } = await supabaseClient
+      .from("newsletter_subscribers")
+      .insert({ email: value, source });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message || String(err) };
+  }
+}
+window.subscribeNewsletter = subscribeNewsletter;
+
+/* LOTE 6 (6.3): Ads dinâmicos via Supabase — interstitial e sidebar.
+ * Busca o criativo ativo (RPC fn_get_active_ad) e registra eventos
+ * (impression/click/skip/error) em ad_events. Sem supabaseClient, resolve null. */
+async function fetchActiveAd(format = "audio") {
+  if (!supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient.rpc("fn_get_active_ad", {
+      p_format: format || null,
+    });
+    if (error) throw error;
+    return data || null;
+  } catch (err) {
+    console.warn("[ads] fetchActiveAd:", err);
+    return null;
+  }
+}
+window.__supabaseFetchActiveAd = fetchActiveAd;
+
+function recordAdEvent(creativeId, campaignId, eventType, sessionId) {
+  if (!supabaseClient || !creativeId) return;
+  try {
+    supabaseClient
+      .rpc("fn_record_ad_event", {
+        p_creative_id: creativeId,
+        p_campaign_id: campaignId || null,
+        p_event_type: eventType,
+        p_session_id: sessionId || null,
+      })
+      .then(() => {})
+      .catch((err) => console.warn("[ads] recordAdEvent:", err));
+  } catch (err) {
+    console.warn("[ads] recordAdEvent:", err);
+  }
+}
+window.__supabaseRecordAdEvent = recordAdEvent;
+
+/* MONETIZAÇÃO: busca configuração pública do AdSense (fn_get_monetization_config).
+ * Retorna o primeiro objeto do array (ou o próprio objeto); null em caso de erro. */
+async function fetchMonetizationConfig() {
+  if (!supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient.rpc("fn_get_monetization_config");
+    if (error) throw error;
+    // RPC pode retornar array ou objeto único dependendo da versão do SDK
+    return Array.isArray(data) ? (data[0] || null) : (data || null);
+  } catch (err) {
+    console.warn("[monetization] fetchMonetizationConfig:", err);
+    return null;
+  }
+}
+window.__supabaseFetchMonetizationConfig = fetchMonetizationConfig;
+
+/* MONETIZAÇÃO: busca patrocinadores por datas de episódio (get_episode_sponsors).
+ * episodeDates: array de strings ou null → retorna mapa date→sponsors (objeto).
+ * Em caso de erro retorna {} para não quebrar o fluxo. */
+async function fetchEpisodeSponsors(episodeDates = null) {
+  if (!supabaseClient) return {};
+  try {
+    const { data, error } = await supabaseClient.rpc("get_episode_sponsors", {
+      p_episode_dates: Array.isArray(episodeDates) ? episodeDates : null,
+    });
+    if (error) throw error;
+    return data || {};
+  } catch (err) {
+    console.warn("[monetization] fetchEpisodeSponsors:", err);
+    return {};
+  }
+}
+window.__supabaseFetchEpisodeSponsors = fetchEpisodeSponsors;
+
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (m) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])
@@ -195,4 +473,8 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) { return escapeHtml(s).replace(/`/g, ""); }
 
-document.addEventListener("DOMContentLoaded", initSupabase);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSupabase);
+} else {
+  initSupabase();
+}

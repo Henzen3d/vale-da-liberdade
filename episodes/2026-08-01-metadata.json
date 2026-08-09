@@ -122,5 +122,43 @@
       "⚠️ Roteiro longo (3017 palavras) — meta: 2000-2500 palavras (~15 min)"
     ],
     "passou": true
+  },
+  "thumbnail": {
+    "path": "thumbnails/2026-08-01/bm_eDavAhd5-M0.webp",
+    "image_model_used": "qwen-image-2.0-pro",
+    "prompt_model_used": "gemini-3.6-flash",
+    "image_prompt": "Minimalist editorial photography, high contrast black and white with a single burnt amber color accent. A conceptual composition featuring a subtle matte dark gray balance scale against a stark black background. On the elevated side of the scale, numerous delicate glowing burnt amber coins gather in a clear glass vessel, representing voluntary crowd contributions. On the lowered side, a heavy, monolithic dark metal safe box creates stark tension. Dramatic studio lighting, deep shadows, clean lines, minimalist visual symbolism, 16:9 landscape, no text, no letters, no typography, no words, editorial news aesthetic, subtle film grain, cinematic 35mm lens",
+    "fallback_level": 1,
+    "is_placeholder": false,
+    "generated_at": "2026-08-08T13:03:22.941649-03:00",
+    "estimated_cost_usd": 0.04,
+    "generation_attempts": [
+      {
+        "model": "qwen-image-3.0",
+        "status": "failed",
+        "detail": "rate_limited HTTP 429: Throttling.RateQuota Requests rate limit exceeded, please try again later. For details, see: https://www.alibabacloud.com/help/en/model-studio/error-code#rate-limit"
+      },
+      {
+        "model": "qwen-image-2.0-pro",
+        "status": "success",
+        "latency_ms": 13705,
+        "attempt": 1
+      }
+    ],
+    "headline": "Financiamento Voluntário vs. O Assalto do Fundão Eleitoral",
+    "quota_remaining_today": {
+      "qwen-image-3.0": 8,
+      "qwen-image-2.0-pro": 24,
+      "qwen-image-max": 40,
+      "qwen-image-2.0": 50,
+      "qwen-image-plus": 80,
+      "wan2.7-image-pro": 30,
+      "wan2.7-image": 40,
+      "z-image-turbo": 100
+    },
+    "path_jpg": "thumbnails/2026-08-01/bm_eDavAhd5-M0.jpg",
+    "width": 1280,
+    "height": 720,
+    "bytes_webp": 32600
   }
 }
