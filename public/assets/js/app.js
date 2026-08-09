@@ -1,369 +1,72 @@
-/* Vale da Liberdade — Coordinador de la Aplicación (PWA) */
-(() => {
-  const DATA_URL = "./data/episodes.json";
-  const $ = (sel, el = document) => el.querySelector(sel);
-  const $$ = (sel, el = document) => el.querySelectorAll(sel);
-
-  const state = {
-    episodes: [],
-    currentId: null,
-    deferredPrompt: null,
-    activeTab: "diario",
-  };
-
-  // Referencias a los elementos del DOM
-  const els = {
-    todayShell: $("#todayShell"),
-    timeline: $("#timeline"),
-    feedEnd: $("#feedEnd"),
-    btnRefresh: $("#btnRefresh"),
-    btnInstall: $("#btnInstall"),
-    tabs: $$(".tab-btn"),
-
-    // Menu Lateral (Side Drawer)
-    btnMenu: $("#btnMenu"),
-    drawerOverlay: $("#sideDrawerOverlay"),
-    drawerCloseBtn: $("#drawerCloseBtn"),
-    drawerThemeToggleBtn: $("#drawerThemeToggleBtn"),
-    drawerThemeLabel: $("#drawerThemeLabel"),
-    drawerNavItems: $$(".drawer-nav-item"),
-
-    // Mini Player
-    mini: $("#miniPlayer"),
-    miniCover: $("#miniCover"),
-    miniOpenFull: $("#miniOpenFull"),
-    miniPlay: $("#miniPlay"),
-    miniTitle: $("#miniTitle"),
-    miniSub: $("#miniSub"),
-    miniProgressFill: $(".mini-progress-fill"),
-    miniSeekBar: $("#miniSeekBar"),
-    miniSkipBack: $("#miniSkipBack"),
-    miniSkipForward: $("#miniSkipForward"),
-    miniExpand: $("#miniExpand"),
-
-    // Expanded Player
-    fullOverlay: $("#fullPlayerOverlay"),
-    fullClose: $("#fullPlayerClose"),
-    fullModalThemeToggle: $("#fullModalThemeToggle"),
-    fullCover: $("#fullCover"),
-    fullTitle: $("#fullEpisodeTitle"),
-    fullMeta: $("#fullEpisodeMeta"),
-    fullSlider: $("#fullScrubberSlider"),
-    fullCurrentTime: $("#fullCurrentTime"),
-    fullTotalDuration: $("#fullTotalDuration"),
-    fullPlayPause: $("#fullPlayPause"),
-    fullPrevEp: $("#fullPrevEp"),
-    fullNextEp: $("#fullNextEp"),
-    fullSkipBack: $("#fullSkipBack"),
-    fullSkipForward: $("#fullSkipForward"),
-    fullSpeedPill: $("#fullSpeedPill"),
-    fullFav: $("#fullFavBtn"),
-    fullShowNotes: $("#fullShowNotesContainer")
-  };
-
-  const QUADRO_LABEL = {
-    seguranca: "#segurança",
-    saude: "#saúde",
-    educacao: "#educação",
-    politica: "#política",
-    esportes: "#esportes",
-    brasil: "#brasil",
-    mundo: "#mundo",
-    rapidinhas: "#rapidinhas",
-  };
-
-  function formatDateBR(iso) {
-    if (!iso) return "";
-    const [y, m, d] = iso.split("-").map(Number);
-    try {
-      return new Date(y, m - 1, d).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return iso;
-    }
-  }
-
-  function formatDuration(min) {
-    if (!min && min !== 0) return "—";
-    const total = Math.round(Number(min) * 60);
-    const m = Math.floor(total / 60);
-    const s = total % 60;
-    if (m >= 60) {
-      const h = Math.floor(m / 60);
-      return `${h}h ${m % 60}min`;
-    }
-    return `${m} min`;
-  }
-
-  function fmtClock(sec) {
-    if (!Number.isFinite(sec)) return "0:00";
-    const s = Math.max(0, Math.floor(sec));
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    return `${m}:${String(r).padStart(2, "0")}`;
-  }
-
-  function episodeUrl(ep) {
-    try {
-      const u = new URL(window.location.origin);
-      u.hash = `ep-${ep.id}`;
-      return u.href;
-    } catch {
-      return window.location.origin + "/";
-    }
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  const SVG_CHEVRON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:4px"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
-  const SVG_PLAY = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
-  const SVG_PAUSE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
-  const SVG_FULL_PLAY = `<svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:3px"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>`;
-  const SVG_FULL_PAUSE = `<svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
-  const SVG_MINI_PLAY = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>`;
-  const SVG_MINI_PAUSE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
-
-  function renderShowNotes(manchetes) {
-    if (!manchetes || !manchetes.length) return "";
-    return `
+(()=>{const DATA_URL="./data/episodes.json";const $=(sel,el=document)=>el.querySelector(sel);const $$=(sel,el=document)=>el.querySelectorAll(sel);const state={episodes:[],currentId:null,deferredPrompt:null,activeTab:"diario",hideDone:false,searchQuery:"",activeTag:null,feedStatus:"loading",};const HIDE_DONE_KEY="vld_"+"hide_"+"done";const EPISODES_CACHE_KEY="vld_"+"episodes_"+"cache";const FEED_TITLE={diario:"Jornal Diário",todos:"Todos os episódios",bm:"Brasil e Mundo",especial:"Brasil e Mundo",investimentos:"Investimentos",tecnologia:"Tecnologia",favoritos:"Meus Favoritos",};const els={todayShell:$("#todayShell"),timeline:$("#timeline"),feedEnd:$("#feedEnd"),feedHeadTitle:$("#feedHeadTitle"),hideDoneToggle:$("#hideDoneToggle"),continueRail:$("#continueRail"),continueRailList:$("#continueRailList"),resumeStrip:$("#resumeStrip"),resumeStripBtn:$("#resumeStripBtn"),resumeStripTitle:$("#resumeStripTitle"),resumeStripMeta:$("#resumeStripMeta"),countDiario:$("#countDiario"),countBm:$("#countBm"),btnRefresh:$("#btnRefresh"),btnInstall:$("#btnInstall"),btnSearch:$("#btnSearch"),searchPanel:$("#searchPanel"),searchInput:$("#searchInput"),searchClear:$("#searchClear"),tabs:$$(".tab-btn"),btnMenu:$("#btnMenu"),drawerOverlay:$("#sideDrawerOverlay"),drawerCloseBtn:$("#drawerCloseBtn"),drawerThemeToggleBtn:$("#drawerThemeToggleBtn"),drawerThemeLabel:$("#drawerThemeLabel"),drawerNavItems:$$(".drawer-nav-item"),mini:$("#miniPlayer"),miniCover:$("#miniCover"),miniOpenFull:$("#miniOpenFull"),miniPlay:$("#miniPlay"),miniTitle:$("#miniTitle"),miniSub:$("#miniSub"),miniProgressFill:$(".mini-progress-fill"),miniSeekBar:$("#miniSeekBar"),miniSkipBack:$("#miniSkipBack"),miniSkipForward:$("#miniSkipForward"),miniExpand:$("#miniExpand"),fullOverlay:$("#fullPlayerOverlay"),fullClose:$("#fullPlayerClose"),fullModalThemeToggle:$("#fullModalThemeToggle"),fullFullscreen:$("#fullFullscreenBtn"),fullCover:$("#fullCover"),fullTitle:$("#fullEpisodeTitle"),fullMeta:$("#fullEpisodeMeta"),fullSlider:$("#fullScrubberSlider"),fullProgressWave:$("#fullProgressWave"),fullCurrentTime:$("#fullCurrentTime"),fullTotalDuration:$("#fullTotalDuration"),fullPlayPause:$("#fullPlayPause"),fullPrevEp:$("#fullPrevEp"),fullNextEp:$("#fullNextEp"),fullSkipBack:$("#fullSkipBack"),fullSkipForward:$("#fullSkipForward"),fullSpeedPill:$("#fullSpeedPill"),fullSleepTimer:$("#fullSleepTimer"),fullShare:$("#fullShareBtn"),fullUpNext:$("#fullUpNext"),fullUpNextTitle:$("#fullUpNextTitle"),fullHeadlines:$("#fullHeadlines"),fullHeadlinesToggle:$("#fullHeadlinesToggle"),fullHeadlinesList:$("#fullHeadlinesList"),fullShowNotes:$("#fullShowNotesContainer")};const WAVE_STACK=[{fill:"#e8a23d",amp:6.5,base:6,omega:0.75,thick:7},{fill:"#dcacf9",amp:7.0,base:15,omega:0.50,thick:7},{fill:"#f2bd6d",amp:6.5,base:24,omega:0.65,thick:7},];function buildProgressWave(host){if(!host||host.dataset.waveReady==="1")return;const NS="http://www.w3.org/2000/svg";const VIEW_W=480;const VIEW_H=40;const LAMBDA=80;const SAMPLES=60;const SPAN=VIEW_W+LAMBDA;function ribbonPath(ly,phase){let d="";for(let i=0;i<=SAMPLES;i++){const x=(i/SAMPLES)*SPAN;const t=2*Math.PI*(x/LAMBDA);const yTop=ly.base+ly.amp*Math.sin(t+phase);const yBot=yTop+ly.thick+ly.amp*0.45*Math.sin(t*1.7+phase+1.2);d+=(i?"L":"M")+x.toFixed(2)+" "+yTop.toFixed(2)+" ";}
+for(let i=SAMPLES;i>=0;i--){const x=(i/SAMPLES)*SPAN;const t=2*Math.PI*(x/LAMBDA);const yTop=ly.base+ly.amp*Math.sin(t+phase);const yBot=yTop+ly.thick+ly.amp*0.45*Math.sin(t*1.7+phase+1.2);d+="L"+x.toFixed(2)+" "+yBot.toFixed(2)+" ";}
+d+="Z";return d;}
+function buildStack(isPlayed){const svg=document.createElementNS(NS,"svg");svg.setAttribute("viewBox",`0 0 ${VIEW_W} ${VIEW_H}`);svg.setAttribute("preserveAspectRatio","none");svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");svg.setAttribute("class",isPlayed?"wave-layer wave-layer--played":"wave-layer wave-layer--base");const chip=document.createElementNS(NS,"rect");chip.setAttribute("class","wave-chip");chip.setAttribute("x","0");chip.setAttribute("y","0");chip.setAttribute("width",String(VIEW_W));chip.setAttribute("height",String(VIEW_H));chip.setAttribute("rx","6");svg.appendChild(chip);WAVE_STACK.forEach((ly,i)=>{const g=document.createElementNS(NS,"g");g.setAttribute("class","wave-ribbon");const path=document.createElementNS(NS,"path");path.setAttribute("d",ribbonPath(ly,isPlayed?i*0.9+0.3:i*0.9));path.setAttribute("fill",ly.fill);if(!isPlayed)path.setAttribute("opacity","0.45");g.appendChild(path);svg.appendChild(g);});return svg;}
+host.replaceChildren();host.appendChild(buildStack(false));host.appendChild(buildStack(true));host.dataset.waveReady="1";if(!host.style.getPropertyValue("--progress")){host.style.setProperty("--progress","0%");}}
+function setWaveProgress(pct){const p=Math.min(100,Math.max(0,Number(pct)||0));const val=`${p}%`;if(els.fullProgressWave)els.fullProgressWave.style.setProperty("--progress",val);if(els.fullSlider)els.fullSlider.style.setProperty("--progress",val);if(els.miniSeekBar)els.miniSeekBar.setAttribute("aria-valuenow",String(Math.round(p)));}
+function initProgressWaves(){buildProgressWave(els.fullProgressWave);}
+const QUADRO_LABEL={seguranca:"#segurança",saude:"#saúde",educacao:"#educação",politica:"#política",esportes:"#esportes",brasil:"#brasil",mundo:"#mundo",rapidinhas:"#rapidinhas",};function formatDateBR(iso){if(!iso)return"";const[y,m,d]=iso.split("-").map(Number);try{return new Date(y,m-1,d).toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric",});}catch{return iso;}}
+function formatDuration(min){if(!min&&min!==0)return"—";const total=Math.round(Number(min)*60);const m=Math.floor(total/60);const s=total%60;if(m>=60){const h=Math.floor(m/60);return`${h}h ${m % 60}min`;}
+return`${m} min`;}
+function fmtClock(sec){if(!Number.isFinite(sec))return"0:00";const s=Math.max(0,Math.floor(sec));const m=Math.floor(s/60);const r=s%60;return`${m}:${String(r).padStart(2, "0")}`;}
+function episodeUrl(ep){const id=(ep&&ep.id)||"";return window.location.origin+"/ep/"+encodeURIComponent(id)+".html";}
+async function shareEpisode(date){const ep=state.episodes.find((x)=>x.id===date);const title=ep?.title||"Vale da Liberdade";const manchetes=(ep?.manchetes||[]).slice(0,2).join(" · ");const shareText=manchetes?`🎧 ${title}\n${manchetes}\nOuça no Vale da Liberdade`:`🎧 ${title}\nOuça no Vale da Liberdade`;const url=episodeUrl(ep||{id:date});let files=null;try{const thumb=ep?.cover_url_abs||(ep?.cover_url?new URL(ep.cover_url,window.location.origin).href:"")||(ep?.date?`${window.location.origin}/thumbnails/${ep.date}/${ep.id.startsWith("especial-") ? ep.id.replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"");if(thumb&&navigator.canShare){const blob=await(await fetch(thumb,{cache:"reload"})).blob();const file=new File([blob],`vld_${date}.webp`,{type:blob.type||"image/webp"});if(navigator.canShare({files:[file]})){files=[file];}}}catch(e){console.warn("[share] thumbnail:",e);}if(navigator.share){try{if(files){await navigator.share({title,text:shareText,url,files});}else{await navigator.share({title,text:shareText,url});}showToast("Compartilhado!");}catch(err){if(String(err).includes("AbortError"))return;navigator.clipboard?.writeText(`${shareText}\n${url}`).then(()=>showToast("Link copiado para compartilhar")).catch((err)=>console.warn("[share] clipboard failed:",err));}}else{navigator.clipboard?.writeText(`${shareText}\n${url}`).then(()=>showToast("Link copiado para compartilhar")).catch((err)=>console.warn("[share] clipboard failed:",err));}if(typeof window.__supabaseLogEvent==="function"){window.__supabaseLogEvent("share",date);}}
+function handleDeepLink(){if(!state.episodes.length)return;let targetId=null;try{targetId=new URLSearchParams(window.location.search).get("ep");}catch{}
+if(!targetId)return;const ep=findEp(targetId)||state.episodes.find((e)=>e.date===targetId);if(ep&&ep.audio_url){playEpisode(ep.id);}}
+function escapeHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+const SVG_CHEVRON=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:4px"><polyline points="9 18 15 12 9 6"></polyline></svg>`;const SVG_PLAY=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;const SVG_PAUSE=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;const SVG_FULL_PLAY=`<svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:3px"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>`;const SVG_FULL_PAUSE=`<svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;const SVG_MINI_PLAY=`<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>`;const SVG_MINI_PAUSE=`<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;function renderShowNotes(manchetes){if(!manchetes||!manchetes.length)return"";return`
       <div class="shownotes-list">
-        ${manchetes.map(m => `
-          <div class="shownote-item">
-            <span class="shownote-icon">${SVG_CHEVRON}</span>
-            <div class="shownote-content">
-              <strong>${escapeHtml(m)}</strong>
-            </div>
-          </div>
-        `).join("")}
-      </div>`;
-  }
-
-  function tagsHtml(quadros = []) {
-    return (quadros || [])
-      .slice(0, 5)
-      .map((q) => {
-        const label = QUADRO_LABEL[q] || `#${q}`;
-        return `<span class="tag">${escapeHtml(label)}</span>`;
-      })
-      .join("");
-  }
-
-  function linksHtml(ep) {
-    const url = episodeUrl(ep);
-    const date = escapeHtml(ep.date);
-    const icons = {
-      share: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`,
-      like: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`,
-      dislike: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`,
-      copy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`
-    };
-    return `
+        ${manchetes.map(m => `<div class="shownote-item"><span class="shownote-icon">${SVG_CHEVRON}</span><div class="shownote-content"><strong>${escapeHtml(m)}</strong></div></div>`).join("")}
+      </div>`;}
+function tagsHtml(quadros=[]){return(quadros||[]).slice(0,5).map((q)=>{const key=String(q).toLowerCase();const label=QUADRO_LABEL[key]||`#${q}`;const active=state.activeTag===key?" tag-active":"";return`<span class="tag${active}" data-tag="${escapeHtml(key)}" role="button" tabindex="0" aria-pressed="${active ? "true" : "false"}">${escapeHtml(label)}</span>`;}).join("");}
+function linksHtml(ep){const url=episodeUrl(ep);const date=escapeHtml(ep.id||ep.date);const icons={share:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`,like:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,dislike:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`,copy:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`};return`
       <button type="button" class="card-icon" data-action="copy" data-date="${date}" data-url="${escapeHtml(url)}" aria-label="Copiar link" title="Copiar link">${icons.copy}</button>
       <button type="button" class="card-icon" data-action="share" data-date="${date}" data-url="${escapeHtml(url)}" aria-label="Compartilhar" title="Compartilhar">${icons.share}</button>
       <button type="button" class="card-icon like" data-action="like" data-date="${date}" aria-label="Gostei" title="Gostei">${icons.like}</button>
-      <button type="button" class="card-icon dislike" data-action="dislike" data-date="${date}" aria-label="Não gostei" title="Não gostei">${icons.dislike}</button>`;
-  }
-
-  // SVGs para linha de ação (§6.7)
-  const SVG_ACTION_PLAY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
-  const SVG_ACTION_SHARE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`;
-  const SVG_ACTION_SAVE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
-  const SVG_ACTION_COPY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-
-  function feedActionRowHtml(epId, epDate, epUrl) {
-    return `
+      <button type="button" class="card-icon dislike" data-action="dislike" data-date="${date}" aria-label="Não gostei" title="Não gostei">${icons.dislike}</button>`;}
+const SVG_ACTION_PLAY=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;const SVG_ACTION_SHARE=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`;const SVG_ACTION_HEART=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;const SVG_ACTION_COPY=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;const SVG_ACTION_VIEWS=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V12"></path><path d="M10 19V5"></path><path d="M16 19V9"></path><path d="M22 19V3"></path></svg>`;function feedActionRowHtml(epId,epDate,epUrl){return`
       <div class="feed-action-row" role="toolbar" aria-label="Ações do episódio">
         <button type="button" class="feed-action-btn" data-play="${escapeHtml(epId)}" aria-label="Ouvir episódio">${SVG_ACTION_PLAY}</button>
-        <button type="button" class="feed-action-btn" data-action="share" data-date="${escapeHtml(epDate)}" data-url="${escapeHtml(epUrl)}" aria-label="Compartilhar">${SVG_ACTION_SHARE}</button>
-        <button type="button" class="feed-action-btn" data-action="copy" data-date="${escapeHtml(epDate)}" data-url="${escapeHtml(epUrl)}" aria-label="Copiar link">${SVG_ACTION_COPY}</button>
-        <button type="button" class="feed-action-btn" data-action="save" data-date="${escapeHtml(epDate)}" aria-label="Salvar">${SVG_ACTION_SAVE}</button>
-      </div>`;
-  }
-
-  function renderToday(ep) {
-    if (!ep) {
-      els.todayShell.innerHTML = `
+        <button type="button" class="feed-action-btn" data-action="share" data-date="${escapeHtml(epId)}" data-url="${escapeHtml(epUrl)}" aria-label="Compartilhar">${SVG_ACTION_SHARE}</button>
+        <button type="button" class="feed-action-btn" data-action="copy" data-date="${escapeHtml(epId)}" data-url="${escapeHtml(epUrl)}" aria-label="Copiar link">${SVG_ACTION_COPY}</button>
+        <button type="button" class="feed-action-btn" data-action="like" data-date="${escapeHtml(epId)}" aria-label="Curtir">${SVG_ACTION_HEART}</button>
+        <span class="feed-action-views" data-episode="${escapeHtml(epId)}" aria-label="Visualizações">${SVG_ACTION_VIEWS}<span class="views-count">—</span></span>
+      </div>`;}
+function renderToday(ep){if(!ep){els.todayShell.innerHTML=`
         <div class="empty-today" style="padding: var(--space-5) var(--space-4); color: var(--color-ink-muted);">
           <h2 style="font-size:1.1rem;margin-bottom:8px">Sem episódio publicado</h2>
           <p>Rode o pipeline para gerar o episódio do dia.</p>
-        </div>`;
-      // PERF-004/009: libera o placeholder de CLS quando o empty state chega
-      els.todayShell.classList.remove("is-loading");
-      return;
-    }
-
-    const isEspecial = ep.type === "especial";
-    const kickerText = isEspecial ? "ESPECIAL · BRASIL & MUNDO" : "DESTAQUE DO DIA";
-    const epLabel = isEspecial ? "Peter Solo" : `Ep. ${escapeHtml(ep.episode ?? "—")}`;
-    const epUrl = episodeUrl(ep);
-    // Capa por episódio ainda não implementada — usa variações da capa padrão (geradas 1x por scripts/generate_cover_variants.py)
-    const isCustomCover = Boolean(ep.cover_url);
-    const heroWebpSet = isCustomCover ? null : "./assets/cover-400.webp 400w, ./assets/cover-800.webp 800w, ./assets/cover-1200.webp 1200w";
-    const heroJpgSet = isCustomCover ? null : "./assets/cover-400.jpg 400w, ./assets/cover-800.jpg 800w, ./assets/cover-1200.jpg 1200w";
-    const heroSizes = "(min-width: 1024px) 45vw, (min-width: 768px) 45vw, 100vw";
-    // fallback universal: JPEG (trocado a pedido — JPG é suportado em todo lugar)
-    const heroBackstop = isCustomCover ? ep.cover_url : "./assets/cover-800.jpg";
-
-    let excerptText = ep.excerpt || "Uma análise profunda sobre os principais acontecimentos do Vale da Liberdade e Santa Catarina.";
-    if (!isEspecial && ep.manchetes && ep.manchetes.length) {
-      excerptText = ep.manchetes.slice(0, 3).join(" · ");
-    }
-
-    const heroImgMarkup = isCustomCover
-      ? `<img src="${ep.cover_url}" alt="${escapeHtml(ep.title || 'Capa do Episódio')}" class="hero-cover-img" fetchpriority="high" decoding="async" onError="this.onerror=null;this.src='./assets/cover-800.jpg'" />`
-      : `<picture>
-          <source type="image/webp" srcset="${heroWebpSet}" sizes="${heroSizes}">
-          <source type="image/jpeg" srcset="${heroJpgSet}" sizes="${heroSizes}">
-          <img src="${heroBackstop}" alt="${escapeHtml(ep.title || 'Capa do Episódio')}" class="hero-cover-img" width="800" height="800" fetchpriority="high" decoding="sync" onError="this.onerror=null;this.src='./assets/cover.jpg'" />
-        </picture>`;
-
-    els.todayShell.innerHTML = `
-      <article class="hero-card" data-id="${escapeHtml(ep.id)}">
-        <!-- Badge Destaque -->
+        </div>`;els.todayShell.classList.remove("is-loading");return;}
+const isEspecial=ep.type==="especial";const relativeTime=formatRelativeTime(ep);const kickerText=isEspecial?"Brasil e Mundo":"Novo hoje";let excerptText=ep.excerpt||"Uma análise profunda sobre os principais acontecimentos do Vale da Liberdade e Santa Catarina.";if(!isEspecial&&Array.isArray(ep.manchetes)&&ep.manchetes.length){excerptText=ep.manchetes.slice(0,3).join(" · ");}
+const coverSrc=ep.cover_url_abs||ep.cover_url||(ep.date?`./thumbnails/${ep.date}/${ep.id && String(ep.id).startsWith("especial-") ? String(ep.id).replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"./assets/cover-800.jpg");const coverFallback="./assets/cover-800.jpg";const heroImgMarkup=`<img src="${escapeHtml(coverSrc)}" alt="${escapeHtml(ep.title || "Capa do Episódio")}" class="hero-cover-img" fetchpriority="high" decoding="async" onError="this.onerror=null;this.src='${coverFallback}'" />`;const metaParts=[];metaParts.push(isEspecial?"Brasil e Mundo":"Diário");metaParts.push(formatDuration(ep.duration_min));if(relativeTime)metaParts.push(relativeTime);const metaText=metaParts.filter(Boolean).join(" · ");els.todayShell.innerHTML=`
+      <article class="hero-card" data-id="${escapeHtml(ep.id)}" role="button" tabindex="0" aria-label="${escapeHtml(ep.title || "Ouvir episódio do dia")}">
         <div class="hero-badge">
           <span class="pulse-dot"></span>
-          <span>${kickerText}</span>
+          <span>${escapeHtml(kickerText)}</span>
         </div>
-
-        <!-- Cover Container (Esquerda) — reserva de espaço via aspect-ratio no CSS -->
         <div class="hero-cover-wrap">
           ${heroImgMarkup}
           <div class="hero-cover-overlay"></div>
-        </div>
-
-        <!-- Content Container (Direita) -->
-        <div class="hero-content">
-          <div>
-            <h2 class="hero-title">${escapeHtml(ep.title || `Edição de ${formatDateBR(ep.date)}`)}</h2>
-            <p class="hero-desc">${escapeHtml(excerptText)}</p>
-          </div>
-
-          <div class="hero-footer">
-            <div class="hero-meta">
-              <div class="host-avatars">
-                <div class="avatar peter">P</div>
-                ${!isEspecial ? `<div class="avatar ricardo">R</div>` : ''}
-              </div>
-              <div class="meta-info">
-                <span class="meta-date">${escapeHtml(formatDateBR(ep.date))}</span>
-                <span class="meta-dot">·</span>
-                <span class="meta-duration">${escapeHtml(formatDuration(ep.duration_min))}</span>
-              </div>
+          <div class="hero-play-overlay" aria-hidden="true">
+            <div class="hero-play-circle">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"></path></svg>
             </div>
-
-            <button type="button" class="hero-play-btn" data-play="${escapeHtml(ep.id)}" title="Ouvir episódio">
-              ${SVG_PLAY}
-            </button>
           </div>
         </div>
-      </article>`;
-    // PERF-004/009: libera o placeholder de CLS quando o hero real chega
-    els.todayShell.classList.remove("is-loading");
-  }
-
-
-  function parseEpisodeDate(epOrIso) {
-    // Aceita objeto de episódio ou string (pubDate RFC2822 / ISO / YYYY-MM-DD).
-    // Especiais BM: preferir pubDate (hora real). Diários: só date (YYYY-MM-DD),
-    // pois published_at no catálogo é o horário do publish_site (igual p/ todos).
-    // Retorna { date, hasTime } — hasTime=false evita "HÁ X MINUTOS" em data pura.
-    let raw = epOrIso;
-    if (epOrIso && typeof epOrIso === "object") {
-      if (epOrIso.type === "especial") {
-        raw = epOrIso.pubDate || epOrIso.date || "";
-      } else {
-        raw = epOrIso.date || epOrIso.pubDate || "";
-      }
-    }
-    if (!raw) return null;
-
-    // YYYY-MM-DD puro → meia-noite local + flag date-only
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-      const [y, m, d] = raw.split("-").map(Number);
-      return { date: new Date(y, m - 1, d, 0, 0, 0), hasTime: false };
-    }
-
-    const t = Date.parse(raw);
-    if (Number.isNaN(t)) return null;
-    return { date: new Date(t), hasTime: true };
-  }
-
-  function isoWeekKey(date) {
-    // ISO week key: YYYY-Www (útil p/ filtrar áudios por semana no futuro)
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
-  }
-
-  function calendarDaysBetween(a, b) {
-    // Diferença em dias de calendário local (ignora horário)
-    const ua = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-    const ub = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-    return Math.floor((ub - ua) / 86400000);
-  }
-
-  function formatRelativeTime(epOrIso) {
-    const parsed = parseEpisodeDate(epOrIso);
-    if (!parsed) return "RECENTE";
-
-    const now = new Date();
-    const target = parsed.date;
-
-    // Data pura (diários): HOJE / ONTEM / HÁ N DIAS / HÁ N SEMANAS
-    if (!parsed.hasTime) {
-      const dayDiff = calendarDaysBetween(target, now);
-      if (dayDiff <= 0) return "HOJE";
-      if (dayDiff === 1) return "ONTEM";
-      if (dayDiff < 7) return `HÁ ${dayDiff} DIAS`;
-      const weeks = Math.floor(dayDiff / 7);
-      return weeks === 1 ? "HÁ 1 SEMANA" : `HÁ ${weeks} SEMANAS`;
-    }
-
-    // Timestamp real (especiais BM): minutos → horas → ontem → dias → semanas
-    let diffMs = now - target;
-    if (diffMs < 0) diffMs = 0;
-
-    const sec = Math.floor(diffMs / 1000);
-    const min = Math.floor(sec / 60);
-    const hr = Math.floor(min / 60);
-    const day = Math.floor(hr / 24);
-
-    if (min < 1) return "HÁ 1 MINUTO";
-    if (min < 60) return min === 1 ? "HÁ 1 MINUTO" : `HÁ ${min} MINUTOS`;
-    if (hr < 24) return hr === 1 ? "HÁ 1 HORA" : `HÁ ${hr} HORAS`;
-    if (day === 1) return "ONTEM";
-    if (day < 7) return `HÁ ${day} DIAS`;
-
-    const weeks = Math.floor(day / 7);
-    return weeks === 1 ? "HÁ 1 SEMANA" : `HÁ ${weeks} SEMANAS`;
-  }
-
-  function renderCard(ep, isToday = false) {
-    const isEspecial = ep.type === "especial";
-    const cardClass = isEspecial ? "tweet-card especial-card" : "tweet-card";
-    const avatarHtml = isEspecial
-      ? `<div class="host-avatars" aria-hidden="true"><div class="avatar peter" title="Peter">P</div></div>`
-      : `<div class="host-avatars" aria-hidden="true"><div class="avatar peter" title="Peter">P</div><div class="avatar ricardo" title="Ricardo">R</div></div>`;
-
-    const parsed = parseEpisodeDate(ep);
-    const relativeTime = formatRelativeTime(ep);
-    const publishedIso = parsed ? parsed.date.toISOString() : "";
-    const weekKey = parsed ? isoWeekKey(parsed.date) : "";
-
-    return `
+        <div class="hero-content">
+          <h2 class="hero-title">${escapeHtml(ep.title || `Edição de ${formatDateBR(ep.date)}`)}</h2>
+          <p class="hero-desc">${escapeHtml(excerptText)}</p>
+          <div class="hero-meta">${escapeHtml(metaText)}</div>
+        </div>
+      </article>`;els.todayShell.classList.remove("is-loading");}
+function parseEpisodeDate(epOrIso){let raw=epOrIso;if(epOrIso&&typeof epOrIso==="object"){if(epOrIso.type==="especial"){raw=epOrIso.pubDate||epOrIso.date||"";}else{raw=epOrIso.date||epOrIso.pubDate||"";}}
+if(!raw)return null;if(/^\d{4}-\d{2}-\d{2}$/.test(raw)){const[y,m,d]=raw.split("-").map(Number);return{date:new Date(y,m-1,d,0,0,0),hasTime:false};}
+const t=Date.parse(raw);if(Number.isNaN(t))return null;return{date:new Date(t),hasTime:true};}
+function isoWeekKey(date){const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const dayNum=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));const weekNo=Math.ceil((((d-yearStart)/86400000)+1)/7);return`${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;}
+function calendarDaysBetween(a,b){const ua=Date.UTC(a.getFullYear(),a.getMonth(),a.getDate());const ub=Date.UTC(b.getFullYear(),b.getMonth(),b.getDate());return Math.floor((ub-ua)/86400000);}
+function formatRelativeTime(epOrIso){const parsed=parseEpisodeDate(epOrIso);if(!parsed)return"RECENTE";const now=new Date();const target=parsed.date;if(!parsed.hasTime){const dayDiff=calendarDaysBetween(target,now);if(dayDiff<=0)return"HOJE";if(dayDiff===1)return"ONTEM";if(dayDiff<7)return`HÁ ${dayDiff} DIAS`;const weeks=Math.floor(dayDiff/7);return weeks===1?"HÁ 1 SEMANA":`HÁ ${weeks} SEMANAS`;}
+let diffMs=now-target;if(diffMs<0)diffMs=0;const sec=Math.floor(diffMs/1000);const min=Math.floor(sec/60);const hr=Math.floor(min/60);const day=Math.floor(hr/24);if(min<1)return"HÁ 1 MINUTO";if(min<60)return min===1?"HÁ 1 MINUTO":`HÁ ${min} MINUTOS`;if(hr<24)return hr===1?"HÁ 1 HORA":`HÁ ${hr} HORAS`;if(day===1)return"ONTEM";if(day<7)return`HÁ ${day} DIAS`;const weeks=Math.floor(day/7);return weeks===1?"HÁ 1 SEMANA":`HÁ ${weeks} SEMANAS`;}
+function renderCard(ep,isToday=false){const isEspecial=ep.type==="especial";const cardClass=isEspecial?"tweet-card especial-card":"tweet-card";const avatarHtml=isEspecial?`<div class="host-avatars" aria-hidden="true"><div class="avatar peter" title="Peter">P</div></div>`:`<div class="host-avatars" aria-hidden="true"><div class="avatar peter" title="Peter">P</div><div class="avatar ricardo" title="Ricardo">R</div></div>`;const parsed=parseEpisodeDate(ep);const relativeTime=formatRelativeTime(ep);const publishedIso=parsed?parsed.date.toISOString():"";const weekKey=parsed?isoWeekKey(parsed.date):"";return`
       <article class="${cardClass}" data-id="${escapeHtml(ep.id)}" data-published="${escapeHtml(publishedIso)}" data-week="${escapeHtml(weekKey)}" style="position: relative;">
         <!-- Top Right Action Icons (Stitch Mockup) -->
         <div style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 8px; color: var(--color-ink-muted);">
@@ -391,631 +94,243 @@
             </div>
           </div>
         </div>
-      </article>`;
-  }
-
-  function renderTimeline(list) {
-    if (!list.length) {
-      els.timeline.innerHTML = `<p class="muted" style="padding:16px; text-align:center;">Nenhum episódio no catálogo ainda.</p>`;
-      els.feedEnd.hidden = true;
-      return;
-    }
-    const adTpl = $("#adCardTemplate");
-    let html = "";
-    list.forEach((ep, i) => {
-      html += renderCard(ep, i === 0);
-      if ((i + 1) % 4 === 0 && adTpl) {
-        html += adTpl.innerHTML;
-      }
-    });
-    els.timeline.innerHTML = html;
-    els.feedEnd.hidden = false;
-    if (typeof window.__supabaseApplyThumbs === "function") {
-      window.__supabaseApplyThumbs();
-    }
-  }
-
-  function findEp(id) {
-    return state.episodes.find((e) => e.id === id);
-  }
-
-  /** Ordena do mais recente → mais antigo (hero = list[0]). */
-  function episodeRecencyMs(ep) {
-    const parsed = parseEpisodeDate(ep);
-    if (parsed && parsed.date && !Number.isNaN(parsed.date.getTime())) {
-      return parsed.date.getTime();
-    }
-    // fallback estável
-    const t = Date.parse(ep.published_at || ep.pubDate || ep.date || 0);
-    return Number.isNaN(t) ? 0 : t;
-  }
-
-  function sortEpisodesNewestFirst(list) {
-    return list.slice().sort((a, b) => {
-      const diff = episodeRecencyMs(b) - episodeRecencyMs(a);
-      if (diff !== 0) return diff;
-      // desempate estável por id (evita reorder aleatório)
-      return String(b.id || "").localeCompare(String(a.id || ""));
-    });
-  }
-
-  function getFilteredEpisodes() {
-    const filtered = state.episodes.filter(e => {
-      if (state.activeTab === "especial") {
-        return e.type === "especial";
-      } else if (state.activeTab === "investimentos") {
-        const q = (e.quadros || []).map(k => k.toLowerCase());
-        return q.includes("economia") || q.includes("investimentos") || q.includes("mercado");
-      } else if (state.activeTab === "tecnologia") {
-        const q = (e.quadros || []).map(k => k.toLowerCase());
-        return q.includes("tecnologia") || q.includes("cultura") || q.includes("ciência") || q.includes("ciencia");
-      } else {
-        // "todos" e "diario": mostrar tudo exceto especiais
-        return e.type !== "especial";
-      }
-    });
-    return sortEpisodesNewestFirst(filtered);
-  }
-
-  function findNextEpisode(currentId) {
-    const list = getFilteredEpisodes();
-    const idx = list.findIndex(e => e.id === currentId);
-    if (idx !== -1 && idx < list.length - 1) {
-      return list[idx + 1];
-    }
-    return null;
-  }
-
-  function updatePlayerUI(isPlaying) {
-    // Atualiza todos os botões de play na página
-    const currentId = state.currentId;
-    document.querySelectorAll(".play-btn").forEach((btn) => {
-      const isThisBtn = btn.getAttribute("data-play") === currentId;
-      btn.classList.toggle("playing", isThisBtn && isPlaying);
-      const icon = btn.querySelector(".play-icon");
-      if (icon) {
-        icon.innerHTML = isThisBtn && isPlaying ? SVG_PAUSE : SVG_PLAY;
-      }
-    });
-
-    // Atualiza controles do Mini Player
-    if (els.mini) {
-      els.mini.dataset.playing = isPlaying ? "true" : "false";
-    }
-    if (els.miniPlay) {
-      els.miniPlay.innerHTML = isPlaying ? SVG_MINI_PAUSE : SVG_MINI_PLAY;
-    }
-
-    // Atualiza controles do Expanded Player
-    if (els.fullPlayPause) {
-      els.fullPlayPause.innerHTML = isPlaying ? SVG_FULL_PAUSE : SVG_FULL_PLAY;
-    }
-  }
-
-  function updateFullPlayerMetadata(ep) {
-    if (!ep) return;
-    if (els.fullTitle) els.fullTitle.textContent = ep.title || `Edição de ${formatDateBR(ep.date)}`;
-    if (els.fullMeta) {
-      els.fullMeta.textContent = ep.type === "especial" ? "Peter Albuquerque" : "Ricardo Souto";
-    }
-    if (els.fullCover) {
-      els.fullCover.src = ep.cover || "./assets/cover.jpg";
-    }
-    if (els.fullFav) {
-      els.fullFav.dataset.favDate = ep.date;
-    }
-  }
-
-  function playEpisode(id) {
-    const ep = findEp(id);
-    if (!ep || !ep.audio_url) return;
-
-    if (state.currentId !== id) {
-      state.currentId = id;
-      
-      // Atualiza textos do Mini Player
-      if (els.miniCover) els.miniCover.src = ep.cover || "./assets/cover.jpg";
-      if (els.miniTitle) els.miniTitle.textContent = ep.title || ep.date;
-      if (els.miniSub) {
-        const totalSecs = ep.duration_min ? ep.duration_min * 60 : 0;
-        els.miniSub.textContent = `${fmtClock(0)} / ${fmtClock(totalSecs)}`;
-      }
-      
-      // Atualiza textos do Expanded Player
-      updateFullPlayerMetadata(ep);
-      
-      // Reseta valores dos timelines
-      if (els.miniProgressFill) els.miniProgressFill.style.width = "0%";
-      if (els.fullSlider) els.fullSlider.value = 0;
-      if (els.fullCurrentTime) els.fullCurrentTime.textContent = "0:00";
-      if (els.fullTotalDuration) els.fullTotalDuration.textContent = "0:00";
-
-      window.PlayerManager.load(ep);
-    }
-
-    if (els.mini) els.mini.classList.remove("hidden");
-    window.PlayerManager.play();
-  }
-
-  // --- Subscripción a eventos del PlayerManager ---
-  window.addEventListener("playerevent", (e) => {
-    const { type, currentTime, duration, paused, episode } = e.detail;
-
-    if (type === "play") {
-      updatePlayerUI(true);
-    } else if (type === "pause" || type === "ended") {
-      updatePlayerUI(false);
-    } else if (type === "timeupdate") {
-      const validDur = (Number.isFinite(duration) && duration > 0) ? duration : 0;
-      const pct = validDur ? Math.min(100, Math.max(0, (currentTime / validDur) * 100)) : 0;
-      
-      // Atualiza progresso do Mini Player
-      if (els.miniProgressFill) els.miniProgressFill.style.width = `${pct}%`;
-      if (els.miniSub) {
-        const dur = validDur || (episode && episode.duration_min ? episode.duration_min * 60 : 0);
-        els.miniSub.textContent = `${fmtClock(currentTime)} / ${fmtClock(dur)}`;
-      }
-
-      // Atualiza progresso do Expanded Player
-      if (els.fullSlider) {
-        els.fullSlider.value = pct;
-      }
-      if (els.fullCurrentTime) {
-        els.fullCurrentTime.textContent = fmtClock(currentTime);
-      }
-    } else if (type === "loadedmetadata" || type === "durationchange") {
-      if (els.fullTotalDuration) {
-        els.fullTotalDuration.textContent = fmtClock(duration);
-      }
-      if (els.miniSub && duration) {
-        els.miniSub.textContent = `${fmtClock(currentTime || 0)} / ${fmtClock(duration)}`;
-      }
-    }
-  });
-
-  function showToast(msg, ms = 2000) {
-    let ex = document.getElementById("toast");
-    if (!ex) {
-      ex = document.createElement("div");
-      ex.id = "toast";
-      ex.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--color-ink);color:var(--color-bg);padding:8px 16px;border-radius:var(--radius-pill);font-size:.85rem;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15);border:1px solid var(--color-border);font-weight:500;";
-      document.body.appendChild(ex);
-    }
-    ex.textContent = msg;
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => ex.remove(), ms);
-  }
-
-  function bindSocialButtons() {
-    document.addEventListener("click", async (ev) => {
-      const btn = ev.target.closest("[data-action]");
-      if (!btn) return;
-      const action = btn.dataset.action;
-      const date = btn.dataset.date;
-      const url = btn.dataset.url || window.location.href;
-
-      if (action === "copy") {
-        ev.preventDefault();
-        try {
-          await navigator.clipboard.writeText(url);
-          showToast("Link copiado!");
-        } catch {
-          const tmp = document.createElement("input");
-          tmp.value = url;
-          document.body.appendChild(tmp);
-          tmp.select();
-          try {
-            document.execCommand("copy");
-            showToast("Link copiado!");
-          } catch {
-            showToast("Não consegui copiar");
-          }
-          tmp.remove();
-        }
-        if (typeof window.__supabaseLogEvent === "function") {
-          window.__supabaseLogEvent("copy", date);
-        }
-      }
-
-      if (action === "share") {
-        ev.preventDefault();
-        const ep = state.episodes.find((x) => x.id === date);
-        const title = ep?.title || "Vale da Liberdade";
-        if (navigator.share) {
-          try {
-            await navigator.share({ title, text: `🎧 ${title}`, url });
-            showToast("Compartilhado!");
-          } catch (err) {
-            if (String(err).includes("AbortError")) return;
-            navigator.clipboard?.writeText(url).then(() => showToast("Link copiado para compartilhar"));
-          }
-        } else {
-          navigator.clipboard?.writeText(url).then(() => showToast("Link copiado para compartilhar"));
-        }
-        if (typeof window.__supabaseLogEvent === "function") {
-          window.__supabaseLogEvent("share", date);
-        }
-      }
-
-      if (action === "like") {
-        ev.preventDefault();
-        await handleThumbs(btn, date, "like");
-      }
-      if (action === "dislike") {
-        ev.preventDefault();
-        await handleThumbs(btn, date, "dislike");
-      }
-    });
-  }
-
-  async function handleThumbs(btn, date, kind) {
-    const sibling = btn.parentElement?.querySelector(`[data-action="${kind === "like" ? "dislike" : "like"}"]`);
-    if (typeof window.__supabaseSetThumbs === "function") {
-      try {
-        const stateNew = await window.__supabaseSetThumbs(date, kind);
-        btn.classList.toggle("active", !!stateNew?.[kind === "like" ? "thumbs_up" : "thumbs_down"]);
-        if (sibling) sibling.classList.remove("active");
-      } catch (err) {
-        showToast("Faça login com o Google para avaliar");
-      }
-    } else {
-      showToast("Faça login com o Google para avaliar");
-    }
-  }
-
-  function bindUI() {
-    // Menu Hamburguer (Side Drawer Navigation)
-    const updateDrawerThemeUI = () => {
-      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-      if (els.drawerThemeLabel) {
-        els.drawerThemeLabel.textContent = isDark ? "Modo Escuro" : "Modo Claro (Padrão)";
-      }
-    };
-
-    const openDrawer = () => {
-      if (els.drawerOverlay) {
-        updateDrawerThemeUI();
-        els.drawerOverlay.classList.add("active");
-      }
-    };
-
-    const closeDrawer = () => {
-      if (els.drawerOverlay) {
-        els.drawerOverlay.classList.remove("active");
-      }
-    };
-
-    if (els.btnMenu) {
-      els.btnMenu.addEventListener("click", openDrawer);
-    }
-
-    if (els.drawerCloseBtn) {
-      els.drawerCloseBtn.addEventListener("click", closeDrawer);
-    }
-
-    if (els.drawerOverlay) {
-      els.drawerOverlay.addEventListener("click", (e) => {
-        if (e.target === els.drawerOverlay) closeDrawer();
-      });
-    }
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeDrawer();
-    });
-
-    if (els.drawerThemeToggleBtn) {
-      els.drawerThemeToggleBtn.addEventListener("click", () => {
-        const toggleBtn = $("#themeToggle");
-        if (toggleBtn) toggleBtn.click();
-        updateDrawerThemeUI();
-      });
-    }
-
-    if (els.drawerNavItems && els.drawerNavItems.length) {
-      els.drawerNavItems.forEach(item => {
-        item.addEventListener("click", () => {
-          const tab = item.dataset.drawerTab;
-          if (tab) {
-            state.activeTab = tab;
-            if (els.tabs && els.tabs.length) {
-              els.tabs.forEach(b => {
-                const active = b.dataset.tab === tab;
-                b.classList.toggle("active", active);
-                b.setAttribute("aria-selected", active ? "true" : "false");
-              });
-            }
-            els.drawerNavItems.forEach(i => i.classList.toggle("active", i === item));
-            renderFilteredFeed();
-            closeDrawer();
-          }
-        });
-      });
-    }
-
-    // Clique em qualquer Play na página
-    document.addEventListener("click", (ev) => {
-      const btn = ev.target.closest("[data-play]");
-      if (!btn) return;
-      const id = btn.getAttribute("data-play");
-      if (!id) return;
-      
-      const audioState = window.PlayerManager.getAudioState();
-      if (state.currentId === id && !audioState.paused) {
-        window.PlayerManager.pause();
-      } else {
-        playEpisode(id);
-      }
-    });
-
-    // Controles do Mini Player
-    if (els.miniPlay) {
-      els.miniPlay.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const ep = findEp(state.currentId);
-        window.PlayerManager.togglePlay(ep);
-      });
-    }
-
-    if (els.miniSkipBack) {
-      els.miniSkipBack.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.PlayerManager.skip(-10);
-      });
-    }
-
-    if (els.miniSkipForward) {
-      els.miniSkipForward.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.PlayerManager.skip(10);
-      });
-    }
-
-    const openFullPlayer = () => {
-      const currentEp = findEp(state.currentId);
-      if (currentEp) updateFullPlayerMetadata(currentEp);
-      if (els.fullOverlay) {
-        els.fullOverlay.classList.add("expanded");
-      }
-    };
-
-    if (els.miniOpenFull) {
-      els.miniOpenFull.addEventListener("click", openFullPlayer);
-    }
-
-    if (els.miniExpand) {
-      els.miniExpand.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openFullPlayer();
-      });
-    }
-
-    if (els.miniSeekBar) {
-      els.miniSeekBar.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const rect = els.miniSeekBar.getBoundingClientRect();
-        if (rect.width <= 0) return;
-        const clickX = e.clientX - rect.left;
-        const pct = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
-        window.PlayerManager.seek(pct);
-      });
-    }
-
-    // Controles do Player Expandido
-    if (els.fullClose) {
-      els.fullClose.addEventListener("click", () => {
-        els.fullOverlay.classList.remove("expanded");
-      });
-    }
-
-    if (els.fullModalThemeToggle) {
-      els.fullModalThemeToggle.addEventListener("click", () => {
-        const toggleBtn = $("#themeToggle");
-        if (toggleBtn) toggleBtn.click();
-      });
-    }
-
-    if (els.fullPlayPause) {
-      els.fullPlayPause.addEventListener("click", () => {
-        const ep = findEp(state.currentId);
-        window.PlayerManager.togglePlay(ep);
-      });
-    }
-
-    if (els.fullPrevEp) {
-      els.fullPrevEp.addEventListener("click", () => {
-        const list = getFilteredEpisodes();
-        const idx = list.findIndex(e => e.id === state.currentId);
-        if (idx > 0) {
-          playEpisode(list[idx - 1].id);
-        }
-      });
-    }
-
-    if (els.fullNextEp) {
-      els.fullNextEp.addEventListener("click", () => {
-        const list = getFilteredEpisodes();
-        const idx = list.findIndex(e => e.id === state.currentId);
-        if (idx !== -1 && idx < list.length - 1) {
-          playEpisode(list[idx + 1].id);
-        }
-      });
-    }
-
-    if (els.fullSkipBack) {
-      els.fullSkipBack.addEventListener("click", () => {
-        window.PlayerManager.skip(-15);
-      });
-    }
-
-    if (els.fullSkipForward) {
-      els.fullSkipForward.addEventListener("click", () => {
-        window.PlayerManager.skip(15);
-      });
-    }
-
-    if (els.fullSlider) {
-      els.fullSlider.addEventListener("input", (e) => {
-        window.PlayerManager.seek(parseFloat(e.target.value));
-      });
-    }
-
-    const speeds = [1, 1.25, 1.5, 2];
-    let currentSpeedIdx = 0;
-    if (els.fullSpeedPill) {
-      els.fullSpeedPill.addEventListener("click", () => {
-        currentSpeedIdx = (currentSpeedIdx + 1) % speeds.length;
-        const rate = speeds[currentSpeedIdx];
-        window.PlayerManager.setPlaybackRate(rate);
-        els.fullSpeedPill.textContent = `${rate}x`;
-      });
-    }
-
-    if (els.fullFav) {
-      els.fullFav.addEventListener("click", (e) => {
-        const date = els.fullFav.dataset.favDate;
-        if (date && typeof window.toggleFavoriteEpisode === "function") {
-          window.toggleFavoriteEpisode(date, `Edição de ${formatDateBR(date)}`);
-        } else {
-          showToast("Função favoritar indisponível");
-        }
-      });
-    }
-  }
-
-  function renderFilteredFeed() {
-    // Mesma regra de filtro + ordenação (mais recente → mais antigo).
-    // Hero = list[0]; timeline = list.slice(1) para não duplicar o destaque.
-    const list = getFilteredEpisodes();
-
-    const todayEp = list[0] || null;
-    renderToday(todayEp);
-    renderTimeline(list.slice(1));
-
-    // Auto-carrega o primeiro episódio no miniplayer se houver áudio
-    if (todayEp && todayEp.audio_url && !state.currentId) {
-      state.currentId = todayEp.id;
-      if (els.miniTitle) els.miniTitle.textContent = todayEp.title || todayEp.date;
-      if (els.miniSub) {
-        els.miniSub.textContent = todayEp.type === "especial"
-          ? `${formatDateBR(todayEp.date)} · Peter (Solo)`
-          : `${formatDateBR(todayEp.date)} · Peter & Ricardo`;
-      }
-      updateFullPlayerMetadata(todayEp);
-      if (els.mini) els.mini.classList.remove("hidden");
-      
-      window.PlayerManager.load(todayEp);
-    }
-  }
-
-  async function loadFeed() {
-    try {
-      const res = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      state.episodes = Array.isArray(data.episodes) ? data.episodes : [];
-      renderFilteredFeed();
-    } catch (err) {
-      console.error("loadFeed failed:", err);
-      els.todayShell.innerHTML = `
-        <div class="empty-today" style="padding: var(--space-5) var(--space-4); color: var(--color-ink-muted);">
-          <h2 style="font-size:1.1rem;margin-bottom:8px">Feed temporariamente disponível</h2>
-          <p>Verifique a conexão ou tente mais tarde.</p>
-        </div>`;
-    }
-  }
-
-  function bindTabs() {
-    if (!els.tabs || !els.tabs.length) return;
-    els.tabs.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const tab = btn.dataset.tab;
-        if (state.activeTab === tab) return;
-        state.activeTab = tab;
-        els.tabs.forEach(b => {
-          const active = b.dataset.tab === tab;
-          b.classList.toggle("active", active);
-          b.setAttribute("aria-selected", active ? "true" : "false");
-        });
-        renderFilteredFeed();
-      });
-    });
-  }
-  function bindPWA() {
-    const pwaModal = $("#pwaInstallModal");
-    const pwaClose = $("#pwaModalClose");
-    const pwaInstallBtn = $("#pwaInstallBtn");
-    const pwaIosDismissBtn = $("#pwaIosDismissBtn");
-    const pwaGenericBody = $("#pwaInstructionGeneric");
-    const pwaIosBody = $("#pwaInstructionIos");
-
-    // Track visit count
-    let visitCount = Number(localStorage.getItem("vld_visit_count") || 0) + 1;
-    localStorage.setItem("vld_visit_count", String(visitCount));
-
-    // Check standalone mode (already installed)
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    if (isStandalone) return;
-
-    // Check dismissal persistence (7 days)
-    const lastDismissed = Number(localStorage.getItem("vld_install_dismissed_at") || 0);
-    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    if (Date.now() - lastDismissed < SEVEN_DAYS_MS) return;
-
-    // Detect iOS
-    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      state.deferredPrompt = e;
-    });
-
-    function dismissModal() {
-      if (pwaModal) pwaModal.classList.add("hidden");
-      localStorage.setItem("vld_install_dismissed_at", String(Date.now()));
-    }
-
-    if (pwaClose) pwaClose.addEventListener("click", dismissModal);
-    if (pwaIosDismissBtn) pwaIosDismissBtn.addEventListener("click", dismissModal);
-
-    if (pwaInstallBtn) {
-      pwaInstallBtn.addEventListener("click", async () => {
-        if (state.deferredPrompt) {
-          state.deferredPrompt.prompt();
-          await state.deferredPrompt.userChoice;
-          state.deferredPrompt = null;
-        }
-        dismissModal();
-      });
-    }
-
-    // Engagement filter: show modal after 15 seconds if visitCount >= 2
-    if (visitCount >= 2 && pwaModal) {
-      setTimeout(() => {
-        if (isIos) {
-          if (pwaGenericBody) pwaGenericBody.classList.add("hidden");
-          if (pwaIosBody) pwaIosBody.classList.remove("hidden");
-        }
-        pwaModal.classList.remove("hidden");
-      }, 15000);
-    }
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
-    }
-  }
-
-  if (els.btnRefresh) {
-    els.btnRefresh.addEventListener("click", () => loadFeed());
-  }
-
-  bindSocialButtons();
-  bindUI();
-  bindPWA();
-  bindTabs();
-  loadFeed();
-
-  // Expor funções para uso pelo player.js (auto-play)
-  window.getFilteredEpisodes = getFilteredEpisodes;
-  window.findNextEpisode = findNextEpisode;
-  window.playEpisode = playEpisode;
-})();
+      </article>`;}
+function renderRow(ep){const isEspecial=ep.type==="especial";const lstate=getListenState(ep.id);const rec=(typeof window.ListenProgress!=="undefined")?window.ListenProgress.get(ep.id):null;const relativeTime=formatRelativeTime(ep);const pct=rec?Math.round(rec.percent):0;let metaText;if(lstate==="done"){metaText="Ouvido completo";}else if(lstate==="partial"){const remain=fmtRemainingMin(rec,ep);metaText=`${pct}% ouvido${remain ? " · " + remain : ""}`;}else{metaText=`Novo · ${escapeHtml(formatDuration(ep.duration_min))}`;}
+const progressTrack=lstate!=="empty"?`<div class="ep-row-progress" aria-hidden="true">
+           <div class="ep-row-progress-fill" style="width:${lstate === "done" ? 100 : pct}%"></div>
+         </div>`:"";const checkMark=lstate==="done"?`<div class="ep-row-check" aria-hidden="true" title="Ouvido completo">
+           <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+         </div>`:"";const lineTag=isEspecial?`<span class="ep-row-tag bm">Brasil e Mundo</span>`:`<span class="ep-row-tag">Diário</span>`;const rowThumb=ep.cover_url_abs||ep.cover_url||(ep.date?`./thumbnails/${ep.date}/${ep.id.startsWith("especial-") ? ep.id.replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"");const rowThumbJpg=rowThumb.replace(".webp",".jpg");const thumbHtml=rowThumb?`<img src="${escapeHtml(rowThumb)}" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" onError="this.onerror=null;this.src='${escapeHtml(rowThumbJpg)}'">`:"";const dayDiff=Math.floor((Date.now()-episodeRecencyMs(ep))/86400000);const isNew=lstate==="empty"&&dayDiff<=1;const newBadge=isNew?`<span class="badge-novo" aria-label="Novo episódio">Novo</span>`:"";return`
+      <article class="ep-row" data-id="${escapeHtml(ep.id)}" data-state="${lstate}" role="button" tabindex="0"
+               aria-label="${escapeHtml(ep.title || ep.date)}">
+        <div class="ep-row-thumb">
+          ${thumbHtml || `<div class="ep-row-play"aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`}
+          ${newBadge}
+          ${progressTrack}
+        </div>
+        <div class="ep-row-body">
+          <div class="ep-row-tagline">${lineTag}<span class="ep-row-date">· ${escapeHtml(relativeTime)}</span></div>
+          <h3 class="ep-row-title">${escapeHtml(ep.title || `Edição de ${formatDateBR(ep.date)}`)}</h3>
+          ${(ep.quadros && ep.quadros.length) ? `<div class="ep-row-tags">${tagsHtml(ep.quadros)}</div>` : ""}
+          <div class="ep-row-meta">
+            <span class="status-dot ${lstate}" aria-hidden="true"></span>
+            <span>${metaText}</span>
+          </div>
+        </div>
+        ${checkMark}
+      </article>`;}
+function renderTimeline(list){if(!list.length){const emptyMsg=state.activeTab==="bm"||state.activeTab==="especial"?`<div class="feed-empty-state">
+             <strong>Nenhum episódio de Brasil e Mundo ainda.</strong>
+             O pipeline Brasil e Mundo está em construção — os episódios condensados do ANCAP.SU aparecem aqui.
+           </div>`:`<p class="muted" style="padding:16px; text-align:center;">Nenhum episódio no catálogo ainda.</p>`;els.timeline.innerHTML=emptyMsg;els.feedEnd.hidden=true;return;}
+const adTpl=$("#adCardTemplate");let html="";list.forEach((ep,i)=>{html+=`<div class="feed-item-group">${renderRow(ep)}${feedActionRowHtml(ep.id, ep.date, episodeUrl(ep))}</div>`;if((i+1)%8===0&&adTpl){if(cachedMonetizationConfig&&cachedMonetizationConfig.adsense_enabled&&cachedMonetizationConfig.adsense_client_id&&cachedMonetizationConfig.feed_slot_id){const _escAttr=(s)=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");let _adHtml=adTpl.innerHTML;_adHtml=_adHtml.replace('data-ad-client=""','data-ad-client="'+_escAttr(cachedMonetizationConfig.adsense_client_id)+'"');_adHtml=_adHtml.replace('data-ad-slot=""','data-ad-slot="'+_escAttr(cachedMonetizationConfig.feed_slot_id)+'"');html+=_adHtml;}else if(!cachedMonetizationConfig||cachedMonetizationConfig.fallback_adsense){html+=adTpl.innerHTML;}}});els.timeline.innerHTML=html;els.feedEnd.hidden=false;if(typeof window.__supabaseApplyThumbs==="function"){window.__supabaseApplyThumbs();}if(cachedMonetizationConfig&&cachedMonetizationConfig.adsense_enabled){setTimeout(()=>{document.querySelectorAll(".timeline .adsbygoogle:not([data-adsbygoogle-status])").forEach(()=>{try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){console.warn("[monetization] AdSense push error:",e);}});},100);}
+loadViewCounts(list.map((ep)=>ep.id));}
+function findEp(id){return state.episodes.find((e)=>e.id===id);}
+function episodeRecencyMs(ep){const parsed=parseEpisodeDate(ep);if(parsed&&parsed.date&&!Number.isNaN(parsed.date.getTime())){return parsed.date.getTime();}
+const t=Date.parse(ep.published_at||ep.pubDate||ep.date||0);return Number.isNaN(t)?0:t;}
+function sortEpisodesNewestFirst(list){return list.slice().sort((a,b)=>{const diff=episodeRecencyMs(b)-episodeRecencyMs(a);if(diff!==0)return diff;return String(b.id||"").localeCompare(String(a.id||""));});}
+function getFilteredEpisodes(){const filtered=state.episodes.filter(e=>{if(state.activeTab==="favoritos"){const favs=(typeof window.__supabaseGetFavorites==="function")?window.__supabaseGetFavorites():[];return favs.includes(e.id);}
+if(state.activeTab==="bm"||state.activeTab==="especial"){if(e.type!=="especial")return false;}else if(state.activeTab==="investimentos"){const q=(e.quadros||[]).map(k=>k.toLowerCase());if(!(q.includes("economia")||q.includes("investimentos")||q.includes("mercado")))return false;}else if(state.activeTab==="tecnologia"){const q=(e.quadros||[]).map(k=>k.toLowerCase());if(!(q.includes("tecnologia")||q.includes("cultura")||q.includes("ciência")||q.includes("ciencia")))return false;}else{if(e.type==="especial")return false;}
+if(state.activeTag){const quadros=(e.quadros||[]).map(k=>String(k).toLowerCase());if(!quadros.includes(state.activeTag))return false;}
+if(state.searchQuery){const haystack=`${e.title || ""} ${(e.manchetes || []).join(" ")}`.toLowerCase();if(!haystack.includes(state.searchQuery.toLowerCase()))return false;}
+return true;});return sortEpisodesNewestFirst(filtered);}
+function getListenState(id){if(typeof window.ListenProgress==="undefined")return"empty";return window.ListenProgress.stateOf(id);}
+function getContinueListeningList(){if(typeof window.ListenProgress==="undefined")return[];const byId=new Map(state.episodes.map(e=>[e.id,e]));return window.ListenProgress.getAll().filter(rec=>!rec.completed&&rec.percent>0&&byId.has(rec.episode_id)).sort((a,b)=>(b.last_played_at||0)-(a.last_played_at||0)).map(rec=>({ep:byId.get(rec.episode_id),rec}));}
+function fmtRemainingMin(rec,ep){const durSec=rec.duration_seconds||(ep.duration_min?ep.duration_min*60:0);if(!durSec)return"";const remain=Math.max(0,durSec-rec.progress_seconds);const min=Math.max(1,Math.round(remain/60));return`${min} min restantes`;}
+function renderResumeStrip(){if(!els.resumeStrip||!els.resumeStripBtn)return;const items=getContinueListeningList();const top=items[0];if(!top){els.resumeStrip.hidden=true;return;}
+const{ep,rec}=top;if(els.resumeStripTitle){els.resumeStripTitle.textContent=ep.title||`Edição de ${formatDateBR(ep.date)}`;}
+if(els.resumeStripMeta){const remain=fmtRemainingMin(rec,ep);els.resumeStripMeta.textContent=remain?`${remain} · ${Math.round(rec.percent)}%`:`${Math.round(rec.percent)}%`;}
+els.resumeStrip.hidden=false;els.resumeStripBtn.onclick=()=>playEpisode(ep.id);}
+function renderContinueRail(){if(!els.continueRail||!els.continueRailList)return;renderResumeStrip();const items=getContinueListeningList();if(!items.length){els.continueRail.hidden=true;els.continueRailList.innerHTML="";return;}
+els.continueRailList.innerHTML=items.map(({ep,rec})=>{const pct=Math.round(rec.percent);const isEspecial=ep.type==="especial";const tag=isEspecial?`B&M · ${escapeHtml(String(ep.pubDate || ep.date || "").slice(8, 10) || "—")}`:`Ep. ${escapeHtml(ep.episode ?? "—")}`;const railThumb=ep.cover_url_abs||ep.cover_url||(ep.date?`./thumbnails/${ep.date}/${ep.id.startsWith("especial-") ? ep.id.replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"");const railThumbJpg=railThumb.replace(".webp",".jpg");const railThumbHtml=railThumb?`<img src="${escapeHtml(railThumb)}" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" onError="this.onerror=null;this.src='${escapeHtml(railThumbJpg)}'">`:"";return`
+      <div class="rail-card" data-id="${escapeHtml(ep.id)}" role="button" tabindex="0"
+           aria-label="Continuar ouvindo: ${escapeHtml(ep.title || ep.date)}">
+        <div class="rail-thumb">
+          ${railThumbHtml || `<div class="rail-play"aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`}
+          <div class="rail-progress-track" aria-hidden="true">
+            <div class="rail-progress-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <div class="rail-body">
+          <div class="rail-tag">${tag}</div>
+          <div class="rail-title">${escapeHtml(ep.title || `Edição de ${formatDateBR(ep.date)}`)}</div>
+          <div class="rail-meta">${escapeHtml(fmtRemainingMin(rec, ep))}</div>
+        </div>
+      </div>`;}).join("");els.continueRail.hidden=false;setupRailNav();}
+let _railBound=false;function setupRailNav(){const rail=els.continueRailList;if(!rail)return;const nav=document.getElementById("continueRailNav");const prev=document.getElementById("railPrev");const next=document.getElementById("railNext");const sync=()=>{if(!prev||!next)return;const max=rail.scrollWidth-rail.clientWidth;prev.disabled=rail.scrollLeft<=2;next.disabled=max<=2||rail.scrollLeft>=max-2;};if(!_railBound){_railBound=true;if(next)next.addEventListener("click",()=>{rail.scrollBy({left:230,behavior:"smooth"});});if(prev)prev.addEventListener("click",()=>{rail.scrollBy({left:-230,behavior:"smooth"});});rail.addEventListener("scroll",sync);window.addEventListener("resize",()=>{if(nav)nav.hidden=!(rail.scrollWidth>rail.clientWidth+1);sync();});}if(nav)nav.hidden=!(rail.scrollWidth>rail.clientWidth+1);requestAnimationFrame(sync);}
+function updateTabCounts(){if(els.countDiario){const n=state.episodes.filter(e=>e.type!=="especial").length;els.countDiario.textContent=n?String(n):"";}
+if(els.countBm){const n=state.episodes.filter(e=>e.type==="especial").length;els.countBm.textContent=n?String(n):"";}}
+let _lastRecordAt=0;let _pendingResume=null;const RECORD_INTERVAL_MS=15000;function recordCurrentProgress(force,isEnded){if(typeof window.ListenProgress==="undefined")return;const epId=state.currentId;if(!epId)return;const ep=findEp(epId);if(!ep)return;const audioState=window.PlayerManager.getAudioState();const t=audioState.currentTime||0;const d=(Number.isFinite(audioState.duration)&&audioState.duration>0)?audioState.duration:(ep.duration_min?ep.duration_min*60:0);if(!(d>0))return;const progress=isEnded?d:t;if(!(progress>0))return;const now=Date.now();if(!force&&now-_lastRecordAt<RECORD_INTERVAL_MS)return;_lastRecordAt=now;window.ListenProgress.record(epId,ep.date,Math.floor(progress),Math.floor(d));}
+function applyProgressToDom(ids){(ids||[]).forEach((id)=>{const row=els.timeline&&els.timeline.querySelector(`.ep-row[data-id="${(window.CSS && CSS.escape) ? CSS.escape(id) : id}"]`);if(row){const ep=findEp(id);if(ep){const tmp=document.createElement("div");tmp.innerHTML=renderRow(ep);const fresh=tmp.firstElementChild;if(fresh)row.replaceWith(fresh);}}});renderContinueRail();if(state.hideDone){renderFilteredFeed();}}
+function initListenProgressHooks(){window.addEventListener("listenprogresschange",(e)=>{applyProgressToDom(e.detail&&e.detail.ids);});const flush=()=>recordCurrentProgress(true,false);window.addEventListener("pagehide",flush);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush();});}
+function bindHideDoneToggle(){if(!els.hideDoneToggle)return;try{state.hideDone=localStorage.getItem(HIDE_DONE_KEY)==="1";}catch{}
+els.hideDoneToggle.setAttribute("aria-checked",state.hideDone?"true":"false");els.hideDoneToggle.addEventListener("click",()=>{state.hideDone=!state.hideDone;try{localStorage.setItem(HIDE_DONE_KEY,state.hideDone?"1":"0");}catch{}
+els.hideDoneToggle.setAttribute("aria-checked",state.hideDone?"true":"false");const focusedBefore=document.activeElement;const wasRow=focusedBefore&&focusedBefore.classList&&focusedBefore.classList.contains("ep-row");renderFilteredFeed();if(wasRow&&!focusedBefore.isConnected){const first=els.timeline?els.timeline.querySelector(".ep-row"):null;const target=first||els.hideDoneToggle;target.focus({preventScroll:false});if(els.todayShell){els.todayShell.setAttribute("aria-live","polite");const msg=document.createElement("div");msg.className="sr-only";msg.textContent=state.hideDone?`${els.timeline ? els.timeline.querySelectorAll(".ep-row").length : 0} episódios restantes. Episódios concluídos ocultos.`:"Episódios concluídos visíveis novamente.";els.todayShell.appendChild(msg);setTimeout(()=>msg.remove(),1500);}}});}
+function findNextEpisode(currentId){const list=getFilteredEpisodes();const idx=list.findIndex(e=>e.id===currentId);if(idx!==-1&&idx<list.length-1){for(let i=idx+1;i<list.length;i++){if(typeof window.ListenProgress!=="undefined"&&window.ListenProgress.stateOf&&window.ListenProgress.stateOf(list[i].id)==="done"){continue;}return list[i];}}
+return null;}
+function updatePlayerUI(isPlaying){const currentId=state.currentId;document.querySelectorAll(".play-btn").forEach((btn)=>{const isThisBtn=btn.getAttribute("data-play")===currentId;btn.classList.toggle("playing",isThisBtn&&isPlaying);const icon=btn.querySelector(".play-icon");if(icon){icon.innerHTML=isThisBtn&&isPlaying?SVG_PAUSE:SVG_PLAY;}});if(els.mini){els.mini.dataset.playing=isPlaying?"true":"false";}
+if(els.miniPlay){els.miniPlay.innerHTML=isPlaying?SVG_MINI_PAUSE:SVG_MINI_PLAY;}
+document.querySelectorAll(".progress-wave").forEach((w)=>{w.classList.toggle("playing",isPlaying);w.classList.toggle("paused",!isPlaying);});if(els.fullPlayPause){els.fullPlayPause.innerHTML=isPlaying?SVG_FULL_PAUSE:SVG_FULL_PLAY;}}
+function updateEpisodeJsonLd(ep){if(!ep)return;try{const absAudio=ep.audio_url_abs||ep.audio_url||"";const durMin=Number(ep.duration_min)||0;const durSec=Math.round(durMin*60);const isoDuration=`PT${Math.floor(durSec / 60)}M${durSec % 60}S`;const ld={"@context":"https://schema.org","@type":"PodcastEpisode",name:ep.title||`Edição de ${formatDateBR(ep.date)}`,url:episodeUrl(ep),datePublished:ep.date||ep.pubDate||"",duration:isoDuration,inLanguage:"pt-BR",partOfSeries:{"@type":"PodcastSeries",name:"Vale da Liberdade",url:window.location.origin+"/",},};if(absAudio){ld.audio={"@type":"AudioObject",contentUrl:absAudio,encodingFormat:"audio/mpeg",};}
+let script=document.getElementById("ld-episode");if(!script){script=document.createElement("script");script.type="application/ld+json";script.id="ld-episode";document.head.appendChild(script);}
+script.textContent=JSON.stringify(ld);}catch(err){console.warn("[ld] updateEpisodeJsonLd:",err);}}
+function updateFullPlayerMetadata(ep){if(!ep)return;updateEpisodeJsonLd(ep);try{const metaDesc=(ep.excerpt||(Array.isArray(ep.manchetes)&&ep.manchetes[0])||"").slice(0,160);const setMeta=(sel,content)=>{const el=document.querySelector(sel);if(el)el.setAttribute("content",content);};const fullTitle=ep.title||`Vale da Liberdade — Edição de ${formatDateBR(ep.date)}`;setMeta('meta[name="description"]',metaDesc||"Web Jornal diário do Vale da Liberdade — Blumenau, Alto Vale e SC.");setMeta('meta[property="og:title"]',fullTitle);setMeta('meta[property="og:description"]',metaDesc||"Notícias de Blumenau, Alto Vale e SC com Peter e Ricardo.");setMeta('meta[property="og:url"]',episodeUrl(ep));setMeta('meta[name="twitter:title"]',fullTitle);setMeta('meta[name="twitter:description"]',metaDesc||"Notícias de Blumenau, Alto Vale e SC com Peter e Ricardo.");const ogThumb=ep.cover_url_abs||(ep.cover_url?new URL(ep.cover_url,window.location.origin).href:"")||(ep.date?`${window.location.origin}/thumbnails/${ep.date}/${ep.id.startsWith("especial-") ? ep.id.replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"")||"https://news.mob.tec.br/assets/cover-1200.webp";setMeta('meta[property="og:image"]',ogThumb);setMeta('meta[property="og:image:width"]',"1280");setMeta('meta[property="og:image:height"]',"720");setMeta('meta[name="twitter:image"]',ogThumb);}catch(err){console.warn("[seo] updateFullPlayerMetadata error:",err);}
+if(els.fullTitle)els.fullTitle.textContent=ep.title||`Edição de ${formatDateBR(ep.date)}`;if(els.fullMeta){els.fullMeta.textContent=ep.type==="especial"?"Peter Albuquerque":"Ricardo Souto";}
+if(els.fullCover){const fullThumb=ep.cover_url_abs||ep.cover_url||(ep.date?`./thumbnails/${ep.date}/${ep.id.startsWith("especial-") ? ep.id.replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"");els.fullCover.src=fullThumb||"./assets/cover.jpg";}
+if(els.fullShare){els.fullShare.dataset.shareDate=ep.id;}
+if(els.fullUpNext&&els.fullUpNextTitle){const nextEp=findNextEpisode(ep.id);if(nextEp){els.fullUpNextTitle.textContent=nextEp.title||`Edição de ${formatDateBR(nextEp.date)}`;els.fullUpNext.hidden=false;}else{els.fullUpNext.hidden=true;}}
+if(els.fullHeadlines&&els.fullHeadlinesList){const heads=(Array.isArray(ep.manchetes)&&ep.manchetes.length)?ep.manchetes.slice(0,6):[];if(heads.length){els.fullHeadlinesList.innerHTML=heads.map((h)=>`<li>${escapeHtml(h)}</li>`).join("");els.fullHeadlines.hidden=false;}else{els.fullHeadlines.hidden=true;}}}
+function playEpisode(id){const ep=findEp(id);if(!ep||!ep.audio_url)return;if(state.currentId!==id){state.currentId=id;_pendingResume=null;if(typeof window.ListenProgress!=="undefined"){const rec=window.ListenProgress.get(id);if(rec&&!rec.completed&&rec.percent>0&&rec.percent<window.ListenProgress.COMPLETE_AT&&rec.progress_seconds>0){_pendingResume={id,seconds:rec.progress_seconds};}}
+const miniThumb=ep.cover_url_abs||ep.cover_url||(ep.date?`./thumbnails/${ep.date}/${ep.id.startsWith("especial-") ? ep.id.replace("especial-", "bm_") : "ep_" + ep.date}.webp`:"");if(els.miniCover)els.miniCover.src=miniThumb||"./assets/cover.jpg";if(els.miniTitle)els.miniTitle.textContent=ep.title||ep.date;if(els.miniSub){const totalSecs=ep.duration_min?ep.duration_min*60:0;els.miniSub.textContent=`${fmtClock(0)} / ${fmtClock(totalSecs)}`;}
+updateFullPlayerMetadata(ep);if(els.miniProgressFill)els.miniProgressFill.style.width="0%";setWaveProgress(0);if(els.fullSlider)els.fullSlider.value=0;if(els.fullCurrentTime)els.fullCurrentTime.textContent="0:00";if(els.fullTotalDuration)els.fullTotalDuration.textContent="0:00";const loadEp=Object.assign({},ep);if(!navigator.onLine){const localAudio=sameOriginAudioUrl(ep);if(localAudio)loadEp.audio_url=localAudio;}
+window.PlayerManager.load(loadEp);try{window.dispatchEvent(new CustomEvent("episodeloaded",{detail:{id}}));}catch(err){console.warn("[app] episodeloaded dispatch error:",err);}}
+if(els.mini)els.mini.classList.remove("hidden");window.PlayerManager.play();if(typeof window.InteractionBar!=="undefined"){try{sessionStorage.setItem("vld_last_interaction",String(Date.now()));}catch{}
+InteractionBar.incrementView(id).then((count)=>{if(typeof count==="number"&&count>0){const el=document.querySelector(`.feed-action-views[data-episode="${CSS.escape(id)}"] .views-count`);if(el)el.textContent=count>=1000?`${(count / 1000).toFixed(1)}k`:String(count);}}).catch((err)=>{console.warn("[app] view increment failed:",err);});}}
+window.addEventListener("playerevent",(e)=>{const{type,currentTime,duration,paused,episode}=e.detail;if(type==="play"){updatePlayerUI(true);}else if(type==="pause"){updatePlayerUI(false);recordCurrentProgress(true,false);}else if(type==="ended"){updatePlayerUI(false);recordCurrentProgress(true,true);handleAutoPlayNext();}else if(type==="timeupdate"){const validDur=(Number.isFinite(duration)&&duration>0)?duration:0;const pct=validDur?Math.min(100,Math.max(0,(currentTime/validDur)*100)):0;if(els.miniProgressFill)els.miniProgressFill.style.width=`${pct}%`;setWaveProgress(pct);if(els.miniSub){const dur=validDur||(episode&&episode.duration_min?episode.duration_min*60:0);els.miniSub.textContent=`${fmtClock(currentTime)} / ${fmtClock(dur)}`;}
+if(els.fullSlider){els.fullSlider.value=pct;}
+if(els.fullCurrentTime){els.fullCurrentTime.textContent=fmtClock(currentTime);}
+recordCurrentProgress(false,false);if(episode&&episode.id&&currentTime>=30){cacheCurrentAudio(episode);}}else if(type==="loadedmetadata"||type==="durationchange"){if(els.fullTotalDuration){els.fullTotalDuration.textContent=fmtClock(duration);}
+if(els.miniSub&&duration){els.miniSub.textContent=`${fmtClock(currentTime || 0)} / ${fmtClock(duration)}`;}
+if(_pendingResume&&Number.isFinite(duration)&&duration>0&&episode&&episode.id===_pendingResume.id){const resumeSec=Math.min(_pendingResume.seconds,duration-2);const pct=Math.min(98,Math.max(0,(resumeSec/duration)*100));_pendingResume=null;window.PlayerManager.seek(pct);setWaveProgress(pct);if(els.miniProgressFill)els.miniProgressFill.style.width=`${pct}%`;if(els.fullSlider)els.fullSlider.value=pct;if(els.fullCurrentTime)els.fullCurrentTime.textContent=fmtClock(resumeSec);}}});const _audioCachedIds=new Set();const AUDIO_CACHE_NAME="vld-audio-v1";function sameOriginAudioUrl(ep){try{const abs=ep.audio_url_abs||ep.audio_url||"";return window.location.origin+new URL(abs).pathname;}catch{return null;}}
+function cacheCurrentAudio(ep){try{if(!("caches"in window)||!ep)return;if(_audioCachedIds.has(ep.id))return;const localUrl=sameOriginAudioUrl(ep);if(!localUrl)return;_audioCachedIds.add(ep.id);caches.open(AUDIO_CACHE_NAME).then((cache)=>cache.add(localUrl)).catch((err)=>{console.warn("[audio-cache] falhou para",ep.id,err&&err.message?err.message:err);_audioCachedIds.delete(ep.id);});}catch{}}
+function showToast(msg,ms=2000){let ex=document.getElementById("toast");if(!ex){ex=document.createElement("div");ex.id="toast";ex.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--color-ink);color:var(--color-bg);padding:8px 16px;border-radius:var(--radius-pill);font-size:.85rem;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15);border:1px solid var(--color-border);font-weight:500;";document.body.appendChild(ex);}
+ex.textContent=msg;clearTimeout(showToast._t);showToast._t=setTimeout(()=>ex.remove(),ms);}
+function bindSocialButtons(){document.addEventListener("click",async(ev)=>{const btn=ev.target.closest("[data-action]");if(!btn)return;const action=btn.dataset.action;const date=btn.dataset.date;const url=btn.dataset.url||window.location.href;if(action==="copy"){ev.preventDefault();try{await navigator.clipboard.writeText(url);showToast("Link copiado!");}catch{const tmp=document.createElement("input");tmp.value=url;document.body.appendChild(tmp);tmp.select();try{document.execCommand("copy");showToast("Link copiado!");}catch{showToast("Não consegui copiar");}
+tmp.remove();}
+if(typeof window.__supabaseLogEvent==="function"){window.__supabaseLogEvent("copy",date);}}
+if(action==="share"){ev.preventDefault();const ep=state.episodes.find((x)=>x.id===date);const title=ep?.title||"Vale da Liberdade";const manchetes=(ep?.manchetes||[]).slice(0,2).join(" · ");const shareText=manchetes?`🎧 ${title}\n${manchetes}\nOuça no Vale da Liberdade`:`🎧 ${title}\nOuça no Vale da Liberdade`;if(navigator.share){try{await navigator.share({title,text:shareText,url});showToast("Compartilhado!");}catch(err){if(String(err).includes("AbortError"))return;navigator.clipboard?.writeText(`${shareText}\n${url}`).then(()=>showToast("Link copiado para compartilhar")).catch((err)=>console.warn("[share] clipboard failed:",err));}}else{navigator.clipboard?.writeText(`${shareText}\n${url}`).then(()=>showToast("Link copiado para compartilhar")).catch((err)=>console.warn("[share] clipboard failed:",err));}
+if(typeof window.__supabaseLogEvent==="function"){window.__supabaseLogEvent("share",date);}}
+if(action==="like"){ev.preventDefault();if(typeof window.InteractionBar==="undefined"){showToast("Funcionalidade indisponível no momento");return;}
+try{const result=await window.InteractionBar.toggleLike(date);if(result?.liked!==undefined){btn.classList.toggle("active",result.liked);}}catch(err){console.warn("[app] like error:",err);}}
+if(action==="dislike"){ev.preventDefault();await handleThumbs(btn,date,"dislike");}});}
+async function handleThumbs(btn,date,kind){const sibling=btn.parentElement?.querySelector(`[data-action="${kind === "like" ? "dislike" : "like"}"]`);if(typeof window.__supabaseSetThumbs==="function"){try{const stateNew=await window.__supabaseSetThumbs(date,kind);btn.classList.toggle("active",!!stateNew?.[kind==="like"?"thumbs_up":"thumbs_down"]);if(sibling)sibling.classList.remove("active");}catch(err){showToast("Faça login com o Google para avaliar");}}else{showToast("Faça login com o Google para avaliar");}}
+async function loadViewCounts(dates){if(!dates?.length||typeof window.InteractionBar==="undefined")return;const batchSize=10;for(let i=0;i<dates.length;i+=batchSize){const batch=dates.slice(i,i+batchSize);await Promise.all(batch.map(async(date)=>{try{const count=await window.InteractionBar.getViewCount(date);if(count!==null){const el=document.querySelector(`.feed-action-views[data-episode="${CSS.escape(date)}"] .views-count`);if(el)el.textContent=count>=1000?`${(count / 1000).toFixed(1)}k`:String(count);}}catch(err){console.warn("[app] view count error:",err);}}));}}
+function bindUI(){const updateDrawerThemeUI=()=>{const isDark=document.documentElement.getAttribute("data-theme")==="dark";if(els.drawerThemeLabel){els.drawerThemeLabel.textContent=isDark?"Modo Escuro":"Modo Claro (Padrão)";}};const openDrawer=()=>{if(els.drawerOverlay){updateDrawerThemeUI();els.drawerOverlay.classList.add("active");}};const closeDrawer=()=>{if(els.drawerOverlay){els.drawerOverlay.classList.remove("active");}};if(els.btnMenu){els.btnMenu.addEventListener("click",openDrawer);}
+if(els.drawerCloseBtn){els.drawerCloseBtn.addEventListener("click",closeDrawer);}
+if(els.drawerOverlay){els.drawerOverlay.addEventListener("click",(e)=>{if(e.target===els.drawerOverlay)closeDrawer();});}
+document.addEventListener("keydown",(e)=>{if(e.key==="Escape")closeDrawer();});if(els.drawerThemeToggleBtn){els.drawerThemeToggleBtn.addEventListener("click",()=>{const toggleBtn=$("#themeToggle");if(toggleBtn)toggleBtn.click();updateDrawerThemeUI();});}
+if(els.drawerNavItems&&els.drawerNavItems.length){els.drawerNavItems.forEach(item=>{item.addEventListener("click",()=>{const tab=item.dataset.drawerTab;if(tab){state.activeTab=tab;if(els.tabs&&els.tabs.length){els.tabs.forEach(b=>{const active=b.dataset.tab===tab;b.classList.toggle("active",active);b.setAttribute("aria-selected",active?"true":"false");});}
+els.drawerNavItems.forEach(i=>i.classList.toggle("active",i===item));renderFilteredFeed();closeDrawer();}});});}
+document.addEventListener("click",(ev)=>{const card=ev.target.closest(".tweet-card, .hero-card, .ep-row, .rail-card");if(!card)return;const interactive=ev.target.closest("button, a, [data-play], [data-action], .card-icon, .feed-action-btn, .hero-play-btn, input, select, textarea");if(interactive)return;const sel=window.getSelection&&window.getSelection();if(sel&&sel.toString().length>0)return;const id=card.getAttribute("data-id");if(!id)return;const ep=findEp(id);if(!ep||!ep.audio_url)return;const audioState=window.PlayerManager.getAudioState();if(state.currentId===id&&!audioState.paused){window.PlayerManager.pause();}else{playEpisode(id);}});document.addEventListener("keydown",(ev)=>{if(ev.key!=="Enter"&&ev.key!==" ")return;const el=ev.target.closest?ev.target.closest(".ep-row, .rail-card"):null;if(!el)return;ev.preventDefault();const id=el.getAttribute("data-id");if(!id)return;const ep=findEp(id);if(!ep||!ep.audio_url)return;const audioState=window.PlayerManager.getAudioState();if(state.currentId===id&&!audioState.paused){window.PlayerManager.pause();}else{playEpisode(id);}});document.addEventListener("click",(ev)=>{const btn=ev.target.closest("[data-play]");if(!btn)return;const id=btn.getAttribute("data-play");if(!id)return;const audioState=window.PlayerManager.getAudioState();if(state.currentId===id&&!audioState.paused){window.PlayerManager.pause();}else{playEpisode(id);}});if(els.miniPlay){els.miniPlay.addEventListener("click",(e)=>{e.stopPropagation();const ep=findEp(state.currentId);window.PlayerManager.togglePlay(ep);});}
+if(els.miniSkipBack){els.miniSkipBack.addEventListener("click",(e)=>{e.stopPropagation();window.PlayerManager.skip(-10);});}
+if(els.miniSkipForward){els.miniSkipForward.addEventListener("click",(e)=>{e.stopPropagation();window.PlayerManager.skip(10);});}
+const openFullPlayer=()=>{const currentEp=findEp(state.currentId);if(currentEp)updateFullPlayerMetadata(currentEp);if(els.fullOverlay){els.fullOverlay.classList.add("expanded");}try{const de=document.documentElement;if(!document.fullscreenElement&&!document.webkitFullscreenElement){const req=de.requestFullscreen?de.requestFullscreen():de.webkitRequestFullscreen?de.webkitRequestFullscreen():null;if(req&&typeof req.catch==="function"){req.catch((err)=>console.warn("[fs] requestFullscreen error:",err));}}}catch(e){}};if(els.miniOpenFull){els.miniOpenFull.addEventListener("click",openFullPlayer);}
+if(els.miniExpand){els.miniExpand.addEventListener("click",(e)=>{e.stopPropagation();openFullPlayer();});}
+if(els.miniSeekBar){els.miniSeekBar.addEventListener("click",(e)=>{e.stopPropagation();const rect=els.miniSeekBar.getBoundingClientRect();if(rect.width<=0)return;const clickX=e.clientX-rect.left;const pct=Math.max(0,Math.min(100,(clickX/rect.width)*100));setWaveProgress(pct);window.PlayerManager.seek(pct);});}
+if(els.fullClose){els.fullClose.addEventListener("click",()=>{els.fullOverlay.classList.remove("expanded");try{if(document.fullscreenElement||document.webkitFullscreenElement){if(document.exitFullscreen){document.exitFullscreen();}else if(document.webkitExitFullscreen){document.webkitExitFullscreen();}}}catch(e){}});}
+if(els.fullModalThemeToggle){els.fullModalThemeToggle.addEventListener("click",()=>{const toggleBtn=$("#themeToggle");if(toggleBtn)toggleBtn.click();});}
+if(els.fullFullscreen){const updateFsIcon=()=>{if(!els.fullFullscreen)return;const active=!!(document.fullscreenElement||document.webkitFullscreenElement);els.fullFullscreen.setAttribute("aria-label",active?"Sair da tela cheia":"Tela cheia");els.fullFullscreen.classList.toggle("active",active);};document.addEventListener("fullscreenchange",updateFsIcon);document.addEventListener("webkitfullscreenchange",updateFsIcon);els.fullFullscreen.addEventListener("click",()=>{const d=document;const de=d.documentElement;const toggleFs=()=>{if(d.fullscreenElement||d.webkitFullscreenElement){if(d.exitFullscreen){d.exitFullscreen();}else if(d.webkitExitFullscreen){d.webkitExitFullscreen();}}else{const req=de.requestFullscreen?de.requestFullscreen():de.webkitRequestFullscreen?de.webkitRequestFullscreen():null;if(req&&typeof req.catch==="function"){req.catch((err)=>{console.warn("[fs]",err);showToast("Tela cheia não disponível — instale o app para remover a barra");});}}};try{toggleFs();}catch(err){console.warn("[fs]",err);showToast("Tela cheia não disponível — instale o app para remover a barra");}});}
+if(els.fullPlayPause){els.fullPlayPause.addEventListener("click",()=>{const ep=findEp(state.currentId);window.PlayerManager.togglePlay(ep);});}
+if(els.fullPrevEp){els.fullPrevEp.addEventListener("click",()=>{const list=getFilteredEpisodes();const idx=list.findIndex(e=>e.id===state.currentId);if(idx>0){playEpisode(list[idx-1].id);}});}
+if(els.fullNextEp){els.fullNextEp.addEventListener("click",()=>{const list=getFilteredEpisodes();const idx=list.findIndex(e=>e.id===state.currentId);if(idx!==-1&&idx<list.length-1){window.handleAutoPlayNext();}});}
+if(els.fullSkipBack){els.fullSkipBack.addEventListener("click",()=>{window.PlayerManager.skip(-15);});}
+if(els.fullSkipForward){els.fullSkipForward.addEventListener("click",()=>{window.PlayerManager.skip(15);});}
+if(els.fullSlider){els.fullSlider.addEventListener("input",(e)=>{const pct=parseFloat(e.target.value);setWaveProgress(pct);window.PlayerManager.seek(pct);});}
+const speeds=[0.75,1,1.25,1.5,2];const _rateIdx=speeds.indexOf(window.PlayerManager.getPlaybackRate());let currentSpeedIdx=_rateIdx>=0?_rateIdx:1;if(els.fullSpeedPill){els.fullSpeedPill.addEventListener("click",()=>{currentSpeedIdx=(currentSpeedIdx+1)%speeds.length;const rate=speeds[currentSpeedIdx];window.PlayerManager.setPlaybackRate(rate);els.fullSpeedPill.textContent=`${rate}x`;localStorage.setItem("vld_playback_speed",String(rate));});}
+let sleepTimer=null;const SLEEP_CHOICES=[15,30,45,null];let sleepChoiceIdx=-1;function sleepTimerLabel(){if(!sleepTimer)return"⏱";if(sleepTimer.minutes===null)return"⏱ fim";const remainSec=Math.max(0,Math.ceil((sleepTimer.endsAt-Date.now())/1000));const m=Math.floor(remainSec/60);const s=remainSec%60;return`⏱ ${m}:${String(s).padStart(2, "0")}`;}
+function stopSleepTimer(){if(!sleepTimer)return;clearInterval(sleepTimer.tick);sleepTimer=null;sleepChoiceIdx=-1;if(els.fullSleepTimer){els.fullSleepTimer.textContent="⏱";els.fullSleepTimer.classList.remove("sleep-timer-active");}}
+function startSleepTimer(minutes){if(sleepTimer)clearInterval(sleepTimer.tick);sleepTimer={minutes,endsAt:minutes===null?null:Date.now()+minutes*60*1000,tick:setInterval(()=>{if(!els.fullSleepTimer)return;if(sleepTimer&&sleepTimer.minutes!==null&&Date.now()>=sleepTimer.endsAt){window.PlayerManager.pause();stopSleepTimer();return;}
+els.fullSleepTimer.textContent=sleepTimerLabel();},1000),};if(els.fullSleepTimer){els.fullSleepTimer.textContent=sleepTimerLabel();els.fullSleepTimer.classList.add("sleep-timer-active");}}
+if(els.fullSleepTimer){els.fullSleepTimer.addEventListener("click",()=>{sleepChoiceIdx=(sleepChoiceIdx+1)%(SLEEP_CHOICES.length+1);if(sleepChoiceIdx>=SLEEP_CHOICES.length){stopSleepTimer();return;}
+startSleepTimer(SLEEP_CHOICES[sleepChoiceIdx]);});window.addEventListener("playerevent",(e)=>{if(sleepTimer&&sleepTimer.minutes===null&&e.detail&&e.detail.type==="ended"){stopSleepTimer();}});}
+if(els.fullShare){els.fullShare.addEventListener("click",(e)=>{e.stopPropagation();const id=els.fullShare.dataset.shareDate||state.currentId;if(id){shareEpisode(id);}else{showToast("Nada para compartilhar ainda");}});}
+if(els.fullHeadlinesToggle&&els.fullHeadlinesList){els.fullHeadlinesToggle.addEventListener("click",()=>{const open=els.fullHeadlinesList.hidden;els.fullHeadlinesList.hidden=!open;els.fullHeadlinesToggle.setAttribute("aria-expanded",open?"true":"false");});}}
+function renderFilteredFeed(){let list=getFilteredEpisodes();updateTabCounts();renderContinueRail();if(els.feedHeadTitle){els.feedHeadTitle.textContent=FEED_TITLE[state.activeTab]||"Todos os episódios";}
+if(state.hideDone){const currentId=state.currentId;list=list.filter(e=>getListenState(e.id)!=="done"||e.id===currentId);}
+const todayEp=list[0]||null;renderToday(todayEp);renderTimeline(list.slice(1));if(els.todayShell&&state.searchQuery&&!list.length){els.todayShell.innerHTML=`
+        <div class="search-empty">
+          <div style="font-size:1.4rem;margin-bottom:6px">🔍</div>
+          <h2 style="font-size:1.05rem;margin-bottom:6px">Nada encontrado</h2>
+          <p>Nenhum episódio com “${escapeHtml(state.searchQuery)}”.<br/>Tente outro termo ou limpe a busca.</p>
+        </div>`;els.todayShell.classList.remove("is-loading");}
+if(els.todayShell&&state.activeTab==="favoritos"&&!list.length){const logged=(typeof window.__supabaseIsLoggedIn==="function")&&window.__supabaseIsLoggedIn();els.todayShell.innerHTML=`
+        <div class="search-empty">
+          <div style="font-size:1.4rem;margin-bottom:6px">${logged ? "🤍" : "🔒"}</div>
+          <h2 style="font-size:1.05rem;margin-bottom:6px">${logged ? "Nenhum favorito ainda" : "Entre para ver seus favoritos"}</h2>
+          <p>${logged ? "Toque no coração ♥ de um episódio para salvá-lo aqui." : "Faça login com o Google para favoritar episódios e vê-los reunidos nesta lista."}</p>
+        </div>`;els.todayShell.classList.remove("is-loading");}
+if(todayEp&&todayEp.audio_url&&!state.currentId){state.currentId=todayEp.id;if(els.miniTitle)els.miniTitle.textContent=todayEp.title||todayEp.date;if(els.miniSub){els.miniSub.textContent=todayEp.type==="especial"?`${formatDateBR(todayEp.date)} · Peter (Solo)`:`${formatDateBR(todayEp.date)} · Peter & Ricardo`;}
+updateFullPlayerMetadata(todayEp);if(els.mini)els.mini.classList.remove("hidden");window.PlayerManager.load(todayEp);try{window.dispatchEvent(new CustomEvent("episodeloaded",{detail:{id:todayEp.id}}));}catch(err){console.warn("[app] episodeloaded dispatch error:",err);}}}
+function saveEpisodesCache(payload){try{localStorage.setItem(EPISODES_CACHE_KEY,JSON.stringify({saved_at:Date.now(),payload,}));}catch{}}
+function readEpisodesCache(){try{const raw=localStorage.getItem(EPISODES_CACHE_KEY);if(!raw)return null;const parsed=JSON.parse(raw);const eps=parsed&&parsed.payload&&parsed.payload.episodes;if(Array.isArray(eps)&&eps.length)return parsed;}catch(err){console.warn("[cache] readEpisodesCache parse error:",err);}
+return null;}
+function heroSkeletonHtml(){return`
+      <article class="hero-card skeleton-hero" aria-hidden="true">
+        <div class="hero-cover-wrap"><div class="sk sk-block" style="width:100%;height:100%"></div></div>
+        <div class="hero-content">
+          <div>
+            <div class="sk sk-line" style="width:28%;height:12px;margin-bottom:14px"></div>
+            <div class="sk sk-line" style="width:92%;height:22px;margin-bottom:10px"></div>
+            <div class="sk sk-line" style="width:78%;height:22px;margin-bottom:16px"></div>
+            <div class="sk sk-line" style="width:100%;height:12px;margin-bottom:8px"></div>
+            <div class="sk sk-line" style="width:70%;height:12px"></div>
+          </div>
+          <div class="hero-footer" style="margin-top:20px">
+            <div class="sk sk-circle" style="width:36px;height:36px"></div>
+            <div class="sk sk-circle" style="width:44px;height:44px;margin-left:auto"></div>
+          </div>
+        </div>
+      </article>`;}
+function feedSkeletonHtml(n=6){let html="";for(let i=0;i<n;i++){html+=`
+        <div class="feed-item-group skeleton-row" aria-hidden="true">
+          <article class="ep-row">
+            <div class="ep-row-thumb"><div class="sk sk-block" style="width:100%;height:100%"></div></div>
+            <div class="ep-row-body" style="flex:1;min-width:0">
+              <div class="sk sk-line" style="width:34%;height:10px;margin-bottom:10px"></div>
+              <div class="sk sk-line" style="width:88%;height:14px;margin-bottom:8px"></div>
+              <div class="sk sk-line" style="width:62%;height:14px;margin-bottom:10px"></div>
+              <div class="sk sk-line" style="width:40%;height:10px"></div>
+            </div>
+          </article>
+        </div>`;}
+return html;}
+function renderSkeletons(){state.feedStatus="loading";if(els.todayShell){els.todayShell.classList.add("is-loading");els.todayShell.innerHTML=heroSkeletonHtml();}
+if(els.timeline)els.timeline.innerHTML=feedSkeletonHtml(6);if(els.feedEnd)els.feedEnd.hidden=true;hideOfflineBanner();}
+function ensureOfflineBanner(){let bar=document.getElementById("offlineBanner");if(bar)return bar;bar=document.createElement("div");bar.id="offlineBanner";bar.className="offline-banner";bar.setAttribute("role","status");bar.hidden=true;const section=document.querySelector(".timeline-section");const head=section&&section.querySelector(".feed-head");if(section&&head)section.insertBefore(bar,head);else if(els.timeline&&els.timeline.parentElement){els.timeline.parentElement.insertBefore(bar,els.timeline);}
+return bar;}
+function showOfflineBanner(message){const bar=ensureOfflineBanner();bar.hidden=false;bar.innerHTML=`
+      <span class="offline-banner-text">${escapeHtml(message)}</span>
+      <button type="button" class="offline-banner-retry" id="offlineRetryBtn">Tentar de novo</button>`;const btn=document.getElementById("offlineRetryBtn");if(btn)btn.addEventListener("click",()=>loadFeed({reason:"retry"}));}
+function hideOfflineBanner(){const bar=document.getElementById("offlineBanner");if(bar){bar.hidden=true;bar.innerHTML="";}}
+function renderFeedError(){state.feedStatus="error";if(els.todayShell){els.todayShell.classList.remove("is-loading");els.todayShell.innerHTML="";}
+if(els.feedEnd)els.feedEnd.hidden=true;hideOfflineBanner();if(els.timeline){els.timeline.innerHTML=`
+        <div class="feed-error-state" role="alert">
+          <p class="feed-error-title">Sem conexão</p>
+          <p class="feed-error-sub">Toque para tentar novamente</p>
+          <button type="button" class="chip-btn feed-error-retry" id="feedRetryBtn">Tentar novamente</button>
+        </div>`;const btn=document.getElementById("feedRetryBtn");if(btn)btn.addEventListener("click",()=>loadFeed({reason:"retry",showSkeleton:true}));}}
+function applyEpisodesPayload(payload,{fromCache}){state.episodes=Array.isArray(payload.episodes)?payload.episodes:[];state.feedStatus=fromCache?"offline-cache":"ready";if(fromCache){showOfflineBanner("Sem conexão — mostrando conteúdo salvo");}else{hideOfflineBanner();}
+renderFilteredFeed();}
+function bootstrapFromCache(){const cached=readEpisodesCache();if(cached&&cached.payload){applyEpisodesPayload(cached.payload,{fromCache:true});showOfflineBanner("Mostrando conteúdo salvo — atualizando…");return true;}
+renderSkeletons();return false;}
+async function loadFeed(opts={}){const hasData=state.episodes.length>0;if(opts.showSkeleton||(!hasData&&state.feedStatus==="loading")){renderSkeletons();}else if(!hasData&&state.feedStatus==="error"){renderSkeletons();}
+try{const res=await fetch(DATA_URL,{cache:"no-cache",credentials:"same-origin",});if(!res.ok)throw new Error("HTTP "+res.status);const data=await res.json();const eps=Array.isArray(data.episodes)?data.episodes:[];if(!eps.length&&!hasData){state.episodes=[];state.feedStatus="ready";hideOfflineBanner();renderFilteredFeed();return;}
+if(!eps.length&&hasData){showOfflineBanner("Resposta incompleta — mantendo conteúdo atual");renderFilteredFeed();return;}
+saveEpisodesCache(data);applyEpisodesPayload(data,{fromCache:false});handleDeepLink();}catch(err){console.error("loadFeed failed:",err);const cached=readEpisodesCache();if(cached&&cached.payload&&Array.isArray(cached.payload.episodes)&&cached.payload.episodes.length){applyEpisodesPayload(cached.payload,{fromCache:true});handleDeepLink();return;}
+if(state.episodes.length){state.feedStatus="offline-cache";showOfflineBanner("Sem conexão — mostrando conteúdo atual");renderFilteredFeed();handleDeepLink();return;}
+renderFeedError();}}
+function bindTabs(){if(!els.tabs||!els.tabs.length)return;els.tabs.forEach(btn=>{btn.addEventListener("click",()=>{const tab=btn.dataset.tab;if(state.activeTab===tab)return;state.activeTab=tab;els.tabs.forEach(b=>{const active=b.dataset.tab===tab;b.classList.toggle("active",active);b.setAttribute("aria-selected",active?"true":"false");});renderFilteredFeed();});});}
+function bindSearch(){document.addEventListener("click",(ev)=>{const tag=ev.target.closest(".tag[data-tag]");if(!tag)return;const key=tag.dataset.tag;state.activeTag=state.activeTag===key?null:key;renderFilteredFeed();});document.addEventListener("keydown",(ev)=>{if(ev.key!=="Enter"&&ev.key!==" ")return;const tag=ev.target.closest(".tag[data-tag]");if(!tag)return;ev.preventDefault();tag.click();});if(!els.btnSearch||!els.searchPanel||!els.searchInput)return;function setSearchOpen(open){els.searchPanel.hidden=!open;els.btnSearch.setAttribute("aria-expanded",open?"true":"false");if(open){els.searchInput.focus();}else if(!state.searchQuery){applySearch("");}}
+function applySearch(q){state.searchQuery=q.trim();if(els.searchClear)els.searchClear.hidden=!state.searchQuery;renderFilteredFeed();}
+els.btnSearch.addEventListener("click",()=>{setSearchOpen(els.searchPanel.hidden);});els.searchInput.addEventListener("input",()=>{applySearch(els.searchInput.value);});els.searchInput.addEventListener("keydown",(ev)=>{if(ev.key==="Escape"){els.searchInput.value="";applySearch("");setSearchOpen(false);}});if(els.searchClear){els.searchClear.addEventListener("click",()=>{els.searchInput.value="";applySearch("");els.searchInput.focus();});}}
+function bindFavorites(){window.addEventListener("favoriteschange",()=>{if(state.activeTab==="favoritos")renderFilteredFeed();});}
+function bindNewsletter(){const form=$("#newsletterForm");const input=$("#newsletterEmail");const msg=$("#newsletterMsg");if(!form||!input||!msg)return;function setMsg(text,isError){msg.textContent=text;msg.style.color=isError?"var(--color-live)":"var(--color-success)";}
+form.addEventListener("submit",async(ev)=>{ev.preventDefault();const email=input.value.trim();if(!email)return;setMsg("Assinando…",false);const result=(typeof window.subscribeNewsletter==="function")?await window.subscribeNewsletter(email):{ok:false,error:"serviço indisponível"};if(result.ok){input.value="";setMsg("✅ Inscrição confirmada! Você receberá o boletim semanal.",false);}else{setMsg(result.error&&result.error.includes("duplicate")?"Você já está inscrito(a) 😉":`Não foi possível assinar (${result.error || "erro"}). Tente de novo.`,true);}});}
+function bindPWA(){const pwaModal=$("#pwaInstallModal");const pwaClose=$("#pwaModalClose");const pwaInstallBtn=$("#pwaInstallBtn");const pwaIosDismissBtn=$("#pwaIosDismissBtn");const pwaGenericBody=$("#pwaInstructionGeneric");const pwaIosBody=$("#pwaInstructionIos");let visitCount=Number(localStorage.getItem("vld_visit_count")||0)+1;localStorage.setItem("vld_visit_count",String(visitCount));const isStandalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;if(isStandalone)return;const lastDismissed=Number(localStorage.getItem("vld_install_dismissed_at")||0);const SEVEN_DAYS_MS=7*24*60*60*1000;if(Date.now()-lastDismissed<SEVEN_DAYS_MS)return;const isIos=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();state.deferredPrompt=e;});function dismissModal(){if(pwaModal)pwaModal.classList.add("hidden");localStorage.setItem("vld_install_dismissed_at",String(Date.now()));}
+if(pwaClose)pwaClose.addEventListener("click",dismissModal);if(pwaIosDismissBtn)pwaIosDismissBtn.addEventListener("click",dismissModal);if(pwaInstallBtn){pwaInstallBtn.addEventListener("click",async()=>{if(state.deferredPrompt){state.deferredPrompt.prompt();await state.deferredPrompt.userChoice;state.deferredPrompt=null;}
+dismissModal();});}
+if(visitCount>=2&&pwaModal){setTimeout(()=>{if(isIos){if(pwaGenericBody)pwaGenericBody.classList.add("hidden");if(pwaIosBody)pwaIosBody.classList.remove("hidden");}
+pwaModal.classList.remove("hidden");},15000);}
+if("serviceWorker"in navigator){navigator.serviceWorker.register("./sw.js").catch((err)=>console.warn("[pwa] SW register error:",err));}}
+if(els.btnRefresh){els.btnRefresh.addEventListener("click",()=>loadFeed({reason:"refresh",showSkeleton:!state.episodes.length}));}
+bindSocialButtons();bindUI();document.addEventListener("DOMContentLoaded",()=>{const _speeds=[0.75,1,1.25,1.5,2];const savedRate=parseFloat(localStorage.getItem("vld_playback_speed")||"1");if(_speeds.includes(savedRate)&&savedRate!==1){window.PlayerManager.setPlaybackRate(savedRate);if(els.fullSpeedPill)els.fullSpeedPill.textContent=`${savedRate}x`;}});bindPWA();bindTabs();bindSearch();bindFavorites();bindNewsletter();bindHideDoneToggle();initListenProgressHooks();initProgressWaves();bootstrapFromCache();initMonetization();loadFeed({reason:"init"});window.addEventListener("online",()=>loadFeed({reason:"online"}));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&(state.feedStatus==="offline-cache"||state.feedStatus==="error")){loadFeed({reason:"visible"});}});let cachedLiveSponsorsMap={};async function handleAutoPlayNext(){if(window.AdManager&&window.AdManager.isShowing())return;const nextEp=findNextEpisode(state.currentId);if(nextEp){const nextTitle=nextEp.title||`Edição ${nextEp.date}`;let activeAd=null;if(typeof window.__supabaseFetchActiveAd==="function"){try{activeAd=await window.__supabaseFetchActiveAd();}catch(err){console.warn("[ads] Erro ao buscar anúncio ativo:",err);}}
+if(activeAd&&typeof window.AdManager?.showInterstitial==="function"){if(window.PlayerManager&&typeof window.PlayerManager.pause==="function"){window.PlayerManager.pause();}window.AdManager.showInterstitial(activeAd,nextTitle,()=>{playEpisode(nextEp.id);});}else{playEpisode(nextEp.id);}}}
+function renderSponsorsHtml(sponsors=[],extraClass=""){if(!Array.isArray(sponsors)||!sponsors.length)return"";return`<div class="sponsors-wrap ${extraClass}">${sponsors.map(s => `<a href="${(/^https?:\/\//i.test(s.website_url||"") ? escapeHtml(s.website_url) : '#')}"target="_blank"rel="noopener noreferrer"class="sponsor-tag"title="Oferecido por ${escapeHtml(s.name)}"><span class="sponsor-prefix">Apresentado por</span>${s.logo_url?`<img src="${escapeHtml(s.logo_url)}" alt="" class="sponsor-logo" />`:''}<strong>${escapeHtml(s.name)}</strong></a>`).join("")}</div>`;}
+async function initSidebarAd(){const slot=$("#sidebarAdSlot");if(!slot||typeof window.__supabaseFetchActiveAd!=="function")return;try{const ad=await window.__supabaseFetchActiveAd(null);if(!ad||!ad.media_url){slot.hidden=true;return;}
+const mediaEl=$("#sidebarAdMedia");const titleEl=$("#sidebarAdTitle");const descEl=$("#sidebarAdDesc");const ctaEl=$("#sidebarAdCta");if(!mediaEl||!titleEl||!descEl||!ctaEl)return;mediaEl.innerHTML="";const img=document.createElement("img");img.src=ad.media_url;img.alt=ad.alt_text||ad.advertiser_name||"Anúncio";img.style.cssText="width:100%;height:100%;object-fit:cover;display:block;";img.onerror=()=>{slot.hidden=true;};mediaEl.appendChild(img);titleEl.textContent=ad.advertiser_name||"Patrocinado";descEl.textContent=ad.headline||ad.alt_text||"";if(ad.click_url&&/^https?:\/\//i.test(ad.click_url)){ctaEl.href=ad.click_url;ctaEl.hidden=false;ctaEl.onclick=()=>{if(typeof window.__supabaseRecordAdEvent==="function"){window.__supabaseRecordAdEvent(ad.creative_id,"click",ad.campaign_id,"sidebar");}};}else{ctaEl.hidden=true;}
+slot.hidden=false;if(typeof window.__supabaseRecordAdEvent==="function"){window.__supabaseRecordAdEvent(ad.creative_id,"impression",ad.campaign_id,"sidebar");}}catch(err){console.warn("[ads] initSidebarAd:",err);slot.hidden=true;}}
+async function initSponsorsIntegration(){if(typeof window.__supabaseFetchEpisodeSponsors==="function"){try{cachedLiveSponsorsMap=await window.__supabaseFetchEpisodeSponsors(null);applySponsorsToEpisodes(cachedLiveSponsorsMap);}catch(err){console.warn("[ads] Erro ao buscar patrocinadores:",err);}}}
+var cachedMonetizationConfig=null;var adsenseScriptLoaded=false;var _monetRetries=0;async function initMonetization(){if(typeof window.__supabaseFetchMonetizationConfig!=="function")return;try{const cfg=await window.__supabaseFetchMonetizationConfig();cachedMonetizationConfig=cfg||null;if(cfg&&cfg.adsense_enabled&&cfg.adsense_client_id){loadAdSenseScript(cfg.adsense_client_id);}else if(!cfg&&_monetRetries<10){_monetRetries++;setTimeout(initMonetization,500);}}catch(err){console.warn("[monetization] initMonetization:",err);if(_monetRetries<10){_monetRetries++;setTimeout(initMonetization,500);}}}
+function loadAdSenseScript(clientId){if(adsenseScriptLoaded||document.querySelector('script[src*="adsbygoogle.js"]'))return;adsenseScriptLoaded=true;const s=document.createElement("script");s.async=true;s.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+encodeURIComponent(clientId);s.crossOrigin="anonymous";s.onerror=()=>console.warn("[monetization] Falha ao carregar AdSense script");document.head.appendChild(s);}
+function applySponsorsToEpisodes(liveSponsorsMap){if(!liveSponsorsMap||typeof liveSponsorsMap!=="object")return;state.episodes.forEach(ep=>{if(Array.isArray(liveSponsorsMap[ep.date])){ep.sponsors=liveSponsorsMap[ep.date];}});renderFilteredFeed();}
+window.getFilteredEpisodes=getFilteredEpisodes;window.findNextEpisode=findNextEpisode;window.playEpisode=playEpisode;window.handleAutoPlayNext=handleAutoPlayNext;window.shareEpisode=shareEpisode;setTimeout(()=>{initSidebarAd();initSponsorsIntegration();},500);})();

@@ -1,0 +1,614 @@
+{
+  "version": "1.0",
+  "project": "web-jornal-vale-da-liberdade",
+  "prod_url": "https://news.mob.tec.br",
+  "prod_dir": "/home/osmar/web-jornal-vale-da-liberdade",
+  "created_at": "2026-08-01T22:00:00Z",
+  "runs": [
+    {
+      "run_id": "2026-08-01T22:00",
+      "trigger": "manual-ciclo-1-baseline",
+      "model_used": "deepseek-v4-flash",
+      "lighthouse": {
+        "mobile": {
+          "performance": 65,
+          "accessibility": 97,
+          "best_practices": 100,
+          "seo": 100
+        },
+        "desktop": {
+          "performance": 75,
+          "accessibility": 97,
+          "best_practices": 100,
+          "seo": 100
+        }
+      },
+      "core_web_vitals": {
+        "LCP_ms_mobile": 3667,
+        "LCP_rating_mobile": "needs-improvement",
+        "CLS_mobile": 0.587,
+        "CLS_rating_mobile": "poor",
+        "TBT_ms_mobile": 20,
+        "INP_lab": null,
+        "INP_note": "INP nao capturado em lab (Lighthouse 13 precisa flag experimental); requer RUM"
+      },
+      "a11y_issues": [
+        {
+          "rule": "color-contrast",
+          "count": 20,
+          "severity": "serious"
+        }
+      ],
+      "pwa": {
+        "manifest_valid": true,
+        "manifest_note": "manifest.json 200 (10898B, name/start_url/display/icons ok)",
+        "service_worker": true,
+        "sw_note": "sw.js 200 (2108B); registro via app.js",
+        "installable": "nao mensurado (LH13 sem plugin PWA)",
+        "works_offline": "nao mensurado neste ciclo"
+      },
+      "usability_notes": "Conteudo CARREGADO (confirmado por browser real + user). Achado inicial 'corpo vazio' era artefato de screenshot headless antes do JS/Supabase popular. Achados reais: (1) ad acima do titulo da Timeline quebra hierarquia; (2) icones de acao (share/copy/bookmark) linhas finas, baixo contraste/affordance sem texto; (3) redundancia card de destaque + player flutuante na Timeline; (4) muito whitespace desktop entre card principal e Timeline; (5) CLS alto provavelmente por conteudo/ads carregando apos 1o paint. not found: ad block acima do titulo confirmado.",
+      "usability_model_used": "agnes-2.5-flash (validou screenshots + auditoria); roteamento original spec era gemini-3.1-pro -> INDISPONIVEL (404 nesta conta); gemini-3.6-flash tambem valido (200) e gemini-3.5-flash (200). Sem fallback p/ deepseek (nao multimodal).",
+      "screenshots": [
+        "metrics/screenshots/home-mobile-vt.png",
+        "metrics/screenshots/home-desktop-vt.png"
+      ],
+      "diff_vs_previous": null,
+      "diff_note": "Run 1 = baseline, sem run anterior para delta"
+    },
+    {
+      "run_id": "2026-08-02T02:00",
+      "trigger": "post-ux-apply",
+      "model_used": "deepseek-v4-flash",
+      "lighthouse": {
+        "mobile": {
+          "performance": 64,
+          "accessibility": 96,
+          "best_practices": 100,
+          "seo": 100
+        },
+        "desktop": {
+          "performance": 76,
+          "accessibility": 96,
+          "best_practices": 100,
+          "seo": 100
+        }
+      },
+      "core_web_vitals": {
+        "LCP_ms_mobile": 3592,
+        "CLS_mobile": 0.766,
+        "TBT_ms_mobile": 57,
+        "INP_lab": null,
+        "INP_note": "INP nao capturado em lab (precisa RUM)"
+      },
+      "a11y_issues": [
+        {
+          "rule": "color-contrast",
+          "count": 21,
+          "severity": "serious"
+        }
+      ],
+      "pwa": {
+        "manifest_valid": true,
+        "service_worker": true,
+        "sw_cache_key": "vld-v5-202608020121 (network-first p/ .js/.css/episodes.json)",
+        "installable": "nao mensurado",
+        "works_offline": "nao mensurado"
+      },
+      "deploy": "Aplicado new-ux 7 arquivos: index.html, components.css, base.css, tokens.css, app.js, player.js, sw.js + serve.py (raiz). Backup em metrics/backup-ux-20260802T014918/. CSS/JS servem novo via ?v=202608020121.",
+      "usability_notes": "UI nova confirmada em navegador real: drawer (#btnMenu), tabs JORNAL DIARIO/BRASIL&MUNDO/INVESTIMENTOS/TECNOLOGIA, cards com avatares + 'HA N DIAS', botao Ouvir, timeline completa (Eps 19->11). app.js roda sem quebra (timeline renderiza). build_site.py agora delega p/ publish_site.py -> publish preserva a UX nova. Nota: metrics CLS/contraste NAO melhoraram (itens A11Y/PERF sao escopo diferente deste redesign); CLS mobile ate piorou 0.587->0.766.",
+      "usability_model_used": "agnes-2.5-flash (auditoria visual; 1a chamada vazia, validado via DOM real)",
+      "diff_vs_previous": {
+        "performance_mobile": -1,
+        "accessibility_mobile": -1,
+        "CLS_mobile": 0.179,
+        "LCP_ms_mobile": -75,
+        "note": "UX redesign mexeu em layout/features; itens A11Y-001/PERF-001/PERF-002 permanecem abertos"
+      }
+    },
+    {
+      "run_id": "2026-08-02T12:07",
+      "trigger": "cron-semanal",
+      "model_used": "deepseek-v4-flash",
+      "lighthouse": {
+        "mobile": {
+          "performance": 63,
+          "accessibility": 96,
+          "best_practices": 100,
+          "seo": 100
+        },
+        "desktop": {
+          "performance": 76,
+          "accessibility": 96,
+          "best_practices": 100,
+          "seo": 100
+        }
+      },
+      "core_web_vitals": {
+        "LCP_ms_mobile": 3661,
+        "LCP_rating_mobile": "needs-improvement",
+        "CLS_mobile": 0.787,
+        "CLS_rating_mobile": "poor",
+        "TBT_ms_mobile": 70,
+        "FCP_ms_mobile": 2336,
+        "INP_lab": null,
+        "INP_note": "INP nao capturado em lab (Lighthouse lab); precisa RUM"
+      },
+      "a11y_issues": [
+        {
+          "rule": "color-contrast",
+          "count": 11,
+          "severity": "serious"
+        }
+      ],
+      "pwa": {
+        "manifest_valid": true,
+        "manifest_note": "manifest.json 200",
+        "service_worker": true,
+        "sw_note": "sw.js 200",
+        "installable": "nao mensurado",
+        "works_offline": "nao mensurado"
+      },
+      "usability_notes": "**Resposta Objetiva**\nSim, o conteúdo está carregado. Há cards de episódios e timeline visíveis; o corpo da tela não está vazio.\n\n**Auditoria UX**\n*   **Hierarquia:** Inconsistência entre telas: o menu desktop exibe \"TECNOLOGIA\", que não está visível no mobile (provavelmente oculto no hamburger ou truncado), confundindo a estrutura de navegação. No mobile, a repetição de episódios (destaque principal superior vs. card inferior) dilui a prioridade do conteúdo.\n*   **Contraste:** Metadados secundários (datas, durações) no mobile têm tamanho reduzido e contraste funcional limitados, prejudicando a legibilidade rápida.\n*   **Densidade:** O mobile agrega hashtags (#segurança, #saúde...) no final do resumo, aumentando a densidade visual de forma poluente. O desktop distribui melhor as informações em blocos separados.\n*   **Affordance:** O botão de play explícito (círculo laranja) está claro no desktop (lado direito do card principal). No mobile, a ação de play fica implícita no card principal e restrita ao player fixo inferior, reduzindo a visibilidade da interação principal.",
+      "usability_model_used": "agnes-2.5-flash",
+      "screenshots": [
+        "metrics/screenshots/home-mobile-vt.png",
+        "metrics/screenshots/home-desktop-vt.png"
+      ],
+      "diff_vs_previous": {
+        "performance_mobile": -1,
+        "performance_mobile_pct": -1.56,
+        "accessibility_mobile": 0,
+        "performance_desktop": 0,
+        "accessibility_desktop": 0,
+        "LCP_ms_mobile": 69,
+        "CLS_mobile": 0.021,
+        "TBT_ms_mobile": 13,
+        "color_contrast_nodes": -10,
+        "regressions": [],
+        "alerts": [],
+        "note": "Cron semanal #3. Perf mobile -1pt (-1.6%, abaixo do limiar 5% de regressao). CLS mobile permanece poor (0.787, +0.021). Melhora a11y color-contrast 21->11 nos. Sem ALERTA IMEDIATO. Auditoria UX agnes-2.5-flash executada (ciclo multiplo de 3)."
+      }
+    },
+    {
+      "run_id": "2026-08-02T23:20",
+      "trigger": "manual-fix-audio-prerender",
+      "model_used": "deepseek-v4-flash",
+      "lighthouse": {
+        "mobile": {
+          "performance": 97,
+          "accessibility": 96,
+          "best_practices": 100,
+          "seo": 100
+        },
+        "desktop": {
+          "performance": 99,
+          "accessibility": 96,
+          "best_practices": 100,
+          "seo": 100
+        }
+      },
+      "core_web_vitals": {
+        "LCP_ms_mobile": 2641,
+        "LCP_rating_mobile": "good",
+        "CLS_mobile": null,
+        "TBT_ms_mobile": null,
+        "FCP_ms_mobile": null,
+        "INP_lab": null,
+        "INP_note": "INP nao capturado em lab"
+      },
+      "deploy": "Fix BUG-001 via fluxo padrao publish_site.py: sw bump vld-v1-202608022311 -> vld-v1-202608022325 + sync_ux_assets(new-ux->public) + minify. Lighthouse pos-fix local (localhost:8090), /tmp/lh-mobile-fix.json / /tmp/lh-desktop-fix.json.",
+      "usability_notes": "Console limpo (0 erros) pos-fix. specRules=[/episodio/*]. auto-load de audio preservado (audioReadyState=4). PlayerManager.load ok.",
+      "diff_vs_previous": {
+        "LCP_ms_mobile": -1020,
+        "performance_mobile": 34,
+        "note": "Comparado ao run 2026-08-02T12:07 (LCP 3661, perf 63). ATENCAO: delta acumula tambem PERF-014/015/016 (fixes de LCP/Supabase do dia); evidencias deste item = NENHUMA regressao de LCP (prerender da propria pagina nao podia ajudar LCP da entrada)."
+      }
+    }
+  ],
+  "backlog": [
+    {
+      "id": "A11Y-001",
+      "issue": "color-contrast: 11 nos falham WCAG AA (era 21 no run anterior; textos cinza claro sobre claro)",
+      "impact": "alto",
+      "urgency": "media",
+      "effort": "baixo",
+      "score": 8.0,
+      "status": "proposto",
+      "note": "Melhora 21->11 nos no run cron-semanal 2026-08-02T12:07; ainda serious."
+    },
+    {
+      "id": "UX-005",
+      "issue": "Affordance de play fraca no mobile: acao principal fica implicita no card e restrita ao player fixo inferior (desktop tem botao play explicito laranja)",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "status": "proposto",
+      "note": "Achado agnes-2.5-flash em auditoria ciclo 3 (cron-semanal). Distinto de UX-002 (share/copy/bookmark ja verificado).",
+      "score": 6.0
+    },
+    {
+      "id": "UX-004",
+      "issue": "Navegacao inconsistente mobile vs desktop: tab TECNOLOGIA visivel no desktop, ausente/oculta no mobile",
+      "impact": "medio",
+      "urgency": "baixa",
+      "effort": "baixo",
+      "status": "proposto",
+      "note": "Achado agnes-2.5-flash em auditoria ciclo 3 (cron-semanal).",
+      "score": 5.0
+    },
+    {
+      "id": "PERF-001",
+      "issue": "CLS alto (mobile 0.787 / desktop 0.672): conteudo/ads/player carregam apos 1o paint causando layout shift",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "medio",
+      "score": 4.5,
+      "status": "proposto",
+      "note": "CLS mobile 0.766->0.787 no cron-semanal; continua poor. Causa raiz: miniplayer/ads (ver PERF-004)."
+    },
+    {
+      "id": "PERF-004",
+      "issue": "CLS 0.787 (poor, >0.25 CWV) — overlap player/timeline no carregamento inicial",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "medio",
+      "score": 4.5,
+      "status": "proposto",
+      "note": "Diagnostico 2026-08-02 (traces: BEFORE /tmp/lh-before2-0.trace.json / AFTER /tmp/lh-after6-0.trace.json). Padrao IDENTICO nos dois: 1 shift dominante (score ~0.76-0.79) nos nodes 34/37(35/38) com had_recent_input=True (excluido do CLS oficial); node da timeline move y~161/167->670 (h->153), node da sidebar colapsa y~421/540->0. Geometria compativel com miniplayer/expandido sobre a timeline + sidebar saindo. RESPOSTA A PERGUNTA EM ABERTO: e divida PURA do PERF-001, NAO agravada pelo timing assincrono do PERF-003 — o padrao ja existia identico antes da paginacao. Lighthouse BEFORE=3 events (soma 0.766) vs AFTER=1 event (0.785), mas geometria e causa raiz iguais. CLS oficial reportado ficou 0.57->0.77 por redistribuicao de medicao (3->1 eventos) + todos serem grandes, nao por piora real. | Confirmado no run 2026-08-02T12:07: CLS mobile 0.787, desktop 0.672. | CORROBORACAO PSI 2026-08-02T14:08: CLS mobile 0.787 confirmada via Lighthouse local (fonte de verdade). Mesmos nodes 34/37/31, mesma geometria de shift. Causa raiz: container pai .app-layout-grid nao reserva espaco (min-height/aspect-ratio), permitindo que miniplayer 'caia' sobre a timeline e empurre o grid."
+    },
+    {
+      "id": "PERF-005",
+      "issue": "LCP mobile 3.66s (needs-improvement, alvo <2.5s) — FCP 2.3s; LCP provavelmente imagem/hero do card principal",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "medio",
+      "status": "em_andamento",
+      "note": "Run cron-semanal 2026-08-02T12:07: LCP 3661ms (estavel vs 3592). PERF-002 descartado e PERF-003 verificado nao resolveram LCP. Investigar preload/prioridade da imagem LCP + font-display. | 2026-08-02T14:08: fetchpriority=high ADICIONADO na imagem hero (app.js:224). Google Fonts agora non-blocking (media=print). Aguardar novo Lighthouse para verificar impacto no LCP.",
+      "score": 3.0
+    },
+    {
+      "id": "PERF-006",
+      "issue": "Minificacao CSS/JS — reduzir tamanho dos assets estaticos",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T14:14",
+      "note": "Integrado no publish_site.py usando csscompressor (pip install csscompressor rjsmin). Step automatico pos-paginacao: minifica todos os .css e .js em assets/. Resultado: base.css -1192B, components.css -10463B, tokens.css -1874B, app.js -7844B, player.js -1515B, theme.js -468B. Total economizado: ~22KB.",
+      "score": 7.0
+    },
+    {
+      "id": "PERF-007",
+      "issue": "Contraste de texto secundario (acessibilidade) — tokens com ratio <4.5:1",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T17:33",
+      "note": "Tokens terciarios AA (ink-400). 2026-08-02T17:33: contraste aplicado NA ORIGEM (sem override anulado): ad-label/ad-box/footer-copy → ink-muted; footer-links → ink-muted+hover ink; mini-title → --color-accent (sem hex ad-hoc). tab-btn mantem ink-muted (ja AA em bold). Publicado v=202608021733.",
+      "score": 8.0
+    },
+    {
+      "id": "PERF-008",
+      "issue": "Arquivo llms.txt para IA discoverability",
+      "impact": "baixo",
+      "urgency": "baixa",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T14:11",
+      "note": "Criado em /public/llms.txt seguindo padrao llmstxt.org. Estrutura: Sobre, Enderecos, Assets, Tecnologias, Funcionalidades. HTTP 200 confirmado em https://news.mob.tec.br/llms.txt",
+      "score": 9.0
+    },
+    {
+      "id": "PERF-009",
+      "issue": "CLS - Container grid nao reserva espaco",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "medio",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T20:30",
+      "note": "Lighthouse mobile novo (2026-08-02T18:10Z): CLS 0.037 (era 0.787) — atingiu alvo <0.25. | 2026-08-02T20:30: min-height fix do PERF-004/009 substituido por regra condicional (.is-loading remove no JS após hero/empty injetar). Hero computed altura=240px igual ao conteudo; CLS 0.032 (nao regride). Desktop CLS 0.003. min-height:100vh do .app-layout-grid removido (redundante, ja c/100vh+).",
+      "score": 9.5
+    },
+    {
+      "id": "PERF-010",
+      "issue": "LCP cover.jpg — entregar WebP menor com fallback JPG",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T19:05",
+      "note": "scripts/generate_cover_variants.py (rodada unica): cover-{400,800,1200}.{webp,jpg} gerados e verificados (200 image/webp|image/jpeg). app.js usa <picture> webp+jpeg; fallback img = cover-800.jpg. preload 1(a) atualizado com imagesrcset/imagesizes para casar com o picture. medido: currentSrc=cover-800.webp em desktop viewport.",
+      "score": 8.5
+    },
+    {
+      "id": "PERF-011",
+      "issue": "CSS critico inline — topbar",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T19:05",
+      "note": "Critical CSS inline com .topbar reais de components.css (position:sticky, min-height:56px, padding:8px 0). Topbar inline-style alinhado para padding 8px 0 (era 6px). Verificado computed padding=8px 0 no live.",
+      "score": 7.5
+    },
+    {
+      "id": "PERF-012",
+      "issue": "Brotli na origem (nginx)",
+      "impact": "baixo",
+      "urgency": "baixa",
+      "effort": "medio",
+      "status": "em_andamento",
+      "verificado_em": "2026-08-02T19:05",
+      "note": "nginx:1.27-alpine NAO tem ngx_http_brotli_filter_module. Mantido gzip (gzip_vary/gzip_proxied/comp_level=6, types ampliados); Brotli ja serve na borda Cloudflare (content-encoding: br na home). Restart proximo passo: trocar para imagem com brotli (ex: nginx-oss ou nginx:alpine + apk brotli module) — impacto marginal (Cloudflare ja entrega br).",
+      "score": 4.0
+    },
+    {
+      "id": "PERF-013",
+      "issue": "Capa por episodio — quando custom existir, gerar srcset automaticamente",
+      "impact": "medio",
+      "urgency": "backlog",
+      "effort": "medio",
+      "status": "proposto",
+      "note": "Hoje so existe capa padrao do podcast. So implementar generate_cover_variants no publish_site.py quando cover_url por episodio estiver disponivel. Regra: rodar so quando detectar cover_url != cover.jpg padrao.",
+      "score": 2.0
+    },
+    {
+      "id": "PERF-014",
+      "issue": "LCP mobile ainda lento (3.66s) — investigar causa raiz",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "medio",
+      "status": "resolvido",
+      "note": "Lighthouse 2026-08-02T19:25: LCP mobile 3.361 (era 3.66s); render-blocking Supabase removido. Causa raiz fechada.",
+      "score": 6.0,
+      "verificado_em": "2026-08-02T19:25"
+    },
+    {
+      "id": "PERF-015",
+      "issue": "Supabase CDN render-blocking (55KB js, ~1900ms)",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T19:25",
+      "note": "Supabase CDN agora defer. Lighthouse: render-blocking caiu. Perf mobile 63 -> 91. LCP 3.66s -> 3.361s.",
+      "score": 9.0
+    },
+    {
+      "id": "PERF-016",
+      "issue": "Service Worker precache de imagem LCP",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "status": "concluido",
+      "verificado_em": "2026-08-02T19:25",
+      "note": "sw.js inclui cover-{400,800,1200}.webp + cover-800.jpg no precache. Cache vld-v1-202608021920.",
+      "score": 7.0
+    },
+    {
+      "id": "PERF-017",
+      "issue": "CSS externo ainda render-blocking (~510ms savedMs restante)",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "medio",
+      "status": "descartado",
+      "verificado_em": "2026-08-02T20:15",
+      "note": "REVERTIDO. Aplicada e medida (perf 91->92, FCP -47%, SpeedIndex -31%), mas quebrou alinhamento visual dos cards e hero. Voltado a 3 CSS externos blocking + topbar crítico inline pequeno. Nao reaplicar sem visual-QA primeiro.",
+      "score": 2.0
+    },
+    {
+      "id": "UX-006",
+      "issue": "Densidade visual poluente no mobile: hashtags (#segurança, #saúde...) agregadas no final do resumo do card",
+      "impact": "baixo",
+      "urgency": "baixa",
+      "effort": "baixo",
+      "status": "proposto",
+      "note": "Achado agnes-2.5-flash em auditoria ciclo 3 (cron-semanal).",
+      "score": 3.0
+    },
+    {
+      "id": "UX-001",
+      "issue": "bloco de anuncio acima do titulo/timeline quebra hierarquia",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "score": 5.0,
+      "status": "verificado",
+      "verificado_em": "2026-08-02 (new-ux aplicado, UI no ar)"
+    },
+    {
+      "id": "UX-002",
+      "issue": "icones de acao (share/copy/bookmark) linhas finas, baixo contraste e affordance sem texto",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "score": 5.0,
+      "status": "verificado",
+      "verificado_em": "2026-08-02 (new-ux aplicado, UI no ar)"
+    },
+    {
+      "id": "UX-003",
+      "issue": "redundancia card de destaque + player flutuante; muito whitespace desktop entre card e Timeline",
+      "impact": "medio",
+      "urgency": "baixa",
+      "effort": "baixo",
+      "score": 5.0,
+      "status": "verificado",
+      "verificado_em": "2026-08-02 (new-ux aplicado, UI no ar)"
+    },
+    {
+      "id": "PERF-003",
+      "issue": "Timeline 'Episodios Recentes' renderizava todos os 57 episodios de uma vez no DOM via fetch unico de episodes.json — degradacao de performance a medida que o historico cresce",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "medio",
+      "score": 2.5,
+      "status": "regredido — frontend perdido em publish posterior, backend (JSONs paginados + rota SW) órfão mas intacto",
+      "verificado_em": "2026-08-02",
+      "regredido_em": "2026-08-03",
+      "metricas_antes_depois": {
+        "LCP_ms": {
+          "antes": 3793,
+          "depois": 3754,
+          "delta": -39
+        },
+        "TBT_ms": {
+          "antes": 5,
+          "depois": 42
+        },
+        "CLS": {
+          "antes": 0.5704,
+          "depois": 0.7671
+        },
+        "perf_score": {
+          "antes": 0.65,
+          "depois": 0.63
+        }
+      },
+      "note": "Paginacao incremental estatica via publish_site.py (opcao C, PERF-002/Supabase descartado). publish_site.py gera episodes-index.json + episodes-{todos|diario|especial}-page-N.json (12/pag); UI carrega sob demanda via IntersectionObserver (#feedEnd sentinela, #feedLoader spinner com min-height+visibility p/ nao colapsar). investimentos/tecnologia: filtro client-side por keywords sobre bucket diario (ate publish classificar secoes). feed.json/feed.xml seguem completos. CLS: isolado via CDP trace em /tmp/lh-after6-0.trace.json — 1 evento grande (0.785) em nodes 34/37/31 com had_recent_input=True (excluido do CLS oficial), geometria compativel com miniplayer/modal sobre timeline = divida PERF-001, NAO regressao do PERF-003. Fix defensivo min-height/visibility em feedLoader/feedEnd melhorou CLS de 0.81 para 0.77. Arquivos: scripts/publish_site.py, public/assets/js/app.js, public/index.html, public/assets/css/components.css, public/sw.js. REGRESSAO 2026-08-03: frontend paginado em app.js foi sobrescrito por publish posterior; voltou a versao monolitica (fetch unico episodes.json + render all). Backend paginado (JSONs + rota SW) permanece intacto no disco, mas órfão sem UI. Reconstrucao = PERF-018 (nao hoje)."
+    },
+    {
+      "id": "PERF-002",
+      "issue": "LCP 3.7s mobile (needs-improvement): abordagem original via paginaçao no Supabase",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "medio",
+      "score": 2.5,
+      "status": "descartado",
+      "note": "Descartado em favor de PERF-003. Decisao de arquitetura: o feed de episodios NAO vem do Supabase (Supabase e usado apenas para feedback social em user_feedback). O catalogo e um JSON estatico gerado por scripts/publish_site.py. Paginar no Supabase exigiria criar tabela + endpoints novos, fora da arquitetura atual. Decisao registrada em 2026-08-02 (opcoes A/B/C discutidas; escolhida C). Ver PERF-003."
+    },
+    {
+      "id": "BUG-001",
+      "issue": "net::ERR_CONNECTION_FAILED para /audio/2026-08-02.mp3 no console — requisicao de MIDIA FANTASMA de copia prerenderizada (player real tocava normal, 22:10)",
+      "impact": "baixo",
+      "urgency": "media",
+      "effort": "baixo",
+      "score": 6.0,
+      "status": "concluido",
+      "verificado_em": "2026-08-02T23:25",
+      "causa_raiz": "Speculation Rules (index.html) href_matches /* + eagerness moderate prerenderizavam a propria raiz (SPA sem outras paginas, sem navegacoes para 'ativar' a copia). app.js:861 renderFilteredFeed chama PlayerManager.load(todayEp) INCONDICIONALMENTE a cada render -> audio (preload=metadata) dispara fetch de /audio/<hoje>.mp3. Em conteudo prerenderizado a requisicao de midia e deferida; ao descartar a copia, abortada como net::ERR_CONNECTION_FAILED no console. SW inocentado (pass-through /audio, sem precache de mp3).",
+      "fixes": [
+        "player.js load(): guard document.prerendering -> adia via _pendingEpisode e retoma no evento prerenderingchange (evita fetch de audio em conteudo prerenderizado).",
+        "index.html speculationrules: href_matches /* -> /episodio/* (exclui a raiz; hoje nada corresponde; preserva estrutura para futuras paginas de episodio)."
+      ],
+      "metricas_antes_depois": {
+        "LCP_ms_mobile": {
+          "antes": 3661,
+          "depois": 2641,
+          "delta": -1020
+        },
+        "LCP_ms_desktop": {
+          "antes": 867,
+          "depois": 616,
+          "delta": -251
+        },
+        "perf_score_mobile": {
+          "antes": 0.63,
+          "depois": 0.97
+        },
+        "perf_score_desktop": {
+          "antes": 0.76,
+          "depois": 0.99
+        },
+        "regra_audio_url": {
+          "antes": "auto-load dispara fetch a cada render",
+          "depois": "guard prerendering defer/retoma"
+        },
+        "spec_rules_scope": {
+          "antes": "href_matches /*",
+          "depois": "href_matches /episodio/*"
+        }
+      },
+      "note": "Evidencia: Lighthouse local antes (metrics/reports/mobile.json desktop.json, 12:07) vs pos-fix (/tmp/lh-*-fix.json). Caveat: delta LCP/perf acumula outros fixes do dia (PERF-014/015/016); garatia deste item = LCP NAO REGREDIU (prerender da raiz nao podia ajudar LCP da entrada e so competia por recursos). Bump SW vld-v1-202608022311 -> vld-v1-202608022325 via publish_site.py."
+    },
+    {
+      "id": "UX-007",
+      "issue": "Auto-play do próximo episódio: quando um episódio termina, carregar e iniciar automaticamente o próximo da mesma tab",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "score": 7.0,
+      "status": "concluido",
+      "verificado_em": "2026-08-03T10:20",
+      "implementacao": "player.js: listener ended chama findNextEpisode() + playEpisode(); app.js: getFilteredEpisodes() filtra por tab (diario/todos/exclude especial, investimentos por keyword economia/investimentos/mercado, tecnologia por keywords tecnologia/cultura/ciencia), findNextEpisode() retorna próximo da lista filtrada; botões prev/next também corrigidos para usar getFilteredEpisodes() em vez de state.episodes direto. Escolha de contexto: sequência segue a tab ATIVA no momento do ended (mesma lógica dos botões fullPrev/fullNext). Se o episódio atual não está na lista filtrada da tab (ex.: especial tocando e usuário mudou pra TODOS), findNext retorna null e não há salto de bucket.",
+      "validacao": "Testado via browser console: (1) Tab JORNAL DIÁRIO: Episódio 19 -> Episódio 18 com auto-play; (2) Tab INVESTIMENTOS: filtro funciona (10 episódios); (3) Tab TECNOLOGIA: 2 episódios, último retorna null (fim de lista sem loop); (4) Zero erros no console. Problema encontrado: Cloudflare cacheando versão antiga do player.js (01/08) sem auto-play. Corrigido com versionamento v=202608031045. Revalidado em https://news.mob.tec.br: auto-play funciona (2026-08-02 -> 2026-08-01), última episódio para sem loop, console limpo.",
+      "fix_correlato": "Correção de bug pré-existente: botões fullPrevEp/fullNextEp usavam state.episodes (array completo) em vez da lista filtrada pela tab ativa — agora usam getFilteredEpisodes()"
+    },
+    {
+      "id": "PERF-018",
+      "issue": "Reconstruir app.js paginado (PERF-003) a partir da sessao @session:default/20260802_104025_302d1f, aplicar na fonte (new-ux/), publicar, e entao commitar em git",
+      "impact": "alto",
+      "urgency": "alta",
+      "effort": "medio",
+      "score": 1.5,
+      "status": "proposto",
+      "prioridade": "alta",
+      "nao_para_hoje": true,
+      "note": "NAO executar hoje (2026-08-03). Escopo futuro: (1) reconstruir logica paginada do app.js a partir da sessao @session:default/20260802_104025_302d1f (scroll infinito / IntersectionObserver / pages JSON); (2) aplicar na FONTE new-ux/public/assets/js/app.js; (3) publicar via publish_site.py; (4) COMMITTAR em git. IMPORTANTE: public/assets/js/ NAO esta versionado em git hoje — isso DEVE entrar no escopo deste item (adicionar assets JS ao git ou garantir que a fonte new-ux/ e o unico path versionado e o publish e reproduzivel), senao a perda do frontend paginado pode se repetir apos qualquer publish/overwrite. Backend paginado (episodes-*-page-N.json + rota SW) esta orfao mas intacto — reaproveitar, nao regerar do zero se possivel."
+    },
+    {
+      "id": "ARCH-001",
+      "issue": "Duplicacao new-ux/public vs public (fonte vs build). Fonte= new-ux/public; public/ = output servido que publish gera (minifica; sync unidirecional new-ux->public via sync_ux_assets). Editar public/ direto e foot-gun: publish seguinte sobrescreve (so sobreviveu neste BUG-001 porque editei a fonte junto). sw.js NAO esta no sync (bump_sw_cache_version edita PUBLIC/sw.js) e new-ux/public/sw.js ficou OBSOLETO (v5-202608020121 @01:28 vs public v1-...).",
+      "impact": "medio",
+      "urgency": "baixa",
+      "effort": "medio",
+      "score": 4.0,
+      "status": "proposto",
+      "note": "Convencao atual (correta): editar SO new-ux/public e rodar publish_site.py; public/ e sempre regerado. Risco de esquecimento futuro = editar public/ pensando que e fonte. Acao de limpeza sugerida: (a) incluir sw.js no sync_ux_assets OU remover new-ux/public/sw.js obsoleto; (b) renomear para src/dist p/ clareza; (c) README/guard anti-edicao-direta de public/. Registrada a pedido do dono apos BUG-001."
+    },
+    {
+      "id": "UX-008",
+      "issue": "Waveform estilo Android na barra de progresso do áudio (mini + full player), não ícone na capa",
+      "impact": "medio",
+      "urgency": "media",
+      "effort": "baixo",
+      "status": "implementado_em_new-ux",
+      "note": "v4 Lottie-style: full scrubber com 3 ribbons SVG empilhados (paths senoidais) deslizando em cascata (delays). Dual-layer base/played com clip-path --progress. Cores amber + lilás (#e8a23d/#dcacf9/#f2bd6d) inspiradas no Lottie ref. Pause congela animation-play-state. Miniplayer permanece hairline 4px. Zero libs (sem dotlottie). app.js buildProgressWave gera paths."
+    }
+  ],
+  "playbook": [
+    {
+      "pattern": "novo layout UX (gaveta/drawer + tabs editoriais + cards com avatares + fix de seek no player)",
+      "resultado": "implementado e no ar; UX features ok (sem ganho metrico de CLS/contraste)",
+      "aplicado_em": "UX-001, UX-002, UX-003",
+      "backup": "metrics/backup-ux-20260802T014918"
+    }
+  ],
+  "items": [
+    {
+      "id": "UX-009",
+      "titulo": "Home v2 — feed borderless com estados de audição, rail Continuar ouvindo, tabs Diário/B&M, toggle Ocultar ouvidos, miniplayer persistente",
+      "categoria": "ux",
+      "status": "verificado",
+      "criado_em": "2026-08-04",
+      "verificado_em": "2026-08-04",
+      "validacao": "Publicado 2x via publish_site.py; :8090 validado nos 2 temas. Estados empty/partial/done ok; rail só parciais (oculto vazio); B&M 48 eps + empty-state no bundle; toggle persiste (default OFF); resume exato (528s/528s); ended→100%→done; console 0 erros. Contraste AA: light done-title 7.17, done-meta 4.59, âmbar texto/gráfico 5.28; dark done-blend 4.99, âmbar 8.96.",
+      "arquivos": [
+        "scripts/08_episode_progress.sql",
+        "new-ux/public/assets/js/listen_progress.js",
+        "new-ux/public/assets/js/app.js",
+        "new-ux/public/js/supabase_client.js",
+        "new-ux/public/index.html",
+        "new-ux/public/assets/css/tokens.css",
+        "new-ux/public/assets/css/components.css",
+        "new-ux/public/sw.js"
+      ],
+      "notas": "Migration aplicada via docker exec supabase-db psql; RPC fn_upsert_episode_progress monotônico + completed latch >=95%; localStorage fallback anon com merge 'maior progresso vence' por episode_id no login; light mode recalculado (0.48 opacidade → tinta cinza dedicada: AA ok)"
+    },
+    {
+      "id": "UX-010",
+      "titulo": "Pulo de episódios 100% ouvidos no avançar automático/botão Próximo (clique intencional na lista sobrescreve)",
+      "categoria": "ux",
+      "status": "verificado",
+      "criado_em": "2026-08-09",
+      "verificado_em": "2026-08-09",
+      "validacao": "Headless CDP (chromium-1223) em :8090: findNextEpisode(B 30%) pula C (done) e retorna D; D (10%) → E (90% partial) não pulado; sem registro (0%) nunca pulado; botão #fullNextEp real toca D após B (stub de ad); playEpisode(C done) por clique direto toca C; 0 exceções no console. app.js minificado v=202608091200 servido == local; node --check OK.",
+      "arquivos": [
+        "public/assets/js/app.js"
+      ],
+      "notas": "findNextEpisode() agora varre a lista filtrada e pula stateOf()==='done' (latch >=95% do ListenProgress). handleAutoPlayNext() (único caminho: ended + #fullNextEp) reusa findNextEpisode; fim de fila sem playável = null = silêncio. playEpisode() intacto — cliques em linhas/cards/hero/rail/deep-link continuam tocando qualquer episódio, inclusive done. Botão Anterior (#fullPrevEp) intencionalmente NÃO pula (regra cobre só avançar)."
+    }
+  ]
+}

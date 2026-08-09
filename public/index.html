@@ -8,9 +8,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="description" content="Web Jornal diário do Vale da Liberdade — Peter Albuquerque e Ricardo Souto debatem Blumenau, Alto Vale e Santa Catarina.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Vale da Liberdade — Web Jornal">
+  <meta property="og:description" content="Notícias de Blumenau, Alto Vale e SC com Peter e Ricardo. Novo episódio todo dia útil.">
+  <meta property="og:image" content="https://news.mob.tec.br/assets/cover-1200.webp">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://news.mob.tec.br/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Vale da Liberdade — Web Jornal">
+  <meta name="twitter:description" content="Notícias de Blumenau, Alto Vale e SC com Peter e Ricardo.">
+  <meta name="twitter:image" content="https://news.mob.tec.br/assets/cover-1200.webp">
   <title>Vale da Liberdade — Web Jornal</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+  <link rel="canonical" href="https://news.mob.tec.br/">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,17 +43,51 @@
   <link rel="alternate" type="application/rss+xml" title="Vale da Liberdade — Web Jornal" href="./feed.xml">
   <link rel="alternate" type="application/feed+json" title="Vale da Liberdade — JSON Feed" href="./feed.json">
 
-  <!-- CSS crítico pequeno só pro topbar (não afeta layout). components.css externo e BLOCKING novamente (PERF-017 revertido por quebra de alinhamento visual). -->
+  <!-- LOTE 3: Schema.org — PodcastSeries estático (o PodcastEpisode dinâmico é injetado pelo app.js) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PodcastSeries",
+    "name": "Vale da Liberdade",
+    "url": "https://news.mob.tec.br/",
+    "description": "Web Jornal diário do Vale da Liberdade: Peter Albuquerque e Ricardo Souto debatem notícias de Blumenau, Alto Vale e Santa Catarina com viés crítico e libertário.",
+    "webFeed": "https://news.mob.tec.br/feed.xml",
+    "inLanguage": "pt-BR",
+    "author": [
+      { "@type": "Person", "name": "Peter Albuquerque" },
+      { "@type": "Person", "name": "Ricardo Souto" }
+    ],
+    "publisher": { "@type": "Organization", "name": "Vale da Liberdade" }
+  }
+  </script>
+
+  <!-- CSS crítico acima do fold (LOTE 6/4.1): regras layout-affecting extraídas
+       EXATAS do components.css — previne CLS quando o CSS completo chega async.
+       components.css abaixo carrega com media="print" onload (não-bloqueante). -->
   <style>
   .topbar{position:sticky;top:0;z-index:100;background-color:rgba(248,249,250,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--color-border)}
   [data-theme="dark"] .topbar{background-color:rgba(11,13,16,0.85)}
-  .topbar-inner{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0}
+  .topbar-inner{min-height:56px;height:auto;padding:8px 0;display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+  .today-shell{margin-bottom:var(--space-4)}
+  .today-shell.is-loading{min-height:400px}
+  .today-shell:not(.is-loading){min-height:0}
+  .app-layout-grid{display:grid;grid-template-columns:1fr;gap:var(--space-5);width:100%;grid-template-rows:auto 1fr}
+  .desktop-sidebar{display:none}
+  @media(min-width:1024px){.app-layout-grid{grid-template-columns:1fr 340px;align-items:start;gap:var(--space-6)}.desktop-sidebar{display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:72px}}
+  .category-tabs-wrapper{position:sticky;top:var(--topbar-sticky-offset,56px);z-index:90;background-color:var(--color-bg);border-bottom:1px solid var(--color-border);margin-bottom:var(--space-2);padding:12px 0 0 0;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;justify-content:flex-start}
+  .feed-tabs{display:flex;background-color:var(--color-hover);border:1px solid var(--color-border);padding:4px;border-radius:28px;margin:var(--space-4) 0;position:relative;gap:2px}
+  .tab-btn{flex:1;border:0;background:transparent;padding:8px 16px;border-radius:24px;font-family:var(--font-ui);font-size:0.88rem;font-weight:600;color:var(--color-ink-muted);cursor:pointer;transition:all var(--transition-fast);-webkit-tap-highlight-color:transparent}
+  .tab-btn:hover{color:var(--color-ink)}
+  .tab-btn.active{background-color:var(--color-bg);color:var(--color-ink);box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+  @supports(padding-top:env(safe-area-inset-top)){.topbar{padding-top:env(safe-area-inset-top)}}
+  @supports(padding-top:env(safe-area-inset-top)){.category-tabs-wrapper{top:calc(var(--topbar-sticky-offset,56px) + env(safe-area-inset-top,0px))}}
   </style>
 
-  <link rel="stylesheet" href="./assets/css/tokens.css?v=202608022030">
-  <link rel="stylesheet" href="./assets/css/base.css?v=202608022030">
-  <link rel="stylesheet" href="./assets/css/audio-wave.css?v=20260803d">
-  <link rel="stylesheet" href="./assets/css/components.css?v=202608032100">
+  <link rel="stylesheet" href="./assets/css/tokens.css?v=202608071830">
+  <link rel="stylesheet" href="./assets/css/base.css?v=202608071845">
+  <link rel="stylesheet" href="./assets/css/audio-wave.css?v=202608071900">
+  <link rel="stylesheet" href="./assets/css/components.css?v=202608081600" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="./assets/css/components.css?v=202608081600"></noscript>
 
   <!-- Supabase JS Client (deferred — era render-blocking 55KB / ~1.9s) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -69,8 +116,9 @@
 
         <!-- Right: Actions (Search, Theme, Auth) -->
         <div class="top-actions" style="display: flex; align-items: center; gap: 6px;">
-          <button type="button" class="icon-btn" id="btnSearchPlaceholder" aria-label="Pesquisar" title="Pesquisar (Em breve)" style="opacity: 0.6; cursor: not-allowed;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <!-- LOTE 4: Busca de episódios -->
+          <button type="button" class="icon-btn" id="btnSearch" aria-label="Buscar episódios" title="Buscar" aria-expanded="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </button>
           <button type="button" class="icon-btn" id="themeToggle" aria-label="Alternar Tema" title="Alternar Tema">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
@@ -78,47 +126,80 @@
           <div id="auth-container" class="auth-container"></div>
         </div>
       </div>
+
+      <!-- LOTE 4: Painel de busca (expande sob a topbar) -->
+      <div id="searchPanel" class="search-panel" hidden>
+        <div class="container search-panel-inner">
+          <input type="search" id="searchInput" class="search-input" placeholder="Buscar por título ou manchete…" aria-label="Buscar episódios" autocomplete="off" enterkeyhint="search" />
+          <button type="button" id="searchClear" class="search-clear" aria-label="Limpar busca" hidden>&times;</button>
+        </div>
+      </div>
     </header>
 
     <div class="container" style="margin-top: var(--space-3);">
-      <!-- Item B: Category Tabs (Minimalist Left-Aligned Inline Tabs) -->
-      <div class="category-tabs-wrapper" style="display: flex; justify-content: flex-start; margin-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); padding-bottom: 0;">
-        <div class="feed-tabs inline-tabs" role="tablist" aria-label="Seções do Jornal" style="display: flex; gap: 20px; overflow-x: auto; background: transparent; border: none; padding: 0; margin: 0;">
-          <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="todos">TODOS</button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="diario">JORNAL DIÁRIO</button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="especial">BRASIL &amp; MUNDO</button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="investimentos">INVESTIMENTOS</button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tecnologia">TECNOLOGIA</button>
+      <!-- Hero Banner: Episódio de Hoje (Full Width Above Grid) -->
+      <section id="todayShell" class="today-shell is-loading" aria-live="polite" style="margin-bottom: var(--space-2);"></section>
+
+      <!-- Item B: Tabs de linha editorial (UX-009: Diário / Brasil e Mundo) — sticky scroll-through -->
+      <div class="category-tabs-wrapper">
+        <div class="feed-tabs inline-tabs" role="tablist" aria-label="Linhas editoriais">
+          <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="diario">Diário <span class="tab-count" id="countDiario"></span></button>
+          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="bm">Brasil e Mundo <span class="tab-count" id="countBm"></span></button>
         </div>
       </div>
-
-      <!-- Hero Banner: Episódio de Hoje (Full Width Above Grid) -->
-      <section id="todayShell" class="today-shell is-loading" aria-live="polite" style="margin-bottom: var(--space-6);"></section>
 
       <!-- Grid Layout: Feed + Sidebar -->
       <div class="app-layout-grid">
         <main class="feed" style="padding-bottom: calc(var(--space-7) + 64px + var(--safe-bottom));">
+          <!-- LOTE 3: CTA "Retomar último ouvido" — 1 clique volta de onde parou (oculto quando não há parcial) -->
+          <section id="resumeStrip" class="resume-strip" aria-label="Retomar último episódio" hidden>
+            <button type="button" id="resumeStripBtn" class="resume-strip-btn">
+              <span class="resume-strip-icon" aria-hidden="true">▶</span>
+              <span class="resume-strip-text">
+                <span class="resume-strip-label">Retomar</span>
+                <span class="resume-strip-title" id="resumeStripTitle">—</span>
+              </span>
+              <span class="resume-strip-meta" id="resumeStripMeta"></span>
+            </button>
+          </section>
+
+          <!-- Rail "Continuar ouvindo" (UX-009; oculto quando vazio) -->
+          <section id="continueRail" class="continue-rail" aria-label="Continuar ouvindo" hidden>
+            <div class="section-head">
+              <h2>Continuar ouvindo</h2>
+              <div class="rail-nav" id="continueRailNav" hidden>
+                <button type="button" class="rail-nav-btn" id="railPrev" aria-label="Anterior em Continuar ouvindo">&#8249;</button>
+                <button type="button" class="rail-nav-btn" id="railNext" aria-label="Próximo em Continuar ouvindo">&#8250;</button>
+              </div>
+            </div>
+            <div class="rail" id="continueRailList"></div>
+          </section>
+
           <!-- Timeline Dinâmica -->
           <section class="timeline-section">
-            <h2 class="section-title" style="font-family: var(--font-ui); font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;">Episódios Recentes</h2>
-            <p class="section-sub" style="color: var(--color-ink-muted); font-size: 0.85rem; margin-bottom: 20px;">Histórico completo de episódios</p>
-            <div id="timeline" class="timeline"></div>
+            <div class="feed-head">
+              <h2 id="feedHeadTitle">Todos os episódios</h2>
+              <button type="button" class="vld-switch" id="hideDoneToggle" role="switch" aria-checked="false" aria-label="Ocultar episódios já ouvidos">
+                <span>Ocultar ouvidos</span>
+                <span class="vld-switch-track" aria-hidden="true"><span class="vld-switch-thumb"></span></span>
+              </button>
+            </div>
+            <div id="timeline" class="timeline timeline-v2"></div>
             <p id="feedEnd" class="feed-end" style="text-align: center; color: var(--color-ink-muted); padding: 24px;" hidden>Fim do feed · volte amanhã</p>
           </section>
         </main>
 
         <!-- Sidebar Desktop (Google Stitch Layout Widgets) -->
         <aside class="desktop-sidebar">
-          <!-- Widget 1: Native Ad Citroën BR -->
-          <div class="glass-panel" style="border: 1px solid var(--color-border); border-radius: 16px; overflow: hidden; position: relative;">
+          <!-- Widget 1: Native Ad — LOTE 6 (6.3): dinâmico via Supabase (ad_creatives);
+               fallback: escondido quando não há campanha ativa no período -->
+          <div class="glass-panel" id="sidebarAdSlot" hidden style="border: 1px solid var(--color-border); border-radius: 16px; overflow: hidden; position: relative;">
             <span style="position: absolute; top: 12px; right: 12px; background: #7F301B; color: #FFF; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; z-index: 2;">Patrocinado</span>
-            <div style="height: 120px; background: #0C0E11; display: flex; align-items: center; justify-content: center; position: relative;">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#FFC06C" stroke-width="1.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
-            </div>
+            <div id="sidebarAdMedia" style="height: 120px; background: #0C0E11; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;"></div>
             <div style="padding: 16px;">
-              <h4 style="color: #7F301B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Citroën BR</h4>
-              <p style="font-size: 0.85rem; color: var(--color-ink-muted); line-height: 1.4; margin-bottom: 14px;">Descubra o novo SUV que combina design arrojado com eficiência energética para o seu dia a dia.</p>
-              <a href="https://www.citroen.com.br" target="_blank" class="chip-btn" style="display: block; text-align: center; width: 100%; background: #111317; color: #FFF; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 10px; border-radius: 8px;">Conheça o Modelo</a>
+              <h4 id="sidebarAdTitle" style="color: #7F301B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">—</h4>
+              <p id="sidebarAdDesc" style="font-size: 0.85rem; color: var(--color-ink-muted); line-height: 1.4; margin-bottom: 14px;">—</p>
+              <a id="sidebarAdCta" href="#" target="_blank" rel="noopener" class="chip-btn" style="display: block; text-align: center; width: 100%; background: #111317; color: #FFF; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 10px; border-radius: 8px;">Conheça</a>
             </div>
           </div>
 
@@ -131,10 +212,11 @@
             <p style="font-size: 0.85rem; color: var(--color-ink-muted); line-height: 1.4; margin-bottom: 14px;">
               Receba os resumos transcritos dos melhores episódios na sua caixa de entrada.
             </p>
-            <form onsubmit="event.preventDefault(); alert('Obrigado por se inscrever!');" style="display: flex; gap: 8px;">
-              <input type="email" placeholder="Seu e-mail..." required style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-ink); font-size: 0.85rem;" />
-              <button type="submit" style="background: var(--color-accent); color: #FFF; border: none; border-radius: 8px; padding: 0 14px; cursor: pointer; font-weight: bold;">➔</button>
+            <form id="newsletterForm" style="display: flex; gap: 8px;">
+              <input type="email" id="newsletterEmail" placeholder="Seu e-mail..." required style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-ink); font-size: 0.85rem;" />
+              <button type="submit" aria-label="Assinar boletim" style="background: var(--color-accent); color: #FFF; border: none; border-radius: 8px; padding: 0 14px; cursor: pointer; font-weight: bold;">➔</button>
             </form>
+            <p id="newsletterMsg" class="newsletter-msg" role="status" aria-live="polite" style="font-size: 0.8rem; margin-top: 8px; min-height: 1.2em;"></p>
           </div>
 
           <!-- Widget 3: Notícias em Destaque -->
@@ -160,6 +242,15 @@
         <div class="footer-links">
           <a href="./feed.xml">RSS podcast</a>
           <a href="./feed.json">JSON Feed</a>
+          <!-- LOTE 3: CTA "Seguir" nas plataformas (busca oficial — abre na página do podcast quando publicado) -->
+          <a href="https://open.spotify.com/search/Vale%20da%20Liberdade" target="_blank" rel="noopener" class="footer-pod-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.36-.66.5-1.02.28-2.8-1.7-6.32-2.1-10.47-1.15-.4.1-.8-.16-.9-.56-.1-.4.16-.8.56-.9 4.53-1.04 8.4-.6 11.53 1.32.36.22.5.68.3 1.01zm1.46-3.27c-.25.44-.82.6-1.27.35-3.2-1.97-8.08-2.54-11.87-1.39-.5.15-1.03-.14-1.18-.63-.15-.5.14-1.03.63-1.18 4.34-1.32 9.7-.68 13.36 1.56.43.27.58.83.33 1.29zm.12-3.4C14.9 8.3 8.63 8.1 5 9.25c-.6.2-1.24-.14-1.42-.73-.2-.6.14-1.24.73-1.42 4.2-1.35 11.16-1.1 15.66 1.4.53.3.72.98.42 1.5-.3.53-.98.72-1.5.42z"/></svg>
+            Seguir no Spotify
+          </a>
+          <a href="https://podcasts.apple.com/search?term=Vale%20da%20Liberdade" target="_blank" rel="noopener" class="footer-pod-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.07 0C5.46 0 .16 5.3.16 11.91c0 4.6 2.6 8.58 6.4 10.55-.09-.9-.16-2.28-.1-3.27.06-.7.43-2.76.43-2.76s-.35-.7-.35-1.73c0-1.63.95-2.85 2.13-2.85 1 0 1.5.76 1.5 1.67 0 1.02-.65 2.55-.98 3.96-.28 1.18.6 2.15 1.76 2.15 2.1 0 3.72-2.22 3.72-5.43 0-2.84-2.04-4.83-4.95-4.83-3.38 0-5.35 2.53-5.35 5.15 0 1.02.39 2.12.88 2.72.1.12.11.22.08.34l-.33 1.35c-.05.22-.17.27-.4.16-1.5-.7-2.43-2.88-2.43-4.64 0-3.78 2.75-7.25 7.92-7.25 4.16 0 7.4 2.96 7.4 6.92 0 4.13-2.6 7.46-6.22 7.46-1.2 0-2.34-.63-2.73-1.37l-.74 2.83c-.27 1.03-.99 2.32-1.47 3.1 1.1.34 2.27.52 3.49.52 6.6 0 11.9-5.3 11.9-11.91S18.67 0 12.07 0z"/></svg>
+            Seguir no Apple Podcasts
+          </a>
           <span>PWA · atualização automática</span>
         </div>
         <div class="footer-copy">Desenvolvedor: Osmar Gonçalves Filho</div>
@@ -188,8 +279,9 @@
       </div>
       
       <!-- Controles à direita -->
+      <!-- LOTE 5 (2.4): skip back/forward agora visíveis no mobile (público principal) -->
       <div class="mini-player-right">
-        <button type="button" id="miniSkipBack" class="mini-btn-sec hidden-mobile" title="Voltar 10s" aria-label="Voltar 10s">
+        <button type="button" id="miniSkipBack" class="mini-btn-sec" title="Voltar 10s" aria-label="Voltar 10s">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
         </button>
 
@@ -197,7 +289,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
         </button>
 
-        <button type="button" id="miniSkipForward" class="mini-btn-sec hidden-mobile" title="Avançar 10s" aria-label="Avançar 10s">
+        <button type="button" id="miniSkipForward" class="mini-btn-sec" title="Avançar 10s" aria-label="Avançar 10s">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>
         </button>
 
@@ -217,6 +309,9 @@
           <span class="full-eyebrow">PLAYING FROM</span>
           <span class="full-brand-title">Vale da Liberdade</span>
         </div>
+        <button type="button" id="fullFullscreenBtn" class="full-header-icon-btn" aria-label="Tela cheia" title="Tela cheia (esconde a barra do navegador)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+        </button>
         <button type="button" id="fullModalThemeToggle" class="full-header-icon-btn" aria-label="Alternar Tema">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
@@ -225,22 +320,38 @@
       <div class="full-player-body">
         <div class="full-cover-wrapper">
           <img id="fullCover" class="full-cover-img" src="./assets/cover.jpg" alt="Arte de Capa do Episódio" />
-          <button type="button" id="fullFavBtn" class="full-fav-overlay-btn" aria-label="Favoritar" data-fav-date="">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <!-- Compartilhar no lugar do favoritar (decisão do dono: notícia diária não precisa de favorito no player) -->
+          <button type="button" id="fullShareBtn" class="full-share-overlay-btn" aria-label="Compartilhar episódio" title="Compartilhar" data-share-date="">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
           </button>
+          <!-- Título + autor SOBRE a capa (parte inferior) — ganha espaço vertical no player -->
+          <div class="full-cover-caption">
+            <h2 id="fullEpisodeTitle" class="full-episode-title">A Crise Fiscal e a Saída pelo Empreendedorismo</h2>
+            <div id="fullEpisodeMeta" class="full-episode-meta">Ricardo Souto</div>
+          </div>
         </div>
 
         <div class="full-info-block">
-          <h2 id="fullEpisodeTitle" class="full-episode-title">A Crise Fiscal e a Saída pelo Empreendedorismo</h2>
-          <div id="fullEpisodeMeta" class="full-episode-meta">Ricardo Souto</div>
+          <!-- "A seguir": próximo episódio da fila (estilo Spotify) -->
+          <div class="up-next-strip" id="fullUpNext" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="up-next-label">A seguir:</span>
+            <span class="up-next-title" id="fullUpNextTitle">—</span>
+          </div>
+
+          <!-- LOTE 5 (5.4): manchetes da edição como resumo (accordion) -->
+          <div id="fullHeadlines" class="full-headlines" hidden>
+            <button type="button" id="fullHeadlinesToggle" class="full-headlines-toggle" aria-expanded="false" aria-controls="fullHeadlinesList">
+              <span>Manchetes da edição</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <ul id="fullHeadlinesList" class="full-headlines-list" hidden></ul>
+          </div>
         </div>
         
         <div class="scrubber-container">
-          <div class="scrubber-wave">
-            <div class="progress-wave paused" id="fullProgressWave" style="--progress: 0%" aria-hidden="true">
-              <!-- barras injetadas por app.js (buildProgressWave) -->
-            </div>
-          </div>
+          <!-- LOTE 7 (UX-008 simplificado): barra simples + bolinha.
+               Waveform (.scrubber-wave/#fullProgressWave) removido a pedido do dono. -->
           <input type="range" id="fullScrubberSlider" class="scrubber-slider" min="0" max="100" value="0" step="0.1" aria-label="Progresso do Áudio" />
           <div class="scrubber-time">
             <span id="fullCurrentTime">0:00</span>
@@ -261,7 +372,7 @@
           </button>
         </div>
 
-        <!-- Fileira Secundária: Skip -10s | Pill Velocidade 1x | Skip +10s -->
+        <!-- Fileira Secundária: Skip -10s | Pill Velocidade 1x | Skip +10s | Sleep Timer -->
         <div class="secondary-playback-controls">
           <button type="button" id="fullSkipBack" class="btn-control btn-skip-sec" aria-label="Voltar 10s" title="Voltar 10s">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
@@ -270,16 +381,20 @@
           <button type="button" id="fullSkipForward" class="btn-control btn-skip-sec" aria-label="Avançar 10s" title="Avançar 10s">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>
           </button>
+          <!-- LOTE 4: Sleep Timer — ciclo 15m → 30m → 45m → fim do episódio → off -->
+          <button type="button" id="fullSleepTimer" class="btn-control btn-skip-sec sleep-timer-btn" aria-label="Sleep Timer" title="Sleep Timer: 15m · 30m · 45m · fim do episódio">⏱</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Template para anúncios dinâmicos -->
+  <!-- Template para anúncios dinâmicos (Google AdSense) -->
   <template id="adCardTemplate">
     <div class="ad-wrap in-feed">
       <div class="ad-label">Publicidade</div>
-      <div class="ad-box">Espaço reservado · AdSense</div>
+      <div class="ad-box">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="" data-ad-slot="" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      </div>
     </div>
   </template>
 
@@ -350,6 +465,13 @@
             <span class="drawer-nav-text">Jornal Diário</span>
           </button>
 
+          <button type="button" class="drawer-nav-item" data-drawer-tab="bm">
+            <span class="drawer-nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </span>
+            <span class="drawer-nav-text">Brasil e Mundo</span>
+          </button>
+
           <button type="button" class="drawer-nav-item" data-drawer-tab="investimentos">
             <span class="drawer-nav-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
@@ -369,6 +491,14 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
             </span>
             <span class="drawer-nav-text">Entrevistas &amp; Especiais</span>
+          </button>
+
+          <!-- LOTE 5 (3.4): lista de favoritos acessível (1 toque no drawer) -->
+          <button type="button" class="drawer-nav-item" data-drawer-tab="favoritos">
+            <span class="drawer-nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            </span>
+            <span class="drawer-nav-text">Meus Favoritos</span>
           </button>
         </nav>
 
@@ -395,46 +525,66 @@
     </div>
   </div>
 
-  <!-- Overlay Interstitial de Anúncios (Tipo 2) -->
-  <div id="adInterstitialOverlay" class="ad-interstitial-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Anúncio em reprodução">
-    <div class="ad-overlay-backdrop"></div>
-    <div class="ad-overlay-card">
-      <div class="ad-overlay-header">
-        <div class="ad-sponsor-info">
-          <span class="ad-badge">Patrocínio</span>
-          <span class="ad-advertiser-name" id="adAdvertiserName">Patrocinador</span>
+    <!-- Interstitial de Anúncios — mesmo layout do full player (estilo Spotify, menos intrusivo) -->
+  <div id="adInterstitialOverlay" class="full-player-overlay ad-player-overlay" aria-modal="true" aria-label="Anúncio em reprodução" role="dialog">
+    <div class="full-player-header">
+      <button type="button" id="adCloseBtn" class="full-header-icon-btn" aria-label="Fechar anúncio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div class="full-player-title-strip">
+        <span class="full-eyebrow">PATROCÍNIO</span>
+        <span class="full-brand-title" id="adAdvertiserName">Patrocinador</span>
+      </div>
+      <button type="button" id="adSkipBtn" class="ad-skip-btn" disabled aria-disabled="true" aria-label="Pular anúncio">
+        <span id="adSkipText">Pular em 7s</span>
+      </button>
+    </div>
+
+    <div class="full-player-body">
+      <div class="full-cover-wrapper">
+        <div class="ad-media-container" id="adMediaContainer">
+          <!-- Renderizado dinamicamente: <img> ou <video> -->
         </div>
-        <button type="button" id="adSkipBtn" class="ad-skip-btn" disabled aria-disabled="true" aria-label="Pular anúncio">
-          <span id="adSkipText" aria-live="polite">Pular em 7s</span>
-        </button>
+        <div class="full-cover-caption">
+          <div id="adHeadline" class="full-episode-title">Patrocinador</div>
+          <div id="adSubline" class="full-episode-meta">Conteúdo patrocinado</div>
+        </div>
       </div>
 
-      <div class="ad-media-container" id="adMediaContainer">
-        <!-- Renderizado dinamicamente: <img> ou <video> -->
+      <div class="full-info-block">
+        <div class="up-next-strip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="up-next-label">A seguir:</span>
+          <span class="up-next-title" id="adNextTitle">Próximo episódio</span>
+        </div>
       </div>
 
-      <a id="adCtaLink" href="#" target="_blank" rel="noopener noreferrer" class="ad-cta-link" hidden>
-        <span>Saiba mais</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-      </a>
-
-      <div class="ad-overlay-footer">
+      <div class="scrubber-container">
         <div class="ad-progress-bar">
           <div class="ad-progress-fill" id="adProgressFill"></div>
         </div>
-        <div class="ad-next-up">
-          <span class="ad-next-label">A seguir:</span>
-          <span class="ad-next-title" id="adNextTitle">Próximo episódio</span>
+        <div class="scrubber-time">
+          <span id="adTimeLabel">Anúncio</span>
+          <span id="adTimeHint"></span>
         </div>
       </div>
+
+      <a id="adCtaLink" class="ad-cta-link" href="#" target="_blank" rel="noopener noreferrer" hidden>
+        <span>Saiba mais</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
     </div>
   </div>
 
+  <script src="./assets/js/orientation_lock.js?v=202608081130" defer></script>
   <script src="./assets/js/theme.js?v=202608022030" defer></script>
-  <script src="./assets/js/player.js?v=202608031311" defer></script>
-  <script src="./js/supabase_client.js?v=202608032048" defer></script>
-  <script src="./assets/js/ad_manager.js?v=202608032048" defer></script>
-  <script src="./assets/js/app.js?v=202608032045" defer></script>
+  <script src="./assets/js/player.js?v=202608081600" defer></script>
+  <script src="./assets/js/wakeLock.js?v=202608060400" defer></script>
+  <script src="./assets/js/listen_progress.js?v=202608081430" defer></script>
+  <script src="./js/supabase_client.js?v=202608081600" defer></script>
+  <script src="./assets/js/ad_manager.js?v=202608081430" defer></script>
+  <script src="./assets/js/interaction_bar.js?v=202608071830" defer></script>
+  <script src="./assets/js/app.js?v=202608091200" defer></script>
 
   <!-- Speculation Rules para prerender de próximas páginas (LCP nas navegações) -->
   <script type="speculationrules">
@@ -445,5 +595,20 @@
     }]
   }
   </script>
+
+  <!-- Fallback para usuários com JavaScript desabilitado -->
+  <noscript>
+    <style>
+      .noscript-banner {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+        background: #fef3c7; color: #92400e; text-align: center;
+        padding: 16px; font-size: 0.95rem; font-family: system-ui, sans-serif;
+      }
+      .noscript-banner a { color: #1d4ed8; text-decoration: underline; }
+    </style>
+    <div class="noscript-banner">
+      Este site requer JavaScript para funcionar. Por favor, <a href="https://enable-javascript.com/pt/">ative o JavaScript</a> ou acesse nosso <a href="./feed.xml">feed RSS</a> diretamente.
+    </div>
+  </noscript>
 </body>
 </html>
