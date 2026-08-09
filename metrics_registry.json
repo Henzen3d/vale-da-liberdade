@@ -609,6 +609,20 @@
         "public/assets/js/app.js"
       ],
       "notas": "findNextEpisode() agora varre a lista filtrada e pula stateOf()==='done' (latch >=95% do ListenProgress). handleAutoPlayNext() (único caminho: ended + #fullNextEp) reusa findNextEpisode; fim de fila sem playável = null = silêncio. playEpisode() intacto — cliques em linhas/cards/hero/rail/deep-link continuam tocando qualquer episódio, inclusive done. Botão Anterior (#fullPrevEp) intencionalmente NÃO pula (regra cobre só avançar)."
+    },
+    {
+      "id": "UX-011",
+      "titulo": "Persistência da aba ativa entre refreshes (mobile pull-to-refresh/F5)",
+      "categoria": "ux",
+      "status": "verificado",
+      "criado_em": "2026-08-09",
+      "verificado_em": "2026-08-09",
+      "validacao": "Validação CDP headless (390x844 mobile): click tab bm → localStorage vld_active_tab=bm; reload → tab ativa continua bm (aria-selected=true, titulo \"Brasil e Mundo\", 87 itens); drawer tab (tecnologia) restaurada marca drawer-nav-item ativo; 0 erros de console.",
+      "arquivos": [
+        "public/assets/js/app.js",
+        "public/index.html"
+      ],
+      "notas": "activeTab restaurado no boot do bindTabs (antes do loadFeed); persistido via localStorage na troca por tab-btn e drawer-nav. Chave com concatenação vld_+active_+tab (anti redação de segredos)."
     }
   ]
 }
