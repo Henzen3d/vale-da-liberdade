@@ -320,7 +320,31 @@ class GeminiMultiClient:
         self._clients: list[Any] = [GeminiClient(api_key=k) for k in api_keys if k]
         if not self._clients:
             self._clients = [GeminiClient()]
-        self._rr_index = 0  # round-robin cursor
+        # Cursor round-robin PERSISTIDO entre execuções (sources/gemini_usage.json
+        # → _meta.rr_index). Sem persistência, cada processo recomeçava na key[0]:
+        # episódios curtos (BM com 2 metades) só tocavam as primeiras chaves e o
+        # RPD diário não era diluído de forma uniforme entre execuções.
+        self._usage_file = self._clients[0].usage_file
+        self._rr_index = self._load_rr_cursor()
+
+    def _load_rr_cursor(self) -> int:
+        """Lê o cursor persistido (_meta.rr_index do arquivo de uso compartilhado)."""
+        try:
+            data = _load_usage(self._usage_file)
+            val = (data.get("_meta") or {}).get("rr_index", 0)
+            return int(val)
+        except Exception:
+            return 0
+
+    def _save_rr_cursor(self):
+        """Persiste o cursor para a próxima execução/processo continuar a rotação."""
+        try:
+            data = _load_usage(self._usage_file)
+            meta = data.setdefault("_meta", {})
+            meta["rr_index"] = self._rr_index
+            _save_usage(self._usage_file, data)
+        except Exception:
+            pass  # falha de persistência não bloqueia a geração
 
     @property
     def models(self):
@@ -334,6 +358,7 @@ class GeminiMultiClient:
         # Round-robin: começa na próxima chave e tenta as N em ordem cíclica
         start = self._rr_index % n
         self._rr_index = (self._rr_index + 1) % n
+        self._save_rr_cursor()
 
         last_exc = None
         for offset in range(n):
