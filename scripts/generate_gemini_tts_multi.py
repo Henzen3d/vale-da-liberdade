@@ -109,6 +109,14 @@ SPEAKERS = {
     "Ricardo": "Schedar",
 }
 
+# Inverso de SPEAKERS: voice_name → speaker (para system_instruction single)
+_VOICE_TO_SPEAKER = {v: k for k, v in SPEAKERS.items()}
+
+
+def _speaker_for_voice(voice_name: str) -> str:
+    """Resolve o speaker (ex.: 'Peter') a partir do voice_name (ex.: 'Charon')."""
+    return _VOICE_TO_SPEAKER.get(voice_name, "Peter")
+
 # Sotaque pt-BR: neutro (sul suave) — NÃO carioca, NÃO gaúcho carregado, NÃO manezinho/Floripa
 ACCENT_GUIDANCE = (
     "SOTAQUE (obrigatório para TODOS os locutores): português brasileiro NEUTRO, "
@@ -149,6 +157,11 @@ TTS_MODEL = DEFAULT_TTS_MODEL
 PAUSA_LONGA_S = 1.5    # [PAUSA] — entre quadros
 PAUSA_CURTA_S = 0.5    # [PAUSA_CURTA] — entre falas longas
 
+# Temperatura TTS (2026-08-10): 0.2 deixou vozes monótonas/sem emoção (relato
+# do usuário no diário). 0.5 é o meio-termo: mantém estabilidade de tom sem
+# matar expressividade. Override via --temperature.
+TTS_TEMPERATURE = 0.5
+
 SAMPLE_RATE = 44100    # Hz — qualidade podcast (Fase 0.5)
 SAMPLE_WIDTH = 2       # bytes (16-bit PCM)
 CHANNELS = 1           # mono
@@ -181,41 +194,30 @@ def validate_speakers(text: str, speakers: list[str]) -> list[str]:
 
 
 def build_prompt(segment_text: str, speakers: list[str] | None = None) -> str:
-    """Constrói o prompt para o Gemini TTS com instruções de estilo por speaker.
-    
-    Recebe um segmento de texto (já sem marcadores de pausa — eles foram usados
-    para dividir os chunks). O áudio de cada chunk é gerado independentemente e
-    concatenado com silêncio real pelo pipeline.
+    """Constrói o prompt (corpo) para o Gemini TTS.
+
+    As personas/diretrizes (Audio Profile + Director's Notes) vivem no campo
+    system_instruction (build_system_instruction) — enviado em toda chamada.
+    O corpo fica enxuto: só a ordem de leitura + o texto segmentado.
     """
     speakers = speakers or list(SPEAKERS.keys())
-    persona_lines = []
-    for sp in speakers:
-        if sp in SPEAKER_PERSONAS:
-            persona_lines.append(f"- {sp}: {SPEAKER_PERSONAS[sp]}")
-    personas_text = "\n".join(persona_lines)
-
-    # Segmento já está limpo de marcadores de pausa (split aconteceu antes)
     clean_text = segment_text.strip()
 
     if len(speakers) == 1:
         sp = speakers[0]
         return (
-            "Você é um sistema de síntese de voz para podcast com locutor solo.\n"
-            "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra.\n"
-            f"{ACCENT_GUIDANCE}\n"
-            "Aplique a entonação e personalidade indicada para o locutor:\n\n"
-            f"- {sp}: {SPEAKER_PERSONAS.get(sp, '')}\n\n"
+            "Você é um sistema de síntese de voz para podcast com locutor solo. "
+            "Siga o Audio Profile e as diretrizes das system instructions. "
+            "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra. "
             f"O texto já contém o rótulo '{sp}:' antes de cada fala. "
             "Mantenha a entonação natural, contínua e expressiva.\n\n"
             "---\n\n" + clean_text
         )
 
     return (
-        "Você é um sistema de síntese de voz para podcast jornalístico com dois apresentadores.\n"
-        "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra.\n"
-        f"{ACCENT_GUIDANCE}\n"
-        "Aplique a entonação e personalidade indicada para cada locutor:\n\n"
-        f"{personas_text}\n\n"
+        "Você é um sistema de síntese de voz para podcast jornalístico com dois apresentadores. "
+        "Siga o Audio Profile e as diretrizes das system instructions. "
+        "Leia exatamente o texto abaixo, sem adicionar, remover ou alterar nenhuma palavra. "
         "O texto já contém os rótulos 'Peter:' e 'Ricardo:' antes de cada fala. "
         "Mantenha a troca natural de turnos como em um programa de rádio ao vivo.\n\n"
         "---\n\n" + clean_text
@@ -476,14 +478,44 @@ def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path) -> None:
     log.info(f"✅ Loudnorm EBU R128 2-pass aplicado → {output_mp3}")
 
 
+def build_system_instruction(speakers: list[str] | None = None) -> str:
+    """System Instruction formal (Audio Profile + Director's Notes).
+
+    Recomendação dev gemini-3.1-flash-tts-preview (2026-08-09): diretrizes no
+    campo system_instruction dão mais peso que no corpo do prompt e garantem
+    consistência de timbre entre chunks. Enviada em TODA chamada do episódio.
+    """
+    speakers = speakers or list(SPEAKERS.keys())
+    persona_lines = []
+    for sp in speakers:
+        if sp in SPEAKER_PERSONAS:
+            persona_lines.append(f"- {sp} ({SPEAKERS.get(sp, sp)}): {SPEAKER_PERSONAS[sp]}")
+    personas_text = "\n".join(persona_lines) if persona_lines else "- Peter (Charon), Ricardo (Schedar)"
+    return (
+        "# Audio Profile\n"
+        f"{personas_text}\n\n"
+        "# Scene\n"
+        "Estúdio de podcast jornalístico profissional, ambiente calmo e focado.\n\n"
+        "# Director's Notes\n"
+        "- Leia o texto EXATAMENTE como fornecido, sem adicionar, remover ou alterar palavras.\n"
+        "- Mantenha a troca de turnos natural, como rádio ao vivo; respire nas pausas.\n"
+        "- Respeite as tags emocionais entre colchetes no texto (ex.: [excited], [sarcastic],\n"
+        "  [thoughtful], [whispers]) com moderação — nunca exagere na atuação.\n"
+        f"{ACCENT_GUIDANCE}"
+    )
+
+
 def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None = None):
     """Gera áudio multi-locutor através do GeminiClient (que gerencia retries e rate limiting)."""
     model = model or TTS_MODEL
+    speakers = [cfg.speaker for cfg in speaker_voice_configs]
     response = client.models.generate_content(
         model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
+            temperature=TTS_TEMPERATURE,  # 0.2 matava expressividade; 0.5 mantém tom estável sem monotonia
+            system_instruction=build_system_instruction(speakers),
             speech_config=types.SpeechConfig(
                 multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
                     speaker_voice_configs=speaker_voice_configs
@@ -506,7 +538,9 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
     if not text:
         return b""
     model = model or TTS_MODEL
-    # Instrução mínima de idioma + sotaque; o voice_name carrega o timbre
+    # Instrução mínima de idioma + sotaque; o voice_name carrega o timbre.
+    # system_instruction com Audio Profile garante consistência de timbre
+    # ENTRE chamadas (chunks/halves) — sem isso a voz varia a cada chamada.
     prompt = (
         "Leia em português do Brasil, de forma natural, apenas o texto a seguir, "
         "sem adicionar palavras. "
@@ -518,6 +552,8 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
+            temperature=TTS_TEMPERATURE,  # 0.2 deixava monótono; 0.5 mantém expressividade com estabilidade
+            system_instruction=build_system_instruction([_speaker_for_voice(voice_name)]),
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
@@ -529,6 +565,33 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
     )
     data = response.candidates[0].content.parts[0].inline_data.data
     return data
+
+
+def sanitize_tts_text(text: str) -> str:
+    """Sanitiza texto p/ TTS: remove links/emojis e expande símbolos comuns.
+
+    Recomendação do dev gemini-2.5-flash-preview-tts (2026-08-09): símbolos
+    e marcações complexas degradam a articulação (ex.: "%" lido errado).
+    R$ precisa vir antes de $ para não virar "R dólares".
+    """
+    if not text:
+        return text
+    text = re.sub(r"https?://\S+|www\.\S+", " ", text)
+    # emojis e símbolos pictográficos (faixas unicode comuns)
+    text = re.sub(
+        r"[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF"
+        r"\U0000FE0F\U00002190-\U000021FF]",
+        " ", text,
+    )
+    text = text.replace("R$", " reais ")
+    text = text.replace("$", " dólares ")
+    text = text.replace("%", " por cento ")
+    text = text.replace("&", " e ")
+    text = text.replace("+", " mais ")
+    # re-une pontuação aos tokens expandidos ("3 por cento ." → "3 por cento.")
+    text = re.sub(r"\s+([.!?;:,])", r"\1", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
 
 
 def parse_speaker_turns(text: str) -> list[tuple[str, str]]:
@@ -569,53 +632,107 @@ def generate_episode_multi(client, episode_text: str, speaker_voice_configs: lis
     return data
 
 
-def generate_per_turn_pcm(client, episode_text: str) -> bytes:
-    """Gera PCM 24kHz concatenando cada fala com a voz do locutor."""
+def split_text_halves(text: str) -> list[str]:
+    """Divide texto em 2 blocos ~equilibrados (por palavras), cortando em fim de sentença.
+
+    Retorna 1 bloco se o texto for curto demais para valer a pena dividir.
+    """
+    words = text.split()
+    if len(words) < 2 * MIN_CHUNK_WORDS:
+        return [text]
+    mid = len(words) // 2
+    # Procura fim de sentença mais próximo do meio (retrocede até 60 palavras)
+    for i in range(mid, max(mid - 60, 1), -1):
+        if words[i - 1][-1:] in ".!?;:":
+            return [" ".join(words[:i]), " ".join(words[i:])]
+    # Fallback: corte simples no meio
+    return [" ".join(words[:mid]), " ".join(words[mid:])]
+
+
+def generate_halves_pcm(
+    client,
+    episode_text: str,
+    voice_name: str,
+    model: str | None = None,
+) -> bytes:
+    """Gera PCM 24kHz em 2 chamadas single-speaker com a MESMA voz.
+
+    Uso: BM solo Peter. Junta todos os turnos em um texto único, divide em 2
+    metades (~equilibradas em palavras) e faz 1 chamada por metade com a mesma
+    voz (Charon). Evita a variação de voz do modo TURNS (1 chamada por fala
+    com fallback Edge por fala) e custa só 2 chamadas Gemini por episódio.
+    """
     turns = parse_speaker_turns(episode_text)
     if not turns:
         raise RuntimeError("Nenhum turno Peter/Ricardo encontrado no texto TTS")
 
-    log.info(f"Modo por-fala: {len(turns)} turnos (voz garantida por locutor)")
-    all_pcm = b""
+    joined = " ".join(body for _, body in turns)
+    joined = sanitize_tts_text(joined)  # 2026-08-09: %→"por cento", $→"dólares", sem links/emojis
+    halves = split_text_halves(joined)
+    log.info(
+        "Modo HALVES — 2 chamadas single-speaker (%s): %s",
+        voice_name,
+        " + ".join(f"{len(h.split())} palavras" for h in halves),
+    )
 
     def silence_24k(seconds: float) -> bytes:
         n = int(GEMINI_PCM_RATE * seconds) * SAMPLE_WIDTH
         return b"\x00" * n
 
-    gap = silence_24k(0.28)
-    skipped = 0
-    for i, (speaker, body) in enumerate(turns, start=1):
-        voice = SPEAKERS.get(speaker)
-        if not voice:
-            skipped += 1
+    gap = silence_24k(0.45)
+    all_pcm = b""
+    missing_halves: list[int] = []
+    for i, half in enumerate(halves, start=1):
+        if len(half.split()) < MIN_CHUNK_WORDS:
             continue
-        log.info(f"  Turno {i}/{len(turns)} {speaker}/{voice}: {body[:60]}…")
-        try:
-            pcm = generate_single_speaker_pcm(client, body, voice)
-        except Exception as exc:
-            log.warning(f"  Gemini single falhou turno {i}: {exc} — edge dual-style")
+        log.info(f"  Metade {i}/{len(halves)}: {len(half.split())} palavras")
+        pcm = b""
+        # 2026-08-10: retry 1x antes do fallback edge — metade com ruído/silêncio
+        # (RMS baixo) não passa mais no _pcm_is_usable e precisa ser regerada.
+        for attempt in (1, 2):
             try:
-                style = EDGE_SPEAKER_STYLE.get(speaker) or EDGE_SPEAKER_STYLE["Peter"]
+                pcm = generate_single_speaker_pcm(client, half, voice_name, model)
+            except Exception as exc:
+                log.warning(f"  Gemini halves {i} tentativa {attempt} falhou: {exc}")
+                pcm = b""
+            if _pcm_is_usable(pcm):
+                break
+            log.warning(f"  halves {i} tentativa {attempt}: áudio vazio/ruído (RMS baixo) — regerando")
+            pcm = b""
+        if not _pcm_is_usable(pcm):
+            # Fallback edge (voz distinta, mas fala real — melhor que silêncio)
+            log.warning(f"  halves {i}: Gemini falhou de vez — fallback edge-tts")
+            try:
+                style = EDGE_SPEAKER_STYLE.get("Peter") or {
+                    "voice": _FALLBACK_EDGE_TTS_VOICE,
+                    "rate": "+0%",
+                    "pitch": "+0Hz",
+                }
                 pcm = _edge_tts_generate_audio(
-                    body,
+                    half,
                     voice=style["voice"],
                     rate=style["rate"],
                     pitch=style["pitch"],
                 )
             except Exception as fb:
-                log.error(f"  turno {i} falhou de vez: {fb}")
-                skipped += 1
-                continue
+                log.error(f"  halves {i} falhou de vez: {fb}")
+                pcm = b""
         if not _pcm_is_usable(pcm):
-            log.warning(f"  turno {i} áudio inútil — skip")
-            skipped += 1
+            log.error(f"  halves {i}: NENHUM áudio utilizável — metade faltando no episódio")
+            missing_halves.append(i)
             continue
         all_pcm += pcm + gap
 
-    if skipped:
-        log.info(f"Turnos pulados: {skipped}")
+    # 2026-08-10: episódio incompleto NÃO vai ao ar (era o caso do LULINHA 13:07
+    # com ~10 min de ruído: a 2ª metade falhava e o resto era concatenado assim).
+    if missing_halves:
+        raise RuntimeError(
+            f"PCM halves incompleto: metades {missing_halves} sem áudio utilizável "
+            f"(geradas: {len(halves) - len(missing_halves)}/{len(halves)}). "
+            f"Episódio não publicado para evitar ruído/silêncio no ar."
+        )
     if len(all_pcm) < MIN_CHUNK_PCM_BYTES_24K * 10:
-        raise RuntimeError(f"PCM por-fala insuficiente ({len(all_pcm)} bytes)")
+        raise RuntimeError(f"PCM halves insuficiente ({len(all_pcm)} bytes)")
     return all_pcm
 
 
@@ -765,17 +882,32 @@ def generate_fallback_edge_per_turn(text: str) -> bytes:
 
 
 def _pcm_is_usable(pcm: bytes, rate: int = GEMINI_PCM_RATE) -> bool:
-    """Rejeita chunks quase silenciosos / vazios antes do concat."""
+    """Rejeita chunks vazios, quase-silêncio E blobs de ruído antes do concat.
+
+    Critérios (2026-08-10, BUG ruído BM 13:07): o antigo teste (>1% bytes
+    não-zero) deixava passar ~10 min de piso de ruído (RMS ~50 vs ~5000 da
+    fala). Agora exige RMS médio mínimo de fala (~ -33 dBFS) e rejeita
+    qualquer coisa com energia de piso.
+    """
     if not pcm or len(pcm) < MIN_CHUNK_PCM_BYTES_24K:
         return False
-    # RMS grosseiro: se quase tudo zero, descarta
-    # amostra a cada 64 bytes para barato
-    step = max(2, (SAMPLE_WIDTH * 32))
-    samples = pcm[::step]
-    if not samples:
+    # RMS sobre amostras 16-bit (s16le) — amostra espaçada por 16 bytes (8 amostras)
+    n_bytes = len(pcm) - (len(pcm) % 2)
+    pairs = memoryview(pcm[:n_bytes]).cast("h")[::8]
+    if len(pairs) < 50:
         return False
-    nonzero = sum(1 for b in samples if b != 0)
-    return nonzero / len(samples) > 0.01
+    sum_sq = 0
+    nonzero = 0
+    for s in pairs:
+        sum_sq += s * s
+        if s != 0:
+            nonzero += 1
+    if nonzero / len(pairs) < 0.01:
+        return False
+    rms = math.sqrt(sum_sq / len(pairs))
+    # Fala real: RMS ~2000–9000 @24kHz s16. Piso de ruído: ~20–150.
+    # Limiar 300 ≈ -40 dBFS: rejeita ruído/Silêncio sem cortar fala suave.
+    return rms >= 300
 
 
 def _ffprobe_duration(path: Path) -> float | None:
@@ -817,8 +949,36 @@ def publish_final_mp3(mp3_path: Path, date_stem: str | None = None) -> Path:
     return delivery
 
 
+def _fraction_silence(audio_path: Path, min_silence_s: float = 1.0) -> float:
+    """Fração do áudio que é silêncio longo (silencedetect, -35dB, d>=1s).
+
+    2026-08-10 (BUG ruído BM): rede de segurança pós-produção — episódio com
+    >40% de silêncio é anormal (LULINHA tinha 81% de silêncio/ruído após a 2ª
+    metade falhar). Pausas normais entre quadros somam ~5-10% no máximo.
+    """
+    try:
+        dur = _ffprobe_duration(audio_path)
+        if not dur or dur <= 0:
+            return 0.0
+        proc = subprocess.run(
+            ["ffmpeg", "-nostats", "-i", str(audio_path),
+             "-af", f"silencedetect=noise=-35dB:d={min_silence_s}",
+             "-f", "null", "-"],
+            capture_output=True, text=True,
+        )
+        total = 0.0
+        for start_m, end_m in re.findall(
+            r"silence_start: ([\d.]+).*?silence_end: ([\d.]+)", proc.stderr, re.S
+        ):
+            total += float(end_m) - float(start_m)
+        return min(total / dur, 1.0)
+    except Exception as exc:
+        log.warning(f"Falha ao medir fração de silêncio de {audio_path.name}: {exc}")
+        return 0.0
+
+
 def assert_final_audio_ok(mp3_path: Path) -> None:
-    """Gate de qualidade do MP3 final (tamanho + duração)."""
+    """Gate de qualidade do MP3 final (tamanho + duração + silêncio)."""
     if not mp3_path.exists():
         raise RuntimeError(f"MP3 final ausente: {mp3_path}")
     size = mp3_path.stat().st_size
@@ -833,9 +993,16 @@ def assert_final_audio_ok(mp3_path: Path) -> None:
             f"MP3 final curto demais: {dur:.1f}s (mín. {MIN_FINAL_DURATION_S}s ≈ 7 min). "
             f"Arquivo: {mp3_path}"
         )
+    silence = _fraction_silence(mp3_path)
+    if silence > 0.40:
+        raise RuntimeError(
+            f"MP3 final com {silence*100:.0f}% de silêncio (>40%) — áudio degradado. "
+            f"Arquivo: {mp3_path}"
+        )
     log.info(
         f"✅ Gate de áudio OK: {mp3_path.name} ({size/1e6:.2f} MB"
-        + (f", {dur/60:.1f} min)" if dur else ")")
+        + (f", {dur/60:.1f} min" if dur else "")
+        + f", silêncio {silence*100:.0f}%)"
     )
 
 
@@ -859,11 +1026,11 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=["packed", "turns", "multi"],
+        choices=["packed", "halves", "multi"],
         default="packed",
         help=(
-            "packed=multi-speaker por CHUNKS (padrão, evita colapso de voz); "
-            "turns=uma chamada TTS por fala com voz fixa Charon/Schedar; "
+            "packed=multi-speaker por CHUNKS (padrão diário, evita colapso de voz); "
+            "halves=2 chamadas single-speaker com a MESMA voz (padrão BM, solo Peter); "
             "multi= API multi-speaker legado (pode colapsar em 1 voz)"
         ),
     )
@@ -884,13 +1051,22 @@ def main():
         "--single-speaker",
         help="Define locutor solo, ex: Peter (ignora outros locutores)"
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="Temperatura do TTS Gemini (default: 0.5). Mais alto = mais expressão/emoção, "
+             "mais baixo = tom mais estável (0.2 deixava monótono)."
+    )
     args = parser.parse_args()
 
     # Modelo TTS (global do módulo — usado por generate_* )
-    global TTS_MODEL
+    global TTS_MODEL, TTS_TEMPERATURE
     if args.model:
         TTS_MODEL = args.model.strip()
-    log.info(f"Modelo TTS: {TTS_MODEL} | CHUNK_TARGET_WORDS={CHUNK_TARGET_WORDS}")
+    if args.temperature is not None:
+        TTS_TEMPERATURE = args.temperature
+    log.info(f"Modelo TTS: {TTS_MODEL} | CHUNK_TARGET_WORDS={CHUNK_TARGET_WORDS} | temperatura={TTS_TEMPERATURE}")
 
     keys = _candidate_gemini_keys()
     if not keys and not os.environ.get("GEMINI_API_KEY"):
@@ -970,10 +1146,21 @@ def main():
                 continue
             log.info(f"Chunk {i}/{len(chunks)}: {word_count} palavras, pausa_após={pause_after_s}s")
             prompt = build_prompt(chunk_text, speakers)
-            try:
-                chunk_pcm = generate_with_retry(client, prompt, speaker_voice_configs)
-            except Exception as exc:
-                log.warning(f"Gemini PACKED falhou no chunk {i}: {exc} — fallback edge por-fala")
+            chunk_pcm = b""
+            # 2026-08-10: retry 1x — chunk com ruído/RMS baixo é regerado,
+            # não silenciado (silêncio = furo no meio do episódio).
+            for attempt in (1, 2):
+                try:
+                    chunk_pcm = generate_with_retry(client, prompt, speaker_voice_configs)
+                except Exception as exc:
+                    log.warning(f"Gemini PACKED falhou no chunk {i} (tentativa {attempt}): {exc}")
+                    chunk_pcm = b""
+                if _pcm_is_usable(chunk_pcm):
+                    break
+                log.warning(f"Chunk {i} tentativa {attempt}: áudio vazio/ruído (RMS baixo) — regerando")
+                chunk_pcm = b""
+            if not _pcm_is_usable(chunk_pcm):
+                log.warning(f"Gemini PACKED falhou no chunk {i} — fallback edge por-fala")
                 try:
                     chunk_pcm = generate_fallback_edge_per_turn(chunk_text)
                 except Exception as fb_exc:
@@ -997,13 +1184,17 @@ def main():
         log.info(f"PCM combinado: {len(all_pcm)} bytes (~{duration_est:.1f}s @ {SAMPLE_RATE}Hz)")
         wave_file(str(out_path), all_pcm)
         log.info(f"OK {out_path}")
-    elif args.mode == "turns":
-        # PADRÃO ANTIGO: uma voz por fala (Charon=Peter, Schedar=Ricardo)
-        log.info("Modo TURNS — 2 vozes garantidas (Charon/Schedar por fala)")
+    elif args.mode == "halves":
+        # PADRÃO BM (2026-08-09): 2 chamadas single-speaker com a MESMA voz.
+        # Junta todos os turnos, divide em 2 metades e chama a voz fixa
+        # (Charon=Peter). Substitui o antigo TURNS (1 chamada por fala), que
+        # variava de voz entre falas (fallback Edge por fala).
+        log.info("Modo HALVES — 2 chamadas single-speaker (mesma voz)")
+        voice_name = SPEAKERS.get(speakers[0], "Charon") if speakers else "Charon"
         try:
-            data_24k = generate_per_turn_pcm(client, episode_text)
+            data_24k = generate_halves_pcm(client, episode_text, voice_name)
         except Exception as exc:
-            log.warning(f"Modo turns falhou: {exc} — tentando multi/edge")
+            log.warning(f"Modo halves falhou: {exc} — tentando multi/edge")
             try:
                 clean_text = re.sub(r"\[PAUSA(?:_CURTA)?\]", "", episode_text)
                 clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
@@ -1160,9 +1351,18 @@ def main():
                     f"MP3 final curto demais: {dur:.1f}s (mín. {min_duration_s}s). "
                     f"Arquivo: {mp3_path}"
                 )
+            # 2026-08-10: gate de silêncio também no BM/custom (LULINHA 13:07
+            # tinha 81% de silêncio/ruído e passava no gate antigo de tamanho).
+            silence = _fraction_silence(mp3_path)
+            if silence > 0.40:
+                raise RuntimeError(
+                    f"MP3 final com {silence*100:.0f}% de silêncio (>40%) — "
+                    f"áudio degradado (2ª metade falhou?). Arquivo: {mp3_path}"
+                )
             log.info(
                 f"✅ Gate BM/custom OK: {mp3_path.name} ({size/1e6:.2f} MB"
-                + (f", {dur/60:.1f} min)" if dur else ")")
+                + (f", {dur/60:.1f} min" if dur else "")
+                + f", silêncio {silence*100:.0f}%)"
             )
         # Limpeza: apaga WAV intermediário após MP3 OK (economiza ~80–110 MB/ep)
         if not args.keep_wav and out_path.exists() and out_path.suffix.lower() == ".wav":

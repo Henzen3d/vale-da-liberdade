@@ -702,6 +702,13 @@ def discover_especial_episodes() -> list[dict]:
 
         # Encontrar áudio em output/brasil_e_mundo/audio/
         audio_files = list(bm_audio_dir.glob(f"{video_id}_*.mp3"))
+        # 2026-08-10 (BUG LULINHA): glob volta em ordem alfabética (08-09 antes
+        # de 08-10) — o catálogo republicava o áudio ANTIGO/corrompido. Ordenar
+        # pela data no nome (YYYY-MM-DD) e escolher a MAIS RECENTE.
+        def _audio_date_key(p: Path) -> tuple:
+            m = re.search(r"_(\d{4}-\d{2}-\d{2})\.mp3$", p.name)
+            return (m.group(1) if m else "0000-00-00", p.stat().st_mtime)
+        audio_files.sort(key=_audio_date_key, reverse=True)
         audio_path = None
         # Try to get date from audio filename or mtime
         date_str = None

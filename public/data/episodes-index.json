@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-09T09:07:32",
+  "generated_at": "2026-08-10T10:09:32",
   "page_size": 12,
-  "total_episodes": 128,
+  "total_episodes": 137,
   "categories": {
     "todos": {
-      "total_episodes": 128,
-      "total_pages": 11,
+      "total_episodes": 137,
+      "total_pages": 12,
       "pages": [
         "./data/episodes-todos-page-1.json",
         "./data/episodes-todos-page-2.json",
@@ -17,11 +17,12 @@
         "./data/episodes-todos-page-8.json",
         "./data/episodes-todos-page-9.json",
         "./data/episodes-todos-page-10.json",
-        "./data/episodes-todos-page-11.json"
+        "./data/episodes-todos-page-11.json",
+        "./data/episodes-todos-page-12.json"
       ]
     },
     "diario": {
-      "total_episodes": 40,
+      "total_episodes": 41,
       "total_pages": 4,
       "pages": [
         "./data/episodes-diario-page-1.json",
@@ -31,7 +32,7 @@
       ]
     },
     "especial": {
-      "total_episodes": 88,
+      "total_episodes": 96,
       "total_pages": 8,
       "pages": [
         "./data/episodes-especial-page-1.json",

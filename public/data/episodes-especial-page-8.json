@@ -1,10 +1,536 @@
 {
-  "generated_at": "2026-08-09T09:07:32",
+  "generated_at": "2026-08-10T10:09:32",
   "category": "especial",
   "page": 8,
   "page_size": 12,
   "total_pages": 8,
   "episodes": [
+    {
+      "id": "especial-XyLLAG0KZZg",
+      "date": "2026-08-03",
+      "pubDate": "Mon, 03 Aug 2026 14:13:16 +0000",
+      "type": "especial",
+      "title": "Pesquisa BTG Nexus expõe empate no primeiro turno e desespero no chiqueiro de Brasília",
+      "excerpt": "A farsa eleitoral de 2026 está pegando fogo, e os parasitas de Brasília já têm novos dados oficiais para se descabelar no chiqueiro político. A nova pesquisa BTG Nexus foi liberada...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições"
+      ],
+      "duration_min": 4.6,
+      "words": 836,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-XyLLAG0KZZg.mp3",
+      "script_url": "./episodes/especial-XyLLAG0KZZg.md",
+      "audio_bytes": 6568481,
+      "sources": [
+        "Poder360",
+        "Poder360",
+        "X",
+        "X",
+        "Tmc",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Poder360",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/lula-e-flavio-estao-tecnicamente-empatados-no-2o-turno-diz-nexus/"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://static.poder360.com.br/uploads/2026/08/BTG-Nexus-nacional-3ago2026.pdf"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/ViLiMiGu_Tex/status/2084236410609926494"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/wilsonlimaslz/status/2084244430203072697"
+        },
+        {
+          "veiculo": "Tmc",
+          "url": "https://tmc.com.br/politica/btg-pactual-nexus-flavio-bolsonaro-sobe-e-lula-cai-12-entre-beneficiarios-do-bolsa-familia/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-XyLLAG0KZZg.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-XyLLAG0KZZg.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-XyLLAG0KZZg.html",
+      "cover_url": "./thumbnails/2026-08-03/bm_XyLLAG0KZZg.webp",
+      "published_at": "2026-08-10T10:09:32",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-XyLLAG0KZZg.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_XyLLAG0KZZg.webp"
+    },
+    {
+      "id": "especial-GCcCu6tPS_s",
+      "date": "2026-08-03",
+      "pubDate": "Mon, 03 Aug 2026 11:54:49 +0000",
+      "type": "especial",
+      "title": "A Ilusão do Estado Mínimo e o Inevitável Fim das Hierarquias",
+      "excerpt": "Conservadores adoram apontar o dedo para o anarcocapitalismo enquanto se abraçam à ilusão de um Estado mínimo que nunca existiu e jamais existirá. O comentarista Leandro Ruschel re...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia"
+      ],
+      "duration_min": 4.9,
+      "words": 701,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-GCcCu6tPS_s.mp3",
+      "script_url": "./episodes/especial-GCcCu6tPS_s.md",
+      "audio_bytes": 7079436,
+      "sources": [
+        "Leandroruschel",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Leandroruschel",
+          "url": "https://leandroruschel.substack.com/p/o-erro-do-anarcocapitalismo-e-achar"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-GCcCu6tPS_s.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-GCcCu6tPS_s.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-GCcCu6tPS_s.html",
+      "cover_url": "./thumbnails/2026-08-03/bm_GCcCu6tPS_s.webp",
+      "published_at": "2026-08-10T10:09:31",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-GCcCu6tPS_s.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_GCcCu6tPS_s.webp"
+    },
+    {
+      "id": "especial-a-_juUYVuk8",
+      "date": "2026-08-03",
+      "pubDate": "Mon, 03 Aug 2026 05:11:38 +0000",
+      "type": "especial",
+      "title": "Os Diários de Fauci e a Farsa Sanitária Estatal",
+      "excerpt": "A imprensa brasileira finalmente decidiu repercutir o caso dos diários do doutor Anthony Fauci, liberados pelo senador norte-americano Rand Paul. Mas não se engane: a grande mídia ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia"
+      ],
+      "duration_min": 4.0,
+      "words": 696,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-a-_juUYVuk8.mp3",
+      "script_url": "./episodes/especial-a-_juUYVuk8.md",
+      "audio_bytes": 5788569,
+      "sources": [
+        "Estadão",
+        "Paul",
+        "YouTube",
+        "CNN Brasil",
+        "O Antagonista",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Estadão",
+          "url": "https://www.estadao.com.br/ciencia/quem-e-o-medico-alvo-de-trump-por-origem-da-covid-e-por-que-ele-se-calou-em-depoimento/"
+        },
+        {
+          "veiculo": "Paul",
+          "url": "https://www.paul.senate.gov/wp-content/uploads/2026/07/2026.07.24_Tonys-Diary-Package.pdf"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=qIcunPADCfM"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/colunas/gonzalo-vecina/saude/o-julgamento-do-dr-fauci-e-o-brasil/"
+        },
+        {
+          "veiculo": "O Antagonista",
+          "url": "https://oantagonista.com.br/analise/bolsonarismo-so-tem-a-perder-remoendo-a-pandemia-agora/"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/nikolas_dm/status/2084022907345252771"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-a-_juUYVuk8.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-a-_juUYVuk8.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-a-_juUYVuk8.html",
+      "cover_url": "./thumbnails/2026-08-03/bm_a-_juUYVuk8.webp",
+      "published_at": "2026-08-10T10:09:30",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-a-_juUYVuk8.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_a-_juUYVuk8.webp"
+    },
+    {
+      "id": "especial-ohePvn870fo",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 23:11:58 +0000",
+      "type": "especial",
+      "title": "A Imprensa Admite o Óbvio: A Tirania Sanitária Nunca Foi Sobre Ciência",
+      "excerpt": "A imprensa tradicional finalmente começou a dar o braço a torcer e admitir o que qualquer pessoa com dois neurônios funcionais já sabia: a gestão estatal da pandemia foi um fiasco ...",
+      "manchetes": [],
+      "quadros": [
+        "impostos",
+        "política",
+        "economia"
+      ],
+      "duration_min": 3.7,
+      "words": 625,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ohePvn870fo.mp3",
+      "script_url": "./episodes/especial-ohePvn870fo.md",
+      "audio_bytes": 5324635,
+      "sources": [
+        "UOL",
+        "O Globo",
+        "Gp1",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "UOL",
+          "url": "https://noticias.uol.com.br/colunas/jose-fucs/2026/08/05/no-fim-os-negacionistas-nao-eram-tao-negacionistas-assim.htm"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/opiniao/pablo-ortellado/coluna/2026/08/cientistas-deveriam-ter-feito-esforco-de-persuasao-na-pandemia.ghtml"
+        },
+        {
+          "veiculo": "Gp1",
+          "url": "https://www.gp1.com.br/internacional/noticia/2026/8/6/anthony-fauci-e-declarado-em-desacato-pelo-senado-dos-eua-e-pode-ser-condenado-a-um-ano-de-prisao-628711.html"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-ohePvn870fo.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-ohePvn870fo.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-ohePvn870fo.html",
+      "cover_url": "./thumbnails/2026-08-07/bm_ohePvn870fo.webp",
+      "published_at": "2026-08-10T10:09:28",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-ohePvn870fo.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_ohePvn870fo.webp"
+    },
+    {
+      "id": "especial-3rjSDr2YHTE",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 21:13:26 +0000",
+      "type": "especial",
+      "title": "A Ficção das Declarações do TSE: Bolsas de Grife, Patrimônios Suspeitos e o Teatro Estatal",
+      "excerpt": "O circo eleitoral abriu as cortinas para mais uma temporada de ficção burocrática patrocinada pelo pagador de impostos. A fase de registro de candidaturas no Tribunal Superior Elei...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia",
+        "eleições"
+      ],
+      "duration_min": 4.5,
+      "words": 711,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-3rjSDr2YHTE.mp3",
+      "script_url": "./episodes/especial-3rjSDr2YHTE.md",
+      "audio_bytes": 6441213,
+      "sources": [
+        "Revistaoeste",
+        "Valor Econômico",
+        "Metrópoles",
+        "TSE",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Revistaoeste",
+          "url": "https://revistaoeste.com/politica/com-salario-superior-a-r-40-mil-erika-hilton-declara-patrimonio-de-r-15-mil/"
+        },
+        {
+          "veiculo": "Valor Econômico",
+          "url": "https://valor.globo.com/politica/eleicoes-2026/noticia/2026/08/06/zema-registra-candidatura-e-declara-r-1787-milhes-em-bens.ghtml"
+        },
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/sao-paulo/zoe-demissao-patrimonio"
+        },
+        {
+          "veiculo": "TSE",
+          "url": "https://divulgacandcontas.tse.jus.br/divulga/#/home"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-3rjSDr2YHTE.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-3rjSDr2YHTE.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-3rjSDr2YHTE.html",
+      "cover_url": "./thumbnails/2026-08-07/bm_3rjSDr2YHTE.webp",
+      "published_at": "2026-08-10T10:09:32",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-3rjSDr2YHTE.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_3rjSDr2YHTE.webp"
+    },
+    {
+      "id": "especial-hOekqH1fMTQ",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 19:13:38 +0000",
+      "type": "especial",
+      "title": "O 'Desenrola Marcola' e o Teatro do Parasitismo Estatal",
+      "excerpt": "A estatal da malandragem ataca novamente em Brasília, e dessa vez inventaram uma modalidade inédita de crédito no balcão do poder: o 'Desenrola Marcola'!...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção"
+      ],
+      "duration_min": 3.7,
+      "words": 523,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-hOekqH1fMTQ.mp3",
+      "script_url": "./episodes/especial-hOekqH1fMTQ.md",
+      "audio_bytes": 5335293,
+      "sources": [
+        "Gazeta do Povo",
+        "Estadão",
+        "CNN Brasil",
+        "Veja",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Gazeta do Povo",
+          "url": "https://www.gazetadopovo.com.br/ultima-analise/desenrola-marcola-a-operacao-do-pt-para-pagar-intimos/"
+        },
+        {
+          "veiculo": "Estadão",
+          "url": "https://www.estadao.com.br/opiniao/marcola-e-lula/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/politica/pl-pede-a-mendonca-quebra-de-sigilo-contra-ex-chefe-de-gabinete-de-lula/"
+        },
+        {
+          "veiculo": "Veja",
+          "url": "https://veja.abril.com.br/brasil/lula-usa-ministros-para-tentar-atrair-andre-mendonca-para-a-arena-politica/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-hOekqH1fMTQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-hOekqH1fMTQ.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-hOekqH1fMTQ.html",
+      "cover_url": "./thumbnails/2026-08-07/bm_hOekqH1fMTQ.webp",
+      "published_at": "2026-08-10T10:09:27",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-hOekqH1fMTQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_hOekqH1fMTQ.webp"
+    },
+    {
+      "id": "especial-GKcM1-cc1YA",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 17:14:32 +0000",
+      "type": "especial",
+      "title": "A Queda de Petro e o Custo do Leviatã: O Fim do Socialismo na Colômbia",
+      "excerpt": "A Colômbia viveu um dia de celebração popular com a saída do esquerdista Gustavo Petro do poder. Festejos com fogos de artifício tomaram as ruas de Medellín, Cali e Bogotá. A popul...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "socialismo/comunismo",
+        "impostos"
+      ],
+      "duration_min": 5.0,
+      "words": 733,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-GKcM1-cc1YA.mp3",
+      "script_url": "./episodes/especial-GKcM1-cc1YA.md",
+      "audio_bytes": 7178493,
+      "sources": [
+        "Gazeta do Povo",
+        "X",
+        "G1",
+        "X",
+        "X",
+        "X",
+        "X",
+        "Wikipédia",
+        "Elcolombiano",
+        "Wikipédia",
+        "Wikipédia",
+        "Semana",
+        "Wikipédia",
+        "Wikipédia",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Gazeta do Povo",
+          "url": "https://www.gazetadopovo.com.br/mundo/direita-retoma-o-poder-na-colombia-prometendo-reverter-a-era-petro-e-sob-ameaca-do-terrorismo/"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/UHN_Plus/status/2085707553023942870"
+        },
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/mundo/noticia/2026/08/07/espriella-toma-posse-na-colombia-apos-vitoria-apertada-e-promessa-de-guinada-a-direita.ghtml"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/MariaFdaCabal/status/2085707561332769172"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/ByViral24/status/2085622683107012962"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/VickyDavilaH/status/2085696699616387151"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/ojocolombia2026/status/2085527037653991674"
+        },
+        {
+          "veiculo": "Wikipédia",
+          "url": "https://pt.wikipedia.org/wiki/Ver%C3%B3nica_Alcocer#/media/Ficheiro:20240726_Par%C3%ADs_Recepci%C3%B3n_Palacio_del_El%C3%ADseo-Andrea_Puentes2_(2)_(53883059934).jpg"
+        },
+        {
+          "veiculo": "Elcolombiano",
+          "url": "https://www.elcolombiano.com/colombia/que-papel-juega-juliana-guerrero-vida-gustavo-petro-GJ35875254"
+        },
+        {
+          "veiculo": "Wikipédia",
+          "url": "https://es.wikipedia.org/wiki/Inti_Asprilla"
+        },
+        {
+          "veiculo": "Wikipédia",
+          "url": "https://en.wikipedia.org/wiki/Mar%C3%ADa_Jos%C3%A9_Pizarro"
+        },
+        {
+          "veiculo": "Semana",
+          "url": "https://www.semana.com/confidenciales/articulo/sebastian-guanumen-quien-recomendo-a-la-campana-de-gustavo-petro-correr-la-linea-etica-en-2022-regreso-a-colombia/202615/"
+        },
+        {
+          "veiculo": "Wikipédia",
+          "url": "https://en.wikipedia.org/wiki/Nicol%C3%A1s_Petro"
+        },
+        {
+          "veiculo": "Wikipédia",
+          "url": "https://pt.wikipedia.org/wiki/Francia_M%C3%A1rquez"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-GKcM1-cc1YA.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-GKcM1-cc1YA.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-GKcM1-cc1YA.html",
+      "cover_url": "./thumbnails/2026-08-07/bm_GKcM1-cc1YA.webp",
+      "published_at": "2026-08-10T10:09:28",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-GKcM1-cc1YA.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_GKcM1-cc1YA.webp"
+    },
+    {
+      "id": "especial-wiSWJaBr9qg",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 16:12:09 +0000",
+      "type": "especial",
+      "title": "STF DERROTA MORAES: A ilusão da justiça estatal e o grilhão eletrônico dos réus do 8 de janeiro",
+      "excerpt": "Vocês realmente acreditam que o Estado tem qualquer interesse na sua liberdade? O monopólio estatal da justiça é uma ilusão desenhada para proteger o próprio poder, mas de vez em q...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "corrupção"
+      ],
+      "duration_min": 3.9,
+      "words": 670,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-wiSWJaBr9qg.mp3",
+      "script_url": "./episodes/especial-wiSWJaBr9qg.md",
+      "audio_bytes": 5633715,
+      "sources": [
+        "Diário do Centro do Mundo",
+        "STF",
+        "Gazeta do Povo",
+        "Mpf",
+        "CNN Brasil",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Diário do Centro do Mundo",
+          "url": "https://www.diariodocentrodomundo.com.br/stf-abre-caminho-reduzir-penas-reus-8-janeiro-derrota-moraes/"
+        },
+        {
+          "veiculo": "STF",
+          "url": "https://portal.stf.jus.br/processos/detalhe.asp?incidente=6724668"
+        },
+        {
+          "veiculo": "Gazeta do Povo",
+          "url": "https://www.gazetadopovo.com.br/republica/senhor-dos-destinos-como-moraes-sequestrou-lei-ja-promulgada/"
+        },
+        {
+          "veiculo": "Mpf",
+          "url": "https://www.mpf.mp.br/o-mpf/unidades/procuradoria-geral-da-republica-pgr/noticias/pgr-envia-ao-supremo-parecer-contrario-a-suspensao-da-lei-da-dosimetria"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/julliana-lopes/politica/familiares-de-condenados-do-8-1-cobram-moraes-sobre-lei-da-dosimetria/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-wiSWJaBr9qg.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-wiSWJaBr9qg.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-wiSWJaBr9qg.html",
+      "cover_url": "./thumbnails/2026-08-07/bm_wiSWJaBr9qg.webp",
+      "published_at": "2026-08-10T10:09:29",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-wiSWJaBr9qg.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_wiSWJaBr9qg.webp"
+    },
     {
       "id": "especial-AtA8UHaozMo",
       "date": "2026-08-07",
@@ -106,7 +632,7 @@
       ],
       "share_url": "./ep/especial-AtA8UHaozMo.html",
       "cover_url": "./thumbnails/2026-08-07/bm_AtA8UHaozMo.webp",
-      "published_at": "2026-08-09T09:07:27",
+      "published_at": "2026-08-10T10:09:25",
       "share_url_abs": "https://news.mob.tec.br/ep/especial-AtA8UHaozMo.html",
       "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_AtA8UHaozMo.webp"
     },
@@ -166,7 +692,7 @@
       ],
       "share_url": "./ep/especial-VXNzcaoJsug.html",
       "cover_url": "./thumbnails/2026-08-07/bm_VXNzcaoJsug.webp",
-      "published_at": "2026-08-09T09:07:31",
+      "published_at": "2026-08-10T10:09:31",
       "share_url_abs": "https://news.mob.tec.br/ep/especial-VXNzcaoJsug.html",
       "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_VXNzcaoJsug.webp"
     },
@@ -221,7 +747,7 @@
       ],
       "share_url": "./ep/especial-OkYVCQO9aj0.html",
       "cover_url": "./thumbnails/2026-08-06/bm_OkYVCQO9aj0.webp",
-      "published_at": "2026-08-09T09:07:27",
+      "published_at": "2026-08-10T10:09:25",
       "share_url_abs": "https://news.mob.tec.br/ep/especial-OkYVCQO9aj0.html",
       "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-06/bm_OkYVCQO9aj0.webp"
     },
@@ -280,7 +806,7 @@
       ],
       "share_url": "./ep/especial-DlnnUZfT1G0.html",
       "cover_url": "./thumbnails/2026-08-06/bm_DlnnUZfT1G0.webp",
-      "published_at": "2026-08-09T09:07:32",
+      "published_at": "2026-08-10T10:09:32",
       "share_url_abs": "https://news.mob.tec.br/ep/especial-DlnnUZfT1G0.html",
       "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-06/bm_DlnnUZfT1G0.webp"
     }
