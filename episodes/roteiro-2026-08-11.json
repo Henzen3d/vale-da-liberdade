@@ -1,0 +1,470 @@
+{
+  "manchetes": [
+    "Incêndio mobiliza bombeiros em pastelaria no bairro Itoupava Seca em Blumenau",
+    "Indaial aplica 150 doses de vacina antirrábica preventiva em áreas com risco de alagamento",
+    "Câmara de Blumenau avalia segurança nas escolas e capacitação de 40 horas para vigilantes",
+    "Temporais ganham força e elevam risco de alagamentos em Santa Catarina nesta semana",
+    "Investidores de Wall Street injetam 500 bilhões de dólares na Nvidia para expansão de IA"
+  ],
+  "introducao": [
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "[serious] Quinhentos bilhões de dólares investidos no mercado livre global enquanto a máquina pública de Blumenau gasta dias organizando fila para entregar senha de atendimento presencial."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "O investimento privado em tecnologia avança rápido Peter mas o planejamento governamental garante a vacinação preventiva e a fiscalização de segurança nas nossas escolas."
+    },
+    {
+      "quadro": "INTRODUÇÃO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "Planejamento que custa caro e produz burocracia. Hoje discutimos desde os furtos na Velha até a dita Semana da Integridade para ensinar servidor público a não cometer desvios."
+    }
+  ],
+  "quadros": [
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Por volta das cinco da manhã deste domingo os bombeiros foram chamados para conter muita fumaça em uma pastelaria na Rua São Paulo."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "[sarcastic] Mobilização completa de viatura no bairro Itoupava Seca perto da FURB para arrombar o imóvel e descobrir que nem fogo tinha."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A fumaça acumulada assustou quem passava e a equipe precisou agir rápido para conferir o interior do estabelecimento fechado."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Tudo isso porque a regulação sufoca o comerciante até na exaustão da cozinha."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Falando em capacitação preventiva o Judiciário treinou nove servidores das comarcas de Videira, Curitibanos e Santa Cecília nesta semana."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Nove participantes reunidos em nove horas de aula só para aprender o que qualquer brigada privada ensina em trinta minutos Ricardo."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O curso foi fruto de parceria com a Assessoria do Corpo de Bombeiros do Tribunal de Justiça para cumprir a Lei Estadual."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "A própria máquina cria a lei para justificar o gasto com diárias de servidores em ambiente estatal."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Na sexta-feira dia sete o Ministério Público realizou o segundo encontro de promotorias para combater a violência doméstica."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Reunião no edifício Casa do Barão em Florianópolis enquanto a vítima no bairro aguarda atendimento na ponta da linha."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A procuradora Eliana Volcato mostrou a atuação da Comissão de Equidade e a articulação dos Núcleos NEAVITs no Estado."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Discurso institucional não desarma agressor nem substitui o direito à legítima defesa do cidadão."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Madrugada de segunda-feira às uma e quarenta e cinco a Polícia Militar prendeu um homem de vinte e seis anos no bairro Velha."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Vinte e seis anos e já arrombando depósito no domingo à noite para furtar fios e conexões de cobre de obra residencial."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A PM atendeu a ocorrência prontamente e impediu que o prejuízo do construtor fosse definitivo."
+    },
+    {
+      "quadro": "SEGURANÇA PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Prejuízo que só ocorre porque o Estado desarma a propriedade e deixa depósitos à mercê de criminosos recorrentes."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A prefeitura de Indaial imunizou cerca de cento e cinquenta cães e gatos em áreas sujeitas a alagamento na última sexta-feira."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Cento e cinquenta doses distribuídas pelas equipes nos bairros Carijós, Nações, Rio Morto e Benedito. Pura encenação estrambótica."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A ação conjunta da Vigilância, Bem-Estar Animal e Defesa Civil preveniu surtos com vacinas fornecidas pela DIVE estadual."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "[thoughtful] Se o cidadão não pagasse metade do salário em imposto ele mesmo imunizaria seu animal sem depender de caravana pública."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "O SINE divulgou atendimento semanal de segunda a sexta entre doze e dezoito horas com senhas entregues até as dezoito horas."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Exigir carteira de trabalho física, RG e comprovante impresso em dois mil e vinte e seis é um acinte Ricardo."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A exigência documental traz segurança no cadastro e atende a população que busca intermediação oficial de mão de obra."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "O mercado livre de vagas no celular resolve sem fila e sem burocrata carimbando papel."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "A fundadora da ABLUPAA e pré-candidata Josiane Menestrina publicou artigo relatando seu diagnóstico de autismo e TDAH aos trinta e sete anos."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Trinta e sete anos para entender a própria condição porque a medicina estatal ignora a individualidade dos pacientes."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Ricardo",
+      "texto": "Ela destaca que o reconhecimento no adulto ajuda famílias inteiras a identificarem transtornos do neurodesenvolvimento com apoio adequado."
+    },
+    {
+      "quadro": "SAÚDE",
+      "speaker": "Peter",
+      "texto": "Apoio que surge de associações privadas e da iniciativa pessoal, nunca da burocracia do Ministério da Saúde."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "[sarcastic] A Comissão da Câmara de Blumenau reuniu vereadores e secretários nesta segunda para falar de segurança em escolas e CEIs."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "A secretária Simone Probst e o secretário Alexandre de Vargas apresentaram a formação de quarenta horas dada aos vigilantes escolares."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Quarenta horas de aula sobre ECA, legislação e bullying não impedem um invasor armado na porta do colégio."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "O treinamento abrangeu controle de acesso, primeiros socorros e atuação junto do Observatório Social e da ONG Vamos Salvar o Dia."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Colocam cinco entidades no circuito e nenhum segurança armado de verdade na entrada da escola."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Alunos do CEI Leonardo Laurindo Terres deixaram a sala de aula na sexta-feira para visitar produtores rurais da região Ricardo."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "As crianças viram de onde vêm as frutas e verduras servidas na merenda pelo Programa de Agricultura Familiar da prefeitura."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Visita bonitinha para justificarem licitações dirigidas na compra de alimentos com verba municipal."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "O programa garante nutrição de alta qualidade no ambiente escolar e movimenta a renda dos pequenos agricultores do Vale."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "A comissão escolar da Câmara ainda marcou outra reunião no Plenário às treze e trinta para avaliar a vigilância durante as férias."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Ricardo",
+      "texto": "Avaliar o trabalho dos agentes no recesso evita depredação do patrimônio público que pertence a todos os cidadãos."
+    },
+    {
+      "quadro": "EDUCAÇÃO",
+      "speaker": "Peter",
+      "texto": "Três reuniões em sete dias para decidir quem vigia pátio vazio enquanto o pagador de impostos banca o café dos vereadores."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "[serious] A Defesa Civil de Santa Catarina emitiu alerta para temporais e risco de alagamentos entre quinta e sexta-feira."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A instabilidade começa na terça-feira dia onze com risco de moderado a alto em várias bacias do nosso estado."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Todo ano o mesmo alerta estatizado e as obras definitivas de dragagem e infraestrutura continuam sumidas."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Uma entrada discreta em ponto estratégico de Blumenau esconde o andamento de uma megaobra viária."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Trata-se de uma intervenção estrutural necessária para melhorar o fluxo urbano e modernizar o trânsito da nossa cidade."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Obra escondida com entrada discreta costuma virar aditivo financeiro de milhões sem fiscalização do povo Ricardo."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "O portal Blumenau em Foco resgatou hoje cinco fatos históricos do dia onze de agosto na região do Vale do Itajaí."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "Relembrar o trabalho dos colonizadores alemães, italianos e poloneses preserva a memória e a identidade cultural da comunidade."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Imigrantes que ergueram este Vale com suor e livre iniciativa, sem subsídio governamental nem plano diretor."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "A Secretaria de Saúde vai à Câmara nesta terça-feira às treze e trinta para apresentar as contas do SUS no Plenário."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "A audiência pública do Relatório Detalhado do Quadrimestre Anterior assegura a transparência na aplicação dos recursos públicos."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Mostram tabelas no ar-condicionado enquanto o trabalhador espera seis meses por um exame de ultrassom."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "[laughs] Blumenau promove de dez a catorze de agosto a primeira Semana da Integridade para ensinar servidores a agirem com ética."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Ricardo",
+      "texto": "O evento envolve várias secretarias com palestras presenciais e digitais focando em capacitação e governança na gestão pública."
+    },
+    {
+      "quadro": "POLÍTICA E ADMINISTRAÇÃO PÚBLICA",
+      "speaker": "Peter",
+      "texto": "Gastar verba pública para fazer campanha interna pedindo ao funcionalismo que cumpra o mínimo da lei."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "O Teatro Carlos Gomes recebe no próximo domingo dia dezesseis a semifinal do festival Santa Catarina Canta com dezoito concorrentes."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Dezoito classificados de Rio do Sul, Itajaí e Blumenau. Mas precisa pegar ingresso antes na plataforma Blueticket."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A distribuição gratuita de bilhetes garante a organização do evento cultural promovido com apoio regional."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Controle estatal até para ver show gratuito no teatro local."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "O Blumenau Esporte Clube jogará a abertura da Copa Santa Catarina contra o Santa Catarina Clube no sábado dia vinte e nove às dezessete horas."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "A Federação Catarinense adiantou a partida do SESI que estava marcada originalmente para domingo às quinze horas Ricardo."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A antecipação movimenta o estádio e fortalece a visibilidade do futebol blumenauense na competição estadual."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Se o clube sobrevive de torcida e patrocínio privado, tem meu respeito total."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Começaram nesta segunda as disputas da quinquagésima primeira edição dos Jogos Estudantis da Primavera na Vila Esportiva Bernardo Werner."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Três mil estudantes disputando futsal e vôlei em partidas até o dia vinte e um de agosto."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "A integração entre redes municipal, estadual e privada estimula a prática esportiva saudável nas nossas comunidades."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Competição voluntária entre jovens é excelente, dispensando qualquer doutrinação ideológica nas quadras."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Blumenau vai enviar cento e sessenta paratletas para a décima nona edição dos Parajasc entre catorze e vinte e três de agosto em Chapecó."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Cento e sessenta paratletas viajam com custos pagos pela prefeitura para competir contra cem municípios catarinenses."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "É a maior delegação da história do município, promovendo inclusão e desenvolvimento do paradesporto de alto rendimento."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Inclusão real seria feita por clubes esportivos privados e empresas patrocinadoras, sem drenar o caixa da cidade."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Estão abertas as inscrições para o Torneio de Canastra Lilian Ribeiro com serviço completo de bar e cozinha no local."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "Inscrições por e-mail ou WhatsApp direto com os organizadores, sem taxa estatal ou alvará absurdo Ricardo."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Ricardo",
+      "texto": "Uma iniciativa comunitária que reúne pessoas da região para momentos de lazer e convivência sadia neste mês de agosto."
+    },
+    {
+      "quadro": "ESPORTES E INTERESSE COMUNITÁRIO",
+      "speaker": "Peter",
+      "texto": "A sociedade civil mostrando que se organiza muito bem sem a tutela do Estado."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "O secretário de Política Agrícola Guilherme Campos alertou que o El Niño forte pode reduzir a produtividade da safra vinte e seis vinte e sete."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Peter",
+      "texto": "O Ministério da Agricultura já cria a narrativa do clima para esconder os estragos dos impostos sobre o agronegócio."
+    },
+    {
+      "quadro": "BRASIL",
+      "speaker": "Ricardo",
+      "texto": "O alerta busca preparar o setor diante da fragilidade financeira dos produtores rurais e das oscilações meteorológicas extremas."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Wall Street canalizou quinhentos bilhões de dólares para a Nvidia construir centros de dados e infraestrutura de inteligência artificial."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Ricardo",
+      "texto": "O investimento bilionário viabiliza servidores de alta capacidade e sistemas de resfriamento para processar volumes gigantescos de dados globais."
+    },
+    {
+      "quadro": "MUNDO",
+      "speaker": "Peter",
+      "texto": "Capital privado arriscando bilhões voluntariamente sem burocrata estatal para atrapalhar a evolução da tecnologia humana."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "[sarcastic] Na semana em que o Judiciário dá curso de nove horas sobre extintor para nove pessoas em Videira, a prefeitura lança a Semana da Integridade para ensinar servidor público a agir dentro da ética!"
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "Treinamentos preventivos e diretrizes éticas reduzem falhas operacionais e melhoram o atendimento oferecido à população."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "E o SINE ainda exige três documentos impressos e presença física para liberar senha a quem busca trabalho na era digital!"
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Ricardo",
+      "texto": "A verificação presencial garante a lisura do processo de contratação e assegura os direitos previstos na legislação trabalhista."
+    },
+    {
+      "quadro": "RAPIDINHAS DA LOUCURA ESTATAL",
+      "speaker": "Peter",
+      "texto": "Direitos que criam filas gigantescas enquanto o mercado privado contrata por aplicativo em dois minutos!"
+    }
+  ],
+  "fechamento": [
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Peter",
+      "texto": "[thoughtful] Enquanto a iniciativa privada movimenta quinhentos bilhões de dólares na fronteira da tecnologia mundial, o Estado local gasta o dinheiro do seu imposto com Semana da Integridade e reuniões infinitas. O cidadão do Vale só prospera quando se liberta da dependência das garras da burocracia pública."
+    },
+    {
+      "quadro": "FECHAMENTO EDITORIAL",
+      "speaker": "Ricardo",
+      "texto": "A busca pela eficiência administrativa não elimina a importância dos serviços públicos, da vacinação e da fiscalização contínua para o bem-estar coletivo. O diálogo ponderado entre setor público e privado constrói uma sociedade mais justa. Acompanhe nossas redes e até o próximo episódio do Webjornal Vale da Liberdade."
+    }
+  ]
+}
