@@ -75,10 +75,15 @@
   .desktop-sidebar{display:none}
   @media(min-width:1024px){.app-layout-grid{grid-template-columns:1fr 340px;align-items:start;gap:var(--space-6)}.desktop-sidebar{display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:72px}}
   .category-tabs-wrapper{position:sticky;top:var(--topbar-sticky-offset,56px);z-index:90;background-color:var(--color-bg);border-bottom:1px solid var(--color-border);margin-bottom:var(--space-2);padding:12px 0 0 0;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;justify-content:flex-start}
-  .feed-tabs{display:flex;background-color:var(--color-hover);border:1px solid var(--color-border);padding:4px;border-radius:28px;margin:var(--space-4) 0;position:relative;gap:2px}
-  .tab-btn{flex:1;border:0;background:transparent;padding:8px 16px;border-radius:24px;font-family:var(--font-ui);font-size:0.88rem;font-weight:600;color:var(--color-ink-muted);cursor:pointer;transition:all var(--transition-fast);-webkit-tap-highlight-color:transparent}
-  .tab-btn:hover{color:var(--color-ink)}
-  .tab-btn.active{background-color:var(--color-bg);color:var(--color-ink);box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+  .chip-btn,.icon-btn{border:1px solid var(--color-border);background-color:transparent;color:var(--color-ink);border-radius:var(--radius-pill);font-size:.8rem;font-weight:500;cursor:pointer;padding:5px 11px;display:inline-flex;align-items:center;justify-content:center;transition:border-color var(--transition-fast),color var(--transition-fast)}
+  .icon-btn{width:44px;height:44px;padding:0}
+  .feed-tabs.inline-tabs{display:flex;align-items:center;gap:20px;background:transparent;border:0;border-radius:0;padding:0;margin:0;overflow-x:auto}
+  .feed-tabs.inline-tabs .tab-btn{display:inline-flex;align-items:baseline;flex:0 0 auto;background:transparent;border:0;border-radius:0;border-bottom:2px solid transparent;padding:8px 0 10px 0;font-family:var(--font-ui);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;white-space:nowrap;color:var(--color-ink-muted);box-shadow:none;cursor:pointer}
+  .feed-tabs.inline-tabs .tab-btn.active{background:transparent;color:var(--color-ink);border-bottom-color:var(--color-accent);box-shadow:none}
+  .feed-tabs.inline-tabs .tab-btn .tab-count{font-family:var(--font-mono,monospace);font-size:10px;font-weight:600;margin-left:4px;letter-spacing:0;color:var(--color-ink-faint)}
+  .feed-tabs.inline-tabs .tab-btn.active .tab-count{color:var(--accent-text)}
+  .feed-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-5) 0 var(--space-2)}
+  .feed-head h2{font-family:var(--font-ui);font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-ink-muted);margin:0}
   @supports(padding-top:env(safe-area-inset-top)){.topbar{padding-top:env(safe-area-inset-top)}}
   @supports(padding-top:env(safe-area-inset-top)){.category-tabs-wrapper{top:calc(var(--topbar-sticky-offset,56px) + env(safe-area-inset-top,0px))}}
   </style>
@@ -86,8 +91,8 @@
   <link rel="stylesheet" href="./assets/css/tokens.css?v=202608071830">
   <link rel="stylesheet" href="./assets/css/base.css?v=202608071845">
   <link rel="stylesheet" href="./assets/css/audio-wave.css?v=202608071900">
-  <link rel="stylesheet" href="./assets/css/components.css?v=202608081600" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="./assets/css/components.css?v=202608081600"></noscript>
+  <link rel="stylesheet" href="./assets/css/components.css?v=202608100030" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="./assets/css/components.css?v=202608100030"></noscript>
 
   <!-- Supabase JS Client (deferred — era render-blocking 55KB / ~1.9s) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -578,13 +583,13 @@
 
   <script src="./assets/js/orientation_lock.js?v=202608081130" defer></script>
   <script src="./assets/js/theme.js?v=202608022030" defer></script>
-  <script src="./assets/js/player.js?v=202608081600" defer></script>
+  <script src="./assets/js/player.js?v=202608132000" defer></script>
   <script src="./assets/js/wakeLock.js?v=202608060400" defer></script>
   <script src="./assets/js/listen_progress.js?v=202608081430" defer></script>
   <script src="./js/supabase_client.js?v=202608081600" defer></script>
-  <script src="./assets/js/ad_manager.js?v=202608081430" defer></script>
+  <script src="./assets/js/ad_manager.js?v=202608091700" defer></script>
   <script src="./assets/js/interaction_bar.js?v=202608071830" defer></script>
-  <script src="./assets/js/app.js?v=202608091600" defer></script>
+  <script src="./assets/js/app.js?v=202608132000" defer></script>
 
   <!-- Speculation Rules para prerender de próximas páginas (LCP nas navegações) -->
   <script type="speculationrules">
