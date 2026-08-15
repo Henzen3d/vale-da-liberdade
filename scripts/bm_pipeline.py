@@ -197,7 +197,7 @@ def step_audio(video_id: str) -> bool:
          "--out", str(wav_out),
          "--speakers", "Peter",
          "--single-speaker", "Peter",
-         "--mode", "turns",
+         "--mode", "halves",
          "--model", "gemini-2.5-flash-preview-tts",
          "--skip-preprocess"],
         "Geração TTS Gemini 2.5 (voz Peter/Charon) — BM",
@@ -426,7 +426,8 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
     else:
         print("\n🎙️  Etapa 4/5 — Geração de áudio (Peter solo)")
         if not step_audio(video_id):
-            print("⚠️  Falha na geração de áudio (continuando...)")
+            print("❌ FALHA na geração de áudio. Abortando.")
+            sys.exit(2)
 
     # 4.5. Thumbnail automática (não-bloqueante)
     print("\n🖼️  Etapa 4.5/6 — Thumbnail automática")
@@ -501,13 +502,17 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         else:
             print("  ⚠️  Upload R2 falhou — publish_site NÃO executado (evita URL local no catálogo)")
 
-    # Marcar como processado
-    eps_json = EPS_DIR / f"especial-{video_id}.json"
-    meta = {}
-    if eps_json.exists():
-        data = json.loads(eps_json.read_text(encoding="utf-8"))
-        meta = {"titulo": data.get("titulo", ""), "tags": data.get("tags", [])}
-    mark_seen(video_id, meta)
+    # Marcar como processado só se o MP3 existir (evita seen fantasma sem áudio)
+    mp3 = resolve_bm_mp3(video_id)
+    if mp3:
+        eps_json = EPS_DIR / f"especial-{video_id}.json"
+        meta = {}
+        if eps_json.exists():
+            data = json.loads(eps_json.read_text(encoding="utf-8"))
+            meta = {"titulo": data.get("titulo", ""), "tags": data.get("tags", [])}
+        mark_seen(video_id, meta)
+    else:
+        print("  ⚠️  Sem MP3 — seen_videos NÃO atualizado")
 
     print(f"\n✅ Pipeline concluído: {video_id}")
     print(f"   Roteiro: {EPS_DIR / f'especial-{video_id}.md'}")
@@ -580,13 +585,21 @@ Comandos:
   transcript      Apenas extrai a transcrição
   roteiro         Apenas gera o roteiro (precisa de transcrição)
   audio           Apenas gera o áudio (precisa de roteiro)
+  assets          Coleta imagens por quadro (bm_assets_collector)
+  review          Gate de qualidade dos assets (bm_assets_review)
+  composicao      Gera HTML HyperFrames (destaques, sem karaoke)
         """,
     )
-    parser.add_argument("command", choices=["full", "process-queue", "transcript", "roteiro", "audio"])
+    parser.add_argument("command", choices=["full", "process-queue", "transcript", "roteiro", "audio", "assets", "review", "composicao"])
     parser.add_argument("--url", help="URL do vídeo do YouTube (para: full, transcript)")
-    parser.add_argument("--video-id", help="ID do vídeo (para: roteiro, audio)")
+    parser.add_argument("--video-id", help="ID do vídeo")
     parser.add_argument("--skip-audio", action="store_true", help="Pular geração de áudio")
     parser.add_argument("--force", action="store_true", help="Forçar regeneração de arquivos existentes")
+    parser.add_argument("--generate", action="store_true", help="assets: permite DashScope")
+    parser.add_argument("--json", action="store_true", help="review: saída JSON")
+    parser.add_argument("--approve", action="store_true", help="review: aprovar")
+    parser.add_argument("--force-approve", action="store_true", help="review: aprovar com ressalvas")
+    parser.add_argument("--project-dir", default=None, help="composicao: diretório do projeto HyperFrames")
     args = parser.parse_args()
 
     if args.command == "full":
@@ -628,6 +641,43 @@ Comandos:
         else:
             print("  ⚠️  Upload R2 falhou — publish_site NÃO executado")
             sys.exit(3)
+
+    elif args.command == "assets":
+        if not args.video_id:
+            print("❌ --video-id é obrigatório para 'assets'")
+            sys.exit(1)
+        cmd = _py("bm_assets_collector.py") + ["--video-id", args.video_id]
+        if args.force:
+            cmd.append("--force")
+        if args.generate:
+            cmd.append("--generate")
+        if not run_step(cmd, "Coleta de assets por quadro"):
+            sys.exit(2)
+
+    elif args.command == "review":
+        if not args.video_id:
+            print("❌ --video-id é obrigatório para 'review'")
+            sys.exit(1)
+        cmd = _py("bm_assets_review.py") + ["--video-id", args.video_id]
+        if args.json:
+            cmd.append("--json")
+        if args.approve:
+            cmd.append("--approve")
+        if args.force_approve:
+            cmd.append("--force-approve")
+        if not run_step(cmd, "Review de assets"):
+            sys.exit(2)
+
+    elif args.command == "composicao":
+        if not args.video_id:
+            print("❌ --video-id é obrigatório para 'composicao'")
+            sys.exit(1)
+        gen = PROJECT_ROOT / "references" / "youtube" / "prototype" / "bancada-render" / "build_episode_composition.py"
+        cmd = [PY, str(gen), "--video-id", args.video_id, "--legenda-mode", "destaques"]
+        if args.project_dir:
+            cmd += ["--project-dir", args.project_dir]
+        if not run_step(cmd, "Composição HyperFrames"):
+            sys.exit(2)
 
 
 if __name__ == "__main__":

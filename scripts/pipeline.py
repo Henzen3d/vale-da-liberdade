@@ -648,11 +648,11 @@ def cmd_validate(date: str):
 def cmd_audio(date: str, allow_short: bool = False):
     """Gera áudio TTS multi-locutor para o episódio.
 
-    Cadeia de fallback (2026-08-06):
+    Cadeia de fallback (2026-08-15):
       1) Gemini multi-TTS (vozes Charon/Schedar)
-      2) ElevenLabs pt-BR (Liam/Will) — se tiver API key
-      3) Edge TTS pt-BR (pt-BR-AntonioNeural) — VOZ NATURAL
-      MOSS-TTS-Nano está desabilitado — aguarda fine-tune para pt-BR
+      2) Edge TTS pt-BR (tts_fallback_edge.sh, pt-BR-AntonioNeural)
+      ElevenLabs nunca teve conta — não restaurar tts_fallback_elevenlabs.py;
+      se um dia precisar, reescrever. MOSS desabilitado até fine-tune pt-BR.
 
     Gates:
       - roteiro ≥ 1500 palavras (a menos que allow_short)
