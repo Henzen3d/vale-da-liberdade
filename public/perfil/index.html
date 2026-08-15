@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil — Vale da Liberdade</title>
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <style>
+    body { max-width: 28rem; margin: 0 auto; padding: 24px 16px 80px; font: 16px/1.5 Inter, system-ui, sans-serif; }
+    .card { border: 1px solid var(--color-border, #ddd); border-radius: 12px; padding: 16px; margin: 16px 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; background: #eee; }
+    .badge.paid { background: #c9a227; color: #111; }
+    .who { display: flex; gap: 12px; align-items: center; }
+    .who img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+    .btn { display: inline-block; margin-top: 10px; padding: 8px 14px; border-radius: 8px; border: 0; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .btn-primary { background: #c9a227; color: #111; }
+    .btn-danger { background: #b91c1c; color: #fff; }
+    .muted { color: #666; font-size: .9rem; }
+    #msg { margin-top: 12px; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <p class="muted"><a href="/">← Vale da Liberdade</a></p>
+  <h1>Perfil</h1>
+  <div class="card who" id="whoCard">
+    <div>
+      <div id="whoName">Visitante</div>
+      <div class="muted" id="whoEmail">Não logado</div>
+    </div>
+  </div>
+  <div class="card">
+    <div>Plano atual: <span class="badge" id="planBadge">free</span></div>
+    <p class="muted" id="planHint">O plano gratuito inclui anúncios do Google.</p>
+    <a class="btn btn-primary" id="upgradeCta" href="mailto:henzen3d@gmail.com?subject=Assinatura%20Premium%20Vale%20da%20Liberdade">Remover anúncios — assinar Premium</a>
+    <p><a href="/politica-de-privacidade/">Política de Privacidade</a></p>
+  </div>
+  <div class="card">
+    <strong>Excluir meus dados</strong>
+    <p class="muted">Apaga histórico de audição e o identificador técnico deste aparelho. Não dá para desfazer.</p>
+    <button type="button" class="btn btn-danger" id="btnDelete">Excluir meus dados</button>
+    <div id="msg"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.SUPABASE_URL = "https://news.mob.tec.br";
+    window.SUPABASE_ANON_KEY = "eyJhbG...u4GE";
+  </script>
+  <script src="/js/supabase_client.js?v=202608152040"></script>
+  <script src="/assets/js/interaction_bar.js?v=202608152020"></script>
+  <script src="/assets/js/consent.js?v=202608152040"></script>
+  <script>
+    async function paint() {
+      await new Promise((r) => setTimeout(r, 400));
+      const p = window.__getUserPlan ? window.__getUserPlan() : { plan: 'free', logged_in: false };
+      const badge = document.getElementById('planBadge');
+      badge.textContent = p.plan;
+      badge.classList.toggle('paid', p.plan !== 'free');
+      document.getElementById('upgradeCta').hidden = p.plan !== 'free';
+      document.getElementById('planHint').textContent = p.plan === 'free'
+        ? 'O plano gratuito inclui anúncios do Google.'
+        : 'Sua assinatura não carrega AdSense.';
+      const u = window.supabaseClient && (await window.supabaseClient.auth.getUser()).data.user;
+      if (u) {
+        document.getElementById('whoName').textContent = u.user_metadata?.full_name || u.email || 'Conta';
+        document.getElementById('whoEmail').textContent = u.email || '';
+        const pic = u.user_metadata?.avatar_url;
+        if (pic) {
+          const img = document.createElement('img');
+          img.src = pic;
+          img.alt = '';
+          document.getElementById('whoCard').prepend(img);
+        }
+      }
+    }
+    document.getElementById('btnDelete').addEventListener('click', async () => {
+      if (!confirm('Apagar histórico de audição e identificador deste aparelho?')) return;
+      const msg = document.getElementById('msg');
+      try {
+        await window.__deleteMyTracking();
+        msg.textContent = 'Dados de rastreamento apagados neste aparelho.';
+      } catch (e) {
+        msg.textContent = 'Erro: ' + (e.message || e);
+      }
+    });
+    paint();
+  </script>
+</body>
+</html>
