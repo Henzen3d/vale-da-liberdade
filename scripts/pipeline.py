@@ -65,13 +65,14 @@ except Exception as e:
     consume_x_tweets_for_pipeline = None  # type: ignore
 
 try:
-    from generate_roteiro_llm import generate_roteiro_json
+    from generate_roteiro_llm import generate_roteiro_json, _validate_roteiro
     _ROTEIRO_LLM_AVAILABLE = True
     _ROTEIRO_LLM_IMPORT_ERROR = None
 except Exception as e:
     _ROTEIRO_LLM_AVAILABLE = False
     _ROTEIRO_LLM_IMPORT_ERROR = e
     generate_roteiro_json = None  # type: ignore
+    _validate_roteiro = None  # type: ignore
 
 def format_raw_markdown(date, sources_used, selected_news):
     categories_map = {
@@ -468,17 +469,21 @@ def ensure_roteiro_json(date: str, force: bool = False) -> Path:
     if json_path.exists() and not force:
         try:
             data = json.loads(json_path.read_text(encoding="utf-8"))
-            if data.get("manchetes") and data.get("quadros") and data.get("fechamento"):
-                # polish leve sem regenerar LLM
-                try:
-                    from naturalize_roteiro import polish_file
-                    polish_file(date)
-                except Exception as exc:
-                    print(f"⚠️  polish naturalidade: {exc}")
-                print(f"✅ roteiro JSON presente: {json_path}")
-                return json_path
-        except Exception:
-            print(f"⚠️  roteiro JSON ilegível — regenerando: {json_path}")
+            # Política C: só estrutura (_validate_roteiro). Naturalidade NÃO
+            # dispara LLM — cmd_validate na etapa 4 ainda aborta áudio se houver ❌.
+            if _ROTEIRO_LLM_AVAILABLE and _validate_roteiro is not None:
+                _validate_roteiro(data)
+            elif not (data.get("manchetes") and data.get("introducao") and data.get("quadros") and data.get("fechamento")):
+                raise ValueError("JSON incompleto (chaves obrigatórias ausentes)")
+            try:
+                from naturalize_roteiro import polish_file
+                polish_file(date)
+            except Exception as exc:
+                print(f"⚠️  polish naturalidade: {exc}")
+            print(f"✅ roteiro JSON presente e estruturalmente válido: {json_path}")
+            return json_path
+        except Exception as exc:
+            print(f"⚠️  roteiro JSON existente inválido ({exc}) — regenerando: {json_path}")
 
     if not _ROTEIRO_LLM_AVAILABLE:
         print(f"❌ Módulo generate_roteiro_llm indisponível: {_ROTEIRO_LLM_IMPORT_ERROR}")
@@ -860,11 +865,8 @@ def cmd_full(
     md_is_thin = (not md_path.exists()) or _is_roteiro_template(
         md_path.read_text(encoding="utf-8")
     )
-    json_path = EPISODES_DIR / f"roteiro-{date}.json"
-    if force_roteiro or md_is_thin or not json_path.exists():
-        ensure_roteiro_json(date, force=force_roteiro)
-    else:
-        print(f"✅ Mantendo JSON existente (MD já rico): {json_path}")
+    # Sempre validar estrutura do JSON (política C). MD "rico" não autoriza skip.
+    ensure_roteiro_json(date, force=force_roteiro)
 
     # 2.5. Título otimizado (skill youtube-journalistic-title-optimizer) — NÃO bloqueia
     print("\n🎯 Etapa 2.5/8 — Título otimizado do episódio")
