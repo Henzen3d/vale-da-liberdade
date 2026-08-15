@@ -30,15 +30,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 
-  <!-- 1(a): Preload LCP hero — imagesrcset faz o browser escolher o mesmo candidate que o <picture> do app.js -->
-  <link
-    rel="preload"
-    as="image"
-    href="./assets/cover-800.webp"
-    imagesrcset="./assets/cover-400.webp 400w, ./assets/cover-800.webp 800w, ./assets/cover-1200.webp 1200w"
-    imagesizes="(min-width: 1024px) 45vw, (min-width: 768px) 45vw, 100vw"
-    fetchpriority="high"
-  >
+  <!-- LCP é a thumbnail do episódio (renderToday), não cover-1200.webp — preload genérico ficava unused. -->
 
   <link rel="alternate" type="application/rss+xml" title="Vale da Liberdade — Web Jornal" href="./feed.xml">
   <link rel="alternate" type="application/feed+json" title="Vale da Liberdade — JSON Feed" href="./feed.json">
@@ -583,13 +575,14 @@
 
   <script src="./assets/js/orientation_lock.js?v=202608081130" defer></script>
   <script src="./assets/js/theme.js?v=202608022030" defer></script>
-  <script src="./assets/js/player.js?v=202608132000" defer></script>
+  <script src="./assets/js/player.js?v=202608151800" defer></script>
   <script src="./assets/js/wakeLock.js?v=202608060400" defer></script>
   <script src="./assets/js/listen_progress.js?v=202608081430" defer></script>
-  <script src="./js/supabase_client.js?v=202608081600" defer></script>
-  <script src="./assets/js/ad_manager.js?v=202608091700" defer></script>
-  <script src="./assets/js/interaction_bar.js?v=202608071830" defer></script>
-  <script src="./assets/js/app.js?v=202608132000" defer></script>
+  <script src="./js/supabase_client.js?v=202608141955" defer></script>
+  <script src="./assets/js/autoplay_chain.js?v=202608151800" defer></script>
+  <script src="./assets/js/ad_manager.js?v=202608151800" defer></script>
+  <script src="./assets/js/interaction_bar.js?v=202608141955" defer></script>
+  <script src="./assets/js/app.js?v=202608151800" defer></script>
 
   <!-- Speculation Rules para prerender de próximas páginas (LCP nas navegações) -->
   <script type="speculationrules">

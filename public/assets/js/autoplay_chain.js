@@ -1,0 +1,5 @@
+(function(root){function decideAutoPlayTransition(input){input=input||{};if(input.isShowingAd||input.isAdMode)return{action:"noop"};if(!input.nextEp)return{action:"stop"};var ad=input.cachedAd||null;var hidden=!!input.hidden;if(ad&&ad.audio_url){return{action:"play-ad-on-player",ad:ad,nextEp:input.nextEp};}
+if(ad&&!hidden){return{action:"show-visual-interstitial",ad:ad,nextEp:input.nextEp};}
+return{action:"play-next",nextEp:input.nextEp};}
+function isEndedLike(state){if(!state)return false;var dur=Number(state.duration);var t=Number(state.currentTime);if(!Number.isFinite(dur)||dur<=0)return false;return t>=dur-0.35;}
+var api={decideAutoPlayTransition:decideAutoPlayTransition,isEndedLike:isEndedLike};if(typeof module!=="undefined"&&module.exports)module.exports=api;root.AutoplayChain=api;})(typeof window!=="undefined"?window:globalThis);

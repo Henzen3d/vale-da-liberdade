@@ -1,5 +1,5 @@
 /* Service Worker — Vale da Liberdade PWA */
-const CACHE = "vld-v1-202608090907";
+const CACHE = "vld-v1-202608151412";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const PRECACHE = [
   "./assets/js/theme.js",
   "./assets/js/player.js",
   "./assets/js/listen_progress.js",
+  "./assets/js/autoplay_chain.js",
   "./assets/js/ad_manager.js",
   "./assets/js/app.js",
   "./js/supabase_client.js",
