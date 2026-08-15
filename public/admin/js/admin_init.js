@@ -140,6 +140,8 @@ function setupNavigation() {
         AdminUsers.loadUsersAndSubs();
       } else if (panelId === 'reports' && window.AdminCharts) {
         AdminCharts.loadMetrics(30);
+      } else if (panelId === 'audience' && window.AdminAudience) {
+        if (AdminAudience.onShow) AdminAudience.onShow();
       } else if (panelId === 'overview' && window.AdminAds) {
         AdminAds.loadCampaigns();
       }

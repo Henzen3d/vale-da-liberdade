@@ -6,6 +6,7 @@
   <meta name="description" content="Painel Administrativo do Web Jornal Vale da Liberdade.">
   <title>Admin — Vale da Liberdade</title>
   <link rel="stylesheet" href="./admin.css?v=202608042200">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   
   <!-- Supabase JS Client (página admin é independente da home) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -394,6 +395,15 @@
               <div class="kpi-change neutral">com Google</div>
             </div>
           </div>
+          <div class="card" style="margin-top:24px;">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Mapa</div>
+                <div class="card-subtitle" id="audienceMapHint">Pins = cidade, senão país, senão fuso. Sem GPS.</div>
+              </div>
+            </div>
+            <div id="audienceMap" style="height:380px;border-radius:12px;overflow:hidden;background:#0b1220;"></div>
+          </div>
           <div class="grid-2" style="margin-top:24px;">
             <div class="card">
               <div class="card-header"><div class="card-title">Por dia</div></div>
@@ -639,11 +649,12 @@
 
   <!-- Scripts -->
   <!-- Cache-busting: bump ?v= a cada alteração nos módulos (convenção YYYYMMDDHHMM) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
   <script src="./js/admin_auth.js?v=202608042200" defer></script>
   <script src="./js/admin_ads.js?v=202608072000" defer></script>
   <script src="./js/admin_users.js?v=202608042200" defer></script>
   <script src="./js/admin_charts.js?v=202608042200" defer></script>
-  <script src="./js/admin_audience.js?v=202608151930" defer></script>
-  <script src="./js/admin_init.js?v=202608151930" defer></script>
+  <script src="./js/admin_audience.js?v=202608151950" defer></script>
+  <script src="./js/admin_init.js?v=202608151950" defer></script>
 </body>
 </html>
