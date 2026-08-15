@@ -1,618 +1,141 @@
 {
-  "generated_at": "2026-08-10T10:09:32",
+  "generated_at": "2026-08-15T14:12:38",
   "category": "especial",
   "page": 7,
   "page_size": 12,
-  "total_pages": 8,
+  "total_pages": 12,
   "episodes": [
     {
-      "id": "especial-0T7yObl8opQ",
-      "date": "2026-08-01",
-      "pubDate": "Sat, 01 Aug 2026 12:03:41 +0000",
+      "id": "especial-rHNthJlszdc",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:57:29 +0000",
       "type": "especial",
-      "title": "O balcão de negócios entre a máfia estatal e o Banco Master",
-      "excerpt": "O Estado é uma gangue tão desorganizada que, quando os burocratas brigam entre si pelo controle do saque, o esgoto do poder finalmente vaza para todo mundo ver....",
+      "title": "A Ilusão da Faria Lima e a Blindagem dos Bancos perante a Gastança Estatal",
+      "excerpt": "O mercado financeiro adora se enganar com o abraço do urso estatal. Parte da Faria Lima continua flertando abertamente com a perspectiva de um quarto mandato do Lula, achando que d...",
       "manchetes": [],
       "quadros": [
+        "economia",
         "política",
-        "corrupção",
         "impostos, taxas e tarifas"
       ],
-      "duration_min": 3.9,
-      "words": 638,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-0T7yObl8opQ.mp3",
-      "script_url": "./episodes/especial-0T7yObl8opQ.md",
-      "audio_bytes": 5550333,
+      "duration_min": 4.7,
+      "words": 779,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-rHNthJlszdc.mp3",
+      "script_url": "./episodes/especial-rHNthJlszdc.md",
+      "audio_bytes": 6803583,
       "sources": [
-        "Estadão",
-        "Veja",
-        "Claudio Dantas",
-        "CNN Brasil",
-        "Diário do Poder",
-        "CNN Brasil",
-        "Metrópoles",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "Folha de S.Paulo"
       ],
-      "referencias": [
-        {
-          "veiculo": "Estadão",
-          "url": "https://www.estadao.com.br/politica/pf-detectou-74-ligacoes-e-5h30-de-conversas-entre-jaques-wagner-e-ex-socio-do-master/"
-        },
-        {
-          "veiculo": "Veja",
-          "url": "https://veja.abril.com.br/brasil/jaques-articulou-encontro-discreto-de-messias-e-socio-de-vorcaro-diz-pf/"
-        },
-        {
-          "veiculo": "Claudio Dantas",
-          "url": "https://claudiodantas.com.br/vorcaro-apontou-ministros-de-lula-favoraveis-a-venda-do-master/"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/politica/pf-detalha-vinculos-pessoais-e-politicos-de-jaques-wagner-com-banco-master/"
-        },
-        {
-          "veiculo": "Diário do Poder",
-          "url": "https://diariodopoder.com.br/coluna-claudio-humberto/governo-lula-se-blinda-escondendo-visitas-a-vorcaro"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/blogs/isabel-mega/politica/aliados-de-lula-veem-timing-inadequado-em-decisoes-de-mendonca/"
-        },
-        {
-          "veiculo": "Metrópoles",
-          "url": "https://www.metropoles.com/colunas/igor-gadelha/mendonca-autorizou-investigacao-de-flavio-um-dia-apos-parecer-da-pgr"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-0T7yObl8opQ.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-0T7yObl8opQ.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-0T7yObl8opQ.html",
-      "cover_url": "./thumbnails/2026-08-01/bm_0T7yObl8opQ.webp",
-      "published_at": "2026-08-10T10:09:28",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-0T7yObl8opQ.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_0T7yObl8opQ.webp"
+      "cover_url": "./thumbnails/2026-08-02/bm_rHNthJlszdc.webp",
+      "published_at": "2026-08-15T14:12:34",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/bm_rHNthJlszdc.webp"
     },
     {
-      "id": "especial-yG3z1dQDmNM",
-      "date": "2026-08-01",
-      "pubDate": "Sat, 01 Aug 2026 12:02:13 +0000",
+      "id": "especial-ezixwD_sLHM",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:54:45 +0000",
       "type": "especial",
-      "title": "A chantagem das emendas: Como o STF aparelha as eleições usando seu dinheiro",
-      "excerpt": "O circo da política estatal nos entrega, mais uma vez, uma demonstração cristalina de como a máfia de toga opera para controlar os rumos do país. Flávio Bolsonaro anunciou a senado...",
+      "title": "Move Brasil e Desenrola: O Fiasco Estatal que Enriquece Bancos e Endivida o Povo",
+      "excerpt": "O Estado adora vender a ilusão de que vai te salvar, te dar um carro zero e limpar todas as suas dívidas com uma simples canetada. Mas a realidade é sempre uma surra de fatos: os p...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "política",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.6,
+      "words": 754,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ezixwD_sLHM.mp3",
+      "script_url": "./episodes/especial-ezixwD_sLHM.md",
+      "audio_bytes": 6582901,
+      "sources": [
+        "O Globo"
+      ],
+      "cover_url": "./thumbnails/2026-08-02/bm_ezixwD_sLHM.webp",
+      "published_at": "2026-08-15T14:12:36",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/bm_ezixwD_sLHM.webp"
+    },
+    {
+      "id": "especial-_f8bffSUBek",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:52:07 +0000",
+      "type": "especial",
+      "title": "A Armadilha do Leviatã: Como o Sistema Criou Sua Própria Ameaça Existencial",
+      "excerpt": "O jogo do poder estatal é implacável, meus amigos. Quando a elite togada e os parasitas de Brasília decidem usar o monopólio da violência para destruir um oponente político, eles j...",
       "manchetes": [],
       "quadros": [
         "política",
         "ditadura judiciária",
         "eleições"
       ],
-      "duration_min": 4.7,
-      "words": 789,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-yG3z1dQDmNM.mp3",
-      "script_url": "./episodes/especial-yG3z1dQDmNM.md",
-      "audio_bytes": 6806718,
+      "duration_min": 4.4,
+      "words": 698,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-_f8bffSUBek.mp3",
+      "script_url": "./episodes/especial-_f8bffSUBek.md",
+      "audio_bytes": 6320840,
       "sources": [
-        "Veja",
-        "O Globo",
-        "O Globo",
-        "Gazeta do Povo",
-        "Metrópoles",
-        "CNN Brasil",
-        "Folha de S.Paulo",
-        "Arvor (Brasil)",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "O Globo"
       ],
-      "referencias": [
-        {
-          "veiculo": "Veja",
-          "url": "https://veja.abril.com.br/politica/flavio-confirma-que-tereza-aceitou-ser-vice-mas-pp-reforca-preferencia-por-neutralidade/"
-        },
-        {
-          "veiculo": "O Globo",
-          "url": "https://oglobo.globo.com/politica/eleicoes-2026/noticia/2026/07/31/pp-reafirma-neutralidade-nas-eleicoes-e-comunica-tereza-cristina-de-que-ela-nao-sera-vice-de-flavio.ghtml"
-        },
-        {
-          "veiculo": "O Globo",
-          "url": "https://oglobo.globo.com/blogs/malu-gaspar/post/2026/07/fator-stf-ajudou-a-aumentar-resistencia-do-centrao-a-fazer-alianca-com-flavio-bolsonaro.ghtml"
-        },
-        {
-          "veiculo": "Gazeta do Povo",
-          "url": "https://www.gazetadopovo.com.br/republica/por-que-moraes-ameaca-a-candidatura-de-flavio-bolsonaro-a-presidencia/"
-        },
-        {
-          "veiculo": "Metrópoles",
-          "url": "https://www.metropoles.com/blog-do-noblat/ricardo-noblat/entrou-pela-perna-do-pinto-o-fim-precoce-da-chapa-flavio-tereza"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/eleicoes/flavio-diz-que-vaga-de-vice-esta-em-aberto-e-que-conversa-com-partidos/"
-        },
-        {
-          "veiculo": "Folha de S.Paulo",
-          "url": "https://media.folha.uol.com.br/datafolha/2026/07/27/dubjq-vjpukmyk3aldqcpq.pdf"
-        },
-        {
-          "veiculo": "Arvor (Brasil)",
-          "url": "https://brasil.arvor.co/datafolha_072026.html"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-yG3z1dQDmNM.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-yG3z1dQDmNM.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-yG3z1dQDmNM.html",
-      "cover_url": "./thumbnails/2026-08-01/bm_yG3z1dQDmNM.webp",
-      "published_at": "2026-08-10T10:09:28",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-yG3z1dQDmNM.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_yG3z1dQDmNM.webp"
+      "cover_url": "./thumbnails/2026-08-02/bm__f8bffSUBek.webp",
+      "published_at": "2026-08-15T14:12:29",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/bm__f8bffSUBek.webp"
     },
     {
-      "id": "especial-sqGLnk25U2w",
-      "date": "2026-08-01",
-      "pubDate": "Sat, 01 Aug 2026 12:00:28 +0000",
+      "id": "especial-ZFTttTq30N0",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:50:22 +0000",
       "type": "especial",
-      "title": "A Delação que Apavora os Parasitas Estatais",
-      "excerpt": "A narrativa oficial do jornalismo chapa-branca entrou em pânico total. Toda vez que a sujeira dos bastidores do poder ameaça vir à tona, os defensores do aparato estatal sacam a me...",
+      "title": "O Ato Falho do Tirano: A Decadência do Líder Supremo e o Desespero Estatal",
+      "excerpt": "Sabe qual é a grande vantagem quando o cacique da máquina estatal envelhece? A carcaça fraqueja, a mente falha e ele começa a falar a verdade sem querer....",
       "manchetes": [],
       "quadros": [
         "política",
-        "corrupção",
-        "eleições"
+        "eleições",
+        "socialismo/comunismo"
       ],
       "duration_min": 3.3,
-      "words": 535,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-sqGLnk25U2w.mp3",
-      "script_url": "./episodes/especial-sqGLnk25U2w.md",
-      "audio_bytes": 4719012,
+      "words": 567,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ZFTttTq30N0.mp3",
+      "script_url": "./episodes/especial-ZFTttTq30N0.md",
+      "audio_bytes": 4780452,
       "sources": [
-        "Revista Fórum",
-        "Revista Fórum",
-        "O Globo",
-        "Infobae",
-        "Reuters",
-        "Justice",
-        "Foxnews",
-        "CNN",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "Poder360"
       ],
-      "referencias": [
-        {
-          "veiculo": "Revista Fórum",
-          "url": "https://revistaforum.com.br/blogs/blog-do-rovai/trump-homem-chavez-maduro-golpe-lula-saab/"
-        },
-        {
-          "veiculo": "Revista Fórum",
-          "url": "https://revistaforum.com.br/global/consulado-dos-eua-convoca-influenciadores-anti-lula/"
-        },
-        {
-          "veiculo": "O Globo",
-          "url": "https://oglobo.globo.com/politica/noticia/2023/08/11/enquanto-lula-lanca-novo-pac-janja-se-encontra-com-influenciadores-e-ex-bbbs-no-rio.ghtml"
-        },
-        {
-          "veiculo": "Infobae",
-          "url": "https://www.infobae.com/venezuela/2025/12/04/carta-del-pollo-carvajal-a-trump-ofrece-mas-datos-de-la-relacion-del-chavismo-con-el-narcotrafico-y-las-redes-delictivas-en-eeuu/"
-        },
-        {
-          "veiculo": "Reuters",
-          "url": "https://www.reuters.com/world/americas/alex-saab-ally-venezuelas-maduro-pleads-not-guilty-to-us-charges-2026-07-24/"
-        },
-        {
-          "veiculo": "Justice",
-          "url": "https://www.justice.gov/opa/pr/maduro-regime-ally-alex-saab-arrested-money-laundering-charges-involving-venezuelan-food"
-        },
-        {
-          "veiculo": "Foxnews",
-          "url": "https://www.foxnews.com/politics/maduros-alleged-bag-man-alex-saab-arrested-less-3-years-biden-pardon-report"
-        },
-        {
-          "veiculo": "CNN",
-          "url": "https://edition.cnn.com/2026/04/26/americas/carvajal-pollo-maduro-venezuela-trial-latam-intl"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-sqGLnk25U2w.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-sqGLnk25U2w.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-sqGLnk25U2w.html",
-      "cover_url": "./thumbnails/2026-08-01/bm_sqGLnk25U2w.webp",
-      "published_at": "2026-08-10T10:09:26",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-sqGLnk25U2w.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_sqGLnk25U2w.webp"
+      "cover_url": "./thumbnails/2026-08-02/bm_ZFTttTq30N0.webp",
+      "published_at": "2026-08-15T14:12:26",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/bm_ZFTttTq30N0.webp"
     },
     {
-      "id": "especial-BR-hw44EfxM",
-      "date": "2026-08-01",
-      "pubDate": "Sat, 01 Aug 2026 11:56:41 +0000",
+      "id": "especial-ipBrgxe6cBg",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:48:34 +0000",
       "type": "especial",
-      "title": "PF e STF TENTAM BLINDAR LULINHA E TOMAM INVERSÃO DE DESTINO",
-      "excerpt": "O Leviatã estatal é incapaz de esconder a própria podridão por muito tempo. O diretor-geral da Polícia Federal, Andrei Rodrigues, decidiu brincar com fogo pra proteger o filho do t...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "corrupção",
-        "ditadura judiciária"
-      ],
-      "duration_min": 3.4,
-      "words": 574,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-BR-hw44EfxM.mp3",
-      "script_url": "./episodes/especial-BR-hw44EfxM.md",
-      "audio_bytes": 4890861,
-      "sources": [
-        "Metrópoles",
-        "Sbtnews",
-        "CNN Brasil",
-        "X",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
-      ],
-      "referencias": [
-        {
-          "veiculo": "Metrópoles",
-          "url": "https://www.metropoles.com/colunas/andreza-matais/andre-mendonca-investiga-se-diretor-geral-da-pf-obstruiu-justica-em-caso-do-inss"
-        },
-        {
-          "veiculo": "Sbtnews",
-          "url": "https://sbtnews.sbt.com.br/colunas/coluna-do-cezar/stf-ve-tentativa-da-pf-de-tirar-casos-de-lulinha-de-mendonca"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/eleicoes/waack-investigacoes-da-pf-contaminam-as-eleicoes/"
-        },
-        {
-          "veiculo": "X",
-          "url": "https://x.com/Maxcardoso/status/2083230702686912642"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-BR-hw44EfxM.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-BR-hw44EfxM.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-BR-hw44EfxM.html",
-      "cover_url": "./thumbnails/2026-08-01/bm_BR-hw44EfxM.webp",
-      "published_at": "2026-08-10T10:09:26",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-BR-hw44EfxM.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_BR-hw44EfxM.webp"
-    },
-    {
-      "id": "especial-eDavAhd5-M0",
-      "date": "2026-08-01",
-      "pubDate": "Sat, 01 Aug 2026 11:54:56 +0000",
-      "type": "especial",
-      "title": "Financiamento Voluntário vs. O Assalto do Fundão Eleitoral",
-      "excerpt": "Querem falar de apoio político de verdade ou de encenação bancada com o dinheiro espoliado do contribuinte? O senador Flávio Bolsonaro lançou uma vaquinha virtual de financiamento ...",
-      "manchetes": [],
-      "quadros": [
-        "impostos, taxas e tarifas",
-        "política",
-        "eleições"
-      ],
-      "duration_min": 3.9,
-      "words": 649,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-eDavAhd5-M0.mp3",
-      "script_url": "./episodes/especial-eDavAhd5-M0.md",
-      "audio_bytes": 5550381,
-      "sources": [
-        "Gazeta do Povo",
-        "YouTube",
-        "Contribua",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
-      ],
-      "referencias": [
-        {
-          "veiculo": "Gazeta do Povo",
-          "url": "https://www.gazetadopovo.com.br/eleicoes/2026/flavio-arrecada-r-24-mil-no-lancamento-de-vaquinha-virtual-para-campanha-presidencial/"
-        },
-        {
-          "veiculo": "YouTube",
-          "url": "https://www.youtube.com/watch?v=G1JRfuZgSsM"
-        },
-        {
-          "veiculo": "Contribua",
-          "url": "https://www.contribua.com.br/flaviopresidente"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-eDavAhd5-M0.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-eDavAhd5-M0.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-eDavAhd5-M0.html",
-      "cover_url": "./thumbnails/2026-08-01/bm_eDavAhd5-M0.webp",
-      "published_at": "2026-08-10T10:09:25",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-eDavAhd5-M0.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_eDavAhd5-M0.webp"
-    },
-    {
-      "id": "especial-IQtvmrk0PyA",
-      "date": "2026-08-10",
-      "pubDate": "Mon, 10 Aug 2026 10:14:16 +0000",
-      "type": "especial",
-      "title": "EX-MARIDO de Maria da Penha é PRESO Por Dar ENTREVISTA?",
-      "excerpt": "O Estado brasileiro atingiu um novo patamar de insanidade autoritária: mandar prender um homem não por um crime de sangue recente, mas pelo crime gravíssimo de tentar conceder uma ...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "ditadura judiciária"
-      ],
-      "duration_min": 3.8,
-      "words": 721,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-IQtvmrk0PyA.mp3",
-      "script_url": "./episodes/especial-IQtvmrk0PyA.md",
-      "audio_bytes": 5451903,
-      "sources": [
-        "Metrópoles",
-        "G1",
-        "YouTube",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
-      ],
-      "referencias": [
-        {
-          "veiculo": "Metrópoles",
-          "url": "https://www.metropoles.com/brasil/ex-marido-de-maria-da-penha-e-preso-apos-dar-entrevista"
-        },
-        {
-          "veiculo": "G1",
-          "url": "https://g1.globo.com/ce/ceara/noticia/2026/08/09/ex-marido-de-maria-da-penha-e-preso-apos-dar-entrevista-sobre-tentativa-de-matar-a-ativista.ghtml"
-        },
-        {
-          "veiculo": "YouTube",
-          "url": "https://www.youtube.com/watch?v=Aa1gNAC8ocE"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-IQtvmrk0PyA.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-IQtvmrk0PyA.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-IQtvmrk0PyA.html",
-      "cover_url": "./thumbnails/2026-08-10/bm_IQtvmrk0PyA.webp",
-      "published_at": "2026-08-10T10:09:26",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-IQtvmrk0PyA.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_IQtvmrk0PyA.webp"
-    },
-    {
-      "id": "especial-wkpJEqSCv9c",
-      "date": "2026-08-10",
-      "pubDate": "Mon, 10 Aug 2026 00:16:02 +0000",
-      "type": "especial",
-      "title": "LULINHA na ESPANHA: EMPREITEIRA Bilionária Sob SUSPEITA",
-      "excerpt": "Você aí trabalhando quarenta horas por semana para sustentar a máquina estatal, e o filho do presidente vivendo confortavelmente na Europa. Mas calma, segundo os burocratas do part...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "corrupção",
-        "impostos"
-      ],
-      "duration_min": 4.4,
-      "words": 769,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-wkpJEqSCv9c.mp3",
-      "script_url": "./episodes/especial-wkpJEqSCv9c.md",
-      "audio_bytes": 6397954,
-      "sources": [
-        "Lulinha vive em condições precárias na Espanha, diz vice do",
-        "CNN Brasil",
-        "VEJA",
-        "Estadão",
-        "O Globo",
-        "Veja",
-        "Brasil 247",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
-      ],
-      "referencias": [
-        {
-          "veiculo": "Lulinha vive em condições precárias na Espanha, diz vice do",
-          "url": "https://www.poder360.com.br/poder-justica/lulinha-vive-em-condicoes-precarias-na-espanha-diz-vice-do-pt/"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/politica/vice-do-pt-diz-que-lulinha-vive-em-condicoes-precarias-na-espanha/"
-        },
-        {
-          "veiculo": "VEJA",
-          "url": "https://veja.abril.com.br/brasil/o-avanco-das-investigacoes-contra-lulinha-no-stf-e-as-novas-revelacoes-a-caminho/"
-        },
-        {
-          "veiculo": "Estadão",
-          "url": "https://www.estadao.com.br/politica/carlos-andreazza/desconfiancas-entre-mendonca-e-pf-so-existem-pois-o-investigado-e-lulinha/"
-        },
-        {
-          "veiculo": "O Globo",
-          "url": "https://oglobo.globo.com/politica/noticia/2026/08/08/ala-do-stf-ve-como-inadmissivel-tom-da-manifestacao-de-chefes-da-pf-em-apoio-ao-diretor-geral-em-meio-a-crise-com-mendonca.ghtml"
-        },
-        {
-          "veiculo": "Veja",
-          "url": "https://veja.abril.com.br/politica/a-bronca-de-juizes-do-stf-com-o-ministro-da-justica/"
-        },
-        {
-          "veiculo": "Brasil 247",
-          "url": "https://www.brasil247.com/entrevistas/subversao-de-andre-mendonca-repete-erros-da-lava-jato-diz-pedro-serrano/"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-wkpJEqSCv9c.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-wkpJEqSCv9c.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-wkpJEqSCv9c.html",
-      "cover_url": null,
-      "published_at": "2026-08-10T10:09:30",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-wkpJEqSCv9c.html"
-    },
-    {
-      "id": "especial-ZzVHeO4h6fE",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 23:14:06 +0000",
-      "type": "especial",
-      "title": "TSE Desmonta Urna ao Vivo: Transparência Real ou Propaganda do Leviatã?",
-      "excerpt": "O leviatã estatal resolveu fazer um showzinho de transparência na internet para tentar limpar a própria imagem. O Tribunal Superior Eleitoral fez uma transmissão ao vivo para desmo...",
+      "title": "A Farsa da Neutralidade do PP: Como o Monopólio da Violência Coagiu o Centrão",
+      "excerpt": "A imprensa militante e a isentosfera estão em festa porque a cúpula do PP decidiu declarar neutralidade na disputa presidencial de 2026. A narrativa oficial vendida pelos analistas...",
       "manchetes": [],
       "quadros": [
         "eleições",
-        "política"
+        "ditadura judiciária"
       ],
-      "duration_min": 5.3,
-      "words": 782,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-ZzVHeO4h6fE.mp3",
-      "script_url": "./episodes/especial-ZzVHeO4h6fE.md",
-      "audio_bytes": 7680671,
+      "duration_min": 4.3,
+      "words": 743,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ipBrgxe6cBg.mp3",
+      "script_url": "./episodes/especial-ipBrgxe6cBg.md",
+      "audio_bytes": 6239965,
       "sources": [
-        "Poder360",
-        "TSE",
-        "YouTube",
-        "Folha de S.Paulo",
-        "Veja",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "CNN Brasil"
       ],
-      "referencias": [
-        {
-          "veiculo": "Poder360",
-          "url": "https://www.poder360.com.br/poder-eleicoes-2026/ao-vivo-tse-desmonta-urna-eletronica-nesta-2a-feira/"
-        },
-        {
-          "veiculo": "TSE",
-          "url": "https://www.tse.jus.br/comunicacao/noticias/2026/Agosto/tse-forma-pool-inedito-com-tvs-publicas-e-tres-para-desmontar-urna-eletronica-ao-vivo"
-        },
-        {
-          "veiculo": "YouTube",
-          "url": "https://www.youtube.com/watch?v=3VmjIlUPLtA"
-        },
-        {
-          "veiculo": "Folha de S.Paulo",
-          "url": "https://www1.folha.uol.com.br/poder/2026/08/stf-tem-de-aceitar-que-decisoes-sejam-contestadas-pela-opiniao-publica-diz-fachin.shtml"
-        },
-        {
-          "veiculo": "Veja",
-          "url": "https://veja.abril.com.br/politica/juiz-que-tem-posicionamento-politico-esta-na-profissao-errada-diz-novo-presidente-do-stj/"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-ZzVHeO4h6fE.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-ZzVHeO4h6fE.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-ZzVHeO4h6fE.html",
-      "cover_url": "./thumbnails/2026-08-03/bm_ZzVHeO4h6fE.webp",
-      "published_at": "2026-08-10T10:09:27",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-ZzVHeO4h6fE.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_ZzVHeO4h6fE.webp"
+      "cover_url": "./thumbnails/2026-08-02/bm_ipBrgxe6cBg.webp",
+      "published_at": "2026-08-15T14:12:37",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/bm_ipBrgxe6cBg.webp"
     },
     {
-      "id": "especial-GsEflunj7LQ",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 21:11:29 +0000",
+      "id": "especial-7ZcrqTiGC5E",
+      "date": "2026-08-02",
+      "pubDate": "Sun, 02 Aug 2026 09:46:58 +0000",
       "type": "especial",
-      "title": "A Máscara Caiu: Até a Mídia Tradicional É Obrigada a Reconhecer a Escalada Autoritária do STF",
-      "excerpt": "Até a Folha de S.Paulo resolveu admitir o óbvio, embora escondida atrás de jargões pedantes e eufemismos sofisticados: o Supremo Tribunal Federal rasgou o pouco que restava da orto...",
-      "manchetes": [],
-      "quadros": [
-        "ditadura judiciária",
-        "política"
-      ],
-      "duration_min": 3.4,
-      "words": 575,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-GsEflunj7LQ.mp3",
-      "script_url": "./episodes/especial-GsEflunj7LQ.md",
-      "audio_bytes": 4951606,
-      "sources": [
-        "Folha de S.Paulo",
-        "Vanguardadonorte",
-        "Metrópoles",
-        "Revistaoeste",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
-      ],
-      "referencias": [
-        {
-          "veiculo": "Folha de S.Paulo",
-          "url": "https://www1.folha.uol.com.br/opiniao/2026/08/ativismo-de-moraes-requer-sempre-mais-heterodoxia.shtml"
-        },
-        {
-          "veiculo": "Vanguardadonorte",
-          "url": "https://vanguardadonorte.com.br/politica/flavio-bolsonaro-compara-restricoes-impostas-a-jair-bolsonaro-ao-ai-5-e-critica-decisoes-de-alexandre-de-moraes/#google_vignette"
-        },
-        {
-          "veiculo": "Metrópoles",
-          "url": "https://www.metropoles.com/colunas/manoela-alcantara/justica-rejeita-acao-de-familiares-de-moraes-contra-alessandro-vieira"
-        },
-        {
-          "veiculo": "Revistaoeste",
-          "url": "https://revistaoeste.com/politica/kim-kataguiri-propoe-proibir-uso-de-redes-sociais-como-medida-cautelar/"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-GsEflunj7LQ.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-GsEflunj7LQ.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-GsEflunj7LQ.html",
-      "cover_url": "./thumbnails/2026-08-03/bm_GsEflunj7LQ.webp",
-      "published_at": "2026-08-10T10:09:26",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-GsEflunj7LQ.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_GsEflunj7LQ.webp"
-    },
-    {
-      "id": "especial-WLC5taLCG2o",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 19:11:44 +0000",
-      "type": "especial",
-      "title": "O hat-trick do Lulinha e o balcão de negócios do Leviatã",
-      "excerpt": "Já pode pedir música no Fantástico! A Polícia Federal acaba de pedir ao Supremo Tribunal Federal o terceiro inquérito contra o Lulinha em questão de dias. Três investigações formai...",
+      "title": "O Balcão de Negócios do Lulinha na Dataprev e a Farra do Tráfico de Influência",
+      "excerpt": "O leviatã estatal ataca novamente, meus amigos, e adivinhem quem está surfando nas estruturas do aparelho governamental? Ele mesmo: o filho do presidente. O ministro André Mendonça...",
       "manchetes": [],
       "quadros": [
         "política",
@@ -620,196 +143,165 @@
         "impostos, taxas e tarifas"
       ],
       "duration_min": 4.2,
-      "words": 699,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-WLC5taLCG2o.mp3",
-      "script_url": "./episodes/especial-WLC5taLCG2o.md",
-      "audio_bytes": 6046868,
+      "words": 684,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-7ZcrqTiGC5E.mp3",
+      "script_url": "./episodes/especial-7ZcrqTiGC5E.md",
+      "audio_bytes": 6026179,
       "sources": [
-        "CNN Brasil",
-        "Suno",
-        "Estadão",
-        "CNN Brasil",
-        "Poder360",
-        "Folha de S.Paulo",
-        "Valor Econômico",
-        "Wikipédia",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "CNN Brasil"
       ],
-      "referencias": [
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/blogs/elijonasmaia/politica/pf-pede-abertura-de-terceiro-inquerito-contra-lulinha-ao-stf/"
-        },
-        {
-          "veiculo": "Suno",
-          "url": "https://suno.com/song/c3949f9f-de0d-4ad0-a93b-f0808570afba?sh=TQN2IaDtlVrYTtAy"
-        },
-        {
-          "veiculo": "Estadão",
-          "url": "https://www.estadao.com.br/politica/amiga-de-lulinha-fez-mais-de-40-visitas-fora-da-agenda-a-orgaos-do-governo-lula/"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/politica/pf-vai-apurar-se-lulinha-cometeu-crime-de-trafico-de-influencia-e-corrupcao/"
-        },
-        {
-          "veiculo": "Poder360",
-          "url": "https://www.poder360.com.br/poder-justica/empresa-ligada-a-lobby-de-lulinha-recebeu-r-81-mi-do-governo/"
-        },
-        {
-          "veiculo": "Folha de S.Paulo",
-          "url": "https://www1.folha.uol.com.br/colunas/eliogaspari/2026/08/lulinha-e-suas-conexoes-serao-um-espinho-no-pe-de-lulao.shtml"
-        },
-        {
-          "veiculo": "Valor Econômico",
-          "url": "https://valor.globo.com/politica/noticia/2026/07/31/inquerito-contra-lulinha-preocupa-mais-o-governo-do-que-jaques-wagner-no-caso-master.ghtml"
-        },
-        {
-          "veiculo": "Wikipédia",
-          "url": "https://pt.wikipedia.org/wiki/Wellington_Dias"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-WLC5taLCG2o.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-WLC5taLCG2o.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-WLC5taLCG2o.html",
-      "cover_url": "./thumbnails/2026-08-03/bm_WLC5taLCG2o.webp",
-      "published_at": "2026-08-10T10:09:27",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-WLC5taLCG2o.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_WLC5taLCG2o.webp"
+      "cover_url": "./thumbnails/2026-08-02/bm_7ZcrqTiGC5E.webp",
+      "published_at": "2026-08-15T14:12:30",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/bm_7ZcrqTiGC5E.webp"
     },
     {
-      "id": "especial-Dc_JrYKJITQ",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 17:11:53 +0000",
+      "id": "especial-rsjGnUlwZG8",
+      "date": "2026-08-15",
+      "pubDate": "Sat, 15 Aug 2026 17:12:07 +0000",
       "type": "especial",
-      "title": "O efeito Biden e a maquiagem estatal: a derrocada do PT e a farsa dos números oficiais",
-      "excerpt": "O mofo estatal está ficando insuportável de esconder. O governo do amor acumula péssimas notícias, e nem a máquina de propaganda consegue disfarçar o cheiro de velharia das ideias ...",
+      "title": "Perfil de NIKOLAS em RISCO: Nova CENSURA do XANDÃO?",
+      "excerpt": "A estatal do judiciário ataca novamente ou a burocracia das corporações resolveu dar uma mãozinha pro leviatã de Brasília? O perfil do deputado Nikolas Ferreira no Instagram simple...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "eleições",
+        "política"
+      ],
+      "duration_min": 3.8,
+      "words": 653,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-rsjGnUlwZG8.mp3",
+      "script_url": "./episodes/especial-rsjGnUlwZG8.md",
+      "audio_bytes": 5471338,
+      "sources": [
+        "Pleno.News"
+      ],
+      "cover_url": "./thumbnails/2026-08-15/bm_rsjGnUlwZG8.webp",
+      "published_at": "2026-08-15T14:12:38",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-15/bm_rsjGnUlwZG8.webp"
+    },
+    {
+      "id": "especial-Ao6zmspVlOs",
+      "date": "2026-08-15",
+      "pubDate": "Sat, 15 Aug 2026 14:11:50 +0000",
+      "type": "especial",
+      "title": "SUPREMA CORTE da França DERRUBA Lei do MACRON Sobre Redes",
+      "excerpt": "Olá a todos! Olha só o que aconteceu lá do outro lado do oceano: a Suprema Corte da França deu uma rasteira histórica no Emmanuel Macron — o Lula que fala francês — e derrubou a te...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "socialismo/comunismo"
+      ],
+      "duration_min": 3.9,
+      "words": 712,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-Ao6zmspVlOs.mp3",
+      "script_url": "./episodes/especial-Ao6zmspVlOs.md",
+      "audio_bytes": 5621804,
+      "sources": [
+        "França: Justiça barra veto a redes sociais para adolescentes"
+      ],
+      "cover_url": "./thumbnails/2026-08-15/bm_Ao6zmspVlOs.webp",
+      "published_at": "2026-08-15T14:12:37",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-15/bm_Ao6zmspVlOs.webp"
+    },
+    {
+      "id": "especial-wxgcD501szk",
+      "date": "2026-08-15",
+      "pubDate": "Sat, 15 Aug 2026 10:11:50 +0000",
+      "type": "especial",
+      "title": "PETRÓLEO na MARGEM EQUATORIAL: O Fim do Bloqueio das ONGs",
+      "excerpt": "Olha só o absurdo que os burocratas e a patota ambientalista tentaram esconder de você: finalmente confirmaram o que qualquer pessoa com dois neurônios e noções básicas de geologia...",
       "manchetes": [],
       "quadros": [
         "política",
         "economia",
-        "corrupção"
+        "impostos, taxas e tarifas"
       ],
-      "duration_min": 4.6,
-      "words": 757,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-Dc_JrYKJITQ.mp3",
-      "script_url": "./episodes/especial-Dc_JrYKJITQ.md",
-      "audio_bytes": 6687600,
+      "duration_min": 4.1,
+      "words": 709,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-wxgcD501szk.mp3",
+      "script_url": "./episodes/especial-wxgcD501szk.md",
+      "audio_bytes": 5934019,
       "sources": [
-        "BBC",
-        "CNN Brasil",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "G1"
       ],
-      "referencias": [
-        {
-          "veiculo": "BBC",
-          "url": "https://www.bbc.com/portuguese/articles/czrj68m538jo"
-        },
-        {
-          "veiculo": "CNN Brasil",
-          "url": "https://www.cnnbrasil.com.br/blogs/clarissa-oliveira/eleicoes/analise-sem-marca-no-lula-3-petista-tenta-vender-futuro-com-pe-no-passado/"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-Dc_JrYKJITQ.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-Dc_JrYKJITQ.md",
-          "self": true
-        }
-      ],
-      "share_url": "./ep/especial-Dc_JrYKJITQ.html",
-      "cover_url": "./thumbnails/2026-08-03/bm_Dc_JrYKJITQ.webp",
-      "published_at": "2026-08-10T10:09:29",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-Dc_JrYKJITQ.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_Dc_JrYKJITQ.webp"
+      "cover_url": "./thumbnails/2026-08-15/bm_wxgcD501szk.webp",
+      "published_at": "2026-08-15T14:12:38",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-15/bm_wxgcD501szk.webp"
     },
     {
-      "id": "especial-9LW7PUzeX6I",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 16:11:44 +0000",
+      "id": "especial-Z0JTK1KdzpE",
+      "date": "2026-08-14",
+      "pubDate": "Sat, 15 Aug 2026 02:11:48 +0000",
       "type": "especial",
-      "title": "Milei Rasga o Pano do Estamento e Expõe a Farsa da Descondenação Estatal",
-      "excerpt": "O ser supremo do Palácio do Planalto achou mesmo que o teatro das firulas burocráticas e dos malabarismos jurídicos conseguiria limpar sua imagem no cenário internacional. Só que o...",
+      "title": "DESESPERO no PT? Janones Projeta VIRADA de Flávio",
+      "excerpt": "O desespero bateu forte na corte dos parasitas estatais de Brasília. Quando a própria militância governista começa a gritar que a nave tá afundando, você sabe que o troço tá feio p...",
       "manchetes": [],
       "quadros": [
         "política",
-        "corrupção",
-        "ditadura judiciária"
+        "eleições",
+        "corrupção"
       ],
-      "duration_min": 4.4,
-      "words": 764,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-9LW7PUzeX6I.mp3",
-      "script_url": "./episodes/especial-9LW7PUzeX6I.md",
-      "audio_bytes": 6277582,
+      "duration_min": 4.3,
+      "words": 753,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-Z0JTK1KdzpE.mp3",
+      "script_url": "./episodes/especial-Z0JTK1KdzpE.md",
+      "audio_bytes": 6165986,
       "sources": [
-        "Infobae",
-        "X",
-        "X",
-        "G1",
-        "X",
-        "X",
-        "X",
-        "Vale da Liberdade (site)",
-        "Vale da Liberdade (matéria transcrita)"
+        "Aliado de Lula, Janones projeta &#039;virada&#039; de Flávio"
       ],
-      "referencias": [
-        {
-          "veiculo": "Infobae",
-          "url": "https://www.infobae.com/politica/2026/08/03/javier-milei-volvio-a-apuntar-contra-lula-es-ladron-es-corrupto-y-lo-liberaron-por-una-falla-en-el-procedimiento/"
-        },
-        {
-          "veiculo": "X",
-          "url": "https://x.com/SamPancher/status/2084098570588754015"
-        },
-        {
-          "veiculo": "X",
-          "url": "https://x.com/SamPancher/status/2084103749702693159"
-        },
-        {
-          "veiculo": "G1",
-          "url": "https://g1.globo.com/politica/noticia/2026/07/27/quem-e-esse-cara-diz-lula-ao-ser-questionado-sobre-milei.ghtml"
-        },
-        {
-          "veiculo": "X",
-          "url": "https://x.com/leoncito_abrazo/status/2083998820220772450"
-        },
-        {
-          "veiculo": "X",
-          "url": "https://x.com/DatosAme24/status/2083999685040365693"
-        },
-        {
-          "veiculo": "X",
-          "url": "https://x.com/DatosAme24/status/2084005780601123223"
-        },
-        {
-          "veiculo": "Vale da Liberdade (site)",
-          "url": "https://news.mob.tec.br/ep/especial-9LW7PUzeX6I.html",
-          "self": true
-        },
-        {
-          "veiculo": "Vale da Liberdade (matéria transcrita)",
-          "url": "https://news.mob.tec.br/episodes/especial-9LW7PUzeX6I.md",
-          "self": true
-        }
+      "cover_url": "./thumbnails/2026-08-14/bm_Z0JTK1KdzpE.webp",
+      "published_at": "2026-08-15T14:12:29",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_Z0JTK1KdzpE.webp"
+    },
+    {
+      "id": "especial-SW3gEZja0TY",
+      "date": "2026-08-14",
+      "pubDate": "Sat, 15 Aug 2026 01:12:46 +0000",
+      "type": "especial",
+      "title": "Nem a QUAEST Esconde: LULA e FLÁVIO Empatam em 40%",
+      "excerpt": "Até mesmo o aparato de estatística oficial do sistema está encontrando severas dificuldades para maquiar a realidade. A pesquisa Quaest mais recente trouxe um resultado que instaur...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "impostos"
       ],
-      "share_url": "./ep/especial-9LW7PUzeX6I.html",
-      "cover_url": "./thumbnails/2026-08-03/bm_9LW7PUzeX6I.webp",
-      "published_at": "2026-08-10T10:09:26",
-      "share_url_abs": "https://news.mob.tec.br/ep/especial-9LW7PUzeX6I.html",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_9LW7PUzeX6I.webp"
+      "duration_min": 4.0,
+      "words": 639,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-SW3gEZja0TY.mp3",
+      "script_url": "./episodes/especial-SW3gEZja0TY.md",
+      "audio_bytes": 5690140,
+      "sources": [
+        "Lula tem 43% ante 40% de Flávio Bolsonaro no 2º turno, diz Q"
+      ],
+      "cover_url": "./thumbnails/2026-08-14/bm_SW3gEZja0TY.webp",
+      "published_at": "2026-08-15T14:12:36",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_SW3gEZja0TY.webp"
+    },
+    {
+      "id": "especial-HX7SjvhGjnI",
+      "date": "2026-08-08",
+      "pubDate": "Sat, 08 Aug 2026 23:12:26 +0000",
+      "type": "especial",
+      "title": "LULA e ALCOLUMBRE Brigam em JANTAR na Casa de MORAES",
+      "excerpt": "Olha só a que ponto chega o espetáculo da política em Brasília. O famoso jantar da promiscuidade republicana, que reuniu Lula, Davi Alcolumbre e o ministro Alexandre de Moraes na m...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "corrupção"
+      ],
+      "duration_min": 4.9,
+      "words": 819,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-HX7SjvhGjnI.mp3",
+      "script_url": "./episodes/especial-HX7SjvhGjnI.md",
+      "audio_bytes": 7074421,
+      "sources": [
+        "O Globo"
+      ],
+      "cover_url": "./thumbnails/2026-08-08/bm_HX7SjvhGjnI.webp",
+      "published_at": "2026-08-15T14:12:34",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-08/bm_HX7SjvhGjnI.webp"
     }
   ]
 }

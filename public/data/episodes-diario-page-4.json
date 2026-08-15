@@ -1,10 +1,276 @@
 {
-  "generated_at": "2026-08-09T09:07:32",
+  "generated_at": "2026-08-15T14:12:38",
   "category": "diario",
   "page": 4,
   "page_size": 12,
   "total_pages": 4,
   "episodes": [
+    {
+      "id": "2026-06-23",
+      "date": "2026-06-23",
+      "episode": 9,
+      "title": "Episódio 9 · 23 de junho de 2026",
+      "excerpt": "Incêndio em veículo causa bloqueio parcial na BR-101 no Sul de SC · Prefeitura de Blumenau anuncia revisão do plano de mobilidade urbana",
+      "manchetes": [
+        "Incêndio em veículo causa bloqueio parcial na BR-101 no Sul de SC",
+        "Prefeitura de Blumenau anuncia revisão do plano de mobilidade urbana",
+        "Secretaria de Saúde amplia atendimento em Unidades de Pronto Atendimento",
+        "Secretaria de Educação abre vagas para aulas de reforço em escolas municipais",
+        "Câmara aprova projeto de transparência em contratos públicos de Blumenau",
+        "TCE aponta irregularities em licitação de obras de contenção de cheias"
+      ],
+      "quadros": [
+        "seguranca",
+        "educacao",
+        "saude",
+        "politica",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
+      ],
+      "duration_min": 5.7,
+      "words": 917,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-06-23.mp3",
+      "script_url": "./episodes/2026-06-23.md",
+      "audio_bytes": 8268739,
+      "sources": [
+        "oblumenauense",
+        "ndmais_blumenau",
+        "blogdojaime",
+        "blogdoprisco",
+        "informeblumenau",
+        "gcd",
+        "altovalenoticias",
+        "upiara",
+        "mesorregional",
+        "altovaleagora",
+        "ajnoticias",
+        "g1_brasil",
+        "g1_sc",
+        "agencia_brasil",
+        "pancho",
+        "jatv",
+        "bbc_brasil",
+        "cnn_brasil",
+        "bbc_world",
+        "oglobo_geral",
+        "correio_braziliense",
+        "veja",
+        "metropoles",
+        "estadao_politica",
+        "gazetadopovo_politica",
+        "valor_geral",
+        "cnn_politica",
+        "nsctotal",
+        "g1_politica",
+        "oglobo_politica",
+        "veja_politica",
+        "metropoles_politica",
+        "terra_brasil_noticias",
+        "oglobo_economia",
+        "g1_economia",
+        "gazetadopovo_economia",
+        "veja_economia"
+      ],
+      "sponsors": [],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:20"
+    },
+    {
+      "id": "2026-06-20",
+      "date": "2026-06-20",
+      "episode": 8,
+      "title": "Episódio 8 · 20 de junho de 2026",
+      "excerpt": "Incêndio em carreta interdita BR-470 em Ibirama · SUS investirá R$ 70 milhões para atender viciados em apostas",
+      "manchetes": [
+        "Incêndio em carreta interdita BR-470 em Ibirama",
+        "SUS investirá R$ 70 milhões para atender viciados em apostas",
+        "Governador assina edital para Via Mar em Itajaí"
+      ],
+      "quadros": [
+        "seguranca",
+        "politica",
+        "saude",
+        "educacao",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
+      ],
+      "duration_min": 3.5,
+      "words": 863,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-06-20.mp3",
+      "script_url": "./episodes/2026-06-20.md",
+      "audio_bytes": 4998000,
+      "sources": [
+        "oblumenauense",
+        "ndmais_blumenau",
+        "blogdojaime",
+        "blogdoprisco",
+        "informeblumenau",
+        "gcd",
+        "altovalenoticias",
+        "upiara",
+        "mesorregional",
+        "altovaleagora",
+        "ajnoticias",
+        "g1_brasil",
+        "g1_sc",
+        "agencia_brasil",
+        "pancho",
+        "jatv",
+        "bbc_brasil",
+        "cnn_brasil",
+        "bbc_world",
+        "oglobo_geral",
+        "correio_braziliense",
+        "veja",
+        "metropoles",
+        "estadao_politica",
+        "gazetadopovo_politica",
+        "valor_geral",
+        "cnn_politica",
+        "nsctotal",
+        "g1_politica",
+        "oglobo_politica",
+        "veja_politica",
+        "metropoles_politica",
+        "terra_brasil_noticias",
+        "oglobo_economia",
+        "g1_economia",
+        "gazetadopovo_economia",
+        "veja_economia"
+      ],
+      "sponsors": [],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:20"
+    },
+    {
+      "id": "2026-06-19",
+      "date": "2026-06-19",
+      "episode": null,
+      "title": "Edição de 19 de junho de 2026",
+      "excerpt": "Envolvido em roubo a motorista de aplicativo em Blumenau morre em confronto com a PMSC · Ministério Público investiga suspensão de partos pelo SUS em hospital de Taió",
+      "manchetes": [
+        "Envolvido em roubo a motorista de aplicativo em Blumenau morre em confronto com a PMSC",
+        "Ministério Público investiga suspensão de partos pelo SUS em hospital de Taió",
+        "Pai de Ituporanga é multado em quase R$ 1 milhão por não vacinar os filhos",
+        "Prefeitura de Blumenau rescinde contrato de obras e avalia outras paralisações",
+        "Consumidores pagam R$ 7 bilhões anuais por furtos e fraudes de energia"
+      ],
+      "quadros": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "cultura",
+        "rapidinhas"
+      ],
+      "duration_min": 0.9,
+      "words": 2934,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-06-19.mp3",
+      "script_url": "./episodes/2026-06-19.md",
+      "audio_bytes": 1023885,
+      "sources": [
+        "manus",
+        "grok",
+        "busca_web"
+      ],
+      "sponsors": [],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:20"
+    },
+    {
+      "id": "2026-06-18",
+      "date": "2026-06-18",
+      "episode": 6,
+      "title": "Episódio 6 · 18 de junho de 2026",
+      "excerpt": "Câmara de Blumenau aprova programa de prevenção e combate à violência sexual contra crianças e adolescentes · Dois médicos são indiciados após investigação sobre morte de gestante em Indaial",
+      "manchetes": [
+        "Câmara de Blumenau aprova programa de prevenção e combate à violência sexual contra crianças e adolescentes",
+        "Dois médicos são indiciados após investigação sobre morte de gestante em Indaial",
+        "FURB terá 500 novas bolsas do programa Universidade Gratuita para o segundo semestre de 2026",
+        "Novas barragens em Agrolândia e Pouso Redondo ampliam proteção contra enchentes no Alto Vale",
+        "Natal em Blumenau 2026 terá sete desfiles e mais de 40 dias de programação gratuita"
+      ],
+      "quadros": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "economia"
+      ],
+      "duration_min": 4.9,
+      "words": 806,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-06-18.mp3",
+      "script_url": "./episodes/2026-06-18.md",
+      "audio_bytes": 5894445,
+      "sources": [],
+      "sponsors": [],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:20"
+    },
+    {
+      "id": "2026-06-17",
+      "date": "2026-06-17",
+      "episode": null,
+      "title": "Edição de 17 de junho de 2026",
+      "excerpt": "TJSC mantém condenação de motorista por omissão de socorro em Ibirama. · Projeto de deputado de SC para apoio a esclerose múltipla avança na Câmara.",
+      "manchetes": [
+        "TJSC mantém condenação de motorista por omissão de socorro em Ibirama.",
+        "Projeto de deputado de SC para apoio a esclerose múltipla avança na Câmara.",
+        "Justiça de SC derruba condenação de Boulos em ação movida por Luciano Hang.",
+        "Celesc detalha tarifa de energia e revela que apenas 17% ficam com a distribuidora.",
+        "Justiça anula multa municipal contra idosa de 98 anos em Penha (SC)."
+      ],
+      "quadros": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "rapidinhas"
+      ],
+      "duration_min": 2.0,
+      "words": 2325,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-06-17.mp3",
+      "script_url": "./episodes/2026-06-17.md",
+      "audio_bytes": 1346645,
+      "sources": [
+        "manus",
+        "grok",
+        "busca_web"
+      ],
+      "sponsors": [],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:21"
+    },
+    {
+      "id": "2026-06-16",
+      "date": "2026-06-16",
+      "episode": null,
+      "title": "Edição de 16 de junho de 2026",
+      "excerpt": "Copa 2026 tem primeiro zero a zero com Espanha e Cabo Verde · Blumenau Futsal sub-20 encara Liga Caçador para seguir invicto no Estadual",
+      "manchetes": [
+        "Copa 2026 tem primeiro zero a zero com Espanha e Cabo Verde",
+        "Blumenau Futsal sub-20 encara Liga Caçador para seguir invicto no Estadual",
+        "Caminhada das Nascentes na Nova Rússia abre quatrocentas vagas para vinte e oito de junho",
+        "Rompimento de rede deixa bairros de Brusque sem água na tarde de hoje"
+      ],
+      "quadros": [],
+      "duration_min": 9.7,
+      "words": 1640,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-06-16.mp3",
+      "script_url": "./episodes/2026-06-16.md",
+      "audio_bytes": 11630445,
+      "sources": [],
+      "sponsors": [],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:21"
+    },
     {
       "id": "2026-06-15",
       "date": "2026-06-15",
@@ -34,7 +300,7 @@
       ],
       "sponsors": [],
       "cover_url": null,
-      "published_at": "2026-08-09T09:07:27"
+      "published_at": "2026-08-15T14:12:21"
     },
     {
       "id": "2026-06-14",
@@ -52,7 +318,7 @@
       "sources": [],
       "sponsors": [],
       "cover_url": null,
-      "published_at": "2026-08-09T09:07:27"
+      "published_at": "2026-08-15T14:12:21"
     },
     {
       "id": "2026-06-13",
@@ -70,7 +336,7 @@
       "sources": [],
       "sponsors": [],
       "cover_url": null,
-      "published_at": "2026-08-09T09:07:27"
+      "published_at": "2026-08-15T14:12:21"
     },
     {
       "id": "2026-06-12",
@@ -88,7 +354,7 @@
       "sources": [],
       "sponsors": [],
       "cover_url": null,
-      "published_at": "2026-08-09T09:07:27"
+      "published_at": "2026-08-15T14:12:21"
     }
   ]
 }

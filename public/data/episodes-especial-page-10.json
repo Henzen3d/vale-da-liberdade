@@ -1,0 +1,301 @@
+{
+  "generated_at": "2026-08-15T14:12:38",
+  "category": "especial",
+  "page": 10,
+  "page_size": 12,
+  "total_pages": 12,
+  "episodes": [
+    {
+      "id": "especial-eDavAhd5-M0",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 11:54:56 +0000",
+      "type": "especial",
+      "title": "Financiamento Voluntário vs. O Assalto do Fundão Eleitoral",
+      "excerpt": "Querem falar de apoio político de verdade ou de encenação bancada com o dinheiro espoliado do contribuinte? O senador Flávio Bolsonaro lançou uma vaquinha virtual de financiamento ...",
+      "manchetes": [],
+      "quadros": [
+        "impostos, taxas e tarifas",
+        "política",
+        "eleições"
+      ],
+      "duration_min": 3.9,
+      "words": 649,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-eDavAhd5-M0.mp3",
+      "script_url": "./episodes/especial-eDavAhd5-M0.md",
+      "audio_bytes": 5550381,
+      "sources": [
+        "Gazeta do Povo"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_eDavAhd5-M0.webp",
+      "published_at": "2026-08-15T14:12:21",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_eDavAhd5-M0.webp"
+    },
+    {
+      "id": "especial-upNpLFqbAJU",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 23:11:46 +0000",
+      "type": "especial",
+      "title": "LULA Afasta SIDÔNIO na Campanha: Entenda a MANOBRA da SECOM",
+      "excerpt": "A imprensa corporativa adora uma narrativa mastigada para inglês ver, não é mesmo? A manchete da vez diz que Lula afastou o marqueteiro Sidônio Palmeira do comando de sua campanha ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "corrupção"
+      ],
+      "duration_min": 4.3,
+      "words": 731,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-upNpLFqbAJU.mp3",
+      "script_url": "./episodes/especial-upNpLFqbAJU.md",
+      "audio_bytes": 6120847,
+      "sources": [
+        "Lula afasta Sidônio da campanha após crise com Marcola e Lul"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_upNpLFqbAJU.webp",
+      "published_at": "2026-08-15T14:12:22",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_upNpLFqbAJU.webp"
+    },
+    {
+      "id": "especial-PGiBQc1q9y0",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 21:12:44 +0000",
+      "type": "especial",
+      "title": "FLÁVIO EMPATA com Lula no 2º Turno em Nova PESQUISA",
+      "excerpt": "Mais uma semana, mais um capítulo do espetáculo eleitoral do Estado brasileiro. A nova pesquisa BTG Nexus acabou de sair e confirma o que todo mundo já desconfiava: a população con...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política"
+      ],
+      "duration_min": 4.1,
+      "words": 689,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-PGiBQc1q9y0.mp3",
+      "script_url": "./episodes/especial-PGiBQc1q9y0.md",
+      "audio_bytes": 5867564,
+      "sources": [
+        "Lula tem 47% contra 44% de Flávio no 2º turno, diz BTG/Nexus"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_PGiBQc1q9y0.webp",
+      "published_at": "2026-08-15T14:12:22",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_PGiBQc1q9y0.webp"
+    },
+    {
+      "id": "especial-8ZadVx8jvqI",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 19:12:05 +0000",
+      "type": "especial",
+      "title": "LINDBERGH SOB SUSPEITA: R$ 16 MIL por Falsa Acusação?",
+      "excerpt": "Olha o nível da podridão no esgoto de Brasília. A política estatal não se alimenta apenas dos seus impostos surrupiados todos os dias; ela se alimenta do assassinato de reputações ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção"
+      ],
+      "duration_min": 3.6,
+      "words": 587,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-8ZadVx8jvqI.mp3",
+      "script_url": "./episodes/especial-8ZadVx8jvqI.md",
+      "audio_bytes": 5236863,
+      "sources": [
+        "O Antagonista"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_8ZadVx8jvqI.webp",
+      "published_at": "2026-08-15T14:12:26",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_8ZadVx8jvqI.webp"
+    },
+    {
+      "id": "especial-JRac4M4YbNc",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 17:11:41 +0000",
+      "type": "especial",
+      "title": "COLÔMBIA Sofre TERREMOTO de 7,4 GRAUS e Mostra Falhas",
+      "excerpt": "Um terremoto devastador de magnitude 7.4 atingiu o noroeste da Colômbia e fez a terra tremer com força estarrecedora. O epicentro foi registrado bem próximo da cidade de Pereira, m...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "socialismo/comunismo"
+      ],
+      "duration_min": 3.0,
+      "words": 495,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-JRac4M4YbNc.mp3",
+      "script_url": "./episodes/especial-JRac4M4YbNc.md",
+      "audio_bytes": 4283289,
+      "sources": [
+        "G1"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_JRac4M4YbNc.webp",
+      "published_at": "2026-08-15T14:12:27",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_JRac4M4YbNc.webp"
+    },
+    {
+      "id": "especial-ecZnx8X-UPI",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 16:11:43 +0000",
+      "type": "especial",
+      "title": "TARCÍSIO ATROPELA HADDAD no DEBATE: O Circo Eleitoral",
+      "excerpt": "Começou mais um circo eleitoral no Brasil. A Band realizou a primeira rodada de debates para governador em catorze estados, marcando o início da temporada em que parasitas da polít...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições"
+      ],
+      "duration_min": 3.4,
+      "words": 568,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ecZnx8X-UPI.mp3",
+      "script_url": "./episodes/especial-ecZnx8X-UPI.md",
+      "audio_bytes": 4932798,
+      "sources": [
+        "Diário do Poder"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_ecZnx8X-UPI.webp",
+      "published_at": "2026-08-15T14:12:23",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_ecZnx8X-UPI.webp"
+    },
+    {
+      "id": "especial-PlBbhW6dR_Q",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 14:11:38 +0000",
+      "type": "especial",
+      "title": "FALTA de ENXOFRE Ameaça COLHEITAS e Revela ERRO Estatal",
+      "excerpt": "Você acha que a comida no seu prato depende apenas do clima ou do trabalho duro do agricultor? Pois saiba que burocratas, guerras promovidas por governos e canetadas protecionistas...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "guerras",
+        "política"
+      ],
+      "duration_min": 3.7,
+      "words": 611,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-PlBbhW6dR_Q.mp3",
+      "script_url": "./episodes/especial-PlBbhW6dR_Q.md",
+      "audio_bytes": 5386702,
+      "sources": [
+        "The National Interest"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_PlBbhW6dR_Q.webp",
+      "published_at": "2026-08-15T14:12:31",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_PlBbhW6dR_Q.webp"
+    },
+    {
+      "id": "especial-IQtvmrk0PyA",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 10:14:16 +0000",
+      "type": "especial",
+      "title": "EX-MARIDO de Maria da Penha é PRESO Por Dar ENTREVISTA?",
+      "excerpt": "O Estado brasileiro atingiu um novo patamar de insanidade autoritária: mandar prender um homem não por um crime de sangue recente, mas pelo crime gravíssimo de tentar conceder uma ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária"
+      ],
+      "duration_min": 3.8,
+      "words": 721,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-IQtvmrk0PyA.mp3",
+      "script_url": "./episodes/especial-IQtvmrk0PyA.md",
+      "audio_bytes": 5451903,
+      "sources": [
+        "Metrópoles"
+      ],
+      "cover_url": "./thumbnails/2026-08-10/bm_IQtvmrk0PyA.webp",
+      "published_at": "2026-08-15T14:12:24",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_IQtvmrk0PyA.webp"
+    },
+    {
+      "id": "especial-wkpJEqSCv9c",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 00:16:02 +0000",
+      "type": "especial",
+      "title": "LULINHA na ESPANHA: EMPREITEIRA Bilionária Sob SUSPEITA",
+      "excerpt": "Você aí trabalhando quarenta horas por semana para sustentar a máquina estatal, e o filho do presidente vivendo confortavelmente na Europa. Mas calma, segundo os burocratas do part...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "impostos"
+      ],
+      "duration_min": 4.4,
+      "words": 769,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-wkpJEqSCv9c.mp3",
+      "script_url": "./episodes/especial-wkpJEqSCv9c.md",
+      "audio_bytes": 6397954,
+      "sources": [
+        "Lulinha vive em condições precárias na Espanha, diz vice do"
+      ],
+      "cover_url": null,
+      "published_at": "2026-08-15T14:12:35"
+    },
+    {
+      "id": "especial-ZzVHeO4h6fE",
+      "date": "2026-08-03",
+      "pubDate": "Mon, 03 Aug 2026 23:14:06 +0000",
+      "type": "especial",
+      "title": "TSE Desmonta Urna ao Vivo: Transparência Real ou Propaganda do Leviatã?",
+      "excerpt": "O leviatã estatal resolveu fazer um showzinho de transparência na internet para tentar limpar a própria imagem. O Tribunal Superior Eleitoral fez uma transmissão ao vivo para desmo...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política"
+      ],
+      "duration_min": 5.3,
+      "words": 782,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ZzVHeO4h6fE.mp3",
+      "script_url": "./episodes/especial-ZzVHeO4h6fE.md",
+      "audio_bytes": 7680671,
+      "sources": [
+        "Poder360"
+      ],
+      "cover_url": "./thumbnails/2026-08-03/bm_ZzVHeO4h6fE.webp",
+      "published_at": "2026-08-15T14:12:27",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_ZzVHeO4h6fE.webp"
+    },
+    {
+      "id": "especial-GsEflunj7LQ",
+      "date": "2026-08-03",
+      "pubDate": "Mon, 03 Aug 2026 21:11:29 +0000",
+      "type": "especial",
+      "title": "A Máscara Caiu: Até a Mídia Tradicional É Obrigada a Reconhecer a Escalada Autoritária do STF",
+      "excerpt": "Até a Folha de S.Paulo resolveu admitir o óbvio, embora escondida atrás de jargões pedantes e eufemismos sofisticados: o Supremo Tribunal Federal rasgou o pouco que restava da orto...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "política"
+      ],
+      "duration_min": 3.4,
+      "words": 575,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-GsEflunj7LQ.mp3",
+      "script_url": "./episodes/especial-GsEflunj7LQ.md",
+      "audio_bytes": 4951606,
+      "sources": [
+        "Folha de S.Paulo"
+      ],
+      "cover_url": "./thumbnails/2026-08-03/bm_GsEflunj7LQ.webp",
+      "published_at": "2026-08-15T14:12:25",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_GsEflunj7LQ.webp"
+    },
+    {
+      "id": "especial-WLC5taLCG2o",
+      "date": "2026-08-03",
+      "pubDate": "Mon, 03 Aug 2026 19:11:44 +0000",
+      "type": "especial",
+      "title": "O hat-trick do Lulinha e o balcão de negócios do Leviatã",
+      "excerpt": "Já pode pedir música no Fantástico! A Polícia Federal acaba de pedir ao Supremo Tribunal Federal o terceiro inquérito contra o Lulinha em questão de dias. Três investigações formai...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.2,
+      "words": 699,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-WLC5taLCG2o.mp3",
+      "script_url": "./episodes/especial-WLC5taLCG2o.md",
+      "audio_bytes": 6046868,
+      "sources": [
+        "CNN Brasil"
+      ],
+      "cover_url": "./thumbnails/2026-08-03/bm_WLC5taLCG2o.webp",
+      "published_at": "2026-08-15T14:12:28",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_WLC5taLCG2o.webp"
+    }
+  ]
+}

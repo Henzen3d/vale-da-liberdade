@@ -1,0 +1,280 @@
+{
+  "generated_at": "2026-08-15T14:12:38",
+  "category": "especial",
+  "page": 12,
+  "page_size": 12,
+  "total_pages": 12,
+  "episodes": [
+    {
+      "id": "especial-_IPInU5pki4",
+      "date": "2026-08-13",
+      "pubDate": "Fri, 14 Aug 2026 01:11:51 +0000",
+      "type": "especial",
+      "title": "FACHIN peita XANDÃO e defende SIGILO da FONTE no STF",
+      "excerpt": "Olha só que espetáculo curioso da nossa aristocracia estatal em Brasília: até o Fachin resolveu criar coragem para discordar abertamente do todo-poderoso Alexandre de Moraes....",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "política"
+      ],
+      "duration_min": 3.9,
+      "words": 687,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-_IPInU5pki4.mp3",
+      "script_url": "./episodes/especial-_IPInU5pki4.md",
+      "audio_bytes": 5680109,
+      "sources": [
+        "Fachin discorda de Moraes em caso de jornalista e indica lev"
+      ],
+      "cover_url": "./thumbnails/2026-08-13/bm__IPInU5pki4.webp",
+      "published_at": "2026-08-15T14:12:25",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-13/bm__IPInU5pki4.webp"
+    },
+    {
+      "id": "especial-VGDJ-vQP6gw",
+      "date": "2026-08-13",
+      "pubDate": "Fri, 14 Aug 2026 00:15:44 +0000",
+      "type": "especial",
+      "title": "PF Trava 4 DELAÇÕES no ESCÂNDALO do INSS de R$ 1 Bi",
+      "excerpt": "Se você ainda acredita no mito de que a Polícia Federal e o aparato de 'justiça' estatal servem para proteger a população ou defender o pagador de impostos, prepare-se para mais um...",
+      "manchetes": [],
+      "quadros": [
+        "corrupção",
+        "política"
+      ],
+      "duration_min": 4.8,
+      "words": 804,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-VGDJ-vQP6gw.mp3",
+      "script_url": "./episodes/especial-VGDJ-vQP6gw.md",
+      "audio_bytes": 6913297,
+      "sources": [
+        "Quatro delações do caso INSS aguardam definição da PF e da P"
+      ],
+      "cover_url": "./thumbnails/2026-08-13/bm_VGDJ-vQP6gw.webp",
+      "published_at": "2026-08-15T14:12:28",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-13/bm_VGDJ-vQP6gw.webp"
+    },
+    {
+      "id": "especial-ohePvn870fo",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 23:11:58 +0000",
+      "type": "especial",
+      "title": "A Imprensa Admite o Óbvio: A Tirania Sanitária Nunca Foi Sobre Ciência",
+      "excerpt": "A imprensa tradicional finalmente começou a dar o braço a torcer e admitir o que qualquer pessoa com dois neurônios funcionais já sabia: a gestão estatal da pandemia foi um fiasco ...",
+      "manchetes": [],
+      "quadros": [
+        "impostos",
+        "política",
+        "economia"
+      ],
+      "duration_min": 3.7,
+      "words": 625,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ohePvn870fo.mp3",
+      "script_url": "./episodes/especial-ohePvn870fo.md",
+      "audio_bytes": 5324635,
+      "sources": [
+        "UOL"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_ohePvn870fo.webp",
+      "published_at": "2026-08-15T14:12:29",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_ohePvn870fo.webp"
+    },
+    {
+      "id": "especial-3rjSDr2YHTE",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 21:13:26 +0000",
+      "type": "especial",
+      "title": "A Ficção das Declarações do TSE: Bolsas de Grife, Patrimônios Suspeitos e o Teatro Estatal",
+      "excerpt": "O circo eleitoral abriu as cortinas para mais uma temporada de ficção burocrática patrocinada pelo pagador de impostos. A fase de registro de candidaturas no Tribunal Superior Elei...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia",
+        "eleições"
+      ],
+      "duration_min": 4.5,
+      "words": 711,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-3rjSDr2YHTE.mp3",
+      "script_url": "./episodes/especial-3rjSDr2YHTE.md",
+      "audio_bytes": 6441213,
+      "sources": [
+        "Revistaoeste"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_3rjSDr2YHTE.webp",
+      "published_at": "2026-08-15T14:12:37",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_3rjSDr2YHTE.webp"
+    },
+    {
+      "id": "especial-hOekqH1fMTQ",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 19:13:38 +0000",
+      "type": "especial",
+      "title": "O 'Desenrola Marcola' e o Teatro do Parasitismo Estatal",
+      "excerpt": "A estatal da malandragem ataca novamente em Brasília, e dessa vez inventaram uma modalidade inédita de crédito no balcão do poder: o 'Desenrola Marcola'!...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção"
+      ],
+      "duration_min": 3.7,
+      "words": 523,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-hOekqH1fMTQ.mp3",
+      "script_url": "./episodes/especial-hOekqH1fMTQ.md",
+      "audio_bytes": 5335293,
+      "sources": [
+        "Gazeta do Povo"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_hOekqH1fMTQ.webp",
+      "published_at": "2026-08-15T14:12:26",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_hOekqH1fMTQ.webp"
+    },
+    {
+      "id": "especial-GKcM1-cc1YA",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 17:14:32 +0000",
+      "type": "especial",
+      "title": "A Queda de Petro e o Custo do Leviatã: O Fim do Socialismo na Colômbia",
+      "excerpt": "A Colômbia viveu um dia de celebração popular com a saída do esquerdista Gustavo Petro do poder. Festejos com fogos de artifício tomaram as ruas de Medellín, Cali e Bogotá. A popul...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "socialismo/comunismo",
+        "impostos"
+      ],
+      "duration_min": 5.0,
+      "words": 733,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-GKcM1-cc1YA.mp3",
+      "script_url": "./episodes/especial-GKcM1-cc1YA.md",
+      "audio_bytes": 7178493,
+      "sources": [
+        "Gazeta do Povo"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_GKcM1-cc1YA.webp",
+      "published_at": "2026-08-15T14:12:30",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_GKcM1-cc1YA.webp"
+    },
+    {
+      "id": "especial-wiSWJaBr9qg",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 16:12:09 +0000",
+      "type": "especial",
+      "title": "STF DERROTA MORAES: A ilusão da justiça estatal e o grilhão eletrônico dos réus do 8 de janeiro",
+      "excerpt": "Vocês realmente acreditam que o Estado tem qualquer interesse na sua liberdade? O monopólio estatal da justiça é uma ilusão desenhada para proteger o próprio poder, mas de vez em q...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "corrupção"
+      ],
+      "duration_min": 3.9,
+      "words": 670,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-wiSWJaBr9qg.mp3",
+      "script_url": "./episodes/especial-wiSWJaBr9qg.md",
+      "audio_bytes": 5633715,
+      "sources": [
+        "Diário do Centro do Mundo"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_wiSWJaBr9qg.webp",
+      "published_at": "2026-08-15T14:12:33",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_wiSWJaBr9qg.webp"
+    },
+    {
+      "id": "especial-AtA8UHaozMo",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 14:14:51 +0000",
+      "type": "especial",
+      "title": "A Utopia Socialista em NY Expõe a Elite e Ensina que Imposto é Roubo",
+      "excerpt": "A esquerda nova-iorquina comemorou em peso quando elegeu um socialista radical como o Mamdani. Acharam ter encontrado o modelo perfeito de populismo para iludir as massas. Só que o...",
+      "manchetes": [],
+      "quadros": [
+        "impostos, taxas e tarifas",
+        "socialismo/comunismo",
+        "economia"
+      ],
+      "duration_min": 4.6,
+      "words": 655,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-AtA8UHaozMo.mp3",
+      "script_url": "./episodes/especial-AtA8UHaozMo.md",
+      "audio_bytes": 6647475,
+      "sources": [
+        "Nyc"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_AtA8UHaozMo.webp",
+      "published_at": "2026-08-15T14:12:22",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_AtA8UHaozMo.webp"
+    },
+    {
+      "id": "especial-VXNzcaoJsug",
+      "date": "2026-08-07",
+      "pubDate": "Fri, 07 Aug 2026 10:13:27 +0000",
+      "type": "especial",
+      "title": "A Farsa da Tolerância Estatal de Wagner Moura",
+      "excerpt": "Wagner Moura resolveu aparecer na televisão para choramingar que cansou de ser odiado pela direita e que quer promover o diálogo e a tolerância. É a típica sinalização de virtude d...",
+      "manchetes": [],
+      "quadros": [
+        "impostos, taxas e tarifas",
+        "política",
+        "socialismo/comunismo"
+      ],
+      "duration_min": 4.4,
+      "words": 692,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-VXNzcaoJsug.mp3",
+      "script_url": "./episodes/especial-VXNzcaoJsug.md",
+      "audio_bytes": 6325856,
+      "sources": [
+        "UOL"
+      ],
+      "cover_url": "./thumbnails/2026-08-07/bm_VXNzcaoJsug.webp",
+      "published_at": "2026-08-15T14:12:35",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/bm_VXNzcaoJsug.webp"
+    },
+    {
+      "id": "especial-OkYVCQO9aj0",
+      "date": "2026-08-06",
+      "pubDate": "Fri, 07 Aug 2026 01:15:03 +0000",
+      "type": "especial",
+      "title": "Aparelhamento da PF e a Parceria Lula-KGB: O Desespero do Poder",
+      "excerpt": "O Estado brasileiro nunca cansa de mostrar suas garras coercitivas. Quando o bufão que ocupa o poder percebe que vai perder o controle do império, a máquina pública aciona imediata...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "socialismo/comunismo"
+      ],
+      "duration_min": 5.5,
+      "words": 784,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-OkYVCQO9aj0.mp3",
+      "script_url": "./episodes/especial-OkYVCQO9aj0.md",
+      "audio_bytes": 7857467,
+      "sources": [
+        "Brasil 247"
+      ],
+      "cover_url": "./thumbnails/2026-08-06/bm_OkYVCQO9aj0.webp",
+      "published_at": "2026-08-15T14:12:21",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-06/bm_OkYVCQO9aj0.webp"
+    },
+    {
+      "id": "especial-DlnnUZfT1G0",
+      "date": "2026-08-06",
+      "pubDate": "Fri, 07 Aug 2026 00:14:28 +0000",
+      "type": "especial",
+      "title": "Janja e a sanha estatal: proibir o Discord para controlar a sua liberdade",
+      "excerpt": "Querem proibir o Discord no Brasil. É isso mesmo que você ouviu. A senhora Janja decidiu que, porque burocratas não entendem absolutamente nada de tecnologia, a solução estatal par...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária"
+      ],
+      "duration_min": 5.6,
+      "words": 845,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-DlnnUZfT1G0.mp3",
+      "script_url": "./episodes/especial-DlnnUZfT1G0.md",
+      "audio_bytes": 8022979,
+      "sources": [
+        "Cartacapital"
+      ],
+      "cover_url": "./thumbnails/2026-08-06/bm_DlnnUZfT1G0.webp",
+      "published_at": "2026-08-15T14:12:38",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-06/bm_DlnnUZfT1G0.webp"
+    }
+  ]
+}

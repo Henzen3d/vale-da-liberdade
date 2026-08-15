@@ -1,0 +1,307 @@
+{
+  "generated_at": "2026-08-15T14:12:38",
+  "category": "especial",
+  "page": 9,
+  "page_size": 12,
+  "total_pages": 12,
+  "episodes": [
+    {
+      "id": "especial-HnH-IpVxtig",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:15:47 +0000",
+      "type": "especial",
+      "title": "A Máfia de Brasília e a Farsa das Coligações Eleitorais",
+      "excerpt": "Vocês ainda acreditam que vivem em uma democracia onde o eleitor escolhe alguma coisa? Olhem o teatro grotesco que está acontecendo nas negociações eleitorais em Brasília. Teresa C...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.5,
+      "words": 772,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-HnH-IpVxtig.mp3",
+      "script_url": "./episodes/especial-HnH-IpVxtig.md",
+      "audio_bytes": 6421777,
+      "sources": [
+        "Metrópoles"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_HnH-IpVxtig.webp",
+      "published_at": "2026-08-15T14:12:22",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_HnH-IpVxtig.webp"
+    },
+    {
+      "id": "especial-IITMtjZ6DOU",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:14:15 +0000",
+      "type": "especial",
+      "title": "A PF Foi Obrigada a Investigar o Lulinha: A Blindagem Estatal Ruuiu",
+      "excerpt": "O teatrinho da burocracia estatal é fascinante, não é? A Polícia Federal, essa corporação sustentada com o seu imposto arrancado à força, estava fazendo absolutamente tudo o que po...",
+      "manchetes": [],
+      "quadros": [
+        "corrupção",
+        "política",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.2,
+      "words": 726,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-IITMtjZ6DOU.mp3",
+      "script_url": "./episodes/especial-IITMtjZ6DOU.md",
+      "audio_bytes": 6037464,
+      "sources": [
+        "Poder360"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_IITMtjZ6DOU.webp",
+      "published_at": "2026-08-15T14:12:24",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_IITMtjZ6DOU.webp"
+    },
+    {
+      "id": "especial-dId9ZQ7wLkc",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:12:43 +0000",
+      "type": "especial",
+      "title": "A Falência Moral e Financeira das Estatais e o Triunfo das AgriTechs",
+      "excerpt": "Sabe qual é a maior prova de que o Estado é um parasita incapaz de gerir qualquer coisa? É a facilidade inacreditável com que a máfia estatal transforma instituições e empresas em ...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "impostos",
+        "politica"
+      ],
+      "duration_min": 5.0,
+      "words": 827,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-dId9ZQ7wLkc.mp3",
+      "script_url": "./episodes/especial-dId9ZQ7wLkc.md",
+      "audio_bytes": 7204197,
+      "sources": [
+        "Gazeta do Povo"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_dId9ZQ7wLkc.webp",
+      "published_at": "2026-08-15T14:12:36",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_dId9ZQ7wLkc.webp"
+    },
+    {
+      "id": "especial-WODHuq9Qfco",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:11:08 +0000",
+      "type": "especial",
+      "title": "Dois Pesos e Dez Dedos: A Seletividade da Justiça Eleitoral sobre a Inteligência Artificial",
+      "excerpt": "A Justiça Eleitoral do Estado brasileiro prova, dia após dia, que a legislação não passa de um cassetete político usado para esmagar os inimigos do regime e proteger os amigos do r...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "eleições",
+        "política"
+      ],
+      "duration_min": 3.5,
+      "words": 606,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-WODHuq9Qfco.mp3",
+      "script_url": "./episodes/especial-WODHuq9Qfco.md",
+      "audio_bytes": 5080129,
+      "sources": [
+        "Veja"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_WODHuq9Qfco.webp",
+      "published_at": "2026-08-15T14:12:32",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_WODHuq9Qfco.webp"
+    },
+    {
+      "id": "especial-QLsSeRypTPQ",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:10:54 +0000",
+      "type": "especial",
+      "title": "A Farsa das Pesquisas e a Descentralização do Voto no Brasil",
+      "excerpt": "A imprensa alinhada ao establishment adora fazer um verdadeiro malabarismo estatístico para consolar o leviatã de plantão. Quando a narrativa do regime começa a esfarelar diante da...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política",
+        "economia"
+      ],
+      "duration_min": 5.4,
+      "words": 911,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-QLsSeRypTPQ.mp3",
+      "script_url": "./episodes/especial-QLsSeRypTPQ.md",
+      "audio_bytes": 7738976,
+      "sources": [
+        "O Globo"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_QLsSeRypTPQ.webp",
+      "published_at": "2026-08-15T14:12:29",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_QLsSeRypTPQ.webp"
+    },
+    {
+      "id": "especial-D8DPQOLbqsE",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:08:12 +0000",
+      "type": "especial",
+      "title": "Felipe Neto, Igor 3K e o Parasitismo no Monopólio Estatal da Justiça",
+      "excerpt": "Fala, pessoal! Peter Albuquerque na área. Olha só quem resolveu sair das sombras do esquecimento para bater na porta do monopólio estatal da coerção: Felipe Neto ingressou com uma ...",
+      "manchetes": [],
+      "quadros": [
+        "ditadura judiciária",
+        "política"
+      ],
+      "duration_min": 4.9,
+      "words": 843,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-D8DPQOLbqsE.mp3",
+      "script_url": "./episodes/especial-D8DPQOLbqsE.md",
+      "audio_bytes": 7030535,
+      "sources": [
+        "Metrópoles"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_D8DPQOLbqsE.webp",
+      "published_at": "2026-08-15T14:12:34",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_D8DPQOLbqsE.webp"
+    },
+    {
+      "id": "especial-rIVKnoa90V0",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:06:35 +0000",
+      "type": "especial",
+      "title": "A Ilusão das Fronteiras Estatais: O Colapso de Ceuta Diante da Imigração Coordenada",
+      "excerpt": "Imagens chocantes mostram o exato momento em que uma multidão invade a cidade de Ceuta, território espanhol cravado no norte da África. Milhares de imigrantes vindos do Marrocos pu...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia"
+      ],
+      "duration_min": 4.2,
+      "words": 720,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-rIVKnoa90V0.mp3",
+      "script_url": "./episodes/especial-rIVKnoa90V0.md",
+      "audio_bytes": 6107681,
+      "sources": [
+        "G1"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_rIVKnoa90V0.webp",
+      "published_at": "2026-08-15T14:12:38",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_rIVKnoa90V0.webp"
+    },
+    {
+      "id": "especial-E0W9EWdrhn8",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:05:01 +0000",
+      "type": "especial",
+      "title": "A Manobra Burocrática do STF e da PF para Salvar o Filho do Rei",
+      "excerpt": "O teatro estatal é fascinante. Quando a burocracia percebe que um dos seus protegidos pode ser atingido, a engrenagem do monopólio da violência se mexe rápido para inventar atalhos...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "ditadura judiciária"
+      ],
+      "duration_min": 3.7,
+      "words": 611,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-E0W9EWdrhn8.mp3",
+      "script_url": "./episodes/especial-E0W9EWdrhn8.md",
+      "audio_bytes": 5317111,
+      "sources": [
+        "Poder360"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_E0W9EWdrhn8.webp",
+      "published_at": "2026-08-15T14:12:35",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_E0W9EWdrhn8.webp"
+    },
+    {
+      "id": "especial-0T7yObl8opQ",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:03:41 +0000",
+      "type": "especial",
+      "title": "O balcão de negócios entre a máfia estatal e o Banco Master",
+      "excerpt": "O Estado é uma gangue tão desorganizada que, quando os burocratas brigam entre si pelo controle do saque, o esgoto do poder finalmente vaza para todo mundo ver....",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 3.9,
+      "words": 638,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-0T7yObl8opQ.mp3",
+      "script_url": "./episodes/especial-0T7yObl8opQ.md",
+      "audio_bytes": 5550333,
+      "sources": [
+        "Estadão"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_0T7yObl8opQ.webp",
+      "published_at": "2026-08-15T14:12:31",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_0T7yObl8opQ.webp"
+    },
+    {
+      "id": "especial-yG3z1dQDmNM",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:02:13 +0000",
+      "type": "especial",
+      "title": "A chantagem das emendas: Como o STF aparelha as eleições usando seu dinheiro",
+      "excerpt": "O circo da política estatal nos entrega, mais uma vez, uma demonstração cristalina de como a máfia de toga opera para controlar os rumos do país. Flávio Bolsonaro anunciou a senado...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "eleições"
+      ],
+      "duration_min": 4.7,
+      "words": 789,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-yG3z1dQDmNM.mp3",
+      "script_url": "./episodes/especial-yG3z1dQDmNM.md",
+      "audio_bytes": 6806718,
+      "sources": [
+        "Veja"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_yG3z1dQDmNM.webp",
+      "published_at": "2026-08-15T14:12:29",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_yG3z1dQDmNM.webp"
+    },
+    {
+      "id": "especial-sqGLnk25U2w",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 12:00:28 +0000",
+      "type": "especial",
+      "title": "A Delação que Apavora os Parasitas Estatais",
+      "excerpt": "A narrativa oficial do jornalismo chapa-branca entrou em pânico total. Toda vez que a sujeira dos bastidores do poder ameaça vir à tona, os defensores do aparato estatal sacam a me...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "eleições"
+      ],
+      "duration_min": 3.3,
+      "words": 535,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-sqGLnk25U2w.mp3",
+      "script_url": "./episodes/especial-sqGLnk25U2w.md",
+      "audio_bytes": 4719012,
+      "sources": [
+        "Revista Fórum"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_sqGLnk25U2w.webp",
+      "published_at": "2026-08-15T14:12:25",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_sqGLnk25U2w.webp"
+    },
+    {
+      "id": "especial-BR-hw44EfxM",
+      "date": "2026-08-01",
+      "pubDate": "Sat, 01 Aug 2026 11:56:41 +0000",
+      "type": "especial",
+      "title": "PF e STF TENTAM BLINDAR LULINHA E TOMAM INVERSÃO DE DESTINO",
+      "excerpt": "O Leviatã estatal é incapaz de esconder a própria podridão por muito tempo. O diretor-geral da Polícia Federal, Andrei Rodrigues, decidiu brincar com fogo pra proteger o filho do t...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "ditadura judiciária"
+      ],
+      "duration_min": 3.4,
+      "words": 574,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-BR-hw44EfxM.mp3",
+      "script_url": "./episodes/especial-BR-hw44EfxM.md",
+      "audio_bytes": 4890861,
+      "sources": [
+        "Metrópoles"
+      ],
+      "cover_url": "./thumbnails/2026-08-01/bm_BR-hw44EfxM.webp",
+      "published_at": "2026-08-15T14:12:24",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/bm_BR-hw44EfxM.webp"
+    }
+  ]
+}
