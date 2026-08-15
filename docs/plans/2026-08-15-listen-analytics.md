@@ -22,7 +22,7 @@
 | **3** | Aba Admin “Audiência”: tabelas + gráfico de plays | Dá para ver números reais (mesmo com cidade vazia) |
 | **4** | Mapa (Leaflet, sem API key) por país → cidade | Pins a partir de agregados, não de eventos crus — **feita** |
 | **5** | Duração de sessão (heartbeat a cada 60s no player logado **ou** fingerprint) | Tempo médio / conclusão no admin — **feita** |
-| **6** | (opcional) Referrer / origem (home, /noticias, direto) | Coluna `source` no evento |
+| **6** | Referrer / origem (home, /noticias, direto, share) | Coluna `source` + tabela no admin — **feita** |
 
 Não nesta leva: funil GA, heatmap de clique, export de PII, GeoIP MaxMind (só se os headers CF não derem cidade).
 

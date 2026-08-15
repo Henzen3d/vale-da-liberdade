@@ -142,6 +142,12 @@ const AdminAudience = (() => {
           ? d.by_tz.map((r) => '<tr><td>' + esc(r.tz) + '</td><td>' + esc(r.plays) + '</td></tr>').join('')
           : rowsHtml([], 2);
       }
+      const src = document.getElementById('audBySource');
+      if (src) {
+        src.innerHTML = (d.by_source || []).length
+          ? d.by_source.map((r) => '<tr><td>' + esc(r.source) + '</td><td>' + esc(r.plays) + '</td></tr>').join('')
+          : rowsHtml([], 2);
+      }
       const ep = document.getElementById('audByEpisode');
       if (ep) {
         ep.innerHTML = (d.by_episode || []).length
