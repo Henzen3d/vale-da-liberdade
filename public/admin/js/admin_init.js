@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.AdminAds) AdminAds.init(supabaseClient);
     if (window.AdminUsers) AdminUsers.init(supabaseClient);
     if (window.AdminCharts) AdminCharts.init(supabaseClient);
+    if (window.AdminAudience) AdminAudience.init(supabaseClient);
 
     if (window.AdminCharts && AdminCharts.loadMetrics) {
       AdminCharts.loadMetrics(30);
@@ -113,6 +114,7 @@ function setupNavigation() {
     ads: 'Monetização Ads',
     users: 'Usuários & Assinaturas',
     reports: 'Relatórios & Gráficos',
+    audience: 'Audiência',
   };
 
   navItems.forEach((item) => {
