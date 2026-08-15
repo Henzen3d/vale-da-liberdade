@@ -329,6 +329,12 @@ def render_from_json(json_path: Path) -> str:
     return format_script(date_str, roteiro)
 
 
+def _turn_line(speaker: str, texto: str) -> str:
+    """Uma fala no MD, sem prefixo duplicado 'Peter: Peter: ...'."""
+    clean = re.sub(rf"^{re.escape(speaker)}:\s*", "", (texto or "").strip(), flags=re.I)
+    return f"{speaker}: {clean}"
+
+
 def format_script(date: str, roteiro: RoteiroCompleto) -> str:
     """Formata o roteiro para markdown final — preservado como contrato de formatação."""
     lines = [
@@ -350,7 +356,7 @@ def format_script(date: str, roteiro: RoteiroCompleto) -> str:
     lines.append("### INTRODUÇÃO EDITORIAL")
     lines.append("")
     for item in roteiro.introducao:
-        lines.append(f"{item.speaker}: {item.texto}")
+        lines.append(_turn_line(item.speaker, item.texto))
     lines.append("")
     lines.append("")
 
@@ -366,7 +372,7 @@ def format_script(date: str, roteiro: RoteiroCompleto) -> str:
             lines.append("")
             lines.append(f"[QUADRO: {current_quadro}]")
             lines.append("")
-        lines.append(f"{item.speaker}: {item.texto}")
+        lines.append(_turn_line(item.speaker, item.texto))
         lines.append("")
         previous_quadro = current_quadro
 
@@ -376,7 +382,7 @@ def format_script(date: str, roteiro: RoteiroCompleto) -> str:
     lines.append("[QUADRO: FECHAMENTO EDITORIAL]")
     lines.append("")
     for item in roteiro.fechamento:
-        lines.append(f"{item.speaker}: {item.texto}")
+        lines.append(_turn_line(item.speaker, item.texto))
     lines.append("")
 
     return "\n".join(lines)

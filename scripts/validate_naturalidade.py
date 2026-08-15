@@ -106,8 +106,19 @@ def validate_naturalidade(markdown_text: str) -> list[str]:
     issues: list[str] = []
     turns = _extract_turns(markdown_text)
     if len(turns) < 6:
-        issues.append("⚠️ Naturalidade: poucas falas de locutor para avaliar dinâmica")
+        issues.append("❌ Naturalidade: poucas falas de locutor para avaliar dinâmica (< 6)")
         return issues
+
+    # --- 0) Equilíbrio entre locutores ---
+    peter_turns = sum(1 for sp, _ in turns if sp == "Peter")
+    ricardo_turns = sum(1 for sp, _ in turns if sp == "Ricardo")
+    if peter_turns == 0 or ricardo_turns == 0:
+        issues.append("❌ Naturalidade: diálogo unilateral — um dos locutores tem 0 falas no episódio")
+    elif min(peter_turns, ricardo_turns) / len(turns) < 0.20:
+        issues.append(
+            f"❌ Naturalidade: desequilíbrio crítico entre apresentadores "
+            f"(Peter: {peter_turns}, Ricardo: {ricardo_turns})"
+        )
 
     # --- 1) Aberturas de telejornal ---
     telejornal_hits: list[str] = []

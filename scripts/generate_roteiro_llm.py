@@ -44,7 +44,7 @@ def _read_env_file_keys(path: Path, prefix: str = "GEMINI_API_KEY") -> dict[str,
             k, _, v = line.partition("=")
             k, v = k.strip(), v.strip().strip('"').strip("'")
             # Aceita GEMINI_API_KEY e variações GEMINI_API_KEY_2, _3, etc.
-            if k == prefix or (k.startswith(prefix + "_") and k[len(prefix)+1:].isdigit()) and v and "***" not in v:
+            if (k == prefix or (k.startswith(prefix + "_") and k[len(prefix)+1:].isdigit())) and v and "***" not in v:
                 out[k] = v
     except Exception:
         pass
@@ -169,8 +169,25 @@ def _validate_roteiro(data: dict) -> RoteiroCompleto:
         raise ValueError(f"JSON sem chaves obrigatórias: {missing}")
     if not data.get("manchetes"):
         raise ValueError("manchetes vazias")
-    if len(data.get("quadros") or []) < 6:
-        raise ValueError(f"quadros insuficientes: {len(data.get('quadros') or [])}")
+    intro = data.get("introducao") or []
+    quadros = data.get("quadros") or []
+    fechamento = data.get("fechamento") or []
+    if len(intro) < 2 or len(quadros) < 6 or len(fechamento) < 2:
+        raise ValueError(
+            f"seções insuficientes (intro={len(intro)}, quadros={len(quadros)}, fech={len(fechamento)})"
+        )
+    all_turns = intro + quadros + fechamento
+    speakers = {it.get("speaker") for it in all_turns if isinstance(it, dict)}
+    if not {"Peter", "Ricardo"}.issubset(speakers):
+        raise ValueError(f"roteiro unilateral: esperado Peter e Ricardo, encontrado {speakers}")
+    total_words = 0
+    for it in all_turns:
+        txt = (it.get("texto") or "").strip() if isinstance(it, dict) else ""
+        if len(txt) < 15:
+            raise ValueError(f"fala muito curta ou vazia em {it.get('quadro') if isinstance(it, dict) else '?'}: {txt!r}")
+        total_words += len(txt.split())
+    if total_words < 800:
+        raise ValueError(f"roteiro muito curto no JSON ({total_words} palavras, mínimo 800)")
     return RoteiroCompleto(**data)
 
 
@@ -412,7 +429,7 @@ def generate_roteiro_json(date: str, force: bool = False, max_attempts: int = 2)
             print(f"  ⚠ raw salvo em {debug}")
             if attempt < max_attempts:
                 prompt = (
-                    base_prompt
+                    base_prompt + expansao_obrigatoria
                     + "\n\nA resposta anterior NÃO era JSON válido do schema. "
                     "Responda SOMENTE com { ... } usando chaves: "
                     "manchetes, introducao, quadros, fechamento.\n"
@@ -440,12 +457,19 @@ def generate_roteiro_json(date: str, force: bool = False, max_attempts: int = 2)
         for c in crit[:6]:
             print(f"    {c}")
         if attempt < max_attempts:
-            prompt = base_prompt + _naturalidade_feedback(crit)
+            prompt = base_prompt + expansao_obrigatoria + _naturalidade_feedback(crit)
             print("  → regenerando com feedback de naturalidade...")
         else:
-            print("  ⚠ esgotaram tentativas — salvando melhor esforço (ainda com críticos)")
+            print("  ⚠ esgotaram tentativas — NÃO salvando JSON oficial (ainda com críticos)")
 
     assert last_payload is not None
+    if last_crit:
+        debug = EPISODES_DIR / f"roteiro-{date}.invalid.json"
+        debug.write_text(json.dumps(last_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        raise RuntimeError(
+            f"roteiro ainda tem {len(last_crit)} crítico(s) de naturalidade após {max_attempts} tentativa(s); "
+            f"rascunho em {debug}: {last_crit[0]}"
+        )
     out_path.write_text(json.dumps(last_payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✅ Roteiro salvo: {out_path}")
     print(f"   Manchetes: {len(last_payload['manchetes'])}")

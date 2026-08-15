@@ -290,6 +290,12 @@ def polish_file(date: str) -> Path:
     after_md = format_script(date, RoteiroCompleto(**polished))
     after_crit = critical_issues(after_md)
 
+    words_before = len(before_md.split())
+    words_after = len(after_md.split())
+    if words_before > 500 and words_after < int(words_before * 0.75):
+        raise ValueError(
+            f"Polimento reduziu drasticamente o roteiro ({words_before} -> {words_after} palavras). Abortado."
+        )
     path.write_text(json.dumps(polished, ensure_ascii=False, indent=2), encoding="utf-8")
     # also rewrite md
     md_path = EPISODES_DIR / f"{date}.md"
