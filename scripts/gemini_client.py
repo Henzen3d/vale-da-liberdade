@@ -109,6 +109,44 @@ def _save_usage(file_path: Path, data: dict):
     raise RuntimeError(f"Não foi possível salvar o banco de uso da API em {file_path} devido a bloqueio do arquivo.")
 
 
+def _key_id(api_key: str) -> str:
+    if len(api_key or "") >= 12:
+        return api_key[:4] + "…" + api_key[-4:]
+    return api_key or "default"
+
+
+def _is_daily_quota_error(msg: str) -> bool:
+    """True só para cota do DIA — não para 429 genérico de RPM."""
+    m = (msg or "").lower()
+    needles = (
+        "limite diário",
+        "per-day",
+        "per day",
+        "requests per day",
+        "rpd",
+        "daily request",
+        "daily quota",
+        "daily limit",
+        "quota exceeded for metric",
+    )
+    if any(n in m for n in needles):
+        # "quota" sozinho é ambíguo (RPM vs RPD); as frases acima são o filtro.
+        return True
+    return False
+
+
+def _is_rate_error(msg: str) -> bool:
+    m = (msg or "").lower()
+    return (
+        "429" in m
+        or "too many requests" in m
+        or "rate limit" in m
+        or "resource_exhausted" in m
+        or "resource exhausted" in m
+        or "quota" in m
+    )
+
+
 class GeminiClient:
     """Wrapper cliente do Gemini com controle automático de limites de taxa e retentativas."""
 
@@ -145,44 +183,49 @@ class GeminiClient:
     def _enforce_rate_limit(self, model: str, estimated_tokens: int):
         """Bloqueia a execução (dorme) até que haja cotas disponíveis OU levanta exceção caso estoure o limite diário.
 
-        A quota é POR CHAVE (cada GEMINI_API_KEY tem sua própria cota de
-        3 RPM / 10 RPD na AI Studio). O arquivo de uso é indexado por
-        chave mascarada para isolar a contagem de cada conta/projeto.
+        A quota é POR CHAVE (cada GEMINI_API_KEY tem sua própria cota).
+        O arquivo de uso é indexado por chave mascarada.
+        Retorna o timestamp reservado (para rollback se a API falhar).
         """
         limits = self._get_limits(model)
         rpm = limits["rpm"]
         rpd = limits["rpd"]
         tpm = limits["tpm"]
-        key_id = (self.api_key[:4] + "…" + self.api_key[-4:]) if len(self.api_key) >= 12 else (self.api_key or "default")
+        key_id = _key_id(self.api_key)
+        min_gap = 60.0 / max(1, rpm)
 
         while True:
             now = time.time()
             usage = _load_usage(self.usage_file)
 
-            # Contagem isolation por chave
             key_data = usage.setdefault(key_id, {})
             model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
 
-            # Filtrar e manter apenas requisições da última 1 hora (para RPD de 24h, limpamos separadamente)
-            # Na verdade, RPD monitora as últimas 24 horas (86.400s)
             requests_minute = [t for t in model_data["requests"] if now - t < 60]
             requests_day = [t for t in model_data["requests"] if now - t < 86400]
-            
-            # Filtrar tokens do último minuto
             tokens_minute = [entry for entry in model_data["tokens"] if now - entry["timestamp"] < 60]
 
-            # Atualizar os dados sanitizados no arquivo
             model_data["requests"] = requests_day
             model_data["tokens"] = tokens_minute
 
-            # 1. Verificar Limite Diário (RPD)
             if len(requests_day) >= rpd:
                 raise RuntimeError(
                     f"Limite diário atingido (RPD de {rpd}) para o modelo {model}. "
                     f"Aguarde o reset da janela de 24h ou alterne para outro modelo."
                 )
 
-            # 2. Verificar Limite por Minuto (RPM)
+            # Timer por chave: não disparar mais cedo que 60/RPM (TTS 3.1 = 20s).
+            if requests_day:
+                last = max(requests_day)
+                wait_gap = (last + min_gap) - now
+                if wait_gap > 0.05:
+                    log.warning(
+                        f"Timer {key_id} {model}: intervalo mínimo {min_gap:.1f}s "
+                        f"(RPM={rpm}). Dormindo {wait_gap:.2f}s..."
+                    )
+                    time.sleep(wait_gap)
+                    continue
+
             if len(requests_minute) >= rpm:
                 oldest_req = min(requests_minute)
                 wait_time = max(0.1, 60 - (now - oldest_req) + 0.2)
@@ -191,32 +234,66 @@ class GeminiClient:
                     f"Dormindo {wait_time:.2f} segundos..."
                 )
                 time.sleep(wait_time)
-                continue  # Reavalia após dormir
+                continue
 
-            # 3. Verificar Limite de Tokens por Minuto (TPM)
             current_tokens = sum(entry["tokens"] for entry in tokens_minute)
             if current_tokens + estimated_tokens >= tpm:
-                # Achar a transição de janela mais antiga
                 oldest_token_ts = min(entry["timestamp"] for entry in tokens_minute)
                 wait_time = max(0.1, 60 - (now - oldest_token_ts) + 0.2)
                 log.warning(
-                    f"Rate Limiting: Limite TPM ({current_tokens}/{tpm}) perto de estourar para {model} com estimativa de {estimated_tokens} tokens. "
+                    f"Rate Limiting: Limite TPM ({current_tokens}/{tpm}) perto de estourar "
+                    f"para {model} com estimativa de {estimated_tokens} tokens. "
                     f"Dormindo {wait_time:.2f} segundos..."
                 )
                 time.sleep(wait_time)
-                continue  # Reavalia após dormir
+                continue
 
-            # Cota disponível! Grava o consumo
-            model_data["requests"].append(now)
-            model_data["tokens"].append({"timestamp": now, "tokens": estimated_tokens})
+            reserved = time.time()
+            model_data["requests"].append(reserved)
+            model_data["tokens"].append({"timestamp": reserved, "tokens": estimated_tokens})
             _save_usage(self.usage_file, usage)
-            break
+            return reserved
+
+    def _rollback_rate_limit(self, model: str, request_time: float) -> None:
+        """Solta a reserva se a API rejeitou (429 RPM / 503 / rede)."""
+        try:
+            usage = _load_usage(self.usage_file)
+            key_id = _key_id(self.api_key)
+            model_data = (usage.get(key_id) or {}).get(model)
+            if not model_data:
+                return
+            model_data["requests"] = [
+                t for t in model_data.get("requests", []) if abs(t - request_time) > 0.0001
+            ]
+            model_data["tokens"] = [
+                e for e in model_data.get("tokens", [])
+                if abs(e.get("timestamp", 0) - request_time) > 0.0001
+            ]
+            _save_usage(self.usage_file, usage)
+            log.info(f"Rollback de reserva {key_id} {model}")
+        except Exception as e:
+            log.debug(f"Erro silencioso no rollback de taxa: {e}")
+
+    def _mark_daily_quota_exhausted(self, model: str) -> None:
+        """Satura RPD local só quando o Google confirma cota do dia."""
+        try:
+            usage = _load_usage(self.usage_file)
+            key_id = _key_id(self.api_key)
+            key_data = usage.setdefault(key_id, {})
+            model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
+            rpd = self._get_limits(model)["rpd"]
+            now = time.time()
+            model_data["requests"] = [now] * rpd
+            _save_usage(self.usage_file, usage)
+            log.warning(f"RPD local saturado ({rpd}) para {key_id} {model} — Google confirmou cota diária")
+        except Exception as e:
+            log.debug(f"Erro ao marcar quota diária esgotada: {e}")
 
     def _update_actual_tokens(self, model: str, request_time: float, actual_tokens: int):
         """Atualiza a estimativa de tokens do minuto pelo valor real retornado pela API."""
         try:
             usage = _load_usage(self.usage_file)
-            key_id = (self.api_key[:4] + "…" + self.api_key[-4:]) if len(self.api_key) >= 12 else (self.api_key or "default")
+            key_id = _key_id(self.api_key)
             key_data = usage.get(key_id, {})
             model_data = key_data.get(model)
             if model_data and "tokens" in model_data:
@@ -229,75 +306,66 @@ class GeminiClient:
         except Exception as e:
             log.debug(f"Erro silencioso ao atualizar tokens reais: {e}")
 
-    def generate_content(self, model: str, contents, config=None, max_retries: int = 5, **kwargs):
-        """
-        Executa `generate_content` respeitando as travas de rate limits e com mecanismo de retry com backoff exponencial.
+    def generate_content(self, model: str, contents, config=None, max_retries: int = 2, **kwargs):
+        """Gera conteúdo respeitando RPM/RPD e com retry curto.
+
+        max_retries=2: a 2ª tentativa em 429 espera a janela de RPM (~20s no TTS),
+        não metralha 5× com backoff de 2s.
         """
         estimated_tokens = _estimate_tokens(contents)
-        
-        # Garante cota sob os limites RPM/RPD/TPM (por chave)
-        self._enforce_rate_limit(model, estimated_tokens)
-        
-        request_time = time.time()
+        reserved_at = self._enforce_rate_limit(model, estimated_tokens)
         last_exception = None
-        base_delay = 2.0  # Começa com 2 segundos conforme o requisito
-        
-        for attempt in range(1, max_retries + 1):
-            try:
-                # Executa a chamada real da API
-                response = self.client.models.generate_content(
-                    model=model,
-                    contents=contents,
-                    config=config,
-                    **kwargs
-                )
-                
-                # Se obtivermos metadados reais de uso, atualiza o arquivo
+        call_succeeded = False
+        base_delay = 2.0
+
+        try:
+            for attempt in range(1, max_retries + 1):
                 try:
-                    if response.usage_metadata and response.usage_metadata.total_token_count:
-                        self._update_actual_tokens(model, request_time, response.usage_metadata.total_token_count)
-                except Exception:
-                    pass
-
-                return response
-
-            except Exception as exc:
-                last_exception = exc
-                error_msg = str(exc).lower()
-
-                # Verifica se é erro de limites ou instabilidade temporária
-                is_transient = (
-                    "429" in error_msg
-                    or "too many requests" in error_msg
-                    or "rate limit" in error_msg
-                    or "resource exhausted" in error_msg
-                    or "503" in error_msg
-                    or "service unavailable" in error_msg
-                    or "quota" in error_msg
-                )
-
-                if not is_transient:
-                    # Erro de negócio/parâmetro, levanta de imediato
-                    raise exc
-
-                if attempt == max_retries:
-                    log.error(f"Todas as {max_retries} tentativas falharam para {model}.")
-                    raise exc
-
-                # Cálculo de backoff exponencial com Jitter aleatório (±0.5s)
-                jitter = random.uniform(-0.5, 0.5)
-                delay = (base_delay * (2 ** (attempt - 1))) + jitter
-                delay = max(0.5, delay)  # impede atraso negativo
-
-                log.warning(
-                    f"Erro de taxa (429/transiente) na tentativa {attempt}/{max_retries} para {model}: {exc}. "
-                    f"Aguardando {delay:.2f}s antes de tentar novamente..."
-                )
-                time.sleep(delay)
-
-        # Caso saia do loop sem retornar (incomum por causa do raise exc acima)
-        if last_exception:
-            raise last_exception
+                    response = self.client.models.generate_content(
+                        model=model,
+                        contents=contents,
+                        config=config,
+                        **kwargs
+                    )
+                    try:
+                        if response.usage_metadata and response.usage_metadata.total_token_count:
+                            self._update_actual_tokens(model, reserved_at, response.usage_metadata.total_token_count)
+                    except Exception:
+                        pass
+                    call_succeeded = True
+                    return response
+                except Exception as exc:
+                    last_exception = exc
+                    error_msg = str(exc).lower()
+                    is_transient = (
+                        _is_rate_error(error_msg)
+                        or "503" in error_msg
+                        or "service unavailable" in error_msg
+                    )
+                    if not is_transient:
+                        raise
+                    if _is_daily_quota_error(error_msg):
+                        self._mark_daily_quota_exhausted(model)
+                        raise
+                    if attempt == max_retries:
+                        log.error(f"Todas as {max_retries} tentativas falharam para {model}.")
+                        raise
+                    if "429" in error_msg or "rate limit" in error_msg or "resource_exhausted" in error_msg:
+                        rpm_limit = self._get_limits(model)["rpm"]
+                        delay = max(20.0, 60.0 / max(1, rpm_limit)) + random.uniform(0.5, 2.0)
+                    else:
+                        jitter = random.uniform(-0.5, 0.5)
+                        delay = max(0.5, (base_delay * (2 ** (attempt - 1))) + jitter)
+                    log.warning(
+                        f"Erro de taxa (429/transiente) na tentativa {attempt}/{max_retries} "
+                        f"para {model}: {exc}. Aguardando {delay:.2f}s..."
+                    )
+                    time.sleep(delay)
+            if last_exception:
+                raise last_exception
+        finally:
+            if not call_succeeded:
+                self._rollback_rate_limit(model, reserved_at)
 
 
 class GeminiMultiClient:
@@ -309,9 +377,8 @@ class GeminiMultiClient:
       1. ROUND-ROBIN por chamada — chunk 1 → key1, chunk 2 → key2, …
          Isso espalha RPM (3/min) e RPD (10/dia) entre as chaves, em vez
          de esgotar a primeira e só então cair na segunda.
-      2. Se a chave escolhida estoura RPD/RPM/quota, tenta as demais em
-         ordem (failover). RPM local dorme dentro de GeminiClient antes
-         de levantar; RPD levanta RuntimeError e cai no failover.
+      2. RPD / cota diária → failover na próxima chave.
+         429 de RPM NÃO varre o anel: a chave da vez dorme no timer (60/RPM).
 
     Usado pelo TTS e pelo roteiro para multiplicar a capacidade.
     """
@@ -364,30 +431,36 @@ class GeminiMultiClient:
         for offset in range(n):
             idx = (start + offset) % n
             client = self._clients[idx]
-            key_hint = (client.api_key[:4] + "…" + client.api_key[-4:]) if len(getattr(client, "api_key", "") or "") >= 12 else f"#{idx}"
+            key_hint = _key_id(getattr(client, "api_key", "") or "")
             try:
                 if offset == 0:
                     log.info(f"RR key[{idx}] {key_hint} para {model}")
                 else:
-                    log.warning(f"Failover → key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
+                    log.warning(f"Failover RPD → key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
                 return client.generate_content(model, contents, config=config, **kwargs)
             except RuntimeError as exc:
                 msg = str(exc).lower()
-                # Quota/RPD estourada nesta chave → tenta a próxima
-                if "limite diário" in msg or "rpd" in msg or "quota" in msg or "resource_exhausted" in msg or "429" in msg:
-                    log.warning(f"Chave {key_hint} estourou quota: {exc} — tentando próxima...")
+                if _is_daily_quota_error(msg):
+                    log.warning(f"Chave {key_hint} esgotou RPD: {exc} — rotacionando...")
                     last_exc = exc
                     continue
                 raise
             except Exception as exc:
                 msg = str(exc).lower()
-                # 429 / resource exhausted da API Google também deve rotacionar
-                if "429" in msg or "resource_exhausted" in msg or "quota" in msg:
-                    log.warning(f"Chave {key_hint} 429/quota da API: {exc} — tentando próxima...")
+                if _is_daily_quota_error(msg):
+                    try:
+                        client._mark_daily_quota_exhausted(model)
+                    except Exception:
+                        pass
+                    log.warning(f"Chave {key_hint} quota diária Google — rotacionando...")
                     last_exc = exc
                     continue
+                if _is_rate_error(msg):
+                    log.warning(
+                        f"Chave {key_hint} 429 de taxa (não RPD) — sem varrer o anel: {exc}"
+                    )
+                    raise
                 last_exc = exc
-                # Erros de rede/auth transitórios: tenta próxima; se todas falharem, re-raise
                 log.warning(f"Chave {key_hint} erro: {exc} — tentando próxima...")
                 continue
         raise last_exc or RuntimeError("Nenhuma chave Gemini disponível")
