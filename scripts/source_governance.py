@@ -87,17 +87,18 @@ def build_report(registry: dict, candidates: dict) -> dict:
     # Candidatas já julgadas: promover para probatória ou banir conforme veredicto
     for c in candidates.get("candidates", []):
         sc = c.get("judge_score")
-        if not sc:
+        if not sc or c.get("status") != "candidata":
             continue
         sf = float(sc.get("score_final", 0))
-        if sf >= promote_th and c.get("status") == "candidata":
+        veredicto = str(sc.get("veredicto", "")).lower().strip()
+        if (veredicto == "promover" or sf >= promote_th) and veredicto != "banir":
             proposals_promote.append({
                 "id": c.get("id") or f"cand_{c.get('url','')[-12:]}",
                 "name": c.get("name"), "url": c.get("url"),
                 "action": "criar_probatória",
                 "score": sf, "motivo": sc.get("motivo", ""),
             })
-        elif sf < ban_th:
+        elif veredicto == "banir" or sf < ban_th:
             proposals_ban.append({
                 "id": c.get("id") or f"cand_{c.get('url','')[-12:]}",
                 "name": c.get("name"), "url": c.get("url"),
@@ -121,12 +122,13 @@ def build_report(registry: dict, candidates: dict) -> dict:
                 "collected_in_probation": collected, "usage_rate": usage, "duplicate_rate": dup,
                 "motivo": "período probatório concluído com métricas dentro do aceitável",
             })
-        else:
+        elif (m.get("scrape_error_rate") is not None and m["scrape_error_rate"] >= 0.80) or \
+             (dup is not None and dup > 0.60 and collected >= 5):
             proposals_ban.append({
                 "id": s["id"], "name": s.get("name"), "url": s.get("url"),
                 "action": "banir_probatória",
                 "collected_in_probation": collected, "usage_rate": usage, "duplicate_rate": dup,
-                "motivo": "não atingiu critérios do período probatório",
+                "motivo": "taxa de erro ou duplicidade excessiva durante probatório",
             })
 
     return {
@@ -172,6 +174,13 @@ def apply_proposals(registry: dict, candidates: dict, report: dict) -> None:
             id_map[sid]["status"] = "banida"
             id_map[sid]["banned_reason"] = p.get("motivo", "proposta de governança")
             id_map[sid]["probation"] = None
+        elif p["action"] == "banir_candidata":
+            for c in candidates.get("candidates", []):
+                cid = c.get("id") or f"cand_{c.get('url','')[-12:]}"
+                if cid == sid or c.get("url") == p.get("url"):
+                    c["status"] = "banida"
+                    c["banned_reason"] = p.get("motivo", "proposta de governança")
+                    c["banned_at"] = _now()
     registry["last_updated"] = _now()
     # sincroniza sources.json operacional (adiciona fontes probatórias/ativas)
     _sync_sources_json(registry)
@@ -183,14 +192,23 @@ def _sync_sources_json(registry: dict) -> None:
     existing_urls = {s.get("url", "").rstrip("/") for s in src.get("sources", [])}
     changed = False
     for s in registry.get("sources", []):
-        if s.get("status") in ("ativa", "probatória") and s.get("url", "").rstrip("/") not in existing_urls:
+        status = s.get("status")
+        url = (s.get("url") or "").rstrip("/")
+        feed = (s.get("feed_url") or "").rstrip("/")
+        if status in ("ativa", "probatória") and url not in existing_urls:
             method = {"rss": "rss", "scraping_html": "scraping", "browser_js": "browser"}.get(s.get("access_type"), "scraping")
             src.setdefault("sources", []).append({
                 "id": s["id"], "name": s["name"], "url": s["url"],
                 "method": method, "enabled": True,
             })
-            existing_urls.add(s["url"].rstrip("/"))
+            existing_urls.add(url)
             changed = True
+        elif status == "banida":
+            for entry in src.get("sources", []):
+                eu = (entry.get("url") or "").rstrip("/")
+                if eu and (eu == url or (feed and eu == feed)) and entry.get("enabled", True):
+                    entry["enabled"] = False
+                    changed = True
     if changed:
         SOURCES_JSON.write_text(json.dumps(src, ensure_ascii=False, indent=2), encoding="utf-8")
         log.info("sources.json operacional atualizado.")
@@ -210,8 +228,17 @@ def main() -> int:
             log.error("Nenhum relatório pendente. Rode sem --apply primeiro.")
             return 3
         report = _load(REPORT)
+        if not report.get("pending_approval") or report.get("applied_at"):
+            log.error(
+                "Relatório não está pendente de aprovação "
+                "(pending_approval=%s applied_at=%s). Recusando reaplicar.",
+                report.get("pending_approval"),
+                report.get("applied_at"),
+            )
+            return 4
         apply_proposals(registry, candidates, report)
         REGISTRY.write_text(json.dumps(registry, ensure_ascii=False, indent=2), encoding="utf-8")
+        CANDIDATES.write_text(json.dumps(candidates, ensure_ascii=False, indent=2), encoding="utf-8")
         REPORT.write_text(json.dumps({**report, "pending_approval": False, "applied_at": _now()}, ensure_ascii=False, indent=2), encoding="utf-8")
         log.info("Propostas aplicadas e registry atualizado.")
         return 0

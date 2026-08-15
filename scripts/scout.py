@@ -53,7 +53,7 @@ SEARCH_QUERIES = [
     "portal de notícias Vale do Itajaí",
     "jornal Blumenau Santa Catarina",
     "notícias Alto Vale SC",
-    "veículo de comunicação Santa Catarina",
+    "imprensa Santa Catarina",
     "blog notícias Blumenau",
 ]
 
@@ -165,6 +165,8 @@ def _merge_and_dedupe(candidates: list[dict], known: set[str]) -> list[dict]:
         dom = _domain_of(url)
         if not dom or dom in seen_domains:
             continue
+        if any(dom == ig or dom.endswith("." + ig) for ig in _IGNORE_DOMAINS):
+            continue
         # descarta se a raiz do domínio já está no registry
         if any(dom == k or dom.endswith("." + k) or k.endswith("." + dom) for k in known):
             continue
@@ -198,8 +200,9 @@ def run(weeks: int = 1, max_candidates: int = 30, dry_run: bool = False) -> list
     if CANDIDATES.exists():
         try:
             existing = json.loads(CANDIDATES.read_text(encoding="utf-8")).get("candidates", [])
-        except Exception:
-            existing = []
+        except Exception as exc:
+            log.error("Erro ao ler %s: %s. Abortando para evitar perda de dados.", CANDIDATES, exc)
+            return []
     existing_doms = {_domain_of(c.get("url", "")) for c in existing}
     for c in candidates:
         if _domain_of(c.get("url", "")) in existing_doms:

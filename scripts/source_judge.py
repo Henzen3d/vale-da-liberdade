@@ -103,7 +103,7 @@ def _call_openrouter(prompt: str) -> str | None:
                     {"role": "system", "content": JUDGE_SYSTEM},
                     {"role": "user", "content": prompt},
                 ], "temperature": 0.2, "max_tokens": 800},
-                timeout=120,
+                timeout=45,
             )
             if resp.status_code >= 400:
                 continue
