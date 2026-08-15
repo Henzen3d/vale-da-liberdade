@@ -115,25 +115,25 @@
     "passou": true
   },
   "thumbnail": {
-    "path": "thumbnails/2026-08-15/bm_rsjGnUlwZG8.webp",
+    "path": "thumbnails/2026-08-15/ep_2026-08-15.webp",
     "image_model_used": "qwen-image-3.0",
     "prompt_model_used": "gemini-3.6-flash",
-    "image_prompt": "Minimalist high-contrast editorial photograph of a dark sleek smartphone resting on a black reflective surface. On the phone screen, a generic abstract vector silhouette of a user profile is intersected by a glowing burnt amber digital padlock icon. In the soft out-of-focus background, the dark silhouette of a judicial gavel casts a subtle shadow across the frame. Strictly monochrome black, white, and dark grey color palette with a single accent of muted burnt amber light, dramatic side lighting, clean composition, 16:9 landscape, no text, no letters, no typography, no words, editorial news aesthetic, subtle film grain, cinematic 35mm lens",
+    "image_prompt": "Editorial monochrome photograph, low-angle close-up view of worn rubber boots standing in dark, muddy floodwaters on an empty street, ripples from heavy rainfall disturbing reflections, a few wet official paper documents floating silently in the mud, stark high-contrast black and white palette with deep grays, accented by a single glowing burnt amber highlight reflected in the water, moody atmospheric lighting, minimalist composition, 16:9 landscape, no text, no letters, no typography, no words, editorial news aesthetic, subtle film grain, cinematic 35mm lens",
     "fallback_level": 0,
     "is_placeholder": false,
-    "generated_at": "2026-08-15T14:11:51.857293-03:00",
+    "generated_at": "2026-08-15T06:50:44.040883-03:00",
     "estimated_cost_usd": 0.05,
     "generation_attempts": [
       {
         "model": "qwen-image-3.0",
         "status": "success",
-        "latency_ms": 15603,
+        "latency_ms": 16863,
         "attempt": 1
       }
     ],
-    "headline": "Perfil de NIKOLAS em RISCO: Nova CENSURA do XANDÃO?",
+    "headline": "Blumenau acumula 560 casos de violência contra a mulher em 2026 e alerta estaduais de tempestade mobilizam Defesa Civil",
     "quota_remaining_today": {
-      "qwen-image-3.0": 26,
+      "qwen-image-3.0": 29,
       "qwen-image-2.0-pro": 40,
       "qwen-image-max": 40,
       "qwen-image-2.0": 50,
@@ -142,9 +142,9 @@
       "wan2.7-image": 40,
       "z-image-turbo": 100
     },
-    "path_jpg": "thumbnails/2026-08-15/bm_rsjGnUlwZG8.jpg",
+    "path_jpg": "thumbnails/2026-08-15/ep_2026-08-15.jpg",
     "width": 1280,
     "height": 720,
-    "bytes_webp": 15220
+    "bytes_webp": 155888
   }
 }
