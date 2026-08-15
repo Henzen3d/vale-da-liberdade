@@ -1,0 +1,98 @@
+[
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 13706,
+    "dims": "1664x928",
+    "path": "test_output/models/qwen-image-3.0.png",
+    "score": 5,
+    "std": 95.43391007149337,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "qwen-image-3.0"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 10810,
+    "dims": "1664x928",
+    "path": "test_output/models/qwen-image-2.0-pro.png",
+    "score": 5,
+    "std": 58.01140307182923,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "qwen-image-2.0-pro"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 4073,
+    "dims": "1664x928",
+    "path": "test_output/models/qwen-image-2.0.png",
+    "score": 5,
+    "std": 51.67795640250669,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "qwen-image-2.0"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 15868,
+    "dims": "1664x928",
+    "path": "test_output/models/qwen-image-max.png",
+    "score": 5,
+    "std": 56.472849528632935,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "qwen-image-max"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 4494,
+    "dims": "1664x928",
+    "path": "test_output/models/qwen-image-plus.png",
+    "score": 5,
+    "std": 101.45949380996593,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "qwen-image-plus"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 23427,
+    "dims": "1664x928",
+    "path": "test_output/models/wan2.7-image-pro.png",
+    "score": 5,
+    "std": 65.41335492845938,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "wan2.7-image-pro"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 16238,
+    "dims": "1664x928",
+    "path": "test_output/models/wan2.7-image.png",
+    "score": 5,
+    "std": 70.65224487680834,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "wan2.7-image"
+  },
+  {
+    "ok": true,
+    "http": 200,
+    "ms": 7209,
+    "dims": "1664x928",
+    "path": "test_output/models/z-image-turbo.png",
+    "score": 5,
+    "std": 107.31294572704121,
+    "endpoint": "mm",
+    "size": "1664*928",
+    "model": "z-image-turbo"
+  }
+]
