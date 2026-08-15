@@ -506,10 +506,8 @@ def filter_and_categorize_news(articles: List[dict], target_count: int = 20) -> 
 
         # Para fontes locais: filtrar por geo_score mínimo
         if scope == "local":
-            g_score = geo_score(title, content)
-            if g_score < 0.15:
-                log.debug(f"Descartado local (geo_score={g_score:.2f}): {title[:60]}")
-                continue
+            # Fonte já curada como local: não descartar por ausência de topônimo
+            # no título/lead (ex.: "Prefeito assina ordem de serviço...").
             category = categorize_article(title, content)
         elif scope == "nacional":
             category = "brasil"

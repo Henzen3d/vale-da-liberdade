@@ -859,11 +859,14 @@ def _parse_metric(element) -> int:
         text = element.inner_text().strip()
         if not text:
             return 0
+        upper = text.upper()
+        if "K" in upper:
+            num = upper.replace("K", "").replace(",", ".").strip()
+            return int(float(num) * 1000)
+        if "M" in upper:
+            num = upper.replace("M", "").replace(",", ".").strip()
+            return int(float(num) * 1000000)
         text = text.replace(",", "").replace(".", "")
-        if "K" in text.upper():
-            return int(float(text.upper().replace("K", "")) * 1000)
-        elif "M" in text.upper():
-            return int(float(text.upper().replace("M", "")) * 1000000)
         return int(text)
     except Exception:
         return 0
@@ -1185,15 +1188,7 @@ class TweetCache:
 
         # Reconstrói fingerprints do estado atual dos tweets (pode ter sido
         # podado pelo TTL) para evitar colisão com tweets ainda vivos.
-        live_fps = {
-            content_fingerprint(t.get("text", "")): {
-                "tweet_id": t.get("tweet_id"),
-                "author": t.get("author"),
-                "first_seen": t.get("collected_at"),
-            }
-            for t in self.data.get("tweets", [])
-            if t.get("text")
-        }
+        live_fps = dict(self.data.get("content_fingerprints", {}))
 
         existing_ids = set(self.data.get("collected_ids", []))
         for tweet in new_tweets:

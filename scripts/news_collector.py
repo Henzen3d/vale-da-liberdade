@@ -125,6 +125,28 @@ def save_cache(cache):
                 pass
         cache["url_cache"] = cleaned_url_cache
 
+        cleaned_hashes = {}
+        for fp, entry in cache.get("content_hashes", {}).items():
+            if not isinstance(entry, dict):
+                cleaned_hashes[fp] = entry
+                continue
+            first_seen = entry.get("first_seen")
+            if not first_seen:
+                cleaned_hashes[fp] = entry
+                continue
+            try:
+                ts = datetime.datetime.fromisoformat(first_seen)
+                cmp_now = now
+                if ts.tzinfo is not None and cmp_now.tzinfo is None:
+                    cmp_now = cmp_now.replace(tzinfo=ts.tzinfo)
+                elif ts.tzinfo is None and cmp_now.tzinfo is not None:
+                    ts = ts.replace(tzinfo=cmp_now.tzinfo)
+                if (cmp_now - ts).days < 7:
+                    cleaned_hashes[fp] = entry
+            except Exception:
+                cleaned_hashes[fp] = entry
+        cache["content_hashes"] = cleaned_hashes
+
         with open(CACHE_JSON, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
     except Exception as e:
@@ -477,12 +499,46 @@ def fetch_source_wrapper(source, hours=48):
 
 
 
+def _norm_url(u: str) -> str:
+    return (u or "").strip().rstrip("/").lower()
+
+
+def _collector_id_by_url() -> dict[str, str]:
+    """Mapa url normalizada → id operacional do sources.json."""
+    out: dict[str, str] = {}
+    try:
+        src = json.loads(SOURCES_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        return out
+    for s in src.get("sources", []):
+        sid = s.get("id")
+        if not sid:
+            continue
+        for key in ("url", "feed_url"):
+            nu = _norm_url(s.get(key, ""))
+            if nu:
+                out[nu] = sid
+    return out
+
+
+def _stats_for_registry_source(s: dict, stats: dict, url_to_collector: dict[str, str]) -> dict | None:
+    st = stats.get(s.get("id"))
+    if st:
+        return st
+    for key in ("url", "feed_url"):
+        cid = url_to_collector.get(_norm_url(s.get(key, "")))
+        if cid and cid in stats:
+            return stats[cid]
+    return None
+
+
 def sync_registry_metrics(cache: dict) -> None:
     """Sincroniza artigos coletados/scrape-error do cache.json para o registry.
 
     O registry (sources_registry.json) é a base de governança; o collector
     grava estatísticas em cache.json (source_stats). Esta função copia essas
     contagens para o registry para alimentar o período probatório.
+    Casa por id do registry ou, se o id divergir, pela URL do sources.json.
     """
     reg_path = PROJECT_ROOT / "sources" / "sources_registry.json"
     if not reg_path.exists():
@@ -492,14 +548,18 @@ def sync_registry_metrics(cache: dict) -> None:
     except Exception:
         return
     stats = cache.get("source_stats", {})
+    url_to_collector = _collector_id_by_url()
     changed = False
     for s in reg.get("sources", []):
-        sid = s.get("id")
-        st = stats.get(sid)
+        st = _stats_for_registry_source(s, stats, url_to_collector)
         if not st:
             continue
         m = s.setdefault("metrics", {})
-        m["articles_collected"] = m.get("articles_collected", 0) + st.get("count", 0)
+        added = int(st.get("count", 0) or 0)
+        m["articles_collected"] = m.get("articles_collected", 0) + added
+        pb = s.get("probation")
+        if isinstance(pb, dict) and s.get("status") == "probatória":
+            pb["articles_collected_in_probation"] = pb.get("articles_collected_in_probation", 0) + added
         total = st.get("total_fetches", 0)
         success = st.get("success_count", 0)
         m["scrape_error_rate"] = round(1 - (success / total), 3) if total else None
@@ -599,19 +659,24 @@ def collect_all_news(hours=48, parallel=True):
             continue
 
         recent_titles = [t for t, _ in filtered_signatures[-max_signature_window:]]
+        keyword_dup = False
         for prev_title in recent_titles:
             score = _keyword_overlap_score(title, prev_title)
             if score >= 0.70:
                 semantic_dup_count += 1
+                keyword_dup = True
                 log.debug(
                     f"Keyword dedup: '{title[:60]}' similar a '{prev_title[:60]}' (score={score:.2f})"
                 )
                 break
-        else:
-            unique_articles.append(art)
-            sig = dedup_store.hasher.signature(title) if title.strip() else ()
-            filtered_signatures.append((title, sig))
+        if keyword_dup:
+            continue
 
+        unique_articles.append(art)
+        dedup_store.add(title)
+        sig = dedup_store.hasher.signature(title) if title.strip() else ()
+        filtered_signatures.append((title, sig))
+        url_cache[link] = now_str
         content_hashes[fp] = {
             "url": link,
             "title": title,
@@ -635,6 +700,7 @@ def collect_all_news(hours=48, parallel=True):
         if update["success"]:
             stats["success_count"] += 1
         stats["last_fetch"] = now_str
+        stats["count"] = update["count"]
         # Média móvel simples para itens
         stats["avg_items_per_fetch"] = round(
             (stats["avg_items_per_fetch"] * 0.7) + (update["count"] * 0.3), 1

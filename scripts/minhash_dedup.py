@@ -81,5 +81,15 @@ class DedupStore:
         for prev in self._accepted[-self.window:]:
             if prev and jaccard_from_signatures(sig, prev) >= self.threshold:
                 return True
-        self._accepted.append(sig)
         return False
+
+    def add(self, text: str) -> None:
+        """Registra um texto aceito na janela de dedup (não consulta)."""
+        if not text or not text.strip():
+            return
+        sig = self.hasher.signature(text)
+        if not any(sig):
+            return
+        self._accepted.append(sig)
+        if len(self._accepted) > self.window * 2:
+            self._accepted = self._accepted[-self.window:]
