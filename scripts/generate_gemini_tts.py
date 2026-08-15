@@ -126,11 +126,7 @@ def main():
 
     prompt = (
         "Leia em português do Brasil, no estilo de apresentador de podcast "
-        "jornalístico. SOTAQUE: pt-BR NEUTRO (padrão telejornal/podcast), "
-        "leve coloração do Sul (SC/Vale do Itajaí), SEM sotaque carioca "
-        "(chiado em /s/), SEM gaúcho carregado, SEM manezinho/Floripa, "
-        "SEM nordestino ou português de Portugal. Dicção clara de rádio noticioso.\n\n"
-        f"{conteudo}"
+        f"jornalístico:\n\n{conteudo}"
     )
 
     data = generate_with_retry(client, prompt, voice_name)
