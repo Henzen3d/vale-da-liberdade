@@ -209,6 +209,7 @@
       "enabled": false,
       "_note": "DESABILITADO (2026-06-22): rsshub.app não responde desde v1.1. Manter para revalidação futura."
     },
+
     {
       "_comment": "===== NOVOS FEEDS NACIONAIS — v1.2 (validados 2026-06-22) =====",
       "id": "oglobo_geral",
@@ -379,41 +380,6 @@
       "scope": "nacional",
       "enabled": true,
       "_note": "20 itens em validação."
-    },
-    {
-      "id": "cand_rioav.com.br",
-      "name": "Diário Alto Vale — Notícias do Alto Vale do Itajaí",
-      "url": "https://www.diarioav.com.br",
-      "method": "scraping",
-      "enabled": true
-    },
-    {
-      "id": "cand_umenau?hl=en",
-      "name": "Jornal do Almoço Blumenau (@jablumenau)",
-      "url": "https://www.instagram.com/jablumenau?hl=en",
-      "method": "scraping",
-      "enabled": true
-    },
-    {
-      "id": "cand_mfoco.com.br",
-      "name": "Notícias de Blumenau - Blumenau em Foco - Notícias em 1ª ...",
-      "url": "https://blumenauemfoco.com.br",
-      "method": "scraping",
-      "enabled": true
-    },
-    {
-      "id": "cand_ara-o-tce-sc",
-      "name": "upiara.com.br",
-      "url": "https://upiara.com.br/fabiogadotti/coluna-do-gadotti-escola-centenaria-de-florianopolis-e-transferida-para-o-tce-sc",
-      "method": "scraping",
-      "enabled": true
-    },
-    {
-      "id": "src_040",
-      "name": "Jornal de Blumenau (@jornaldeblumenau)",
-      "url": "https://www.instagram.com/jornaldeblumenau",
-      "method": "scraping",
-      "enabled": true
     }
   ]
 }
