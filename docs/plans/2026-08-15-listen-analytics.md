@@ -21,7 +21,7 @@
 | **2** | RPC admin: plays/dia, top cidades/países, top episódios (7/30d) | `get_admin_listen_stats(days)` devolve JSON |
 | **3** | Aba Admin “Audiência”: tabelas + gráfico de plays | Dá para ver números reais (mesmo com cidade vazia) |
 | **4** | Mapa (Leaflet, sem API key) por país → cidade | Pins a partir de agregados, não de eventos crus — **feita** |
-| **5** | Duração de sessão (heartbeat a cada 60s no player logado **ou** fingerprint) | Tempo médio / conclusão no admin |
+| **5** | Duração de sessão (heartbeat a cada 60s no player logado **ou** fingerprint) | Tempo médio / conclusão no admin — **feita** |
 | **6** | (opcional) Referrer / origem (home, /noticias, direto) | Coluna `source` no evento |
 
 Não nesta leva: funil GA, heatmap de clique, export de PII, GeoIP MaxMind (só se os headers CF não derem cidade).

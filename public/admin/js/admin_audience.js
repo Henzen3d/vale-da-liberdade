@@ -113,6 +113,10 @@ const AdminAudience = (() => {
       set('audUnique', d.unique_listeners ?? '—');
       set('audLoggedIn', d.logged_in_plays ?? '—');
       set('audFrom', d.from || '—');
+      const avg = Number(d.avg_listened_sec) || 0;
+      set('audAvgTime', avg ? (avg >= 60 ? Math.round(avg / 60) + ' min' : avg + 's') : '—');
+      set('audSessions', (d.sessions || 0) + ' sessões');
+      set('audCompletion', (d.completion_pct != null ? d.completion_pct : '—') + '%');
 
       const dayBody = document.getElementById('audByDay');
       if (dayBody) {
@@ -141,8 +145,12 @@ const AdminAudience = (() => {
       const ep = document.getElementById('audByEpisode');
       if (ep) {
         ep.innerHTML = (d.by_episode || []).length
-          ? d.by_episode.map((r) => '<tr><td>' + esc(r.episode_id) + '</td><td>' + esc(r.plays) + '</td></tr>').join('')
-          : rowsHtml([], 2);
+          ? d.by_episode.map((r) => {
+              const avg = Number(r.avg_sec) || 0;
+              const avgLabel = avg >= 60 ? Math.round(avg / 60) + ' min' : avg + 's';
+              return '<tr><td>' + esc(r.episode_id) + '</td><td>' + esc(r.plays) + '</td><td>' + esc(avgLabel) + '</td><td>' + esc(r.completed || 0) + '</td></tr>';
+            }).join('')
+          : rowsHtml([], 4);
       }
       if (status) status.textContent = 'Últimos ' + (d.days || days) + ' dias';
 
