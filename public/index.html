@@ -76,7 +76,7 @@
   .app-layout-grid{display:grid;grid-template-columns:1fr;gap:var(--space-5);width:100%;grid-template-rows:auto 1fr}
   .desktop-sidebar{display:none}
   @media(min-width:1024px){.app-layout-grid{grid-template-columns:1fr 340px;align-items:start;gap:var(--space-6)}.desktop-sidebar{display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:72px}}
-  .category-tabs-wrapper{position:sticky;top:var(--topbar-sticky-offset,56px);z-index:90;background-color:var(--color-bg);border-bottom:1px solid var(--color-border);margin-bottom:var(--space-2);padding:12px 0 0 0;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;justify-content:flex-start}
+  .category-tabs-wrapper{position:sticky;top:var(--topbar-sticky-offset,56px);z-index:90;background-color:rgba(248,249,250,0.85);border-bottom:1px solid var(--color-border);margin-bottom:var(--space-2);padding:12px 0 0 0;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;justify-content:flex-start}
   .chip-btn,.icon-btn{border:1px solid var(--color-border);background-color:transparent;color:var(--color-ink);border-radius:var(--radius-pill);font-size:.8rem;font-weight:500;cursor:pointer;padding:5px 11px;display:inline-flex;align-items:center;justify-content:center;transition:border-color var(--transition-fast),color var(--transition-fast)}
   .icon-btn{width:44px;height:44px;padding:0}
   .feed-tabs.inline-tabs{display:flex;align-items:center;gap:20px;background:transparent;border:0;border-radius:0;padding:0;margin:0;overflow-x:auto}
@@ -94,8 +94,8 @@
   <link rel="stylesheet" href="./assets/css/base.css?v=202608071845">
   <link rel="stylesheet" href="./assets/css/audio-wave.css?v=202608071900">
   <link rel="stylesheet" href="./assets/css/consent.css?v=202608152110">
-  <link rel="stylesheet" href="./assets/css/components.css?v=202608160800" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="./assets/css/components.css?v=202608160800"></noscript>
+  <link rel="stylesheet" href="./assets/css/components.css?v=202608161000" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="./assets/css/components.css?v=202608161000"></noscript>
 
   <!-- Supabase JS Client (deferred — era render-blocking 55KB / ~1.9s) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
