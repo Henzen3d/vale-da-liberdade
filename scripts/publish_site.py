@@ -29,7 +29,7 @@ import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
-from email.utils import format_datetime
+from email.utils import format_datetime, parsedate_to_datetime
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -970,13 +970,20 @@ def publish(limit: int = 200, only_date: str | None = None) -> dict:
     if not only_date:
         episodes = episodes[:limit]
 
-    # Ordenar todos os episódios juntos: mais recente primeiro
-    # Usar pubDate para especiais, data para diários
+    # Ordenar: diários primeiro (por data, desc), depois especiais (por pubDate, desc).
+    # FIX 2026-08-16: RFC-2822 ("Wed, 12 Aug 2026 ...") NÃO ordena como string
+    # (vira ordem alfabética por dia da semana). Normalizar p/ datetime ISO.
     def sort_key(ep):
-        pub = ep.get("pubDate")
-        if pub:
-            return pub  # RFC 2822, comparável diretamente
-        return ep.get("date") or ""
+        if str(ep.get("id", "")).startswith("especial"):
+            pub = ep.get("pubDate")
+            if pub:
+                try:
+                    return (0, parsedate_to_datetime(pub).isoformat())
+                except Exception:
+                    return (0, pub)
+            return (0, "")
+        d = ep.get("date") or ""
+        return (1, d + "T00:00:00" if d else "0000-01-01T00:00:00")
 
     ordered = sorted(episodes, key=sort_key, reverse=True)
 

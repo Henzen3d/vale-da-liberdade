@@ -262,3 +262,23 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 ---
 
 *Mantido por: Hermes Agent | Última atualização: 2026-08-08*
+
+---
+
+## [2026-08-16] Cron diário abortou em 6s sem gerar log — scripts perderam bit de execução
+
+- **Contexto:** Em 16/08 o `logs/daily-2026-08-16.log` não existia às 06:05 e nenhum processo do pipeline rodava, apesar do crontab `0 6 * * *` disparar o `scripts/cron-wrapper.sh` (session do cron fechou em 06:00:07). No dia 15/08 o build só começou às 06:43 (mesma falha silenciosa na 06:00).
+- **O que aconteceu:** O wrapper era invocado diretamente pelo cron (`/home/osmar/.../cron-wrapper.sh`), que exige o bit de execução. O arquivo estava `-rw-rw-r--` (mode 100644 no git) → `Permission denied` (exit 126) → cron descarta a saída (sem MTA) → dia vazio, sem log.
+- **Causa raiz:** A recuperação/convergência de branches de 15/08 (checkout de arquivos) restaurou `scripts/cron-wrapper.sh`, `cron-daily.sh`, `cron-wrapper-v2.sh`, `daily-collect.sh` e `delivery_health_check.sh` sem o bit `+x` (modo 644 no índice git).
+- **Solução aplicada:** `chmod +x` nos 5 scripts + `git update-index --chmod=+x` + commit `cc0c60f` (push). Build do dia rodou manualmente em seguida.
+- **Como evitar/repetir no futuro:** Ao restaurar/checkout de arquivos, conferir `git ls-files -s scripts/*.sh` (esperado `100755` para entrypoints de cron). Diagnóstico rápido de "cron não rodou": `journalctl -u cron --since 'HH:55'` → procurar `CMD (...cron-wrapper.sh)` + `Permission denied`.
+
+---
+
+## [2026-08-16] Catálogo ordenava especiais por dia da semana (sort de string RFC-2822)
+
+- **Contexto:** Ao publicar o episódio de 16/08, `public/data/episodes.json` mostrava no topo especiais de 12/08 (quarta-feira) — o card de destaque do site exibia um episódio de 4 dias atrás, e o diário do dia estava na posição ~148.
+- **O que aconteceu:** `sort_key` em `publish_site.py` retornava `pubDate` (RFC-2822, ex. `"Wed, 12 Aug 2026 23:12:14 +0000"`) como string e o Python comparava lexicograficamente → ordem alfabética por dia da semana (`Wed > Tue > Thu > Sun > Sat > Mon > Fri`), não cronológica.
+- **Causa raiz:** Comentário do código dizia "RFC 2822, comparável diretamente" — incorreto: só é comparável como string se o formato for ISO-8601.
+- **Solução aplicada:** `sort_key` agora normaliza com `email.utils.parsedate_to_datetime(pub).isoformat()` e ordena por tupla `(1, data)` para diários (primeiro) e `(0, pubDate)` para especiais (depois), ambos desc — conforme SKILL do web-jornal ("diários primeiro, depois especiais, mais recente primeiro"). Rebuild do catálogo/feed feito; `2026-08-16` agora é o card de destaque.
+- **Como evitar/repetir no futuro:** Nunca comparar RFC-2822 como string; normalizar para datetime/ISO antes de ordenar. Teste rápido: primeiro item do catálogo deve ser o episódio mais recente.
