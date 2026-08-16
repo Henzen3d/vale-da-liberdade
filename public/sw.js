@@ -1,18 +1,15 @@
 /* Service Worker — Vale da Liberdade PWA */
-const CACHE = "vld-v1-202608160130";
+const CACHE = "vld-v1-202608160848";
+// Shell estático. IMPORTANTE (2026-08-16): NÃO precachear "./assets/css/*.css"
+// nem "./assets/js/*.js" SEM o ?v= de versão. O Cloudflare guarda a URL sem
+// versão com TTL de 1 ano (max-age=31536000) e pode servir conteúdo antigo
+// (cf-cache-status: HIT). Se o SW precacheia a URL sem versão, ele envenena o
+// cache local com CSS/JS velho e o usuário fica preso no design antigo mesmo
+// com hard refresh. Os assets versionados entram no cache em runtime (fetch
+// network-first abaixo), usando as mesmas URLs ?v= que o index.html referencia.
 const PRECACHE = [
   "./",
   "./index.html",
-  "./assets/css/tokens.css",
-  "./assets/css/base.css",
-  "./assets/css/components.css",
-  "./assets/js/theme.js",
-  "./assets/js/player.js",
-  "./assets/js/listen_progress.js",
-  "./assets/js/autoplay_chain.js",
-  "./assets/js/ad_manager.js",
-  "./assets/js/app.js",
-  "./js/supabase_client.js",
   "./manifest.webmanifest",
   "./offline.html",
   "./icons/icon-192.png",
@@ -30,7 +27,10 @@ const PRECACHE = [
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE))
+    caches.open(CACHE).then((cache) =>
+      // add individual para um asset ausente não derrubar o install inteiro
+      Promise.all(PRECACHE.map((u) => cache.add(u).catch(() => {})))
+    )
   );
 });
 
@@ -47,6 +47,27 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
+
+  // NAVEGAÇÃO: network-first (2026-08-16). Antes era cache-first, então o hard
+  // refresh (Shift+F5) servia o index.html velho do precache — o usuário não
+  // conseguia forçar a atualização. Agora a navegação busca o HTML novo na rede
+  // e só cai para o cache / offline.html quando está offline.
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok && url.origin === self.location.origin) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.match(req).then((c) => c || caches.match("./offline.html"))
+        )
+    );
+    return;
+  }
 
   // Network-first para catálogo e scripts/estilos (para atualizar alterações instantaneamente)
   if (
@@ -89,6 +110,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Demais (imagens, ícones, manifest): cache-first com fallback de rede.
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -100,7 +122,7 @@ self.addEventListener("fetch", (event) => {
           }
           return res;
         })
-        .catch(() => (req.mode === "navigate" ? caches.match("./offline.html") : new Response("", { status: 503 })));
+        .catch(() => new Response("", { status: 503 }))
     })
   );
 });

@@ -46,6 +46,15 @@ else
   bad "vidro na barra de abas AUSENTE na prod"
 fi
 
+# 5) base.css versionado da prod usa overflow-x:clip (nao hidden — mata sticky)
+bb=$(curl -s "$BASE_PROD/" | grep -o 'base.css?v=[0-9]*' | head -1)
+bcss=$(curl -s "$BASE_PROD/assets/css/$bb")
+if echo "$bcss" | grep -q 'overflow-x:clip'; then
+  ok "base.css com overflow-x:clip (sticky preservado)"
+else
+  bad "base.css SEM overflow-x:clip — sticky da topbar/abas morre na prod (cache-buster desatualizado?)"
+fi
+
 if [ "$FAIL" -ne 0 ]; then echo; echo "qa_delivery_chain: $FAIL falha(s) — ver deploy/nginx.conf (regra sw.js) e docker compose up -d --force-recreate web"; exit 1; fi
 echo
 echo "qa_delivery_chain: OK — cadeia de entrega saudavel"
