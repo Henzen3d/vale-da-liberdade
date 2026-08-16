@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script>
+    // Anti-FOUC do tema: aplica data-theme antes do primeiro paint (defer do theme.js é tarde demais).
+    (function () {
+      try {
+        var t = localStorage.getItem("vale-theme");
+        var dark = t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {}
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Política de Privacidade — Vale da Liberdade</title>
@@ -47,6 +57,6 @@
     <li>Não vendemos dados a terceiros</li>
     <li>Não identificamos ouvintes anônimos individualmente (apenas hash agregado)</li>
   </ul>
-  <script src="/assets/js/theme.js?v=202608022030" defer></script>
+  <script src="/assets/js/theme.js?v=202608160130" defer></script>
 </body>
 </html>

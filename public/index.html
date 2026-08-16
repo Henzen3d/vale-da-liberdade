@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script>
+    // Anti-FOUC do tema: aplica data-theme antes do primeiro paint (defer do theme.js é tarde demais).
+    (function () {
+      try {
+        var t = localStorage.getItem("vale-theme");
+        var dark = t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {}
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
@@ -591,7 +601,7 @@
   </div>
 
   <script src="./assets/js/orientation_lock.js?v=202608081130" defer></script>
-  <script src="./assets/js/theme.js?v=202608022030" defer></script>
+  <script src="./assets/js/theme.js?v=202608160130" defer></script>
   <script src="./assets/js/player.js?v=202608151800" defer></script>
   <script src="./assets/js/wakeLock.js?v=202608060400" defer></script>
   <script src="./assets/js/listen_progress.js?v=202608081430" defer></script>
