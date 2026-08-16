@@ -159,6 +159,21 @@ def is_short_or_live(title: str, url: str) -> bool:
     return False
 
 
+def is_interview(title: str) -> bool:
+    """Entrevistas do ANCAPSU (ex.: 'PETER ENTREVISTA: ALTIVO DUARTE — Deputado').
+
+    Formato do canal: <APRESENTADOR> ENTREVISTA: <Convidado> ou 'ENTREVISTA COM …'.
+    Mesmo tratamento dos stories: ignorar — a pauta é notícia, não conversa.
+    """
+    low = title.lower()
+    # "PETER ENTREVISTA: ...", "ENTREVISTA: ...", "ENTREVISTA COM ..."
+    if re.search(r"\bentrevista\s*:", low):
+        return True
+    if re.search(r"\bentrevista\s+com\b", low):
+        return True
+    return False
+
+
 def enqueue_video(
     queue: list[dict],
     seen: dict,
@@ -230,6 +245,11 @@ def main():
             # Filtrar Shorts/lives
             if is_short_or_live(entry["title"], entry["url"]):
                 print(f"   ⏭️  Ignorando (Short/Live): {entry['title'][:60]}")
+                continue
+
+            # Filtrar entrevistas (formato ANCAPSU "PETER ENTREVISTA: …")
+            if is_interview(entry["title"]):
+                print(f"   ⏭️  Ignorando (Entrevista): {entry['title'][:60]}")
                 continue
 
             vid = entry["video_id"]
