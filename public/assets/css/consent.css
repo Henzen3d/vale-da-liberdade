@@ -2,8 +2,8 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 76px;
-  z-index: 70;
+  bottom: calc(16px + var(--safe-bottom, 0px));
+  z-index: 600; /* acima do mini-player (500), abaixo do full player/ad (2600) */
   background: var(--color-bg, #111);
   color: var(--color-ink, #eee);
   border-top: 1px solid var(--color-border, #333);
@@ -29,6 +29,13 @@
   border-radius: 6px;
   cursor: pointer;
 }
+/* Quando o mini-player está visível, o banner sobe para não cobri-lo */
+body:has(.mini-player:not(.hidden)) #consentBanner {
+  bottom: calc(88px + var(--safe-bottom, 0px));
+}
 @media (max-width: 640px) {
-  #consentBanner { bottom: 68px; font-size: 12px; padding: 8px 12px; }
+  #consentBanner { bottom: calc(12px + var(--safe-bottom, 0px)); font-size: 12px; padding: 8px 12px; }
+  body:has(.mini-player:not(.hidden)) #consentBanner {
+    bottom: calc(84px + var(--safe-bottom, 0px));
+  }
 }
