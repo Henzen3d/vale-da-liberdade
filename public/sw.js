@@ -1,5 +1,5 @@
 /* Service Worker — Vale da Liberdade PWA */
-const CACHE = "vld-v1-202608151412";
+const CACHE = "vld-v1-202608160100";
 const PRECACHE = [
   "./",
   "./index.html",
