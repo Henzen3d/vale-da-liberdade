@@ -7,20 +7,57 @@
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/base.css">
   <style>
-    body { max-width: 28rem; margin: 0 auto; padding: 24px 16px 80px; font: 16px/1.5 Inter, system-ui, sans-serif; }
-    .card { border: 1px solid var(--color-border, #ddd); border-radius: 12px; padding: 16px; margin: 16px 0; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; background: #eee; }
-    .badge.paid { background: #c9a227; color: #111; }
+    body { max-width: 28rem; margin: 0 auto; padding: 24px 16px 80px; font: 16px/1.5 var(--font-ui, Inter, system-ui, sans-serif); }
+    .card { border: 1px solid var(--color-border, #ddd); border-radius: 12px; padding: 16px; margin: 16px 0; background: var(--color-surface, #fff); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; background: var(--color-hover, #eee); color: var(--color-ink-muted, #4b5563); }
+    .badge.paid { background: var(--brand-amber-500, #c8862b); color: #111317; }
     .who { display: flex; gap: 12px; align-items: center; }
     .who img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
     .btn { display: inline-block; margin-top: 10px; padding: 8px 14px; border-radius: 8px; border: 0; font-weight: 600; cursor: pointer; text-decoration: none; }
-    .btn-primary { background: #c9a227; color: #111; }
-    .btn-danger { background: #b91c1c; color: #fff; }
-    .muted { color: #666; font-size: .9rem; }
+    .btn-primary { background: var(--brand-amber-500, #c8862b); color: #111317; }
+    .btn-danger { background: var(--color-live, #c24b3f); color: var(--color-bg, #f8f9fa); }
+    .muted { color: var(--color-ink-muted, #4b5563); font-size: .9rem; }
     #msg { margin-top: 12px; font-size: .9rem; }
+
+    /* Tela de configurações full-page (mobile) — referência: Perfil/Configurações de apps */
+    .settings-topbar { display: none; }
+    @media (max-width: 640px) {
+      body { padding: 0 16px 80px; }
+      .settings-topbar {
+        display: flex; align-items: center; gap: 8px;
+        position: sticky; top: 0; z-index: 200;
+        height: 52px; margin: 0 -16px 12px; padding: 0 16px;
+        background: var(--color-bg, #f8f9fa);
+        border-bottom: 1px solid var(--color-border, #e5e7eb);
+      }
+      .settings-topbar .settings-back {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 40px; height: 40px; border-radius: 8px;
+        color: var(--color-ink, #111317);
+        font-size: 20px; text-decoration: none;
+      }
+      .settings-topbar .settings-back:hover { background: var(--color-hover, #f7f9f9); }
+      .settings-topbar .settings-title {
+        font-size: 17px; font-weight: 700; color: var(--color-ink, #111317);
+      }
+      body > .muted { display: none; }
+      h1 { font-size: 1.25rem; margin: 16px 0 4px; visibility: hidden; height: 0; margin: 0; }
+      .card { margin: 12px 0; padding: 16px; }
+      /* Zona destrutiva isolada no fim da página */
+      .danger-zone {
+        margin-top: 28px; padding-top: 18px;
+        border: 1px solid var(--color-live, #c24b3f);
+        border-radius: 12px; background: var(--accent-soft, rgba(194,75,63,0.06));
+      }
+      .danger-zone .btn-danger { width: 100%; }
+    }
   </style>
 </head>
 <body>
+  <nav class="settings-topbar" aria-label="Navegação do perfil">
+    <a class="settings-back" href="/" aria-label="Voltar para o site">←</a>
+    <span class="settings-title">Perfil</span>
+  </nav>
   <p class="muted"><a href="/">← Vale da Liberdade</a></p>
   <h1>Perfil</h1>
   <div class="card who" id="whoCard">
@@ -35,12 +72,13 @@
     <a class="btn btn-primary" id="upgradeCta" href="mailto:henzen3d@gmail.com?subject=Assinatura%20Premium%20Vale%20da%20Liberdade">Remover anúncios — assinar Premium</a>
     <p><a href="/politica-de-privacidade/">Política de Privacidade</a></p>
   </div>
-  <div class="card">
+  <div class="card danger-zone">
     <strong>Excluir meus dados</strong>
     <p class="muted">Apaga histórico de audição e o identificador técnico deste aparelho. Não dá para desfazer.</p>
     <button type="button" class="btn btn-danger" id="btnDelete">Excluir meus dados</button>
     <div id="msg"></div>
   </div>
+  <script src="/assets/js/theme.js?v=202608022030" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     window.SUPABASE_URL = "https://news.mob.tec.br";
