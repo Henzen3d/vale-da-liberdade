@@ -106,7 +106,7 @@ log = logging.getLogger("gemini-tts-multi")
 
 SPEAKERS = {
     "Peter": "Charon",
-    "Ricardo": "Schedar",
+    "Ricardo": "Alnilam",
 }
 
 # Inverso de SPEAKERS: voice_name → speaker (para system_instruction single)
@@ -135,13 +135,23 @@ SPEAKER_PERSONAS = {
     "Peter": (
         "Tom irônico, provocador e libertário. Fala como quem desafia o status quo, "
         "destaca coerção estatal, questiona burocracia, rejeita soluções do governo. "
-        "Entonação confiante, cética, às vezes sarcástica. Atitude NÃO é neutra — "
+        "Entonação confiante, cética, às vezes sarcástica. Evite soar acelerado ou teatral; "
+        "a ironia vem do subtexto e do timing, não de gritaria. Atitude NÃO é neutra — "
         "mas o SOTAQUE continua o pt-BR neutro definido acima."
     ),
     "Ricardo": (
-        "Tom analítico, ponderado, institucional. Contraponto racional baseado em dados "
-        "e evidências. Reconhece problemas mas contextualiza com perspectivas práticas. "
-        "Entonação calma, medida, equilibrada. Soa como analista sério. "
+        "Tom super animado, elétrico e expressivo de comentarista de rádio ao vivo. "
+        "Contraponto analítico baseado em dados reais, fatos econômicos e bom senso prático, "
+        "mas sempre com sensação de urgência, presença e calor humano. "
+        "Ritmo muito vivo, com pausas inteligentes, ataques de energia nas palavras-chave "
+        "e variação clara de intenção entre uma frase e outra. "
+        "Transmite indignação lúcida com o desperdício estatal e a burocracia, "
+        "sem nunca soar monótono, robótico, desanimado ou burocrático. "
+        "REGRAS OPERACIONAIS (importante): fuja completamente de nota oficial/assessoria; "
+        "use micro-pausas antes de números/dados; destaque uma palavra-chave por frase; "
+        "abra cada fala com um salto leve de energia (como quem pega o ar no estúdio); "
+        "mantenha um tempo ligeiramente mais rápido que o Peter; use perguntas retóricas "
+        "curtas quando ajudar a criar impulso. "
         "SOTAQUE: mesmo pt-BR neutro (não regionalizar)."
     ),
 }
@@ -157,10 +167,9 @@ TTS_MODEL = DEFAULT_TTS_MODEL
 PAUSA_LONGA_S = 1.5    # [PAUSA] — entre quadros
 PAUSA_CURTA_S = 0.5    # [PAUSA_CURTA] — entre falas longas
 
-# Temperatura TTS (2026-08-10): 0.2 deixou vozes monótonas/sem emoção (relato
-# do usuário no diário). 0.5 é o meio-termo: mantém estabilidade de tom sem
-# matar expressividade. Override via --temperature.
-TTS_TEMPERATURE = 0.5
+# Temperatura TTS (Gemini): global (mesmo valor para todos os chunks/speakers).
+# 0.9 = mais expressivo/animado (pode introduzir variação maior de entonação).
+TTS_TEMPERATURE = 0.90
 
 SAMPLE_RATE = 44100    # Hz — qualidade podcast (Fase 0.5)
 SAMPLE_WIDTH = 2       # bytes (16-bit PCM)
@@ -456,8 +465,8 @@ def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path) -> None:
     )
     audio_filter = (
         f"highpass=f=80,"
-        f"acompressor=threshold=-25dB:ratio=3:attack=50:release=200,"
-        f"equalizer=f=3000:width_type=h:width=1000:g=3,"
+        f"acompressor=threshold=-22dB:ratio=2.2:attack=25:release=150,"
+        f"equalizer=f=3500:width_type=h:width=1200:g=2.5,"
         f"{loudnorm_filter}"
     )
 
@@ -490,31 +499,31 @@ def build_system_instruction(speakers: list[str] | None = None) -> str:
     for sp in speakers:
         if sp in SPEAKER_PERSONAS:
             persona_lines.append(f"- {sp} ({SPEAKERS.get(sp, sp)}): {SPEAKER_PERSONAS[sp]}")
-    personas_text = "\n".join(persona_lines) if persona_lines else "- Peter (Charon), Ricardo (Schedar)"
+    personas_text = "\n".join(persona_lines) if persona_lines else "- Peter (Charon), Ricardo (Alnilam)"
     return (
         "# Audio Profile\n"
         f"{personas_text}\n\n"
         "# Scene\n"
-        "Estúdio de podcast jornalístico profissional, ambiente calmo e focado.\n\n"
+        "Estúdio de podcast jornalístico profissional, ambiente dinâmico e expressivo.\n\n"
         "# Director's Notes\n"
         "- Leia o texto EXATAMENTE como fornecido, sem adicionar, remover ou alterar palavras.\n"
         "- Mantenha a troca de turnos natural, como rádio ao vivo; respire nas pausas.\n"
-        "- Respeite as tags emocionais entre colchetes no texto (ex.: [excited], [sarcastic],\n"
-        "  [thoughtful], [whispers]) com moderação — nunca exagere na atuação.\n"
+        "- Atuação de Ricardo (Alnilam): Entusiasmo contagiante de rádio ao vivo, ritmo ágil, variações marcantes de entonação, pausas dramáticas curtas antes de números-chave e abertura de fala com energia elevada. Jamais soar monocórdico, burocrático ou como leitor de notas oficiais.\n"
         f"{ACCENT_GUIDANCE}"
     )
 
 
-def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None = None):
+def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None = None, temperature: float | None = None):
     """Gera áudio multi-locutor através do GeminiClient (que gerencia retries e rate limiting)."""
     model = model or TTS_MODEL
+    temperature = TTS_TEMPERATURE if temperature is None else float(temperature)
     speakers = [cfg.speaker for cfg in speaker_voice_configs]
     response = client.models.generate_content(
         model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
-            temperature=TTS_TEMPERATURE,  # 0.2 matava expressividade; 0.5 mantém tom estável sem monotonia
+            temperature=temperature,
             system_instruction=build_system_instruction(speakers),
             speech_config=types.SpeechConfig(
                 multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
@@ -529,7 +538,7 @@ def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None
 
 
 def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str | None = None) -> bytes:
-    """TTS de uma fala com UMA voz pré-definida (Charon/Schedar).
+    """TTS de uma fala com UMA voz pré-definida (Charon/Alnilam).
 
     Mais confiável que multi-speaker: o Gemini multi frequentemente colapsa
     em uma única voz no episódio inteiro.
@@ -552,7 +561,7 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
-            temperature=TTS_TEMPERATURE,  # 0.2 deixava monótono; 0.5 mantém expressividade com estabilidade
+            temperature=TTS_TEMPERATURE,  # default; pode ser ajustado por chunk no modo PACKED
             system_instruction=build_system_instruction([_speaker_for_voice(voice_name)]),
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
@@ -807,7 +816,7 @@ def _edge_tts_generate_audio(
 # Diferenciação Edge quando Gemini TTS não está disponível
 EDGE_SPEAKER_STYLE = {
     "Peter": {"voice": "pt-BR-AntonioNeural", "rate": "+12%", "pitch": "+0Hz"},
-    "Ricardo": {"voice": "pt-BR-AntonioNeural", "rate": "-8%", "pitch": "-6Hz"},
+    "Ricardo": {"voice": "pt-BR-AntonioNeural", "rate": "+6%", "pitch": "+0Hz"},
 }
 
 
@@ -1058,6 +1067,7 @@ def main():
         help="Temperatura do TTS Gemini (default: 0.5). Mais alto = mais expressão/emoção, "
              "mais baixo = tom mais estável (0.2 deixava monótono)."
     )
+    # (REMOVIDO) Temperatura por speaker/chunk: mantemos temperatura global.
     args = parser.parse_args()
 
     # Modelo TTS (global do módulo — usado por generate_* )

@@ -26,15 +26,12 @@ from generate_script import EPISODES_DIR, RoteiroCompleto, format_script  # noqa
 from validate_naturalidade import validate_naturalidade  # noqa: E402
 
 # Muletas que o LLM/polish repetiam demais — strip no início da fala
+# Suavizado para preservar interjeições e reações naturais espontâneas (ex.: "Peraí", "Olha só", "Olha isso")
 TRANSITION_CRUTCH_RE = re.compile(
     r"^\s*("
-    r"(olha[,:]?\s+)?"
-    r"(vai\s+da[ií]\s*[…\.:,-]?\s*)|"
-    r"(agora\s+segura\s+essa\s*[:\-—,]?\s*)|"
-    r"(pois\s+é,?\s+e\s+tem\s+mais\s*[:\-—,]?\s*)|"
-    r"(pera[ií]\s*[…\.:,-]?\s*)|"
-    r"(isso\s+a[ií]\s+é\s+s[eé]rio\??\s*)|"
-    r"(espera,?\s+deixa\s+eu\s+entender(?:\s+direito)?\s*[:\-—,]?\s*)"
+    r"(olha[,:]?\s+)?(vai\s+da[ií]\s*[…\.:,-]?\s*)|"
+    r"(olha[,:]?\s+)?(agora\s+segura\s+essa\s*[:\-—,]?\s*)|"
+    r"(olha[,:]?\s+)?(pois\s+é,?\s+e\s+tem\s+mais\s*[:\-—,]?\s*)"
     r")+",
     re.I,
 )
@@ -42,7 +39,7 @@ TRANSITION_CRUTCH_RE = re.compile(
 # Stacks ruins no meio: "Olha, Ricardo: vai daí…"
 MID_STACK_RE = re.compile(
     r"\b(olha[,:]?\s+)?(peter|ricardo)\s*[:\-—,]?\s*"
-    r"(vai\s+da[ií]|agora\s+segura\s+essa|pois\s+é,?\s+e\s+tem\s+mais|pera[ií])\s*[…\.:,-]?\s*",
+    r"(vai\s+da[ií]|agora\s+segura\s+essa|pois\s+é,?\s+e\s+tem\s+mais)\s*[…\.:,-]?\s*",
     re.I,
 )
 

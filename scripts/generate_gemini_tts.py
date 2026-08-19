@@ -37,7 +37,7 @@ log = logging.getLogger("gemini-tts")
 
 VOZES = {
     "peter": "Charon",
-    "ricardo": "Schedar",
+    "ricardo": "Alnilam",
 }
 
 MAX_RETRIES = 3
