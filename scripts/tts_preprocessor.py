@@ -143,44 +143,58 @@ def _number_to_words(n: int | float) -> str:
         return str(n)
 
 
+# Unidades longas primeiro para "mil" não engolir "milhão".
+_CURRENCY_UNIT = r"(bilhões|bilhão|milhões|milhão|mil)"
+# Símbolos longos primeiro: US$ / R$ antes de $ solto.
+_CURRENCY_SPECS: list[tuple[str, str, str]] = [
+    (r"US\$|U\$S|U\$|USD\b", "dólares", "de dólares"),
+    (r"R\$", "reais", "de reais"),
+    (r"€|EUR\b", "euros", "de euros"),
+    (r"£|GBP\b", "libras", "de libras"),
+    (r"(?<![A-Za-z])\$", "dólares", "de dólares"),
+]
+
+
+def _format_spoken_currency(raw_num: str, unit: str | None, simple: str, de: str) -> str:
+    """Monta '{valor} {unidade?} {moeda}' em ordem falada pt-BR."""
+    unit_l = (unit or "").strip().lower()
+    spoken = raw_num
+    if _NUM2WORDS_AVAILABLE:
+        if "," in raw_num:
+            normalized = raw_num.replace(".", "").replace(",", ".")
+        else:
+            normalized = raw_num.replace(".", "")
+        try:
+            val = float(normalized)
+            val_int: int | float = int(val) if val == int(val) else val
+            words = _number_to_words(val_int)
+            if words:
+                spoken = words
+        except ValueError:
+            spoken = raw_num
+    if unit_l in {"milhão", "milhões", "bilhão", "bilhões"}:
+        return f"{spoken} {unit_l} {de}"
+    if unit_l == "mil":
+        return f"{spoken} mil {simple}"
+    return f"{spoken} {simple}"
+
+
 def _normalize_currency(text: str) -> str:
     """
-    Normaliza moeda: R$ 70 milhões → "setenta milhões de reais"
-                     R$ 1.500,00 → "um mil e quinhentos reais"
-                     R$ 400 → "quatrocentos reais"
+    Reescreve símbolo+valor para ordem falada pt-BR.
+    R$ 50 mil → "50 mil reais" (ou "cinquenta mil reais" se num2words).
+    Nunca "reais 50 mil". Vale para US$, $, €, £.
     """
-    # R$ com bilhões/milhões/mil por extenso
-    def _replace_large(match):
-        val_str = match.group(1).replace(".", "").replace(",", ".")
-        multiplier = match.group(2).lower()
-        try:
-            val = float(val_str)
-        except ValueError:
-            return match.group(0)
-        words = _number_to_words(val)
-        mult_map = {"bilhão": "bilhão de reais", "bilhões": "bilhões de reais",
-                    "milhão": "milhão de reais", "milhões": "milhões de reais",
-                    "mil": "mil reais"}
-        suffix = mult_map.get(multiplier, multiplier + " reais")
-        return f"{words} {suffix}"
+    for symbol_re, simple, de in _CURRENCY_SPECS:
+        def _repl(match, simple=simple, de=de):
+            return _format_spoken_currency(match.group(1), match.group(2), simple, de)
 
-    text = re.sub(
-        r"R\$\s*([\d.,]+)\s*(bilhões?|milhões?|mil)",
-        _replace_large, text, flags=re.IGNORECASE
-    )
-
-    # R$ com valor numérico simples (ex: R$ 1.500,00 ou R$ 400)
-    def _replace_simple(match):
-        val_str = match.group(1).replace(".", "").replace(",", ".")
-        try:
-            val = float(val_str)
-            val_int = int(val) if val == int(val) else val
-            words = _number_to_words(val_int)
-            return f"{words} reais"
-        except ValueError:
-            return match.group(0)
-
-    text = re.sub(r"R\$\s*([\d.,]+)", _replace_simple, text)
+        text = re.sub(
+            rf"(?:{symbol_re})\s*([\d.,]*\d)(?:\s*{_CURRENCY_UNIT})?",
+            _repl,
+            text,
+            flags=re.IGNORECASE,
+        )
     return text
 
 
@@ -318,10 +332,11 @@ def _apply_num2words_normalization(text: str) -> str:
     """
     Aplica todas as normalizações num2words em ordem segura.
     Ordem: moeda → data → hora → ano → percentual → números simples.
+    Moeda roda SEMPRE (não depende de num2words): R$ 50 mil → "50 mil reais".
     """
-    if not _NUM2WORDS_AVAILABLE:
-        return text  # Fallback: sem normalização numérica
     text = _normalize_currency(text)
+    if not _NUM2WORDS_AVAILABLE:
+        return text  # Fallback: sem extenso de data/hora/número
     text = _normalize_dates(text)
     text = _normalize_times(text)
     text = _normalize_durations(text)
@@ -404,8 +419,9 @@ MAX_FALA_LENGTH = 400  # caracteres
 
 def _apply_substitutions(text: str) -> str:
     """Aplica todas as substituições de siglas e símbolos."""
-    # Tratar R$ primeiro (antes de processar outros padrões)
-    text = re.sub(r"R\$\s*", "reais ", text)
+    # Moeda em ordem falada pt-BR (R$ 50 mil → 50 mil reais), nunca prefixar.
+    text = _normalize_currency(text)
+    text = re.sub(r"R\$", "reais", text)
 
     # Substituir % mantendo o número anterior
     text = re.sub(r"(\d)\s*%", r"\1 por cento", text)
@@ -868,11 +884,60 @@ def _run_tests():
     assert "S-T-F" in result, f"FALHA: sigla STF não expandida: {result}"
     print("  ✅ Substituição de siglas OK")
 
-    # Teste 2: Substituição de R$
+    # Teste 2: Substituição de R$ — moeda DEPOIS do valor (pt-BR)
     result = _apply_substitutions("Custou R$ 400 milhões.")
     assert "reais" in result, f"FALHA: R$ não substituído: {result}"
     assert "R$" not in result, f"FALHA: R$ ainda presente: {result}"
+    assert "reais 400" not in result.lower(), f"FALHA: moeda prefixada: {result}"
     print("  ✅ Substituição de R$ OK")
+
+    # Teste 2b: ordem falada pt-BR (R$ 50 mil → 50 mil reais, nunca "reais 50 mil")
+    def _assert_currency_order(src: str, must_contain: str, forbidden: str) -> None:
+        for label, out in (
+            ("sub", _apply_substitutions(src)),
+            ("cur", _normalize_currency(src)),
+            ("pre", preprocess_for_tts(src)),
+        ):
+            low = out.lower()
+            assert forbidden not in low, f"FALHA {label}: '{forbidden}' em {out!r} (src={src!r})"
+            assert must_contain in low, f"FALHA {label}: falta '{must_contain}' em {out!r} (src={src!r})"
+
+    _assert_currency_order(
+        "Peter: O prejuízo chegou a R$ 50 mil.",
+        "50 mil reais",
+        "reais 50",
+    )
+    _assert_currency_order(
+        "Ricardo: reembolso de R$ 9,8 mil pelo guincho.",
+        "9,8 mil reais",
+        "reais 9",
+    )
+    _assert_currency_order(
+        "Peter: tarifa de R$ 315.",
+        "315 reais",
+        "reais 315",
+    )
+    _assert_currency_order(
+        "Ricardo: investimento de R$ 3 milhões.",
+        "3 milhões de reais",
+        "reais 3",
+    )
+    _assert_currency_order(
+        "Peter: concurso de R$ 1 milhão.",
+        "1 milhão de reais",
+        "reais 1",
+    )
+    _assert_currency_order(
+        "Ricardo: US$ 350 milhões em subsidiária.",
+        "350 milhões de dólares",
+        "dólares 350",
+    )
+    _assert_currency_order(
+        "Peter: quase € 20 mil.",
+        "20 mil euros",
+        "euros 20",
+    )
+    print("  ✅ Ordem de moeda pt-BR OK")
 
     # Teste 3: Substituição de %
     result = _apply_substitutions("Aumento de 15%")

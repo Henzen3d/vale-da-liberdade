@@ -42,7 +42,7 @@ from gemini_client import GeminiClient, GeminiMultiClient
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
-from tts_preprocessor import preprocess_for_tts
+from tts_preprocessor import preprocess_for_tts, _normalize_currency
 
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv(Path.home() / ".hermes" / ".env", override=False)
@@ -106,7 +106,7 @@ log = logging.getLogger("gemini-tts-multi")
 
 SPEAKERS = {
     "Peter": "Charon",
-    "Ricardo": "Alnilam",
+    "Ricardo": "Aoede",
 }
 
 # Inverso de SPEAKERS: voice_name → speaker (para system_instruction single)
@@ -592,8 +592,13 @@ def sanitize_tts_text(text: str) -> str:
         r"\U0000FE0F\U00002190-\U000021FF]",
         " ", text,
     )
-    text = text.replace("R$", " reais ")
-    text = text.replace("$", " dólares ")
+    # Moeda DEPOIS do valor (pt-BR): R$ 50 mil → "50 mil reais", nunca "reais 50 mil".
+    text = _normalize_currency(text)
+    text = re.sub(r"R\$", " reais ", text)
+    text = re.sub(r"US\$|U\$S|U\$", " dólares ", text)
+    text = re.sub(r"(?<![A-Za-z])\$", " dólares ", text)
+    text = text.replace("€", " euros ")
+    text = text.replace("£", " libras ")
     text = text.replace("%", " por cento ")
     text = text.replace("&", " e ")
     text = text.replace("+", " mais ")
