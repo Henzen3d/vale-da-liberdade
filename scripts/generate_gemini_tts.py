@@ -37,7 +37,7 @@ log = logging.getLogger("gemini-tts")
 
 VOZES = {
     "peter": "Charon",
-    "ricardo": "Alnilam",
+    "ricardo": "Kore",
 }
 
 MAX_RETRIES = 3
@@ -56,7 +56,7 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
 def generate_with_retry(client, prompt, voice_name):
     """Gera áudio através do GeminiClient (que gerencia retries e rate limiting)."""
     response = client.models.generate_content(
-        model="gemini-3.1-flash-tts-preview",
+        model="gemini-2.5-flash-preview-tts",
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],

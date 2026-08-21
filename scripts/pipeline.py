@@ -654,8 +654,8 @@ def cmd_audio(date: str, allow_short: bool = False):
     """Gera áudio TTS multi-locutor para o episódio.
 
     Cadeia de fallback (2026-08-15):
-      1) Gemini multi-TTS (vozes Charon/Schedar)
-      2) Edge TTS pt-BR (tts_fallback_edge.sh, pt-BR-AntonioNeural)
+      1) Gemini multi-TTS (vozes Charon/Kore)
+      2) Edge TTS pt-BR (Peter=AntonioNeural, Ricardo=FranciscaNeural)
       ElevenLabs nunca teve conta — não restaurar tts_fallback_elevenlabs.py;
       se um dia precisar, reescrever. MOSS desabilitado até fine-tune pt-BR.
 

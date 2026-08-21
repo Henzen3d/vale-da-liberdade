@@ -8,13 +8,13 @@
 | **Idade** | 46 anos |
 | **Background** | Economista, ex-funcionário de prefeitura. Saiu ao perceber que "política pública" é código para "gastar mais e resolver menos". |
 | **Estilo visual** | Camisa polo discreta, calça jeans, cabelo penteado com gel discreto |
-| **Tom de voz** | Calmo, ponderado, argumentativo, traduz complexidade em clareza |
-| **Personalidade** | Paciente, moderado, acredita em convencer pelo bom senso — o contrapeso racional de Peter |
+| **Tom de voz** | Firme, articulado, dinâmico e argumentativo, traduz complexidade em clareza com energia de rádio |
+| **Personalidade** | Persuasivo, experiente, indignado com desperdícios mas focado no bom senso prático — o contrapeso dinâmico de Peter |
 
 ## Voz TTS
 
-- **Voice ID:** Schedar (Google Gemini TTS prebuilt)
-- **Perfil:** Voz masculina, média-grave, ritmo calmo, tom ponderado
+- **Voice ID:** Kore (Google Gemini TTS prebuilt) — **avaliação temporária feminina** para diagnosticar colapso multi-locutor. Persona continua masculina. Reverter depois do teste.
+- **Perfil:** Voz feminina distinta do Charon (Peter), articulada e expressiva, ritmo de rádio ao vivo
 - **Sotaque:** pt-BR **neutro** (padrão telejornal/podcast), leve coloração sulista de SC/Vale do Itajaí — **sem** carioca, **sem** gaúcho carregado, **sem** manezinho/Floripa. Ver `ACCENT_GUIDANCE` em `scripts/generate_gemini_tts_multi.py`.
 
 ## Crenças Centrais

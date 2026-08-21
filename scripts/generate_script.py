@@ -51,7 +51,7 @@ PERSONAS = {
     },
     "Ricardo": {
         "style": "comentarista dinâmico, enérgico e vibrante de rádio ao vivo",
-        "voice": "Alnilam",
+        "voice": "Kore",
         "guidelines": [
             "Extremamente animado, dinâmico, vibrante e caloroso; energia contagiante de rádio ao vivo, com ritmo ágil e presença de estúdio",
             "PROIBIDO terminantemente usar linguagem ou tom de assessoria de imprensa, nota oficial ou diário oficial burocrático",

@@ -106,7 +106,7 @@ log = logging.getLogger("gemini-tts-multi")
 
 SPEAKERS = {
     "Peter": "Charon",
-    "Ricardo": "Aoede",
+    "Ricardo": "Kore",  # feminina — avaliação de troca de locutor (não permanente)
 }
 
 # Inverso de SPEAKERS: voice_name → speaker (para system_instruction single)
@@ -499,7 +499,7 @@ def build_system_instruction(speakers: list[str] | None = None) -> str:
     for sp in speakers:
         if sp in SPEAKER_PERSONAS:
             persona_lines.append(f"- {sp} ({SPEAKERS.get(sp, sp)}): {SPEAKER_PERSONAS[sp]}")
-    personas_text = "\n".join(persona_lines) if persona_lines else "- Peter (Charon), Ricardo (Alnilam)"
+    personas_text = "\n".join(persona_lines) if persona_lines else "- Peter (Charon), Ricardo (Kore)"
     return (
         "# Audio Profile\n"
         f"{personas_text}\n\n"
@@ -508,7 +508,7 @@ def build_system_instruction(speakers: list[str] | None = None) -> str:
         "# Director's Notes\n"
         "- Leia o texto EXATAMENTE como fornecido, sem adicionar, remover ou alterar palavras.\n"
         "- Mantenha a troca de turnos natural, como rádio ao vivo; respire nas pausas.\n"
-        "- Atuação de Ricardo (Alnilam): Entusiasmo contagiante de rádio ao vivo, ritmo ágil, variações marcantes de entonação, pausas dramáticas curtas antes de números-chave e abertura de fala com energia elevada. Jamais soar monocórdico, burocrático ou como leitor de notas oficiais.\n"
+        "- Atuação de Ricardo (Kore): voz feminina distinta da de Peter (Charon). Entusiasmo de rádio ao vivo, ritmo ágil, variações de entonação, pausas curtas antes de números-chave. Jamais soar igual ao Peter, monocórdico ou como leitor de notas oficiais.\n"
         f"{ACCENT_GUIDANCE}"
     )
 
@@ -538,7 +538,7 @@ def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None
 
 
 def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str | None = None) -> bytes:
-    """TTS de uma fala com UMA voz pré-definida (Charon/Alnilam).
+    """TTS de uma fala com UMA voz pré-definida (Charon/Kore).
 
     Mais confiável que multi-speaker: o Gemini multi frequentemente colapsa
     em uma única voz no episódio inteiro.
@@ -821,7 +821,7 @@ def _edge_tts_generate_audio(
 # Diferenciação Edge quando Gemini TTS não está disponível
 EDGE_SPEAKER_STYLE = {
     "Peter": {"voice": "pt-BR-AntonioNeural", "rate": "+12%", "pitch": "+0Hz"},
-    "Ricardo": {"voice": "pt-BR-AntonioNeural", "rate": "+6%", "pitch": "+0Hz"},
+    "Ricardo": {"voice": "pt-BR-FranciscaNeural", "rate": "+6%", "pitch": "+0Hz"},
 }
 
 
