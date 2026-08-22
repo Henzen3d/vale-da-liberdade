@@ -1,0 +1,52 @@
+{
+  "id": "bm-video-layout",
+  "aprovado_em": "2026-08-22",
+  "versao": "v6",
+  "commit_referencia": "f99dd8a",
+  "canvas": { "width": 1920, "height": 1080 },
+  "avatar": {
+    "arquivo": "references/youtube/Apresentadores/Peter Albuquerque/Peter-Loop-Picsart-BackgroundRemover.mp4",
+    "fonte_px": { "width": 964, "height": 720, "fps": 30 },
+    "crop": "910:720:54:0",
+    "crop_nota": "1/18 da esquerda (964/18≈54). Não voltar para 1/6 nem 1/9.",
+    "scale": "546:432",
+    "scale_nota": "altura 432 = 720*0.6 (tamanho aprovado)",
+    "overlay": "0:H-h+38",
+    "overlay_nota": "x=0; y desce 38px ≈ 1/7 de 432",
+    "chromakey": "0x007E00:0.10:0.03",
+    "chromakey_nota": "Picsart é #007E00, não #00FF00",
+    "alpha_lut": "if(lt(val,230),0,255)",
+    "ignorar_audio_do_loop": true
+  },
+  "lower_third": {
+    "engine": "youtube/Lower-third-engine/obs-overlay.html",
+    "script": "scripts/faceless_lower_third.py",
+    "preset": "vdl-brasil-mundo",
+    "chromakey": "0x00FF00:0.10:0.22",
+    "na_frente_do_avatar": true,
+    "karaoke": false
+  },
+  "wallpaper": {
+    "pasta": "references/youtube/mockup-browser/wallpaper",
+    "extensoes": [".jpg", ".jpeg", ".png", ".webp"],
+    "excluir": [".gif"],
+    "escolha": "md5(video_id) % n"
+  },
+  "mockup": {
+    "html": "references/youtube/mockup-browser/mockup-brower.html",
+    "param_wallpaper": "wallpaper",
+    "param_page_image": "pageImage"
+  },
+  "youtube": {
+    "privacy": "unlisted",
+    "app_url": "https://news.mob.tec.br",
+    "thumbnail": "thumbnails/YYYY-MM-DD/bm_{id}.jpg",
+    "descricao": ["resumo_abertura", "Ouça no app: https://news.mob.tec.br", "Fontes"],
+    "nao_citar": ["youtube.com", "ancapsu"]
+  },
+  "limites": {
+    "max_por_hora": 1,
+    "janela_dias": 2,
+    "audio_max_s": 480
+  }
+}

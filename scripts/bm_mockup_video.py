@@ -39,6 +39,8 @@ AVATAR_LOOP = (
     / "Peter Albuquerque" / "Peter-Loop-Picsart-BackgroundRemover.mp4"
 )
 # Layout aprovado 2026-08-22 (v6): crop 1/18 esquerdo, escala 0.6, 1/7 abaixo.
+# Spec canônica: docs/BM-VIDEO-LAYOUT.md + docs/bm-video-layout.json — não alterar estes
+# números sem atualizar os dois docs.
 AVATAR_CROP = "910:720:54:0"
 AVATAR_SCALE = "546:432"
 AVATAR_OVERLAY = "0:H-h+38"

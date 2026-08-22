@@ -16,7 +16,10 @@ Leia `CANONICAL.md` e `../AGENT_GUIDE.md` antes de qualquer outro doc.
 | `SKILL.md` | Regras de **voz e roteiro do diário** (Peter/Ricardo, quadros, checklist). **Não** é cópia nem espelho de `~/.hermes/skills/content/web-jornal-production/`. Essa skill Hermes descreve o pipeline operacional de produção; `SKILL.md` na raiz é só editorial do episódio diário. |
 | `pipelines/brasil_e_mundo/SKILL_BRASIL_E_MUNDO.md` | Regras do especial (um narrador, isolado do diário) |
 | `LESSONS_LEARNED.md` | Incidentes e decisões (inclui ago/2026) |
+| `DESIGN.md` | Decisões de design de UI/UX do site (menus, abas, hero, player, tokens, regras anti-regressão) — editável manualmente |
 | `presenters/peter.md` / `presenters/ricardo.md` | Fichas dos apresentadores |
+| `docs/ROTEIRO-NATURALIDADE-MULTILOCUTOR.md` | Relatório + diagramas do pipeline de roteiro/TTS para análise externa (naturalidade + multi-locutor) |
+| `docs/BM-VIDEO-LAYOUT.md` | Layout oficial do vídeo BM (avatar v6, wallpaper, thumbnail, descrição). Restaurar daqui se o compositor sumir. JSON: `docs/bm-video-layout.json` |
 
 Skills Hermes (fora deste repo; não duplicar aqui):
 
