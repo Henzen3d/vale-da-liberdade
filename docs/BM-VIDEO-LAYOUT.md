@@ -55,6 +55,10 @@ Engine: `youtube/Lower-third-engine/obs-overlay.html` via `scripts/faceless_lowe
 - Chromakey do overlay: `#00ff00` (`0x00FF00:0.10:0.22`)
 - Sempre **na frente** do avatar
 - Karaoke palavra-a-palavra: **proibido**
+- **Linha fina:** submanchete de 1 linha (`one_line_subhead`) — primeira frase da abertura, nunca o nome da fonte
+- **Ticker:** título atual + até 6 especiais BM recentes (`ticker_headlines`). Sem URL, sem “FONTE:”
+- **Velocidade:** 55 px/s (antes 150). Grava **1 ciclo completo** do marquee e o ffmpeg loopa nesse ciclo — evita o tranco de 12 s no meio da frase
+- Animação: `translate3d` + `linear`
 
 ## Wallpaper
 

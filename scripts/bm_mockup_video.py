@@ -355,6 +355,79 @@ def episode_summary(episode: dict, limit: int = 380) -> str:
     return cut.rsplit(" ", 1)[0].rstrip(",;") + "…"
 
 
+def _clip_line(text: str, limit: int) -> str:
+    s = re.sub(r"\s+", " ", (text or "")).strip()
+    if len(s) <= limit:
+        return s
+    return s[:limit].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+
+def one_line_subhead(episode: dict, limit: int = 78) -> str:
+    """Linha fina: submanchete de uma linha, nunca o nome da fonte."""
+    title = _unescape((episode.get("titulo") or "").strip())
+    for key in ("submanchete", "linha_fina", "resumo"):
+        v = _unescape(str(episode.get(key) or "")).strip()
+        if v and v.casefold() != title.casefold():
+            return _clip_line(v, limit)
+    blob = episode_summary(episode, limit=240)
+    sent = blob
+    for sep in (". ", "? ", "! "):
+        i = blob.find(sep)
+        if 24 <= i <= 140:
+            sent = blob[:i].strip()
+            break
+    if title and title.casefold() in sent.casefold()[: max(len(title), 12) + 8]:
+        rest = blob[len(sent):].lstrip(".!? ").strip()
+        if rest:
+            sent = rest.split(". ")[0].split("? ")[0].strip()
+    return _clip_line(sent or title, limit)
+
+
+def recent_headlines(exclude_id: str | None = None, limit: int = 6) -> list[str]:
+    """Títulos dos especiais BM mais recentes (para o ticker)."""
+    out: list[str] = []
+    seen: set[str] = set()
+    files = sorted(
+        EPS_DIR.glob("especial-*.json"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    for path in files:
+        vid = path.stem.removeprefix("especial-")
+        if exclude_id and vid == exclude_id:
+            continue
+        try:
+            ep = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        t = _unescape((ep.get("titulo") or "").strip())
+        if not t:
+            continue
+        key = t.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(t.upper())
+        if len(out) >= limit:
+            break
+    return out
+
+
+def ticker_headlines(episode: dict, video_id: str | None = None) -> list[str]:
+    current = _unescape((episode.get("titulo") or "").strip()).upper()
+    items: list[str] = []
+    seen: set[str] = set()
+    for t in ([current] if current else []) + recent_headlines(exclude_id=video_id, limit=6):
+        key = t.casefold()
+        if not t or key in seen:
+            continue
+        seen.add(key)
+        items.append(t)
+        if len(items) >= 7:
+            break
+    return items or ["VALE DA LIBERDADE"]
+
+
 def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
     names = [f"bm_{video_id}.jpg", f"bm_{video_id}.webp", f"bm_{video_id}.png"]
     for base in THUMB_DIRS:
@@ -496,9 +569,8 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
         title = _unescape(episode.get("titulo") or "Brasil e Mundo")
         veiculo = episode.get("fonte_veiculo") or "Brasil e Mundo"
         ymd = episode_date(audio)
-        ticker_items = [title.upper()]
-        for s in scenes:
-            ticker_items.append(f"{s['veiculo'].upper()} — {s['url']}")
+        subhead = one_line_subhead(episode)
+        ticker_items = ticker_headlines(episode, video_id)
         if not scenes:
             scenes = [{"veiculo": veiculo, "url": "https://news.mob.tec.br", "shot": None}]
         per = max(8.0, dur / max(len(scenes), 1))
@@ -519,28 +591,39 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
             page.wait_for_timeout(800)
             started = time.monotonic()
             idx = 0
+            first = True
             while time.monotonic() - started < dur:
                 scene = scenes[idx % len(scenes)]
                 page_image = f"/shots/{scene['shot']}" if scene.get("shot") else ""
-                payload = {
-                    "categoria": "BRASIL E MUNDO",
-                    "titulo": title,
-                    "resumo": f"Fonte: {scene['veiculo']}",
-                    "autor": "Peter Albuquerque",
-                    "data": ymd,
-                    "dataExtenso": ymd,
-                    "url": scene["url"],
-                    "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
-                    "lowerTitle": title,
-                    "lowerSubtitle": scene["veiculo"],
-                    "liveText": "B&M",
-                    "brandSub": "B&M",
-                    "tag": "VALE DA LIBERDADE",
-                    "ticker": ticker_items,
-                    "pageImage": page_image,
-                    "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
-                }
-                page.evaluate("data => window.VDL_MOCKUP && window.VDL_MOCKUP.update(data)", payload)
+                if first:
+                    payload = {
+                        "categoria": "BRASIL E MUNDO",
+                        "titulo": title,
+                        "resumo": subhead,
+                        "autor": "Peter Albuquerque",
+                        "data": ymd,
+                        "dataExtenso": ymd,
+                        "url": scene["url"],
+                        "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
+                        "lowerTitle": title,
+                        "lowerSubtitle": subhead,
+                        "liveText": "B&M",
+                        "brandSub": "B&M",
+                        "tag": "VALE DA LIBERDADE",
+                        "ticker": ticker_items,
+                        "pageImage": page_image,
+                        "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
+                    }
+                    page.evaluate("data => window.VDL_MOCKUP && window.VDL_MOCKUP.update(data)", payload)
+                    first = False
+                else:
+                    page.evaluate(
+                        """({url, pageImage}) => {
+                          if (!window.VDL_MOCKUP) return;
+                          window.VDL_MOCKUP.update({url, pageImage});
+                        }""",
+                        {"url": scene["url"], "pageImage": page_image},
+                    )
                 remain = dur - (time.monotonic() - started)
                 page.wait_for_timeout(int(min(per, remain) * 1000))
                 idx += 1
@@ -584,6 +667,9 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
         from faceless_lower_third import clip_payload, date_from_audio, render_lower_third
 
         title = _unescape(episode.get("titulo") or "Brasil e Mundo")
+        subhead = one_line_subhead(episode)
+        vid = work.name if work.name else None
+        headlines = ticker_headlines(episode, vid)
         payload = clip_payload(
             {
                 "veiculo": episode.get("fonte_veiculo") or "Brasil e Mundo",
@@ -593,6 +679,8 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
             episode_title=title,
             date=date_from_audio(str(audio)) or episode_date(audio),
             kind="bm",
+            subtitle=subhead,
+            ticker=headlines,
         )
         render_lower_third(l3_path, payload, seconds=12.0)
     except Exception as exc:

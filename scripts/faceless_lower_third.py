@@ -17,25 +17,40 @@ def host_of(url: str) -> str:
     return host.removeprefix("www.").removeprefix("www1.")
 
 
-def clip_payload(clip: dict, episode_title: str = "", date: str = "", kind: str = "bm") -> dict:
+def clip_payload(
+    clip: dict,
+    episode_title: str = "",
+    date: str = "",
+    kind: str = "bm",
+    subtitle: str | None = None,
+    ticker: list[str] | str | None = None,
+) -> dict:
     veiculo = (clip.get("veiculo") or host_of(clip.get("url") or "") or "FONTE").strip()
     host = host_of(clip.get("url") or "")
     title = (clip.get("line") or episode_title or clip.get("quadro") or "").strip()
     if len(title) > 88:
         title = title[:85].rstrip() + "…"
     bm = kind != "daily"
+    sub = (subtitle or clip.get("subhead") or clip.get("resumo") or "").strip()
+    if len(sub) > 88:
+        sub = sub[:85].rstrip() + "…"
+    if isinstance(ticker, list):
+        ticker_s = " | ".join(t.strip() for t in ticker if t and str(t).strip())
+    elif ticker:
+        ticker_s = str(ticker)
+    else:
+        ticker_s = title
     return {
         "preset": "vdl-brasil-mundo" if bm else "vdl-diario",
         "eyebrow": "VALE DA LIBERDADE • BRASIL & MUNDO" if bm else "VALE DA LIBERDADE • DIÁRIO REGIONAL",
         "title": title.upper() if title else veiculo.upper(),
-        "subtitle": " · ".join(p for p in (veiculo, host) if p),
+        "subtitle": sub,
         "tag": "BRASIL & MUNDO" if bm else "VALE DA LIBERDADE",
         "live": "ANÁLISE" if bm else "DIÁRIO",
         "date": date or "",
         "showLive": "1",
-        "ticker": " | ".join(
-            t for t in (title, f"FONTE: {veiculo}", host, "VALE DA LIBERDADE") if t
-        ),
+        "ticker": ticker_s,
+        "tickerSpeed": "55",
     }
 
 
@@ -52,6 +67,7 @@ def overlay_url(payload: dict) -> str:
         "date": payload.get("date") or "",
         "showLive": payload.get("showLive") or "1",
         "ticker": payload.get("ticker") or "",
+        "tickerSpeed": str(payload.get("tickerSpeed") or "55"),
     }
     return ENGINE.resolve().as_uri() + "?" + urlencode(q, quote_via=quote)
 
@@ -59,6 +75,10 @@ def overlay_url(payload: dict) -> str:
 def date_from_audio(audio: str) -> str:
     m = re.search(r"(20\d{2}-\d{2}-\d{2})", audio or "")
     return m.group(1) if m else ""
+
+
+TICKER_PX_S = 55
+WIPE_S = 1.7
 
 
 def render_lower_third(dest: Path, payload: dict, seconds: float = 14.0) -> Path:
@@ -69,6 +89,8 @@ def render_lower_third(dest: Path, payload: dict, seconds: float = 14.0) -> Path
 
     url = overlay_url(payload)
     raw = dest.with_name(dest.stem + "_raw.webm")
+    speed = int(payload.get("tickerSpeed") or TICKER_PX_S)
+    cycle_s = 28.0
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         ctx = browser.new_context(
@@ -85,32 +107,45 @@ def render_lower_third(dest: Path, payload: dict, seconds: float = 14.0) -> Path
                 ".lt-bottom-layer{"
                 "box-shadow:0 calc(-1 * var(--lt-layer-gap,7px)) 0 0 #0b0c0e,"
                 "0 4px 12px rgba(0,0,0,.4) !important;}"
+                ".lt-ticker-scroll{backface-visibility:hidden;"
+                "transform:translate3d(0,0,0);}"
             )
         )
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(400)
         try:
-            page.evaluate(
-                """() => {
-                  if (!window.engine) return;
-                  const items = window.engine.currentData.ticker;
-                  if (Array.isArray(items) && items.length) window.engine.setTicker(items, 150);
-                  window.engine.animateIn();
-                }"""
+            cycle_s = float(
+                page.evaluate(
+                    """async (speed) => {
+                      if (!window.engine) return 28;
+                      const items = window.engine.currentData.ticker;
+                      if (Array.isArray(items) && items.length) window.engine.setTicker(items, speed);
+                      window.engine.animateIn();
+                      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+                      const el = document.querySelector('#ltTickerScroll');
+                      if (!el) return 28;
+                      const n = parseFloat(getComputedStyle(el).animationDuration);
+                      return Number.isFinite(n) && n > 6 ? n : 28;
+                    }""",
+                    speed,
+                )
             )
         except Exception:
             pass
-        page.wait_for_timeout(int(max(seconds, 10.0) * 1000))
+        # 1 ciclo completo depois do wipe — o ffmpeg loopa sem salto no ticker
+        hold = WIPE_S + 0.35 + max(cycle_s, 8.0)
+        hold = max(hold, float(seconds))
+        page.wait_for_timeout(int(hold * 1000))
         page.close()
         video = page.video.path() if page.video else None
         ctx.close()
         browser.close()
     if not video or not Path(video).exists():
         raise RuntimeError("lower-third: vídeo não gerado")
-    # corta o wipe-in / tela verde do começo pra o loop não piscar
+    loop_t = max(8.0, min(float(cycle_s), 90.0))
     r = subprocess.run(
         [
-            "ffmpeg", "-y", "-ss", "1.7", "-i", str(video),
-            "-t", "12", "-an", "-c:v", "libvpx", "-crf", "18", "-b:v", "0",
+            "ffmpeg", "-y", "-ss", str(WIPE_S), "-i", str(video),
+            "-t", f"{loop_t:.3f}", "-an", "-c:v", "libvpx", "-crf", "18", "-b:v", "0",
             str(dest),
         ],
         capture_output=True,

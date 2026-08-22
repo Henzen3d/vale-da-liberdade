@@ -15,10 +15,15 @@ def test_clip_payload_bm():
         episode_title="Lula liga para Trump",
         date="2026-08-21",
         kind="bm",
+        subtitle="O telefonema que Brasília não queria ver vazado",
+        ticker=["LULA LIGA PARA TRUMP", "EVERGRANDE NA CHINA", "CASAS BAHIA EM CRISE"],
     )
     assert p["preset"] == "vdl-brasil-mundo"
     assert p["title"].startswith("LULA LIGA")
-    assert "folha.uol.com.br" in p["subtitle"]
+    assert "folha" not in p["subtitle"].lower()
+    assert "telefonema" in p["subtitle"].lower()
+    assert "EVERGRANDE" in p["ticker"]
+    assert p["tickerSpeed"] == "55"
     assert p["date"] == "2026-08-21"
 
 

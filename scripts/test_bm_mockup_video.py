@@ -10,8 +10,10 @@ from bm_mockup_video import (
     find_episode_thumbnail,
     host_kind,
     is_blocked_source_url,
+    one_line_subhead,
     pick_wallpaper,
     source_scenes,
+    ticker_headlines,
 )
 from pathlib import Path
 
@@ -98,6 +100,29 @@ class WallpaperThumbTests(unittest.TestCase):
         if p is None:
             self.skipTest("thumbnail do episódio não está neste checkout")
         self.assertTrue(p.name.startswith("bm_4B3BAjbSseU"))
+
+
+class LowerThirdCopyTests(unittest.TestCase):
+    def test_subhead_is_not_the_source_name(self):
+        ep = {
+            "titulo": "CHINA Culpa DONO da EVERGRANDE",
+            "fonte_veiculo": "CNN Brasil",
+            "abertura": [
+                {"texto": "O Estado chinês jogou o dono da Evergrande na prisão perpétua. A narrativa oficial é fraude."}
+            ],
+        }
+        sub = one_line_subhead(ep)
+        self.assertNotIn("CNN", sub)
+        self.assertNotIn("cnnbrasil", sub.lower())
+        self.assertTrue(len(sub) <= 88)
+        self.assertTrue(len(sub) > 10)
+
+    def test_ticker_starts_with_current_title(self):
+        ep = {"titulo": "Episódio atual de teste do ticker"}
+        items = ticker_headlines(ep, video_id="zzzz-not-real")
+        self.assertTrue(items)
+        self.assertIn("EPISÓDIO ATUAL", items[0])
+        self.assertLessEqual(len(items), 7)
 
 
 if __name__ == "__main__":

@@ -24,7 +24,11 @@
     "preset": "vdl-brasil-mundo",
     "chromakey": "0x00FF00:0.10:0.22",
     "na_frente_do_avatar": true,
-    "karaoke": false
+    "karaoke": false,
+    "linha_fina": "one_line_subhead (abertura, nunca a fonte)",
+    "ticker": "titulo atual + 6 especiais recentes",
+    "ticker_px_s": 55,
+    "loop": "1 ciclo completo do marquee"
   },
   "wallpaper": {
     "pasta": "references/youtube/mockup-browser/wallpaper",
