@@ -78,10 +78,13 @@ def render_lower_third(dest: Path, payload: dict, seconds: float = 14.0) -> Path
         )
         page = ctx.new_page()
         page.goto(url, wait_until="domcontentloaded", timeout=25000)
+        # Não zerar --lt-layer-gap (o motor usa 7px). Pinta o vão pra o key não furar.
         page.add_style_tag(
             content=(
                 "html,body,.obs-stage{background:#00ff00 !important;}"
-                ".lt-root{--lt-layer-gap:0px !important;}"
+                ".lt-bottom-layer{"
+                "box-shadow:0 calc(-1 * var(--lt-layer-gap,7px)) 0 0 #0b0c0e,"
+                "0 4px 12px rgba(0,0,0,.4) !important;}"
             )
         )
         page.wait_for_timeout(500)
