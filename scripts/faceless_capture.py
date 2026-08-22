@@ -109,9 +109,10 @@ def _hide_overlays(page) -> None:
             const fixed = st.position === 'fixed' || st.position === 'sticky';
             const cookieish = t.includes('cookie') && (t.includes('ok') || t.includes('aceit'));
             const payish = t.includes('exclusiv') && t.includes('assinant');
-            if (!fixed && !cookieish) return;
-            if (!cookieish && !payish && !fixed) return;
-            if (!cookieish && !payish) return;
+            const adgate = t.includes('caro leitor') || t.includes('após o anúncio') || t.includes('apos o anuncio');
+            if (!fixed && !cookieish && !adgate) return;
+            if (!cookieish && !payish && !adgate && !fixed) return;
+            if (!cookieish && !payish && !adgate) return;
             const tooBig = el.offsetHeight > innerHeight * 0.92 && el.offsetWidth > innerWidth * 0.92;
             if (tooBig && !fixed) return;
             el.style.setProperty('display', 'none', 'important');
@@ -122,11 +123,77 @@ def _hide_overlays(page) -> None:
     )
 
 
+def plan_scroll(
+    total_s: float,
+    article_bottom: float,
+    footer_top: float | None,
+    viewport_h: float,
+    title_y: float = 0.0,
+) -> tuple[float, float]:
+    """Quanto tempo ficar no topo e até onde rolar (px), sem entrar no rodapé."""
+    hold_s = max(2.5, min(total_s * 0.68, total_s - 1.0))
+    limit = article_bottom
+    if footer_top is not None and footer_top > 0:
+        limit = min(limit, footer_top - 48)
+    # só um nibble abaixo do título — o loop do vídeo recomeça no início
+    cap = max(0.0, title_y) + viewport_h * 0.42
+    max_y = max(0.0, min(limit - viewport_h * 0.88, cap))
+    return hold_s, max_y
+
+
+ARTICLE_METRIC_JS = """() => {
+  const sels = [
+    'article', '.c-news__body', '.news__content', '[itemprop="articleBody"]',
+    '.content-text', 'main article', 'main'
+  ];
+  let el = null;
+  for (const s of sels) { el = document.querySelector(s); if (el) break; }
+  const footer = document.querySelector('footer, [role="contentinfo"], .c-footer, #footer');
+  const h1 = document.querySelector('h1');
+  let relatedY = null;
+  for (const h of document.querySelectorAll('h2, h3, h4')) {
+    const t = (h.innerText || '').toLowerCase();
+    if (/not[ií]cias relacionadas|t[óo]picos|leia tamb[eé]m|mais lidas|coment[aá]rios/.test(t)) {
+      relatedY = h.getBoundingClientRect().top + window.scrollY;
+      break;
+    }
+  }
+  const bottomEl = el || h1;
+  const articleBottom = bottomEl
+    ? bottomEl.getBoundingClientRect().bottom + window.scrollY
+    : document.body.scrollHeight * 0.42;
+  let footerTop = footer ? (footer.getBoundingClientRect().top + window.scrollY) : null;
+  if (relatedY != null) footerTop = footerTop == null ? relatedY : Math.min(footerTop, relatedY);
+  const titleY = (h1 || el)
+    ? ((h1 || el).getBoundingClientRect().top + window.scrollY)
+    : 0;
+  return {articleBottom, footerTop, vh: window.innerHeight, titleY};
+}"""
+
+
 def _slow_scroll(page, seconds: float) -> None:
-    steps = max(6, int(seconds * 3))
+    metrics = page.evaluate(ARTICLE_METRIC_JS)
+    hold_s, max_y = plan_scroll(
+        seconds,
+        float(metrics.get("articleBottom") or 0),
+        metrics.get("footerTop"),
+        float(metrics.get("vh") or 1080),
+        float(metrics.get("titleY") or 0),
+    )
+    title_y = max(0.0, float(metrics.get("titleY") or 0) - 72)
+    page.evaluate(f"window.scrollTo(0, {title_y})")
+    page.wait_for_timeout(int(hold_s * 1000))
+    if max_y <= title_y + 40:
+        page.wait_for_timeout(int(max(0.0, seconds - hold_s) * 1000))
+        return
+    move_s = max(1.0, seconds - hold_s)
+    steps = max(4, int(move_s * 2))
+    delta = (max_y - title_y) / steps
+    y = title_y
     for _ in range(steps):
-        page.evaluate("window.scrollBy(0, Math.max(180, window.innerHeight * 0.28))")
-        page.wait_for_timeout(int(1000 * seconds / steps))
+        y = min(max_y, y + delta)
+        page.evaluate(f"window.scrollTo(0, {y})")
+        page.wait_for_timeout(int(1000 * move_s / steps))
 
 
 def capture_one(url: str, dest: Path, scroll_s: float, timeout_ms: int) -> dict:
@@ -179,7 +246,14 @@ def capture_one(url: str, dest: Path, scroll_s: float, timeout_ms: int) -> dict:
             page.wait_for_timeout(1500)
             _dismiss_cookies(page)
             _hide_overlays(page)
-            page.wait_for_timeout(600)
+            page.wait_for_timeout(400)
+            try:
+                metrics = page.evaluate(ARTICLE_METRIC_JS)
+                title_y = max(0.0, float(metrics.get("titleY") or 0) - 72)
+                page.evaluate(f"window.scrollTo(0, {title_y})")
+            except Exception:
+                pass
+            page.wait_for_timeout(300)
             body = ""
             try:
                 body = page.evaluate("document.body ? document.body.innerText.slice(0, 400) : ''")
@@ -264,7 +338,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Captura scroll das fontes")
     ap.add_argument("--timeline", required=True)
     ap.add_argument("--limit", type=int, default=None)
-    ap.add_argument("--scroll-seconds", type=float, default=8.0)
+    ap.add_argument("--scroll-seconds", type=float, default=12.0)
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
     capture_timeline(Path(args.timeline), args.limit, args.scroll_seconds, args.force)
