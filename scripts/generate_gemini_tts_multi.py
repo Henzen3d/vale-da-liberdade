@@ -159,8 +159,9 @@ SPEAKER_PERSONAS = {
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 5  # segundos
 CHUNK_TARGET_WORDS = 300  # ~5 chunks p/ 1500 palavras → cabe nos 10 RPD/chave; 3 keys × RR ≈ 30 RPD efetivos
-DEFAULT_TTS_MODEL = "gemini-3.1-flash-tts-preview"
-# Modelo override em runtime via --model (ex.: BM usa gemini-2.5-flash-preview-tts)
+DEFAULT_TTS_MODEL = "gemini-2.5-flash-preview-tts"
+# Default = Diário multi-locutor. BM (Peter solo) sobrescreve com
+# --model gemini-3.1-flash-tts-preview em bm_pipeline.step_audio.
 TTS_MODEL = DEFAULT_TTS_MODEL
 
 # Duração dos silêncios (em segundos)
@@ -1052,8 +1053,8 @@ def main():
         "--model",
         default=None,
         help=(
-            "Modelo TTS Gemini (default: gemini-3.1-flash-tts-preview). "
-            "Ex. BM: gemini-2.5-flash-preview-tts"
+            "Modelo TTS Gemini (default: gemini-2.5-flash-preview-tts, Diário). "
+            "BM Peter solo: gemini-3.1-flash-tts-preview"
         ),
     )
     parser.add_argument(

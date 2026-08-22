@@ -278,7 +278,7 @@ Isolado do diário. Regras em `pipelines/brasil_e_mundo/SKILL_BRASIL_E_MUNDO.md`
 | 1/5 | Transcrição | `bm_transcript.py` |
 | 2/5 | Condensação LLM | `bm_condensador.py` |
 | 3/5 | Pré-TTS | `tts_preprocessor.preprocess_for_tts` |
-| 4/5 | Áudio Peter | `generate_gemini_tts_multi.py --single-speaker Peter --model gemini-2.5-flash-preview-tts` |
+| 4/5 | Áudio Peter | `generate_gemini_tts_multi.py --single-speaker Peter --model gemini-3.1-flash-tts-preview` |
 | 4.5 | Thumbnail | `thumbnail_generator` id `bm_{video_id}` — data **do nome do MP3**, não `now()` |
 | 5 | Feed RSS B&M + persona | `step_publish_feed` + `bm_persona_watch.py` |
 | 6 | R2 + catálogo | `upload_r2.py --date especial-{id}` depois `publish_site.py`. Se R2 falha, **não** publica (evita URL local no catálogo) |
@@ -371,7 +371,7 @@ CLI: `full | process-queue | transcript | roteiro | audio`.
 #### `scripts/generate_gemini_tts_multi.py` — ATIVO (TTS real)
 
 - **Path:** `/home/osmar/web-jornal-vale-da-liberdade/scripts/generate_gemini_tts_multi.py` (1382 linhas)
-- **Propósito:** Multi-locutor. Peter=`Charon`, Ricardo=`Schedar`. Default `gemini-3.1-flash-tts-preview`. Chunks em `[PAUSA]` / `[PAUSA_CURTA]`. B&M: `--single-speaker Peter --mode halves --model gemini-2.5-flash-preview-tts`.
+- **Propósito:** Multi-locutor. Peter=`Charon`, Ricardo=`Kore`. Default `gemini-2.5-flash-preview-tts` (Diário PACKED). B&M: `--single-speaker Peter --mode halves --model gemini-3.1-flash-tts-preview`. Chunks em `[PAUSA]` / `[PAUSA_CURTA]`.
 - **Pós ffmpeg:** loudnorm EBU R128 2 passos (−16 LUFS), highpass 80 Hz, compressor, EQ, 44.1 kHz, MP3 192k.
 - **Deps:** `gemini_client`, `google`, `tts_preprocessor`, `dotenv`, `edge_tts` (fallback **interno** `pt-BR-AntonioNeural`), `ffmpeg`.
 - **Limitações:** RPD 10 do 3.1 estoura com frequência (handoff 15/08). Edge interno existe neste arquivo; o `tts_fallback_edge.sh` **externo** não.

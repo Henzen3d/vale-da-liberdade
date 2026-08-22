@@ -189,8 +189,8 @@ def step_audio(video_id: str) -> bool:
 
     tts_script = SCRIPT_DIR / "generate_gemini_tts_multi.py"
 
-    # Tentar Gemini TTS (single speaker Peter) — modelo 2.5 para BM (mesma cota RPD,
-    # isola o budget do diário que usa 3.1; disponível nas 3 keys do projeto)
+    # Tentar Gemini TTS (single speaker Peter) — 3.1 no BM (Peter solo);
+    # o Diário multi-locutor fica no 2.5 (default do generate_gemini_tts_multi).
     ok = run_step(
         [PY, str(tts_script),
          "--episode", str(tts_path),
@@ -198,9 +198,9 @@ def step_audio(video_id: str) -> bool:
          "--speakers", "Peter",
          "--single-speaker", "Peter",
          "--mode", "halves",
-         "--model", "gemini-2.5-flash-preview-tts",
+         "--model", "gemini-3.1-flash-tts-preview",
          "--skip-preprocess"],
-        "Geração TTS Gemini 2.5 (voz Peter/Charon) — BM",
+        "Geração TTS Gemini 3.1 (voz Peter/Charon) — BM",
     )
 
     # Verificar se MP3 foi gerado pelo pós-processamento do TTS

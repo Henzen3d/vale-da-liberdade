@@ -15,8 +15,8 @@ Dois produtos de áudio:
 
 | Produto | Locutores | Modelo TTS | Script |
 |---|---|---|---|
-| **Diário** (Blumenau e região) | Peter + Ricardo, diálogo | `gemini-3.1-flash-tts-preview` multi-speaker | `scripts/pipeline.py full` → `generate_gemini_tts_multi.py` modo **PACKED** |
-| **Brasil e Mundo** (ANCAPSU) | Peter solo | `gemini-2.5-flash-preview-tts` single | `scripts/bm_pipeline.py` → mesmo `generate_gemini_tts_multi.py` com `--single-speaker Peter --mode halves` |
+| **Diário** (Blumenau e região) | Peter + Ricardo, diálogo | `gemini-2.5-flash-preview-tts` multi-speaker | `scripts/pipeline.py full` → `generate_gemini_tts_multi.py` modo **PACKED** |
+| **Brasil e Mundo** (ANCAPSU) | Peter solo | `gemini-3.1-flash-tts-preview` single | `scripts/bm_pipeline.py` → mesmo `generate_gemini_tts_multi.py` com `--single-speaker Peter --mode halves` |
 
 O problema de “mesma voz” é do **Diário**. BM é um locutor só (Charon). Não misturar os dois pipelines na análise.
 
@@ -253,7 +253,7 @@ Ordem sugerida (áudio):
    - Dois modelos/vozes e mix ffmpeg.
 3. Edge: vozes **diferentes** (feito nesta avaliação) + opcional `ricardo_voice_fx.py`.
 4. FX ffmpeg **por locutor** se voltar a TURNS/híbrido (hoje o FX é no mix final).
-5. Não gastar cota do Diário (`gemini-3.1-flash-tts-preview`) no BM; BM já deve estar em `gemini-2.5-flash-preview-tts`.
+5. Cota: Diário usa `gemini-2.5-flash-preview-tts`; BM (Peter) usa `gemini-3.1-flash-tts-preview`. Cotas são por modelo — não misturar.
 
 Restrições de cota (não ignorar numa proposta):
 
@@ -314,7 +314,8 @@ Python do cron: `/home/osmar/.hermes/hermes-agent/venv/bin/python3` (não o pyth
 
 | Chave | Valor |
 |---|---|
-| Modelo Diário | `gemini-3.1-flash-tts-preview` |
+| Modelo Diário | `gemini-2.5-flash-preview-tts` |
+| Modelo BM (Peter) | `gemini-3.1-flash-tts-preview` |
 | Modo Diário | PACKED (chunks) |
 | `TTS_TEMPERATURE` | 0.90 global |
 | `CHUNK_TARGET_WORDS` | ver constante no multi (não confiar em comentários velhos) |

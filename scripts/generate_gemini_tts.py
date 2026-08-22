@@ -56,7 +56,7 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
 def generate_with_retry(client, prompt, voice_name):
     """Gera áudio através do GeminiClient (que gerencia retries e rate limiting)."""
     response = client.models.generate_content(
-        model="gemini-2.5-flash-preview-tts",
+        model="gemini-3.1-flash-tts-preview",
         contents=prompt,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],

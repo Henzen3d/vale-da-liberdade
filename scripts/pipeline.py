@@ -709,8 +709,9 @@ def cmd_audio(date: str, allow_short: bool = False):
         "--episode", str(tts_path),
         "--out", str(out_path),
         "--skip-preprocess",
+        "--model", "gemini-2.5-flash-preview-tts",
     ]
-    print(f"\n🎙️  Gerando áudio multi-locutor (Gemini)...")
+    print(f"\n🎙️  Gerando áudio multi-locutor (Gemini 2.5)...")
     print(f"   Python: {py}")
     print(f"   Input: {tts_path}")
     print(f"   Output: {out_path}")
