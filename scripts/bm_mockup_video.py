@@ -15,6 +15,7 @@ Fluxo:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html as _html
 import json
 import re
@@ -26,17 +27,28 @@ import time
 from datetime import datetime, timedelta
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_DIR = ROOT / "scripts"
 MOCKUP_DIR = ROOT / "references" / "youtube" / "mockup-browser"
 MOCKUP_HTML = "mockup-brower.html"  # typo histórico no arquivo
+WALLPAPER_DIR = MOCKUP_DIR / "wallpaper"
+AVATAR_LOOP = (
+    ROOT / "references" / "youtube" / "Apresentadores"
+    / "Peter Albuquerque" / "Peter-Loop-Picsart-BackgroundRemover.mp4"
+)
+# Layout aprovado 2026-08-22 (v6): crop 1/18 esquerdo, escala 0.6, 1/7 abaixo.
+AVATAR_CROP = "910:720:54:0"
+AVATAR_SCALE = "546:432"
+AVATAR_OVERLAY = "0:H-h+38"
+APP_URL = "https://news.mob.tec.br"
 EPS_DIR = ROOT / "output" / "brasil_e_mundo" / "episodes"
 AUDIO_DIR = ROOT / "output" / "brasil_e_mundo" / "audio"
 VIDEOS_OUT = ROOT / "output" / "videos"
 STATE_PATH = ROOT / "output" / "brasil_e_mundo" / "videos_published.json"
 WORK_ROOT = ROOT / "output" / "brasil_e_mundo" / "mockup_video"
+THUMB_DIRS = (ROOT / "thumbnails", ROOT / "public" / "thumbnails")
 
 MAX_DURATION_S = 480.0
 MAX_PER_RUN = 1
@@ -46,7 +58,12 @@ UA = (
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 FIXED_TAGS = ("Brasil e Mundo", "Vale da Liberdade", "notícias", "comentário")
-DESC_TEMPLATE = "Comentário de {data} sobre {veiculo}.\n\nFontes:\n{refs}\n\n#BrasilEMundo #{tags}\n"
+DESC_TEMPLATE = (
+    "{summary}\n\n"
+    "Ouça no app: {app}\n\n"
+    "Fontes:\n{refs}\n\n"
+    "#BrasilEMundo #{tags}\n"
+)
 
 
 def _unescape(s: str) -> str:
@@ -293,6 +310,60 @@ def source_scenes(episode: dict, max_sources: int = 4) -> list[dict]:
     return scenes
 
 
+def list_wallpapers() -> list[Path]:
+    if not WALLPAPER_DIR.is_dir():
+        return []
+    out: list[Path] = []
+    for p in sorted(WALLPAPER_DIR.iterdir(), key=lambda x: x.name.lower()):
+        if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}:
+            out.append(p)
+    return out
+
+
+def pick_wallpaper(video_id: str) -> Path | None:
+    files = list_wallpapers()
+    if not files:
+        return None
+    idx = int(hashlib.md5((video_id or "").encode("utf-8")).hexdigest(), 16) % len(files)
+    return files[idx]
+
+
+def episode_summary(episode: dict, limit: int = 380) -> str:
+    chunks: list[str] = []
+    for key in ("abertura", "desenvolvimento"):
+        for block in episode.get(key) or []:
+            t = _unescape((block.get("texto") or "").strip())
+            if t:
+                chunks.append(t)
+            if sum(len(c) for c in chunks) > limit:
+                break
+        if chunks:
+            break
+    text = " ".join(chunks).strip()
+    if not text:
+        title = _unescape((episode.get("titulo") or "").strip())
+        return f"Comentário de Peter Albuquerque sobre {title}." if title else ""
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    for sep in (". ", "! ", "? "):
+        i = cut.rfind(sep)
+        if i > 120:
+            return cut[: i + 1].strip()
+    return cut.rsplit(" ", 1)[0].rstrip(",;") + "…"
+
+
+def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
+    names = [f"bm_{video_id}.jpg", f"bm_{video_id}.webp", f"bm_{video_id}.png"]
+    for base in THUMB_DIRS:
+        folder = base / ymd
+        for name in names:
+            cand = folder / name
+            if cand.is_file() and cand.stat().st_size > 2000:
+                return cand
+    return None
+
+
 def build_metadata(video_id: str, episode: dict, audio: Path) -> tuple[str, str, list[str]]:
     title = _unescape((episode.get("titulo") or "").strip()) or f"Brasil & Mundo — Comentário ({video_id})"
     tags = list(FIXED_TAGS)
@@ -306,10 +377,13 @@ def build_metadata(video_id: str, episode: dict, audio: Path) -> tuple[str, str,
             continue
         refs_ok.append(f"{rv}: {ru}" if rv else ru)
     ymd = episode_date(audio)
-    y, mo, d = ymd.split("-")
+    summary = episode_summary(episode)
+    if not summary:
+        y, mo, d = ymd.split("-")
+        summary = f"Comentário de {d}/{mo}/{y} sobre {veiculo or 'a pauta do dia'}."
     desc = DESC_TEMPLATE.format(
-        data=f"{d}/{mo}/{y}",
-        veiculo=veiculo or "a pauta do dia",
+        summary=summary,
+        app=APP_URL,
         refs="\n".join(refs_ok) if refs_ok else "—",
         tags=" ".join(t.replace(" ", "") for t in tags if t),
     )
@@ -409,7 +483,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     return out or scenes
 
 
-def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict], work: Path) -> Path:
+def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict], work: Path, wallpaper: Path | None = None) -> Path:
     from playwright.sync_api import sync_playwright
 
     rec_dir = work / "rec"
@@ -462,6 +536,7 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
                     "tag": "VALE DA LIBERDADE",
                     "ticker": ticker_items,
                     "pageImage": page_image,
+                    "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
                 }
                 page.evaluate("data => window.VDL_MOCKUP && window.VDL_MOCKUP.update(data)", payload)
                 remain = dur - (time.monotonic() - started)
@@ -496,6 +571,85 @@ def mux_video(raw: Path, audio: Path, dest: Path) -> Path:
     return dest
 
 
+def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) -> Path:
+    """Sobre o mockup: avatar aprovado + lower third na frente. Falha não derruba o mp4 base."""
+    if not AVATAR_LOOP.is_file():
+        print("  ⚠️  avatar loop ausente — segue sem apresentador")
+        return base_mp4
+    dest = base_mp4.with_name(base_mp4.stem + "-onair.mp4")
+    l3_path = work / "lower-third.webm"
+    try:
+        from faceless_lower_third import clip_payload, date_from_audio, render_lower_third
+
+        title = _unescape(episode.get("titulo") or "Brasil e Mundo")
+        payload = clip_payload(
+            {
+                "veiculo": episode.get("fonte_veiculo") or "Brasil e Mundo",
+                "url": APP_URL,
+                "line": title,
+            },
+            episode_title=title,
+            date=date_from_audio(str(audio)) or episode_date(audio),
+            kind="bm",
+        )
+        render_lower_third(l3_path, payload, seconds=12.0)
+    except Exception as exc:
+        print(f"  ⚠️  lower-third falhou ({exc}); overlay só do avatar")
+        l3_path = None
+
+    vf_avatar = (
+        f"[1:v]crop={AVATAR_CROP},format=rgba,"
+        f"colorkey=0x007E00:0.10:0.03,lut=a='if(lt(val\\,230)\\,0\\,255)',"
+        f"scale={AVATAR_SCALE}:flags=lanczos[av];"
+        f"[0:v][av]overlay={AVATAR_OVERLAY}:format=auto:shortest=1"
+    )
+    inputs = ["-i", str(base_mp4), "-stream_loop", "-1", "-i", str(AVATAR_LOOP)]
+    if l3_path and l3_path.is_file():
+        inputs += ["-stream_loop", "-1", "-i", str(l3_path)]
+        filter_complex = (
+            vf_avatar + "[base];"
+            "[2:v]format=yuva444p,colorkey=0x00FF00:0.10:0.22,"
+            "despill=type=green:mix=0.45:expand=0[l3];"
+            "[base][l3]overlay=0:0:shortest=1,format=yuv420p[v]"
+        )
+    else:
+        filter_complex = vf_avatar + ",format=yuv420p[v]"
+
+    cmd = [
+        "ffmpeg", "-y",
+        *inputs,
+        "-filter_complex", filter_complex,
+        "-map", "[v]", "-map", "0:a",
+        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
+        "-c:a", "copy",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0 or not dest.exists():
+        print(f"  ⚠️  compose apresentador falhou; usa mockup puro: {(r.stderr or '')[-300:]}")
+        return base_mp4
+    print(f"  ✅ apresentador {dest.name} ({dest.stat().st_size // 1024} KB)")
+    return dest
+
+
+def set_youtube_thumbnail(yt_id: str, image: Path) -> bool:
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "youtube_uploader.py"),
+        "thumbnail",
+        "--video-id", yt_id,
+        "--image", str(image),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    if r.returncode != 0:
+        print(f"  ⚠️  thumbnail: {(r.stderr or r.stdout or '')[-240:]}")
+        return False
+    print(f"  ✅ thumbnail {image.name}")
+    return True
+
+
 def publish_youtube(mp4: Path, title: str, desc: str, tags: list[str], privacy: str) -> str:
     up = [
         sys.executable,
@@ -528,10 +682,21 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
 
     title, desc, tags = build_metadata(video_id, episode, audio)
     scenes = source_scenes(episode)
+    wallpaper = pick_wallpaper(video_id)
     print(f"🎬 {video_id} · {dur:.0f}s · {title}")
     print(f"   fontes: {len(scenes)} · upload={upload} privacy={privacy}")
+    if wallpaper:
+        print(f"   wallpaper: {wallpaper.name}")
     if dry_run:
-        return {"video_id": video_id, "title": title, "scenes": scenes, "dry_run": True}
+        return {
+            "video_id": video_id,
+            "title": title,
+            "scenes": scenes,
+            "wallpaper": wallpaper.name if wallpaper else None,
+            "thumb": str(find_episode_thumbnail(video_id, episode_date(audio)) or ""),
+            "desc": desc,
+            "dry_run": True,
+        }
 
     work = WORK_ROOT / video_id
     shots = work / "shots"
@@ -543,10 +708,11 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
                 p.unlink()
     shots.mkdir(parents=True, exist_ok=True)
     captured = capture_sources(scenes, shots) if scenes else []
-    raw = record_mockup(video_id, episode, audio, captured or scenes, work)
+    raw = record_mockup(video_id, episode, audio, captured or scenes, work, wallpaper=wallpaper)
     mp4 = VIDEOS_OUT / f"especial-{video_id}-mockup.mp4"
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
+    mp4 = compose_presenter(mp4, episode, audio, work)
 
     result = {
         "video_id": video_id,
@@ -558,6 +724,11 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
         yt_id = publish_youtube(mp4, title, desc, tags, privacy)
         result["yt_id"] = yt_id
         result["url"] = f"https://youtu.be/{yt_id}"
+        thumb = find_episode_thumbnail(video_id, episode_date(audio))
+        if thumb:
+            set_youtube_thumbnail(yt_id, thumb)
+        else:
+            print("  ⚠️  sem thumbnail bm_* do episódio")
         state = load_state()
         state.setdefault("videos", {})[video_id] = {
             "yt_id": yt_id,
@@ -566,6 +737,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
             "data": episode_date(audio),
             "published_at": datetime.now().isoformat(),
             "engine": "mockup-browser",
+            "wallpaper": wallpaper.name if wallpaper else None,
         }
         save_state(state)
         print(f"  ✅ YouTube {result['url']}")

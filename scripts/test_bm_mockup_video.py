@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import unittest
 
-from bm_mockup_video import build_metadata, host_kind, is_blocked_source_url, source_scenes
+from bm_mockup_video import (
+    build_metadata,
+    episode_summary,
+    find_episode_thumbnail,
+    host_kind,
+    is_blocked_source_url,
+    pick_wallpaper,
+    source_scenes,
+)
 from pathlib import Path
 
 
@@ -38,6 +46,9 @@ class MetadataTests(unittest.TestCase):
             "titulo": "China culpa dono da Evergrande",
             "fonte_veiculo": "CNN Brasil",
             "tags": ["economia"],
+            "abertura": [
+                {"speaker": "Peter", "texto": "O Estado chinês condenou o dono da Evergrande. A narrativa oficial é fraude."}
+            ],
             "fonte_referencias": [
                 {"veiculo": "ANCAPSU", "url": "https://www.youtube.com/watch?v=4B3BAjbSseU"},
                 {"veiculo": "CNN Brasil", "url": "https://www.cnnbrasil.com.br/economia/evergrande/"},
@@ -49,6 +60,8 @@ class MetadataTests(unittest.TestCase):
         self.assertNotIn("youtube.com", desc.lower())
         self.assertNotIn("ancapsu", desc.lower())
         self.assertIn("cnnbrasil.com.br", desc)
+        self.assertIn("news.mob.tec.br", desc)
+        self.assertIn("narrativa oficial é fraude", desc)
         self.assertIn("economia", tags)
 
 
@@ -59,6 +72,32 @@ class HostPrepareTests(unittest.TestCase):
         self.assertEqual(host_kind("https://www.bbc.co.uk/news"), "bbc")
         self.assertEqual(host_kind("https://g1.globo.com/politica/noticia/x.ghtml"), "g1")
         self.assertEqual(host_kind("https://www.cnnbrasil.com.br/x"), "generic")
+
+
+class WallpaperThumbTests(unittest.TestCase):
+    def test_pick_wallpaper_is_deterministic(self):
+        a = pick_wallpaper("4B3BAjbSseU")
+        b = pick_wallpaper("4B3BAjbSseU")
+        c = pick_wallpaper("90v4O6Lx4hg")
+        if a is None:
+            self.skipTest("pasta wallpaper vazia neste checkout")
+        self.assertEqual(a, b)
+        self.assertNotEqual(a.suffix.lower(), ".gif")
+        if c is not None:
+            # ids diferentes quase sempre caem em arquivos diferentes
+            self.assertTrue(a.exists())
+
+    def test_summary_uses_abertura(self):
+        ep = {"abertura": [{"texto": "Primeira frase. Segunda frase longa sobre o caso."}]}
+        s = episode_summary(ep, limit=80)
+        self.assertTrue(s.startswith("Primeira frase."))
+        self.assertNotIn("youtube", s.lower())
+
+    def test_find_thumbnail_for_known_episode(self):
+        p = find_episode_thumbnail("4B3BAjbSseU", "2026-08-22")
+        if p is None:
+            self.skipTest("thumbnail do episódio não está neste checkout")
+        self.assertTrue(p.name.startswith("bm_4B3BAjbSseU"))
 
 
 if __name__ == "__main__":
