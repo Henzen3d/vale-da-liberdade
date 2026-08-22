@@ -57,6 +57,7 @@ class HostPrepareTests(unittest.TestCase):
         self.assertEqual(host_kind("https://www.instagram.com/lito/"), "instagram")
         self.assertEqual(host_kind("https://www.bbc.com/portuguese/articles/cwy"), "bbc")
         self.assertEqual(host_kind("https://www.bbc.co.uk/news"), "bbc")
+        self.assertEqual(host_kind("https://g1.globo.com/politica/noticia/x.ghtml"), "g1")
         self.assertEqual(host_kind("https://www.cnnbrasil.com.br/x"), "generic")
 
 

@@ -91,6 +91,8 @@ def host_kind(url: str) -> str:
         return "instagram"
     if "bbc." in host or host.endswith("bbc.co.uk") or host.endswith("bbc.com"):
         return "bbc"
+    if host.startswith("g1.") or host.endswith("g1.globo.com") or host == "g1.globo.com":
+        return "g1"
     return "generic"
 
 
@@ -124,8 +126,10 @@ _PREPARE_JS = """({kind}) => {
     el.style.setProperty('pointer-events', 'none', 'important');
   };
 
-  // Placeholders vazios (hero cinza da BBC quando a imagem não carrega).
-  document.querySelectorAll('figure, picture, [data-testid="image"], [data-component="image-block"]').forEach(el => {
+  // Placeholders vazios (hero cinza da BBC / branco do G1 quando a imagem não carrega).
+  document.querySelectorAll(
+    'figure, picture, [data-testid="image"], [data-component="image-block"], .content-media, .content-featured-image, [class*="media-container"]'
+  ).forEach(el => {
     const img = el.querySelector('img');
     const r = el.getBoundingClientRect();
     const emptyImg = !img || !img.naturalWidth;
@@ -144,15 +148,44 @@ _PREPARE_JS = """({kind}) => {
   document.documentElement.style.overflow = 'auto';
   if (document.body) document.body.style.overflow = 'auto';
 
-  const h1 = document.querySelector('h1, [role="main"] h1, article h1');
+  const h1s = Array.from(document.querySelectorAll('h1')).sort(
+    (a, b) => ((b.innerText || '').trim().length) - ((a.innerText || '').trim().length)
+  );
+  const h1 = h1s[0] || document.querySelector('[role="main"] h1, article h1');
+
   if (h1) {
-    const y = h1.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo(0, Math.max(0, y - 16));
-    return {scrolledTo: 'h1', y: Math.max(0, y - 16)};
+    const ty = h1.getBoundingClientRect().top;
+    document.querySelectorAll('div, figure, section, aside').forEach(el => {
+      if (el.contains(h1) || h1.contains(el)) return;
+      const r = el.getBoundingClientRect();
+      if (r.height < 100 || r.width < 240) return;
+      if (r.bottom <= 8 || r.top >= ty - 4) return;
+      const txt = (el.innerText || '').trim();
+      if (txt.length > 40) return;
+      const img = el.querySelector('img');
+      if (img && img.naturalWidth > 10) return;
+      hide(el);
+    });
   }
-  if (kind === 'bbc') {
-    window.scrollBy(0, 280);
-    return {scrolledTo: 'bbc-fallback', y: 280};
+
+  let sticky = 0;
+  document.querySelectorAll('header, nav, [class*="header"]').forEach(el => {
+    const st = getComputedStyle(el);
+    const r = el.getBoundingClientRect();
+    if ((st.position === 'fixed' || st.position === 'sticky') && r.top < 90 && r.height < 160) {
+      sticky = Math.max(sticky, r.bottom);
+    }
+  });
+
+  if (h1) {
+    const y = h1.getBoundingClientRect().top + window.scrollY - sticky - 8;
+    window.scrollTo(0, Math.max(0, y));
+    return {scrolledTo: 'h1', y: Math.max(0, y), sticky, kind};
+  }
+  if (kind === 'bbc' || kind === 'g1') {
+    const fallback = kind === 'g1' ? 360 : 280;
+    window.scrollBy(0, fallback);
+    return {scrolledTo: kind + '-fallback', y: fallback};
   }
   return {scrolledTo: 'none', y: 0};
 }"""
