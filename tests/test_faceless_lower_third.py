@@ -6,24 +6,40 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from faceless_lower_third import clip_copy, overlay_filter, template_url  # noqa: E402
+from faceless_lower_third import clip_payload, overlay_filter, overlay_url  # noqa: E402
 
 
-def test_clip_copy_uses_veiculo_and_host():
-    k, line, src = clip_copy(
-        {"veiculo": "Folha", "url": "https://www1.folha.uol.com.br/colunas/x.shtml", "quadro": "abertura"},
+def test_clip_payload_bm():
+    p = clip_payload(
+        {"veiculo": "Folha", "url": "https://www1.folha.uol.com.br/colunas/x.shtml"},
         episode_title="Lula liga para Trump",
+        date="2026-08-21",
+        kind="bm",
     )
-    assert k == "FOLHA"
-    assert line == "Lula liga para Trump"
-    assert src == "folha.uol.com.br"
+    assert p["preset"] == "vdl-brasil-mundo"
+    assert p["title"].startswith("LULA LIGA")
+    assert "folha.uol.com.br" in p["subtitle"]
+    assert p["date"] == "2026-08-21"
 
 
-def test_template_url_points_at_branding_html():
-    url = template_url("CNN BRASIL", "Reunião", "cnnbrasil.com.br")
+def test_overlay_url_points_at_engine():
+    url = overlay_url(
+        {
+            "preset": "vdl-brasil-mundo",
+            "title": "TESTE",
+            "subtitle": "Folha",
+            "eyebrow": "BRASIL",
+            "tag": "BRASIL & MUNDO",
+            "live": "ANÁLISE",
+            "date": "2026-08-21",
+            "showLive": "1",
+            "ticker": "A | B",
+        }
+    )
     assert url.startswith("file://")
-    assert "lower-third/index.html?" in url
-    assert "kicker=CNN%20BRASIL" in url
+    assert "Lower-third-engine/obs-overlay.html?" in url
+    assert "preset=vdl-brasil-mundo" in url
+    assert "title=TESTE" in url
 
 
 def test_overlay_filter_uses_chromakey():

@@ -139,12 +139,17 @@ def compose(timeline_path: Path, out: Path, max_seconds: float | None, lower_thi
             part = td_path / f"p{i:03d}.mp4"
             if lower_third:
                 try:
-                    from faceless_lower_third import clip_copy, render_lower_third
+                    from faceless_lower_third import clip_payload, date_from_audio, render_lower_third
 
                     title = data.get("titulo") or ""
-                    kicker, line, src = clip_copy(clip, title)
+                    payload = clip_payload(
+                        clip,
+                        title,
+                        date=date_from_audio(str(data.get("audio") or "")),
+                        kind=data.get("kind") or "bm",
+                    )
                     l3 = td_path / f"l3_{i:03d}.webm"
-                    render_lower_third(l3, kicker, line, src)
+                    render_lower_third(l3, payload)
                     _overlay_l3(raw, l3, part)
                 except Exception as e:
                     print(f"  ⚠ lower-third falhou ({e}); segue sem faixa")
