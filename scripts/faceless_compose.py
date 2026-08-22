@@ -109,7 +109,29 @@ def _overlay_l3(part: Path, l3: Path, dest: Path) -> None:
     )
 
 
-def compose(timeline_path: Path, out: Path, max_seconds: float | None, lower_third: bool = False) -> Path:
+def _place_on_desktop(site: Path, page_url: str, dest: Path, work: Path, seconds: float) -> None:
+    from faceless_desktop import desktop_filter, render_chrome_png, write_wallpaper
+
+    host = page_url or "fonte"
+    wall = write_wallpaper(work / "wall.png", host)
+    chrome = render_chrome_png(work / "chrome.png", page_url)
+    dur = f"{max(seconds, 0.3):.3f}"
+    run(
+        [
+            "ffmpeg", "-y",
+            "-i", str(site),
+            "-loop", "1", "-t", dur, "-i", str(wall),
+            "-loop", "1", "-t", dur, "-i", str(chrome),
+            "-filter_complex", desktop_filter(),
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+            "-t", dur,
+            str(dest),
+        ],
+        f"desktop {dest.name}",
+    )
+
+
+def compose(timeline_path: Path, out: Path, max_seconds: float | None, lower_third: bool = False, desktop: bool = False) -> Path:
     data = json.loads(timeline_path.read_text(encoding="utf-8"))
     audio = Path(data["audio"])
     if not audio.exists():
@@ -138,6 +160,13 @@ def compose(timeline_path: Path, out: Path, max_seconds: float | None, lower_thi
                 _render_loop(visual, raw, seconds)
             else:
                 _render_hold(visual, raw, seconds)
+            if desktop:
+                framed = td_path / f"p{i:03d}_desk.mp4"
+                try:
+                    _place_on_desktop(raw, clip.get("url") or "", framed, td_path / f"desk{i:03d}", seconds)
+                    raw = framed
+                except Exception as e:
+                    print(f"  ⚠ desktop falhou ({e}); tela cheia")
             part = td_path / f"p{i:03d}.mp4"
             if lower_third:
                 try:
@@ -221,8 +250,15 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-seconds", type=float, default=None)
     ap.add_argument("--no-lower-third", action="store_true")
+    ap.add_argument("--desktop", action="store_true", help="matéria dentro de mockup de browser + wallpaper")
     args = ap.parse_args()
-    compose(Path(args.timeline), Path(args.out), args.max_seconds, lower_third=not args.no_lower_third)
+    compose(
+        Path(args.timeline),
+        Path(args.out),
+        args.max_seconds,
+        lower_third=not args.no_lower_third,
+        desktop=args.desktop,
+    )
     return 0
 
 
