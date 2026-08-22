@@ -98,9 +98,11 @@ def _overlay_l3(part: Path, l3: Path, dest: Path) -> None:
 
     run(
         [
-            "ffmpeg", "-y", "-i", str(part), "-i", str(l3),
+            "ffmpeg", "-y",
+            "-i", str(part),
+            "-stream_loop", "-1", "-i", str(l3),
             "-filter_complex", overlay_filter(),
-            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
             str(dest),
         ],
         f"l3 {dest.name}",

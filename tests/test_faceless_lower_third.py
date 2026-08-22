@@ -44,5 +44,7 @@ def test_overlay_url_points_at_engine():
 
 def test_overlay_filter_uses_chromakey():
     f = overlay_filter()
-    assert "colorkey=0x00ff00" in f
+    assert "colorkey=0x00ff00" in f.lower()
+    assert "yuva444p" in f
+    assert "tpad" not in f
     assert "overlay=0:0" in f

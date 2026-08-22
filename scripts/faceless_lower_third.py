@@ -61,12 +61,14 @@ def date_from_audio(audio: str) -> str:
     return m.group(1) if m else ""
 
 
-def render_lower_third(dest: Path, payload: dict, seconds: float = 3.2) -> Path:
-    """Grava o overlay OBS em fundo verde (chromakey no compose)."""
+def render_lower_third(dest: Path, payload: dict, seconds: float = 14.0) -> Path:
+    """Grava o overlay OBS em fundo verde. Corta a entrada e deixa o ticker andando."""
     dest.parent.mkdir(parents=True, exist_ok=True)
+    import subprocess
     from playwright.sync_api import sync_playwright
 
     url = overlay_url(payload)
+    raw = dest.with_name(dest.stem + "_raw.webm")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         ctx = browser.new_context(
@@ -82,25 +84,47 @@ def render_lower_third(dest: Path, payload: dict, seconds: float = 3.2) -> Path:
                 ".lt-root{--lt-layer-gap:0px !important;}"
             )
         )
-        page.wait_for_timeout(700)
+        page.wait_for_timeout(500)
         try:
-            page.evaluate("() => { if (window.engine) window.engine.animateIn(); }")
+            page.evaluate(
+                """() => {
+                  if (!window.engine) return;
+                  const items = window.engine.currentData.ticker;
+                  if (Array.isArray(items) && items.length) window.engine.setTicker(items, 150);
+                  window.engine.animateIn();
+                }"""
+            )
         except Exception:
             pass
-        page.wait_for_timeout(int(max(seconds, 2.2) * 1000))
+        page.wait_for_timeout(int(max(seconds, 10.0) * 1000))
         page.close()
         video = page.video.path() if page.video else None
         ctx.close()
         browser.close()
     if not video or not Path(video).exists():
         raise RuntimeError("lower-third: vídeo não gerado")
-    Path(video).replace(dest)
+    # corta o wipe-in / tela verde do começo pra o loop não piscar
+    r = subprocess.run(
+        [
+            "ffmpeg", "-y", "-ss", "1.7", "-i", str(video),
+            "-t", "12", "-an", "-c:v", "libvpx", "-crf", "18", "-b:v", "0",
+            str(dest),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    Path(video).unlink(missing_ok=True)
+    raw.unlink(missing_ok=True)
+    if r.returncode != 0 or not dest.exists():
+        raise RuntimeError(f"lower-third trim falhou: {(r.stderr or '')[-400:]}")
     return dest
 
 
 def overlay_filter() -> str:
+    # 444 + blend alto: cantos arredondados viram alpha, não dente de serra.
+    # Sem tpad/clone — o compose faz -stream_loop no L3 pra o ticker continuar.
     return (
-        f"[1:v]colorkey=0x{GREEN}:0.18:0.04,format=rgba,"
-        f"tpad=stop_mode=clone:stop_duration=600[l3];"
+        f"[1:v]format=yuva444p,colorkey=0x{GREEN}:0.10:0.22,"
+        f"despill=type=green:mix=0.45:expand=0,format=rgba[l3];"
         f"[0:v][l3]overlay=0:0:shortest=1,format=yuv420p"
     )
