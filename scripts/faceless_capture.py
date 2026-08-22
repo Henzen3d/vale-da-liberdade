@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import statistics
 import sys
 import time
@@ -15,6 +16,10 @@ DEFAULT_VIEWPORT = {"width": 1920, "height": 1080}
 COOKIE_SELECTORS = (
     "#onetrust-accept-btn-handler",
     "button#onetrust-accept-btn-handler",
+    ".banner-lgpd-consent__accept",
+    "button.banner-lgpd-consent__accept",
+    "button:has-text('OK')",
+    "button:has-text('Ok')",
     "button:has-text('Aceitar')",
     "button:has-text('Aceito')",
     "button:has-text('Concordar')",
@@ -22,6 +27,41 @@ COOKIE_SELECTORS = (
     "button:has-text('Agree')",
     "[data-testid='cookie-policy-dialog-accept-button']",
 )
+# Scripts de overlay/paywall que rodam DEPOIS do HTML da matéria já ter chegado.
+BLOCK_RESOURCE_HOSTS = (
+    "paywall.folha.uol.com.br",
+    "cdn.tinypass.com",
+    "www.tinypass.com",
+    "checkout.tinypass.com",
+    "experience.piano.io",
+    "buy.tinypass.com",
+)
+CLEANUP_CSS = """
+.banner-lgpd-consent,
+.banner-lgpd-consent__accept,
+.j-paywall,
+.c-subscribe-wall,
+#onetrust-banner-sdk,
+#onetrust-consent-sdk,
+.fc-consent-root,
+[id*="cookie-banner"],
+[class*="cookie-banner"],
+[class*="CookieBanner"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+html, body { overflow: auto !important; position: static !important; }
+"""
+
+
+def should_block_resource(url: str) -> bool:
+    try:
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").lower()
+    except Exception:
+        return False
+    return any(host == h or host.endswith("." + h) for h in BLOCK_RESOURCE_HOSTS)
 
 
 def url_key(url: str) -> str:
@@ -47,6 +87,39 @@ def _dismiss_cookies(page) -> None:
                 return
         except Exception:
             continue
+    try:
+        btn = page.get_by_role("button", name=re.compile(r"^(OK|Ok|Aceitar|Aceito)$"))
+        if btn.count():
+            btn.first.click(timeout=800)
+            page.wait_for_timeout(400)
+    except Exception:
+        pass
+
+
+def _hide_overlays(page) -> None:
+    page.add_style_tag(content=CLEANUP_CSS)
+    page.evaluate(
+        """() => {
+          const skip = new Set([document.documentElement, document.body]);
+          document.querySelectorAll('div,aside,section').forEach(el => {
+            if (skip.has(el)) return;
+            const t = (el.innerText || '').slice(0, 240).toLowerCase();
+            if (!t) return;
+            const st = getComputedStyle(el);
+            const fixed = st.position === 'fixed' || st.position === 'sticky';
+            const cookieish = t.includes('cookie') && (t.includes('ok') || t.includes('aceit'));
+            const payish = t.includes('exclusiv') && t.includes('assinant');
+            if (!fixed && !cookieish) return;
+            if (!cookieish && !payish && !fixed) return;
+            if (!cookieish && !payish) return;
+            const tooBig = el.offsetHeight > innerHeight * 0.92 && el.offsetWidth > innerWidth * 0.92;
+            if (tooBig && !fixed) return;
+            el.style.setProperty('display', 'none', 'important');
+          });
+          document.documentElement.style.overflow = 'auto';
+          if (document.body) document.body.style.overflow = 'auto';
+        }"""
+    )
 
 
 def _slow_scroll(page, seconds: float) -> None:
@@ -89,6 +162,13 @@ def capture_one(url: str, dest: Path, scroll_s: float, timeout_ms: int) -> dict:
                 record_video_dir=str(dest),
                 record_video_size=DEFAULT_VIEWPORT,
             )
+            ctx.route(
+                "**/*",
+                lambda route: route.abort()
+                if should_block_resource(route.request.url)
+                else route.continue_(),
+            )
+            ctx.add_init_script(f"() => {{ const s=document.createElement('style'); s.textContent={CLEANUP_CSS!r}; document.documentElement.appendChild(s); }}")
             page = ctx.new_page()
             try:
                 Stealth().apply_stealth_sync(page)
@@ -96,9 +176,10 @@ def capture_one(url: str, dest: Path, scroll_s: float, timeout_ms: int) -> dict:
                 pass
             resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             result["http_status"] = resp.status if resp else None
-            page.wait_for_timeout(2500)
+            page.wait_for_timeout(1500)
             _dismiss_cookies(page)
-            page.wait_for_timeout(800)
+            _hide_overlays(page)
+            page.wait_for_timeout(600)
             body = ""
             try:
                 body = page.evaluate("document.body ? document.body.innerText.slice(0, 400) : ''")
