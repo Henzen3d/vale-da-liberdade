@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
-"""Autopilot Brasil & Mundo — renderiza e publica vídeos BM curtos (≤5min) automaticamente.
+"""DEPRECATED (2026-08-22) — NÃO usar em produção.
 
-Fluxo por episódio (somente áudios BM ≤ 5min; o áudio longo de Blumenau/Vale da
-Liberdade em audio/YYYY-MM-DD*.mp3 fica FORA deste pipeline):
-  1. quadros   → bm_quadros_mapper.py --video-id <ID>
-  2. assets    → bm_pipeline.py assets --video-id <ID>
-  3. review    → bm_pipeline.py review --video-id <ID> (gate técnico)
-  4. composicao→ build_episode_composition.py --legenda-mode destaques
-  5. check     → npm run check
-  6. render    → hyperframes render 1080p
-  7. publish   → youtube_uploader.py upload (unlisted)
-  8. registro  → output/brasil_e_mundo/videos_published.json
+Substituído por scripts/bm_mockup_video.py (cron web-jornal-brasil-mundo-hourly).
+O cron web-jornal-bm-video-autopilot deve permanecer PAUSADO.
+Não reativar HyperFrames sem pedido explícito do dono.
 
 Karaoke palavra-a-palavra foi rejeitado pelo dono (2026-08-15) — não reintroduzir.
 """

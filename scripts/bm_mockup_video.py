@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Gera vídeo BM com mockup-browser + sites reais das matérias e sobe no YouTube.
 
+PIPELINE OFICIAL de vídeo BM desde 2026-08-22 (substitui HyperFrames).
 Usado pelo cron hourly (bm-hourly-pipeline.sh) depois do process-queue.
-Não mistura com o autopilot HyperFrames (pausado).
+Não misturar com bm_video_autopilot.py (aposentado).
 
 Fluxo:
   1. lê especial-<id>.json + áudio BM
