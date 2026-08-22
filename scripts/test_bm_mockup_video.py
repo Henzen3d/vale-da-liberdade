@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from bm_mockup_video import build_metadata, is_blocked_source_url, source_scenes
+from bm_mockup_video import build_metadata, host_kind, is_blocked_source_url, source_scenes
 from pathlib import Path
 
 
@@ -50,6 +50,14 @@ class MetadataTests(unittest.TestCase):
         self.assertNotIn("ancapsu", desc.lower())
         self.assertIn("cnnbrasil.com.br", desc)
         self.assertIn("economia", tags)
+
+
+class HostPrepareTests(unittest.TestCase):
+    def test_host_kind(self):
+        self.assertEqual(host_kind("https://www.instagram.com/lito/"), "instagram")
+        self.assertEqual(host_kind("https://www.bbc.com/portuguese/articles/cwy"), "bbc")
+        self.assertEqual(host_kind("https://www.bbc.co.uk/news"), "bbc")
+        self.assertEqual(host_kind("https://www.cnnbrasil.com.br/x"), "generic")
 
 
 if __name__ == "__main__":

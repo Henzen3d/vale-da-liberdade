@@ -85,6 +85,124 @@ def is_blocked_source_url(url: str) -> bool:
     )
 
 
+def host_kind(url: str) -> str:
+    host = (urlsplit(url or "").netloc or "").lower()
+    if "instagram.com" in host:
+        return "instagram"
+    if "bbc." in host or host.endswith("bbc.co.uk") or host.endswith("bbc.com"):
+        return "bbc"
+    return "generic"
+
+
+# Cliques comuns de cookie / login-wall (ordem: específico → genérico).
+_DISMISS_BUTTONS = (
+    "button:has-text('Agora não')",
+    "button:has-text('Agora Nao')",
+    "div[role='button']:has-text('Agora não')",
+    "div[role='button']:has-text('Not now')",
+    "button:has-text('Not now')",
+    "button:has-text('Not Now')",
+    "div[role='button']:has-text('Not Now')",
+    "button:has-text('Decline optional cookies')",
+    "button:has-text('Recusar cookies opcionais')",
+    "button:has-text('Only allow essential cookies')",
+    "button:has-text('Aceitar')",
+    "button:has-text('Aceito')",
+    "button:has-text('Accept all')",
+    "button:has-text('Accept')",
+    "#onetrust-accept-btn-handler",
+    "[aria-label='Close']",
+    "[aria-label='Fechar']",
+    "[aria-label='Dismiss']",
+)
+
+_PREPARE_JS = """({kind}) => {
+  const hide = (el) => {
+    if (!el) return;
+    el.style.setProperty('display', 'none', 'important');
+    el.style.setProperty('visibility', 'hidden', 'important');
+    el.style.setProperty('pointer-events', 'none', 'important');
+  };
+
+  // Placeholders vazios (hero cinza da BBC quando a imagem não carrega).
+  document.querySelectorAll('figure, picture, [data-testid="image"], [data-component="image-block"]').forEach(el => {
+    const img = el.querySelector('img');
+    const r = el.getBoundingClientRect();
+    const emptyImg = !img || !img.naturalWidth;
+    if (r.height > 80 && emptyImg) hide(el);
+  });
+
+  if (kind === 'instagram') {
+    document.querySelectorAll('[role="dialog"], [role="presentation"]').forEach(el => {
+      const t = (el.innerText || '').toLowerCase();
+      if (t.includes('entrar') || t.includes('log in') || t.includes('sign up') || t.includes('inscreva')) {
+        hide(el);
+      }
+    });
+  }
+
+  document.documentElement.style.overflow = 'auto';
+  if (document.body) document.body.style.overflow = 'auto';
+
+  const h1 = document.querySelector('h1, [role="main"] h1, article h1');
+  if (h1) {
+    const y = h1.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, Math.max(0, y - 16));
+    return {scrolledTo: 'h1', y: Math.max(0, y - 16)};
+  }
+  if (kind === 'bbc') {
+    window.scrollBy(0, 280);
+    return {scrolledTo: 'bbc-fallback', y: 280};
+  }
+  return {scrolledTo: 'none', y: 0};
+}"""
+
+
+def _click_first_visible(page, selectors: tuple[str, ...]) -> str | None:
+    for sel in selectors:
+        try:
+            loc = page.locator(sel).first
+            if loc.count() and loc.is_visible(timeout=600):
+                loc.click(timeout=800)
+                page.wait_for_timeout(350)
+                return sel
+        except Exception:
+            continue
+    return None
+
+
+def prepare_capture(page, url: str) -> dict:
+    """Fecha banner/login e posiciona o viewport no conteúdo da matéria."""
+    kind = host_kind(url)
+    clicked = []
+    for _ in range(3):
+        hit = _click_first_visible(page, _DISMISS_BUTTONS)
+        if not hit:
+            break
+        clicked.append(hit)
+    try:
+        info = page.evaluate(_PREPARE_JS, {"kind": kind})
+    except Exception as exc:
+        info = {"scrolledTo": "error", "error": str(exc)}
+    page.wait_for_timeout(400)
+    info = dict(info or {})
+    info["kind"] = kind
+    info["clicked"] = clicked
+    return info
+
+
+def instagram_is_login_wall(page) -> bool:
+    """True só se o modal de cadastro/login ainda estiver aberto no meio da tela."""
+    try:
+        dialog = page.locator("[role='dialog']").first
+        if not dialog.count() or not dialog.is_visible(timeout=400):
+            return False
+        t = (dialog.inner_text() or "").lower()
+        return any(k in t for k in ("cadastre-se", "sign up", "entrar", "log in"))
+    except Exception:
+        return False
+
+
 def load_state() -> dict:
     if STATE_PATH.exists():
         return json.loads(STATE_PATH.read_text(encoding="utf-8"))
@@ -232,7 +350,15 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
             dest = shot_dir / f"src-{i:02d}.png"
             try:
                 page.goto(scene["url"], wait_until="domcontentloaded", timeout=35000)
-                page.wait_for_timeout(2500)
+                page.wait_for_timeout(1800)
+                prep = prepare_capture(page, scene["url"])
+                print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
+                if prep.get("kind") == "instagram" and instagram_is_login_wall(page):
+                    print(f"  ⚠️  Instagram ainda em login-wall — cena sem screenshot")
+                    item = dict(scene)
+                    item["shot"] = None
+                    out.append(item)
+                    continue
                 page.screenshot(path=str(dest), full_page=False)
                 if dest.exists() and dest.stat().st_size > 8000:
                     item = dict(scene)
