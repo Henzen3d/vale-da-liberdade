@@ -10,7 +10,7 @@ Fluxo:
   2. captura screenshots das URLs em fonte_referencias (sem YouTube/self)
   3. grava o mockup-browser em 1920×1080 trocando cenas no ritmo do áudio
   4. muxa o MP3 do episódio
-  5. opcional: upload unlisted via youtube_uploader.py
+  5. opcional: upload público via youtube_uploader.py
 """
 from __future__ import annotations
 
@@ -866,7 +866,7 @@ def main() -> int:
     ap.add_argument("--max", type=int, default=MAX_PER_RUN)
     ap.add_argument("--backfill", action="store_true")
     ap.add_argument("--upload", action="store_true")
-    ap.add_argument("--privacy", default="unlisted", choices=["unlisted", "private", "public"])
+    ap.add_argument("--privacy", default="public", choices=["unlisted", "private", "public"])
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 

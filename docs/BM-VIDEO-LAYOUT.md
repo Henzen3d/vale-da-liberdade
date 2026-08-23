@@ -6,7 +6,7 @@ Cópia machine-readable: `docs/bm-video-layout.json`.
 
 ## Decisão
 
-Pipeline oficial: mockup-browser + avatar Peter + lower third na frente + wallpaper por episódio + thumbnail do site + upload unlisted.
+Pipeline oficial: mockup-browser + avatar Peter + lower third na frente + wallpaper por episódio + thumbnail do site + upload público.
 
 - Cron: `web-jornal-brasil-mundo-hourly` (`30 * * * *`) → `scripts/bm-hourly-pipeline.sh`
 - Script: `scripts/bm_mockup_video.py`
@@ -87,7 +87,7 @@ Não capturar YouTube, ANCAPSU, nem páginas `news.mob.tec.br/ep/`.
 
 | Campo | Regra |
 |---|---|
-| Privacidade | `unlisted` |
+| Privacidade | `public` (desde 2026-08-23; os primeiros foram unlisted) |
 | Título | `titulo` do `especial-{id}.json` (máx. 100) |
 | Thumbnail | `thumbnails/YYYY-MM-DD/bm_{id}.jpg` (mesma do site). Se faltar, o upload continua |
 | Descrição | resumo da `abertura` (≤380 caracteres, corta em frase) + linha `Ouça no app: https://news.mob.tec.br` + `Fontes:` (sem YouTube/ANCAPSU) |

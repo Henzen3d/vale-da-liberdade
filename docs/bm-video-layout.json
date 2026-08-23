@@ -42,7 +42,7 @@
     "param_page_image": "pageImage"
   },
   "youtube": {
-    "privacy": "unlisted",
+    "privacy": "public",
     "app_url": "https://news.mob.tec.br",
     "thumbnail": "thumbnails/YYYY-MM-DD/bm_{id}.jpg",
     "descricao": ["resumo_abertura", "Ouça no app: https://news.mob.tec.br", "Fontes"],

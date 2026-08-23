@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""YouTube Data API v3 — auth PKCE + upload unlisted + thumbnail."""
+"""YouTube Data API v3 — auth PKCE + upload (public por padrão) + thumbnail."""
 from __future__ import annotations
 
 import argparse
@@ -122,7 +122,7 @@ def main() -> int:
     u.add_argument("--title", required=True)
     u.add_argument("--description", default="")
     u.add_argument("--tags", default="")
-    u.add_argument("--privacy", default="unlisted", choices=["unlisted", "private", "public"])
+    u.add_argument("--privacy", default="public", choices=["unlisted", "private", "public"])
     t = sub.add_parser("thumbnail")
     t.add_argument("--video-id", required=True)
     t.add_argument("--image", required=True)
