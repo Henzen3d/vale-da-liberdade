@@ -17,6 +17,7 @@ Uso:
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import io
 import json
@@ -165,6 +166,10 @@ DEFAULT_CASCADE: list[ImageModel] = [
                api_style="openai", size=SIZE_16_9, cost_usd=0.04, daily_quota=30),
     ImageModel(name="stability-xl", model_id="stable-diffusion-xl",
                api_style="stability", size=SIZE_16_9, cost_usd=0.03, daily_quota=40),
+    # Cloudflare Workers AI (flux-1-schnell) — grátis via wrangler OAuth, sem API key paga
+    ImageModel(name="cf-flux-schnell", model_id="@cf/black-forest-labs/flux-1-schnell",
+               api_style="cloudflare", size=SIZE_16_9, cost_usd=0.0, daily_quota=200,
+               env_key="CLOUDFLARE_API_TOKEN"),
 ]
 
 PROMPT_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash"]
@@ -403,9 +408,22 @@ REGRAS OBRIGATÓRIAS DO PROMPT QUE VOCÊ VAI GERAR:
    tensão, não uma cena de combate).
 3. Composição: estilo fotografia editorial ou ilustração vetorial
    minimalista (escolha uma das duas por episódio, não misture).
-   Paleta: preto, branco, cinza, com um único acento em âmbar/dourado
-   queimado (#B8863B approximately). Sem gradientes chamativos, sem
+   Paleta: preto, branco, cinza, com um único acento em AMBAR NEON
+   (#FFB300 vibrante, brilhante, quase fluorescente — NÃO usar âmbar
+   terroso/marrom escuro). Sem gradientes chamativos, sem
    estética 3D/render, sem excesso de elementos.
+3a. Acento âmbar neon VARIÁVEL — escolha UMA forma diferente por episódio
+   (alterne criativamente, não repita sempre o mesmo recurso):
+   - um OBJETO-TEMÁTICO pintado/emoldurado em âmbar neon sólido destacando-se
+     do monocromo (ex: gráfico em âmbar neon, documento, moeda, peça de
+     xadrez, mapa recortado em âmbar neon);
+   - UM elemento central banhado por luz âmbar neon direcionada (spotlight),
+     sem que a fonte de luz apareça na cena;
+   - reflexo/espelhamento âmbar neon numa superfície (água, vidro, metal);
+   - fio/linha/fita âmbar neon cortando a composição e amarrando o tema.
+   O âmbar neon deve incidir sobre o ELEMENTO mais importante da história,
+   guiando o olhar — nunca seja mero brilho decorativo de fundo.
+   Comece o prompt descrevendo qual elemento recebe o acento.
 4. NÃO inclua texto na imagem (nem manchete, nem legenda, nem marca,
    nem letras, nem tipografia). Toda comunicação visual é por simbolismo.
 5. Formato: paisagem 16:9.
@@ -419,7 +437,7 @@ REGRAS OBRIGATÓRIAS DO PROMPT QUE VOCÊ VAI GERAR:
 SAFE_REGEN_PROMPT = (
     "Violent tension with a public figure in conflict, no human faces, "
     "no identifiable people, 16:9 landscape, no text, no letters, no typography, "
-    "burnt-amber accent color"
+    "vibrant neon amber accent color"
 )
 
 
@@ -468,7 +486,7 @@ def _sanitize_prompt_once(prompt: str) -> str:
     if "no text" not in p.lower():
         p += ", no text, no letters, no typography"
     if "amber" not in p.lower() and "gold" not in p.lower():
-        p += ", burnt-amber accent color"
+        p += ", vibrant neon amber accent color (#FFB300)"
     return p
 
 
@@ -513,7 +531,7 @@ def generate_image_prompt(headline: str, summary: str) -> tuple[str, str]:
 
     fallback = (
         f"Editorial news cover illustration about: {headline}. "
-        f"Minimalist black and white composition with a single burnt-amber gold accent, "
+        f"Minimalist black and white composition with a single vibrant neon amber accent, "
         f"symbolic objects and abstract geometry representing the topic, no human faces, "
         f"no text overlay, 16:9 landscape, clean vector-editorial journalistic style. "
         f"Context: {summary[:200]}"
@@ -649,6 +667,73 @@ def _call_multimodal(model: ImageModel, prompt: str, key: str) -> Image.Image:
     return _download_image(url)
 
 
+def _call_cloudflare(model: ImageModel, prompt: str, key: str) -> Image.Image:
+    """Cloudflare Workers AI REST (flux-1-schnell). key = API token; account id do .env."""
+    import io
+
+    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    if not account or account.startswith("["):
+        raise ModelFailed("CLOUDFLARE_ACCOUNT_ID ausente no .env")
+    token = key
+    if not token or token.startswith("***"):
+        # fallback: OAuth do wrangler (mesma lógica do plugin image_gen/cloudflare)
+        from pathlib import Path
+        for cfg in (Path.home() / ".config/.wrangler/config/default.toml",
+                    Path.home() / ".wrangler/config/default.toml"):
+            try:
+                text = cfg.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            for line in text.splitlines():
+                s = line.strip()
+                if s.startswith("oauth_token"):
+                    token = s.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+                if s.startswith("api_token"):
+                    token = s.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+            if token:
+                account = account or next(
+                    (l.split("=", 1)[1].strip().strip('"').strip("'")
+                     for l in text.splitlines()
+                     if l.strip().startswith("account_id")), "")
+                break
+        if not token:
+            raise ModelFailed("sem CLOUDFLARE_API_TOKEN nem wrangler oauth_token")
+    endpoint = (
+        f"https://api.cloudflare.com/client/v4/accounts/{account}"
+        f"/ai/run/{model.model_id}"
+    )
+    try:
+        resp = requests.post(
+            endpoint,
+            json={"prompt": prompt[:2000], "steps": 4},
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            timeout=HTTP_TIMEOUT,
+        )
+    except requests.exceptions.Timeout as e:
+        raise ModelFailed(f"timeout {HTTP_TIMEOUT}s") from e
+    except requests.exceptions.RequestException as e:
+        raise ModelFailed(f"rede: {e}") from e
+
+    ctype = resp.headers.get("content-type", "")
+    if resp.status_code != 200:
+        _classify_error(resp.status_code, None, resp.text[:300])
+    if "image" in ctype:
+        return Image.open(io.BytesIO(resp.content)).convert("RGB")
+    try:
+        data = resp.json()
+    except ValueError as e:
+        raise ModelFailed(f"resposta inesperada ({ctype})") from e
+    b64 = (
+        ((data.get("result") or {}).get("image"))
+        or data.get("image")
+    )
+    if not b64:
+        _classify_error(resp.status_code, data, str(data)[:300])
+    return Image.open(io.BytesIO(base64.b64decode(b64))).convert("RGB")
+
+
 def _call_wan(model: ImageModel, prompt: str, key: str) -> Image.Image:
     headers = {
         "Authorization": f"Bearer {key}",
@@ -753,10 +838,13 @@ def _call_model_once(model: ImageModel, prompt: str) -> tuple[Image.Image, int]:
     """Uma chamada. Retorna (Image, latency_ms)."""
     key = os.environ.get(model.env_key, "").strip()
     if not key or key.startswith("***"):
-        # tenta fallback genérico
-        key = os.environ.get("DASHSCOPE_API_KEY", "").strip()
-    if not key or key.startswith("***"):
-        raise ModelFailed(f"chave ausente: {model.env_key}")
+        if model.api_style == "cloudflare":
+            key = ""  # _call_cloudflare faz fallback para o OAuth do wrangler
+        else:
+            # tenta fallback genérico
+            key = os.environ.get("DASHSCOPE_API_KEY", "").strip()
+            if not key or key.startswith("***"):
+                raise ModelFailed(f"chave ausente: {model.env_key}")
 
     if quota_remaining(model.model_id, model.daily_quota) <= 0:
         raise ModelFailed(f"quota local esgotada para {model.model_id}")
@@ -768,6 +856,8 @@ def _call_model_once(model: ImageModel, prompt: str) -> tuple[Image.Image, int]:
             img = _call_wan(model, prompt, key)
         elif style == "async":
             img = _call_async(model, prompt, key)
+        elif style == "cloudflare":
+            img = _call_cloudflare(model, prompt, key)
         else:
             img = _call_multimodal(model, prompt, key)
     except (SafetyRejected, ModelFailed):
