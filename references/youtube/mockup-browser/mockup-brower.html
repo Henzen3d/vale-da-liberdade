@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Browser — Web Jornal Vale da Liberdade</title>
+
+<!-- Tipografia Broadcast & Web -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Roboto+Condensed:wght@700;800;900&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   DESIGN SYSTEM & TOKENS — VALE DA LIBERDADE BROADCAST
+   ============================================================ */
+:root {
+  /* Cores Globais & Estúdio */
+  --bg-dark-1: #0e1118;
+  --bg-dark-2: #161b26;
+  --accent-gold: #d4a017;
+  --accent-amber: #b8860b;
+  --accent-red: #ef2633;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+
+  /* Lower Third Tokens */
+  --lt-width: 1320px;
+  --lt-top-strip-h: 34px;
+  --lt-ticker-h: 38px;
+  --lt-left-inset: 18px;
+  --lt-radius-top: 12px;
+  --lt-card-radius: 12px;
+  --lt-layer-gap: 7px;
+  --lt-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  --lt-red-top: #d4a017;
+  --lt-red-mid: #b8860b;
+  --lt-red-bottom: #8c6504;
+  --lt-live-top: #d4a017;
+  --lt-live-mid: #b8860b;
+  --lt-live-bottom: #8c6504;
+  --lt-clock-top: #1c1d22;
+  --lt-clock-mid: #141518;
+  --lt-clock-bottom: #0b0c0e;
+  --lt-brand-accent: #b8860b;
+  --lt-paper: #ffffff;
+  --lt-title-color: #0a0a0a;
+  --lt-subtitle-color: #1f2228;
+  --lt-black: #050505;
+  --lt-gray-tag: #1b1d22;
+  --lt-gray-tag-text: #e2c068;
+  --lt-ticker-text: #f0f0f0;
+
+  /* Fontes */
+  --font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  --font-headline: 'Roboto Condensed', 'Barlow Condensed', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  background: var(--bg-dark-1);
+  color: #fff;
+}
+
+/* ============================================================
+   CENA & FUNDO BROADCAST DINÂMICO
+   ============================================================ */
+.scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 28px;
+  padding-bottom: 20px;
+  background: 
+    radial-gradient(circle at 18% 22%, rgba(212, 160, 23, 0.28), transparent 45%),
+    radial-gradient(circle at 82% 28%, rgba(20, 60, 140, 0.35), transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(184, 134, 11, 0.18), transparent 50%),
+    linear-gradient(135deg, #0d1017 0%, #151a24 50%, #0a0c10 100%);
+  transition: background 0.8s ease;
+  overflow: hidden;
+}
+
+.scene-wallpaper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-mesh-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bg-ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat 16s ease-in-out infinite alternate;
+}
+
+.bg-ambient-orb.orb-1 {
+  width: 45vw;
+  height: 45vw;
+  left: -12vw;
+  top: -12vw;
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.35), transparent 70%);
+}
+
+.bg-ambient-orb.orb-2 {
+  width: 40vw;
+  height: 40vw;
+  right: -10vw;
+  bottom: -10vw;
+  background: radial-gradient(circle, rgba(20, 60, 140, 0.3), transparent 70%);
+  animation-direction: alternate-reverse;
+  animation-duration: 20s;
+}
+
+@keyframes orbFloat {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(4vw, 3vh) scale(1.12); }
+}
+
+/* ============================================================
+   BROWSER MOCKUP CONTAINER (ESTENDIDO ATÉ EMBAIXO / ATRÁS DO LOWER THIRD)
+   ============================================================ */
+.browser-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 88vw;
+  max-width: 1540px;
+  height: calc(100vh - 75px); /* Estende até embaixo, passando por trás do lower third */
+  min-height: 560px;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 
+    0 35px 80px rgba(0, 0, 0, 0.55),
+    0 12px 30px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  animation: browserEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes browserEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Barra Superior do Navegador */
+.browser-topbar {
+  height: 82px;
+  background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+  border-bottom: 1px solid #d9e2ec;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0 16px;
+  user-select: none;
+}
+
+.browser-header-row {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Botões macOS Traffic Lights */
+.traffic-lights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 2px;
+  width: 80px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.2);
+}
+.dot.red { background: #ff5f56; border: 1px solid #e0443e; }
+.dot.yellow { background: #ffbd2e; border: 1px solid #dea123; }
+.dot.green { background: #27c93f; border: 1px solid #1aab29; }
+
+/* Aba Ativa */
+.browser-tab-active {
+  position: absolute;
+  left: 90px;
+  bottom: 0;
+  height: 34px;
+  min-width: 240px;
+  max-width: 360px;
+  background: #ffffff;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 12px;
+  gap: 10px;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d9e2ec;
+  border-bottom: none;
+}
+
+.tab-icon-vdl {
+  width: 16px;
+  height: 16px;
+  background: #d4a017;
+  color: #000;
+  font-weight: 900;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  flex: none;
+}
+
+.tab-title-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.tab-close-btn {
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Barra de Endereço URL */
+.browser-url-row {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 4px;
+}
+
+.nav-arrows {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.nav-arrows span {
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+.nav-arrows span:hover { opacity: 1; }
+
+.url-input-box {
+  flex: 1;
+  height: 28px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.url-lock {
+  color: #10b981;
+  font-size: 11px;
+}
+
+.url-text {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+}
+
+.url-text b {
+  color: #0f172a;
+}
+
+/* ============================================================
+   PORTAL WEB JORNAL VALE DA LIBERDADE (CONTEÚDO)
+   ============================================================ */
+.portal-viewport {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.portal-page-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  z-index: 4;
+  background: #fff;
+}
+
+/* Header do Portal de Notícias */
+.portal-navbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  background: #ffffff;
+  flex: none;
+}
+
+.portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.portal-brand-badge {
+  background: linear-gradient(135deg, #d4a017, #8c6504);
+  color: #000;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.portal-brand-name {
+  font-family: var(--font-headline);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+  text-transform: uppercase;
+}
+
+.portal-brand-name span {
+  color: #d4a017;
+}
+
+.portal-menu {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  list-style: none;
+}
+
+.portal-menu-item {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.portal-menu-item.active, .portal-menu-item:hover {
+  color: #d4a017;
+}
+
+/* Grid Editorial: Artigo + Sidebar */
+.portal-content-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.85fr);
+  gap: 32px;
+  padding: 24px 36px 85px 36px;
+  overflow: hidden;
+}
+
+/* Coluna do Artigo */
+.portal-article {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.article-badge {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #d4a017, #b8860b);
+  color: #000000;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.article-headline {
+  font-size: clamp(22px, 2.3vw, 34px);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.7px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.article-lead {
+  font-size: clamp(12px, 1.1vw, 15px);
+  color: #475569;
+  line-height: 1.4;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.article-meta-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.article-image-box {
+  flex: 1;
+  min-height: 220px;
+  max-height: 320px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, #1e293b, #334155);
+}
+
+.article-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.article-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(212, 160, 23, 0.4), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(30, 41, 59, 0.9), transparent 50%),
+    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #cbd5e1;
+}
+
+.article-cover-fallback .icon {
+  font-size: 42px;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+
+/* Coluna Lateral: Destaques / Mais Lidas */
+.portal-sidebar {
+  border-left: 1px solid var(--border-light);
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: #d4a017;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sidebar-num {
+  font-family: var(--font-headline);
+  font-size: 18px;
+  font-weight: 900;
+  color: #cbd5e1;
+  width: 20px;
+  flex: none;
+}
+
+.sidebar-thumb {
+  width: 68px;
+  height: 48px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #334155, #1e293b);
+  flex: none;
+  overflow: hidden;
+}
+
+.sidebar-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-heading {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.25;
+}
+
+.sidebar-time {
+  font-size: 9px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* ============================================================
+   LOWER THIRD OFICIAL INTEGRADO (SLIM, LAYERED & ESPAÇADO)
+   ============================================================ */
+.lower-third-overlay {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 50;
+  padding: 0 40px;
+}
+
+.lt-root {
+  width: 100%;
+  max-width: var(--lt-width);
+  position: relative;
+  user-select: none;
+  filter: drop-shadow(var(--lt-shadow));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.lt-hero-layer {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.lt-banner-backdrop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, var(--lt-red-top) 0%, var(--lt-red-mid) 48%, var(--lt-red-bottom) 100%);
+  border-top-left-radius: var(--lt-radius-top);
+  border-top-right-radius: var(--lt-radius-top);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 1;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.lt-eyebrow-text {
+  font-family: var(--font-headline);
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  line-height: 1;
+  padding: 8px 18px;
+}
+
+.lt-live-box {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: transparent;
+}
+
+.lt-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: lt-live-pulse 1.3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes lt-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.85); }
+}
+
+.lt-live-label {
+  font-family: var(--font-headline);
+  font-size: 19px;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  line-height: 1;
+}
+
+.lt-headline-card {
+  position: relative;
+  z-index: 2;
+  margin-top: var(--lt-top-strip-h);
+  margin-left: var(--lt-left-inset);
+  margin-right: 0;
+  background: var(--lt-paper);
+  border-top-left-radius: var(--lt-card-radius);
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 0;
+  padding: 7px 20px 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+}
+
+.lt-headline-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lt-headline-title {
+  font-family: var(--font-headline);
+  font-size: clamp(19px, 2.05vw, 28px);
+  font-weight: 900;
+  color: var(--lt-title-color);
+  text-transform: uppercase;
+  letter-spacing: -0.6px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: scaleY(1.03);
+  transform-origin: left center;
+}
+
+.lt-headline-subtitle {
+  font-family: var(--font-body);
+  font-size: clamp(13px, 1.15vw, 16px);
+  font-weight: 700;
+  color: var(--lt-subtitle-color);
+  line-height: 1.1;
+  letter-spacing: -0.2px;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lt-brand-box {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-left: 14px;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.lt-brand-vdl-text {
+  font-family: var(--font-headline);
+  font-weight: 900;
+  font-size: 23px;
+  color: var(--lt-brand-accent);
+  letter-spacing: -0.5px;
+  line-height: 0.9;
+}
+
+.lt-brand-label {
+  font-family: var(--font-headline);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--lt-brand-accent);
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Tarja Inferior de Data & Ticker */
+.lt-bottom-layer {
+  position: relative;
+  width: 100%;
+  height: var(--lt-ticker-h);
+  margin-top: var(--lt-layer-gap);
+  display: flex;
+  align-items: stretch;
+  background: var(--lt-black);
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+
+.lt-date-box {
+  position: relative;
+  flex: none;
+  min-width: 135px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px 0 14px;
+  background: linear-gradient(180deg, var(--lt-clock-top) 0%, var(--lt-clock-mid) 50%, var(--lt-clock-bottom) 100%);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  z-index: 2;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.lt-date-box::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  background: inherit;
+  clip-path: polygon(0 0, 0 100%, 100% 50%);
+  z-index: 3;
+}
+
+.lt-ticker-track {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: var(--lt-black);
+  padding-left: 14px;
+}
+
+.lt-ticker-scroll {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  animation: lt-marquee-scroll 48s linear infinite;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.lt-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  color: var(--lt-ticker-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.lt-ticker-item::after {
+  content: "▶";
+  font-size: 8px;
+  color: var(--lt-brand-accent);
+  margin: 0 24px;
+  opacity: 0.85;
+}
+
+@keyframes lt-marquee-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+.lt-channel-tag {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  background: var(--lt-gray-tag);
+  color: var(--lt-gray-tag-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.35);
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  z-index: 2;
+}
+
+/* Watermark Discreta */
+.vdl-watermark {
+  position: absolute;
+  right: 20px;
+  bottom: 8px;
+  z-index: 60;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<!-- CENA 16:9 BROADCAST -->
+<div class="scene">
+  <img id="sceneWallpaper" class="scene-wallpaper" alt="" hidden>
+  <div class="bg-mesh-grid"></div>
+  <div class="bg-ambient-orb orb-1"></div>
+  <div class="bg-ambient-orb orb-2"></div>
+
+  <!-- NAVEGADOR MOCKUP -->
+  <div class="browser-wrapper" id="browserMockup">
+    
+    <!-- BARRA SUPERIOR (CHROME / MACOS) -->
+    <div class="browser-topbar">
+      <div class="browser-header-row">
+        <div class="traffic-lights">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+
+        <div class="browser-tab-active">
+          <span class="tab-icon-vdl">V</span>
+          <span class="tab-title-text" id="tabTitle">Portal Vale da Liberdade</span>
+          <span class="tab-close-btn">×</span>
+        </div>
+      </div>
+
+      <div class="browser-url-row">
+        <div class="nav-arrows">
+          <span>‹</span>
+          <span>›</span>
+          <span>↻</span>
+        </div>
+
+        <div class="url-input-box">
+          <span class="url-lock">🔒</span>
+          <span class="url-text" id="urlText">https://<b>valedaliberdade.com.br</b>/diario/blumenau-infraestrutura</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTAL DE NOTÍCIAS INTERNO -->
+    <div class="portal-viewport">
+      <img id="pageShot" class="portal-page-shot" alt="" hidden>
+      <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
+      <nav class="portal-navbar">
+        <div class="portal-brand">
+          <span class="portal-brand-badge">VDL</span>
+          <div class="portal-brand-name">VALE DA <span>LIBERDADE</span></div>
+        </div>
+
+        <ul class="portal-menu">
+          <li class="portal-menu-item active" id="menuSection">Diário</li>
+          <li class="portal-menu-item">Brasil & Mundo</li>
+          <li class="portal-menu-item">Economia</li>
+          <li class="portal-menu-item">Política</li>
+          <li class="portal-menu-item">Opinião</li>
+        </ul>
+      </nav>
+
+      <main class="portal-content-grid">
+        <!-- ARTIGO PRINCIPAL -->
+        <article class="portal-article">
+          <div class="article-badge" id="articleCategory">DIÁRIO REGIONAL</div>
+          <h1 class="article-headline" id="articleHeadline">BLUMENAU AMPLIA INVESTIMENTOS EM INFRAESTRUTURA E TECNOLOGIA</h1>
+          <p class="article-lead" id="articleLead">Prefeitura detalha cronograma das obras viárias e a expansão do polo de inovação no Vale do Itajaí.</p>
+          <div class="article-meta-info" id="articleMeta">
+            <span>Por Redação VDL</span> • <span>05 de abril de 2026</span> • <span>3 min de leitura</span>
+          </div>
+
+          <div class="article-image-box" id="articleImageBox">
+            <div class="article-cover-fallback">
+              <span class="icon">📰</span>
+              <span style="font-size:12px; font-weight:600; opacity:0.8;">Web Jornal Vale da Liberdade</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- SIDEBAR MAIS LIDAS -->
+        <aside class="portal-sidebar">
+          <div class="sidebar-title">⚡ Mais Lidas</div>
+
+          <div class="sidebar-item">
+            <div class="sidebar-num">01</div>
+            <div class="sidebar-thumb"></div>
+            <div class="sidebar-text">
+              <div class="sidebar-heading">Vale do Itajaí registra expansão industrial recorde</div>
+              <div class="sidebar-time">Há 2 horas</div>
+            </div>
+          </div>
+
+          <div class="sidebar-item">
+            <div class="sidebar-num">02</div>
+            <div class="sidebar-thumb"></div>
+            <div class="sidebar-text">
+              <div class="sidebar-heading">Novo parque tecnológico recebe 14 novas startups</div>
+              <div class="sidebar-time">Há 4 horas</div>
+            </div>
+          </div>
+
+          <div class="sidebar-item">
+            <div class="sidebar-num">03</div>
+            <div class="sidebar-thumb"></div>
+            <div class="sidebar-text">
+              <div class="sidebar-heading">Obras na BR-470 avançam para nova fase</div>
+              <div class="sidebar-time">Há 6 horas</div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+  </div>
+
+  <!-- LOWER THIRD BROADCAST OFICIAL (REBAIXADO E ESPAÇADO) -->
+  <div class="lower-third-overlay">
+    <div class="lt-root" id="ltRoot">
+      
+      <!-- 1. BLOCO SUPERIOR: PLACA DE FUNDO INTEIRIÇA + CARD BRANCO SOBREPOSTO -->
+      <div class="lt-hero-layer">
+        <div class="lt-banner-backdrop">
+          <div class="lt-eyebrow-text" id="ltEyebrow">VALE DA LIBERDADE • DIÁRIO REGIONAL</div>
+
+          <div class="lt-live-box" id="ltLiveBadge">
+            <span class="lt-live-dot"></span>
+            <span class="lt-live-label" id="ltLiveText">DIÁRIO</span>
+          </div>
+        </div>
+
+        <div class="lt-headline-card">
+          <div class="lt-headline-content">
+            <div class="lt-headline-title" id="ltTitle">BLUMENAU AMPLIA INVESTIMENTOS EM INFRAESTRUTURA E TECNOLOGIA</div>
+            <div class="lt-headline-subtitle" id="ltSubtitle">Prefeitura detalha cronograma das obras viárias no Vale do Itajaí</div>
+          </div>
+
+          <div class="lt-brand-box">
+            <div class="lt-brand-vdl-text">VDL</div>
+            <span class="lt-brand-label" id="ltBrandSub">DIÁRIO</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. BLOCO INFERIOR: TARJA DE DATA + TICKER + PROGRAMA -->
+      <div class="lt-bottom-layer">
+        <div class="lt-date-box" id="ltDate">2026-04-05</div>
+
+        <div class="lt-ticker-track">
+          <div class="lt-ticker-scroll" id="ltTickerScroll"></div>
+        </div>
+
+        <div class="lt-channel-tag" id="ltChannelTag">VALE DA LIBERDADE</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WATERMARK -->
+  <div class="vdl-watermark">Web Jornal Vale da Liberdade</div>
+</div>
+
+<!-- JAVASCRIPT REATIVO & INTEGRAÇÃO HERMES AGENT -->
+<script>
+/**
+ * REATUALIZAÇÃO & CONTROLADOR DE MOCKUP BROWSER + LOWER THIRD
+ */
+const VDL_MOCKUP_ENGINE = {
+  data: {
+    // Portal / Artigo
+    categoria: "DIÁRIO REGIONAL",
+    titulo: "BLUMENAU AMPLIA INVESTIMENTOS EM INFRAESTRUTURA E TECNOLOGIA",
+    resumo: "Prefeitura detalha cronograma das obras viárias e a expansão do polo de inovação no Vale do Itajaí.",
+    autor: "Redação VDL",
+    dataExtenso: "05 de abril de 2026",
+    leitura: "3 min de leitura",
+    url: "https://valedaliberdade.com.br/diario/blumenau-infraestrutura",
+    imagem: "",
+
+    // Lower Third
+    eyebrow: "VALE DA LIBERDADE • DIÁRIO REGIONAL",
+    lowerTitle: "BLUMENAU AMPLIA INVESTIMENTOS EM INFRAESTRUTURA E TECNOLOGIA",
+    lowerSubtitle: "Prefeitura detalha cronograma das obras viárias no Vale do Itajaí",
+    liveText: "DIÁRIO",
+    date: "2026-04-05",
+    tag: "VALE DA LIBERDADE",
+    brandSub: "DIÁRIO",
+
+    // Ticker
+    ticker: [
+      "VALE DO ITAJAÍ REGISTRA EXPANSÃO INDUSTRIAL RECORDE NO SEMESTRE",
+      "NOVO PARQUE TECNOLÓGICO RECEBE 14 STARTUPS EM BLUMENAU",
+      "OBRAS NA BR-470 AVANÇAM PARA NOVA FASE DE PAVIMENTAÇÃO",
+      "CONFERÊNCIA DE INOVAÇÃO COMEÇA NESTA QUINTA-FEIRA"
+    ]
+  },
+
+  /**
+   * Atualiza todo o estado da página
+   */
+  update(newData = {}) {
+    this.data = Object.assign({}, this.data, newData);
+    const d = this.data;
+
+    // Portal
+    document.getElementById("articleCategory").textContent = d.categoria;
+    document.getElementById("articleHeadline").textContent = d.titulo;
+    document.getElementById("articleLead").textContent = d.resumo;
+    document.getElementById("articleMeta").innerHTML = `<span>Por ${d.autor}</span> • <span>${d.dataExtenso}</span> • <span>${d.leitura}</span>`;
+    
+    // Aba & URL
+    document.getElementById("tabTitle").textContent = d.titulo.length > 34 ? d.titulo.substring(0, 34) + "..." : d.titulo;
+    
+    // Tratamento de URL formatada
+    let formattedUrl = d.url;
+    try {
+      const parsed = new URL(d.url.startsWith('http') ? d.url : `https://${d.url}`);
+      formattedUrl = `${parsed.protocol}//<b>${parsed.hostname}</b>${parsed.pathname}`;
+    } catch(e) {
+      formattedUrl = d.url;
+    }
+    document.getElementById("urlText").innerHTML = formattedUrl;
+
+    // Imagem do Artigo
+    const imgContainer = document.getElementById("articleImageBox");
+    if (d.imagem) {
+      imgContainer.innerHTML = `<img class="article-cover-img" src="${d.imagem}" alt="${d.titulo}">`;
+    }
+
+    const pageShot = document.getElementById("pageShot");
+    const pageVideo = document.getElementById("pageVideo");
+    if (pageVideo) {
+      if (d.pageVideo) {
+        const src = d.pageVideo;
+        if (!pageVideo.src.endsWith(src)) {
+          pageVideo.src = src;
+          pageVideo.load();
+          pageVideo.play().catch(() => {});
+        }
+        pageVideo.hidden = false;
+        if (pageShot) pageShot.hidden = true;
+      } else {
+        try { pageVideo.pause(); } catch(e) {}
+        pageVideo.removeAttribute("src");
+        pageVideo.load();
+        pageVideo.hidden = true;
+        if (pageShot && d.pageImage) pageShot.hidden = false;
+      }
+    }
+    if (pageShot) {
+      if (d.pageImage && (!pageVideo || !d.pageVideo)) {
+        pageShot.src = d.pageImage;
+        pageShot.hidden = false;
+      } else if (!d.pageImage) {
+        pageShot.removeAttribute("src");
+        pageShot.hidden = true;
+      }
+    }
+
+    const wall = document.getElementById("sceneWallpaper");
+    if (wall) {
+      if (d.wallpaper) {
+        wall.src = d.wallpaper;
+        wall.hidden = false;
+      } else {
+        wall.removeAttribute("src");
+        wall.hidden = true;
+      }
+    }
+
+    // Lower Third
+    document.getElementById("ltEyebrow").textContent = d.eyebrow || d.categoria;
+    document.getElementById("ltTitle").textContent = d.lowerTitle || d.titulo;
+    document.getElementById("ltSubtitle").textContent = d.lowerSubtitle || d.resumo;
+    document.getElementById("ltLiveText").textContent = d.liveText || "DIÁRIO";
+    document.getElementById("ltDate").textContent = d.date || "2026-04-05";
+    document.getElementById("ltChannelTag").textContent = d.tag || "VALE DA LIBERDADE";
+    document.getElementById("ltBrandSub").textContent = d.brandSub || "DIÁRIO";
+
+    // Ticker
+    if (Array.isArray(newData.ticker)) {
+      this.renderTicker(newData.ticker);
+    }
+  },
+
+  /**
+   * Renderiza o ticker contínuo
+   */
+  renderTicker(items) {
+    const scroll = document.getElementById("ltTickerScroll");
+    const html = items.map(t => `<span class="lt-ticker-item">${t}</span>`).join('');
+    scroll.innerHTML = html + html;
+  },
+
+  /**
+   * Carrega parâmetros dinâmicos da URL (Query String)
+   */
+  loadFromURL() {
+    const p = new URLSearchParams(window.location.search);
+    const updates = {};
+    if (p.has('categoria')) updates.categoria = p.get('categoria');
+    if (p.has('titulo')) { updates.titulo = p.get('titulo'); updates.lowerTitle = p.get('titulo'); }
+    if (p.has('resumo')) { updates.resumo = p.get('resumo'); updates.lowerSubtitle = p.get('resumo'); }
+    if (p.has('autor')) updates.autor = p.get('autor');
+    if (p.has('data')) { updates.date = p.get('data'); updates.dataExtenso = p.get('data'); }
+    if (p.has('eyebrow')) updates.eyebrow = p.get('eyebrow');
+    if (p.has('lowerTitle')) updates.lowerTitle = p.get('lowerTitle');
+    if (p.has('lowerSubtitle')) updates.lowerSubtitle = p.get('lowerSubtitle');
+    if (p.has('live')) updates.liveText = p.get('live');
+    if (p.has('tag')) updates.tag = p.get('tag');
+    if (p.has('brandSub')) updates.brandSub = p.get('brandSub');
+    if (p.has('leitura')) updates.leitura = p.get('leitura');
+    if (p.has('url')) updates.url = p.get('url');
+    if (p.has('imagem')) updates.imagem = p.get('imagem');
+    if (p.has('pageImage')) updates.pageImage = p.get('pageImage');
+    if (p.has('pageVideo')) updates.pageVideo = p.get('pageVideo');
+    if (p.has('wallpaper')) updates.wallpaper = p.get('wallpaper');
+    if (p.has('live')) updates.liveText = p.get('live');
+    if (p.has('ticker')) updates.ticker = p.get('ticker').split('|');
+    
+    if (Object.keys(updates).length > 0) {
+      this.update(updates);
+    }
+  }
+};
+
+// Inicialização automática
+document.addEventListener("DOMContentLoaded", () => {
+  VDL_MOCKUP_ENGINE.update();
+  VDL_MOCKUP_ENGINE.loadFromURL();
+  window.VDL_MOCKUP = VDL_MOCKUP_ENGINE;
+});
+</script>
+
+</body>
+</html>

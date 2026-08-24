@@ -112,7 +112,71 @@ def host_kind(url: str) -> str:
         return "bbc"
     if host.startswith("g1.") or host.endswith("g1.globo.com") or host == "g1.globo.com":
         return "g1"
+    if "x.com" in host or "twitter.com" in host:
+        return "x"
     return "generic"
+
+
+def extract_x_video(url: str, work: Path, video_id: str, idx: int) -> str | None:
+    """Baixa o vídeo de um post do X (sem áudio é suficiente: mockup é mudo).
+    Retorna caminho relativo ao server root ('/shots/...') ou None."""
+    dest = work / "shots" / f"xvid-{video_id}-{idx:02d}.mp4"
+    if dest.exists() and dest.stat().st_size > 50000:
+        return f"/shots/{dest.name}"
+    cmd = [
+        "/home/osmar/.local/bin/yt-dlp", "-f", "bv*[height<=720]/b[height<=720]/b",
+        "--no-playlist", "--no-warnings", "--quiet",
+        "-o", str(dest), url,
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    # yt-dlp pode adicionar extensão própria
+    if not dest.exists():
+        cands = list((work / "shots").glob(f"xvid-{video_id}-{idx:02d}.*"))
+        if cands:
+            return f"/shots/{cands[0].name}"
+    if r.returncode != 0 or not dest.exists() or dest.stat().st_size < 50000:
+        print(f"  ⚠️  x-video: sem vídeo embutido em {url}: {(r.stderr or '')[-160:]}")
+        return None
+    print(f"  🎞️  x-video: {dest.name} ({dest.stat().st_size // 1024} KB)")
+    return f"/shots/{dest.name}"
+
+
+_PAYWALL_HINTS_JS = """() => {
+  const t = (document.body ? document.body.innerText : '').toLowerCase();
+  const hits = [];
+  const pats = [
+    ['paywall', /continue lendo|assine para continuar|subscribe to (continue|read)|conteúdo exclusivo para assinantes|acesso restrito a assinantes|faça sua assinatura|já é assinante/],
+    ['adblock', /desative o adblock|disable your ad ?blocker|whitelist this site|permita os anúncios/],
+    ['consent-wall', /escolha seu plano|select your plan|we value your privacy|nós valorizamos sua privacidade/],
+    ['ad-interstitial', /publicidade|advertisement/i.test(document.querySelector('[id*="interstitial"], [class*="interstitial"]')?.innerText || '') && !!(document.querySelector('[id*="interstitial"], [class*="interstitial"]')?.offsetParent)],
+  ];
+  for (const [name, re] of pats) {
+    try { if (re.test(t)) hits.push(name); } catch(e) {}
+  }
+  // paywall estrutural: conteúdo principal menor que o overlay
+  try {
+    const pay = document.querySelector('[class*="paywall"], [id*="paywall"], [class*="subscription-wall"]');
+    if (pay && pay.offsetParent) hits.push('paywall-element');
+  } catch(e) {}
+  return hits;
+}"""
+
+
+# JS extra: rola além de ads/intersticiais e tenta posicionar em texto da matéria.
+_SCROLL_PAST_ADVERTS_JS = """({maxScrolls}) => {
+  let scrolled = 0;
+  for (let i = 0; i < maxScrolls; i++) {
+    const t = (document.body ? document.body.innerText : '').toLowerCase();
+    const blocked =
+      t.includes('assine para continuar') || t.includes('subscribe to continue') ||
+      t.includes('conteúdo exclusivo para assinantes') || t.includes('desative o adblock') ||
+      t.includes('disable your ad blocker');
+    if (!blocked) break;
+    window.scrollBy(0, window.innerHeight * 0.9);
+    scrolled += Math.round(window.innerHeight * 0.9);
+  }
+  return Promise.resolve({scrolled});
+}"""
 
 
 # Cliques comuns de cookie / login-wall (ordem: específico → genérico).
@@ -429,7 +493,11 @@ def ticker_headlines(episode: dict, video_id: str | None = None) -> list[str]:
 
 
 def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
-    names = [f"bm_{video_id}.jpg", f"bm_{video_id}.webp", f"bm_{video_id}.png"]
+    # Preferir o mockup dinâmico do YouTube (yt_bm_, gerado pelo
+    # youtube_thumbnail.py na etapa 4.6 do bm_pipeline); cair para a
+    # imagem de tema da LLM (bm_) se o mockup ainda não existir.
+    names = [f"yt_bm_{video_id}.jpg", f"yt_bm_{video_id}.png",
+             f"bm_{video_id}.jpg", f"bm_{video_id}.webp", f"bm_{video_id}.png"]
     for base in THUMB_DIRS:
         folder = base / ymd
         for name in names:
@@ -439,7 +507,40 @@ def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
     return None
 
 
-def build_metadata(video_id: str, episode: dict, audio: Path) -> tuple[str, str, list[str]]:
+def build_chapters(scenes: list[dict], dur: float) -> list[tuple[float, str]]:
+    """Timestamps aproximados das cenas do mockup (mesma matemática do record_mockup)."""
+    n = max(len(scenes), 1)
+    per = max(8.0, dur / n)
+    entries: list[tuple[float, str]] = [(0.0, "Introdução")]
+    t = 0.8
+    for s in scenes:
+        entries.append((t, (s.get("veiculo") or "Fonte").strip()))
+        t += per
+    concl = max(t, dur - min(20.0, dur * 0.15))
+    entries.append((concl, "Conclusão"))
+    # normaliza: crescente, >=10s entre capítulos, dentro da duração
+    out: list[tuple[float, str]] = []
+    for ts, label in sorted(entries):
+        ts = min(ts, max(dur - 1.0, 0.0))
+        if out and ts - out[-1][0] < 10.0:
+            continue
+        out.append((round(ts), label))
+    return out
+
+
+def chapters_block(scenes: list[dict], dur: float) -> str:
+    ch = build_chapters(scenes, dur)
+    if len(ch) < 3:
+        return ""
+    lines = ["", "⏱ CAPÍTULOS:", "0:00 Introdução"]
+    for ts, label in ch[1:-1]:
+        lines.append(f"{ts // 60:.0f}:{ts % 60:02d} {label}")
+    last_ts, last_label = ch[-1]
+    lines.append(f"{last_ts // 60:.0f}:{last_ts % 60:02d} {last_label}")
+    return "\n".join(lines)
+
+
+def build_metadata(video_id: str, episode: dict, audio: Path, scenes: list[dict] | None = None) -> tuple[str, str, list[str]]:
     title = _unescape((episode.get("titulo") or "").strip()) or f"Brasil & Mundo — Comentário ({video_id})"
     tags = list(FIXED_TAGS)
     tags.extend(episode.get("tags") or [])
@@ -462,6 +563,8 @@ def build_metadata(video_id: str, episode: dict, audio: Path) -> tuple[str, str,
         refs="\n".join(refs_ok) if refs_ok else "—",
         tags=" ".join(t.replace(" ", "") for t in tags if t),
     )
+    if scenes:
+        desc += chapters_block(scenes, probe_duration_s(audio) or 0.0)
     seen: set[str] = set()
     uniq: list[str] = []
     for t in tags:
@@ -531,6 +634,15 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
         for i, scene in enumerate(scenes):
             dest = shot_dir / f"src-{i:02d}.png"
             try:
+                # X com vídeo embutido: baixa o clipe em vez de screenshot estático
+                if host_kind(scene["url"]) == "x":
+                    vid_rel = extract_x_video(scene["url"], shot_dir.parent, shot_dir.parent.name, i)
+                    if vid_rel:
+                        item = dict(scene)
+                        item["shot"] = None
+                        item["video"] = vid_rel
+                        out.append(item)
+                        continue
                 page.goto(scene["url"], wait_until="domcontentloaded", timeout=35000)
                 page.wait_for_timeout(1800)
                 prep = prepare_capture(page, scene["url"])
@@ -541,6 +653,17 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     item["shot"] = None
                     out.append(item)
                     continue
+                # paywall / adblock / interstitial: rola além do bloqueio
+                try:
+                    hints = page.evaluate(_PAYWALL_HINTS_JS)
+                    if hints:
+                        print(f"  🚧 {scene['veiculo']}: bloqueios={hints} — rolando além")
+                        res = page.evaluate(_SCROLL_PAST_ADVERTS_JS, {"maxScrolls": 4})
+                        page.wait_for_timeout(500)
+                        if res.get("scrolled"):
+                            prep["scrolledTo"] = f"past-adverts(+{res['scrolled']}px)"
+                except Exception:
+                    pass
                 page.screenshot(path=str(dest), full_page=False)
                 if dest.exists() and dest.stat().st_size > 8000:
                     item = dict(scene)
@@ -587,14 +710,59 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
                 locale="pt-BR",
             )
             page = ctx.new_page()
-            page.goto(url, wait_until="networkidle", timeout=45000)
-            page.wait_for_timeout(800)
+            # Payload inicial vai na URL (loadFromURL): evita os dados demo do
+            # HTML aparecerem nos primeiros frames antes do primeiro update().
+            def _qs_payload(payload: dict) -> str:
+                from urllib.parse import quote as _q
+                ticker = "|".join(payload.get("ticker") or [])
+                pairs = {
+                    "categoria": payload["categoria"], "titulo": payload["titulo"],
+                    "resumo": payload["resumo"], "autor": payload["autor"],
+                    "data": payload["data"], "dataExtenso": payload["dataExtenso"],
+                    "url": payload["url"], "eyebrow": payload["eyebrow"],
+                    "lowerTitle": payload["lowerTitle"], "lowerSubtitle": payload["lowerSubtitle"],
+                    "live": payload["liveText"], "brandSub": payload["brandSub"],
+                    "tag": payload["tag"], "ticker": ticker,
+                }
+                if payload.get("pageImage"):
+                    pairs["pageImage"] = payload["pageImage"]
+                if payload.get("pageVideo"):
+                    pairs["pageVideo"] = payload["pageVideo"]
+                if payload.get("wallpaper"):
+                    pairs["wallpaper"] = payload["wallpaper"]
+                return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
+
+            first_scene = scenes[0] if scenes else {}
+            init_payload = {
+                "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
+                "autor": "Peter Albuquerque", "data": ymd, "dataExtenso": ymd,
+                "url": first_scene.get("url") or "https://news.mob.tec.br",
+                "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
+                "lowerTitle": title, "lowerSubtitle": subhead,
+                "liveText": "B&M", "brandSub": "B&M", "tag": "VALE DA LIBERDADE",
+                "ticker": ticker_items,
+                "pageImage": f"/shots/{first_scene['shot']}" if first_scene.get("shot") else "",
+                "pageVideo": first_scene.get("video") or "",
+                "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
+            }
+            page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
+            # garante que wallpaper e primeira página decodificaram antes de gravar
+            page.wait_for_function(
+                """() => {
+                  const w = document.getElementById('sceneWallpaper');
+                  const s = document.getElementById('pageShot');
+                  const ok = el => !el || el.hidden || el.complete !== false;
+                  return ok(w) && ok(s);
+                }""", timeout=10000,
+            )
+            page.wait_for_timeout(400)
             started = time.monotonic()
-            idx = 0
-            first = True
+            idx = 1  # cena 0 já foi aplicada via URL
+            first = False
             while time.monotonic() - started < dur:
                 scene = scenes[idx % len(scenes)]
                 page_image = f"/shots/{scene['shot']}" if scene.get("shot") else ""
+                page_video = scene.get("video") or ""
                 if first:
                     payload = {
                         "categoria": "BRASIL E MUNDO",
@@ -612,17 +780,18 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
                         "tag": "VALE DA LIBERDADE",
                         "ticker": ticker_items,
                         "pageImage": page_image,
+                        "pageVideo": page_video,
                         "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
                     }
                     page.evaluate("data => window.VDL_MOCKUP && window.VDL_MOCKUP.update(data)", payload)
                     first = False
                 else:
                     page.evaluate(
-                        """({url, pageImage}) => {
+                        """({url, pageImage, pageVideo}) => {
                           if (!window.VDL_MOCKUP) return;
-                          window.VDL_MOCKUP.update({url, pageImage});
+                          window.VDL_MOCKUP.update({url, pageImage, pageVideo});
                         }""",
-                        {"url": scene["url"], "pageImage": page_image},
+                        {"url": scene["url"], "pageImage": page_image, "pageVideo": page_video},
                     )
                 remain = dur - (time.monotonic() - started)
                 page.wait_for_timeout(int(min(per, remain) * 1000))
@@ -770,8 +939,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
     if dur > MAX_DURATION_S:
         raise RuntimeError(f"{video_id}: áudio {dur:.0f}s > {MAX_DURATION_S:.0f}s — pulado")
 
-    title, desc, tags = build_metadata(video_id, episode, audio)
     scenes = source_scenes(episode)
+    title, desc, tags = build_metadata(video_id, episode, audio, scenes=scenes)
     wallpaper = pick_wallpaper(video_id)
     print(f"🎬 {video_id} · {dur:.0f}s · {title}")
     print(f"   fontes: {len(scenes)} · upload={upload} privacy={privacy}")
