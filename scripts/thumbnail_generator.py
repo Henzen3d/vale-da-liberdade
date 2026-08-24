@@ -140,22 +140,31 @@ class ImageModel:
 # Cascata inicial (Seção 2.1). Pode ser reordenada por sources/thumbnail_cascade_rank.json
 # após MODEL_TEST_REPORT.
 DEFAULT_CASCADE: list[ImageModel] = [
-    ImageModel(name="qwen-image-3.0", model_id="qwen-image-3.0",
-               api_style="multimodal", size=SIZE_16_9, cost_usd=0.05, daily_quota=30),
-    ImageModel(name="qwen-image-2.0-pro", model_id="qwen-image-2.0-pro",
-               api_style="multimodal", size=SIZE_16_9, cost_usd=0.04, daily_quota=40),
-    ImageModel(name="qwen-image-2.0", model_id="qwen-image-2.0",
-               api_style="multimodal", size=SIZE_16_9, cost_usd=0.03, daily_quota=50),
-    ImageModel(name="qwen-image-max", model_id="qwen-image-max",
-               api_style="multimodal", size=SIZE_16_9, cost_usd=0.04, daily_quota=40),
-    ImageModel(name="qwen-image-plus", model_id="qwen-image-plus",
-               api_style="multimodal", size=SIZE_16_9, cost_usd=0.02, daily_quota=80),
-    ImageModel(name="wan2.7-image-pro", model_id="wan2.7-image-pro",
-               api_style="wan", size=SIZE_WAN, cost_usd=0.04, daily_quota=30),
-    ImageModel(name="wan2.7-image", model_id="wan2.7-image",
-               api_style="wan", size=SIZE_WAN, cost_usd=0.03, daily_quota=40),
-    ImageModel(name="z-image-turbo", model_id="z-image-turbo",
-               api_style="multimodal", size=SIZE_16_9, cost_usd=0.01, daily_quota=100),
+    # Modelos DashScope desabilitados por bloqueio de conta (Arrearage)
+    # ImageModel(name="qwen-image-3.0", model_id="qwen-image-3.0",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.05, daily_quota=30, enabled=False),
+    # ImageModel(name="qwen-image-2.0-pro", model_id="qwen-image-2.0-pro",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.04, daily_quota=40, enabled=False),
+    # ImageModel(name="qwen-image-2.0", model_id="qwen-image-2.0",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.03, daily_quota=50, enabled=False),
+    # ImageModel(name="qwen-image-max", model_id="qwen-image-max",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.04, daily_quota=40, enabled=False),
+    # ImageModel(name="qwen-image-plus", model_id="qwen-image-plus",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.02, daily_quota=80, enabled=False),
+    # ImageModel(name="wan2.7-image-pro", model_id="wan2.7-image-pro",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.03, daily_quota=30, enabled=False),
+    # ImageModel(name="wan2.7-image", model_id="wan2.7-image",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.02, daily_quota=40, enabled=False),
+    # ImageModel(name="z-image-turbo", model_id="z-image-turbo",
+    #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.01, daily_quota=100, enabled=False),
+
+    # Alternativas ativas (sem chaves configuradas no momento — require env)
+    ImageModel(name="gemini-3.6-flash-image", model_id="gemini-3.6-flash-image",
+               api_style="gemini", size=SIZE_16_9, cost_usd=0.02, daily_quota=50),
+    ImageModel(name="dall-e-3", model_id="dall-e-3",
+               api_style="openai", size=SIZE_16_9, cost_usd=0.04, daily_quota=30),
+    ImageModel(name="stability-xl", model_id="stable-diffusion-xl",
+               api_style="stability", size=SIZE_16_9, cost_usd=0.03, daily_quota=40),
 ]
 
 PROMPT_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash"]
@@ -438,6 +447,11 @@ def _sanitize_prompt_once(prompt: str) -> str:
         r"\bdead body\b", r"\bwound\b", r"\bstabbing\b", r"\bmurder\b",
         r"\bweapon in use\b", r"\bcombat scene\b", r"\bexplosion\b",
         r"\bdead\b", r"\bkilled\b", r"\bbody\b",
+        # fogo / destruição — gatilho frequente do filtro DashScope
+        r"\bburning\b", r"\bburnt\b", r"\bburned\b", r"\bon fire\b", r"\bflames?\b",
+        r"\bembers\b", r"\bcharred\b", r"\bscorched\b", r"\binferno\b", r"\bblaze\b",
+        r"\bcollapsing\b", r"\bcollapse\b", r"\brubble\b", r"\bwreckage\b", r"\bruins\b",
+        r"\bsmoldering\b", r"\bscorch\b", r"\bashes\b", r"\bash\b", r"\bsoot\b",
     ]
     for pat in violence:
         p = re.sub(pat, "tension", p, flags=re.I)
@@ -582,6 +596,9 @@ def _classify_error(status: int, data: dict | None, text: str) -> None:
         raise SafetyRejected(f"HTTP {status}: {code} {msg}"[:300])
     if status in (401, 403):
         raise ModelFailed(f"auth HTTP {status}: {msg or text}"[:200])
+    # Arrears / bloqueio de conta = falha do modelo (não safety)
+    if "arrearage" in blob or "overdue" in blob or "billing" in blob:
+        raise ModelFailed(f"account_blocked HTTP {status}: {msg or text}"[:200])
     if status == 429 or "throttl" in blob or "rate" in blob or "quota" in blob or "limit" in blob and "exceed" in blob:
         raise ModelFailed(f"rate_limited HTTP {status}: {code} {msg}"[:200])
     if status == 404 or "not found" in blob or "does not exist" in blob or "model_not_found" in blob:
@@ -1016,7 +1033,9 @@ def generate_cover_image(
                     "detail": str(e)[:200],
                 })
                 _log_event("safety_rejected", model=model.model_id, episode_id=episode_id)
-                raise
+                # Não aborta a cascata: o filtro é do modelo/conta — o próximo
+                # modelo pode aceitar. Continua para o fallback da cascata.
+                continue
             except ModelFailed as e:
                 all_attempts.append({
                     "model": model.model_id,
