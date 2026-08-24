@@ -159,17 +159,20 @@ DEFAULT_CASCADE: list[ImageModel] = [
     # ImageModel(name="z-image-turbo", model_id="z-image-turbo",
     #            api_style="multimodal", size=SIZE_16_9, cost_usd=0.01, daily_quota=100, enabled=False),
 
-    # Alternativas ativas (sem chaves configuradas no momento — require env)
-    ImageModel(name="gemini-3.6-flash-image", model_id="gemini-3.6-flash-image",
-               api_style="gemini", size=SIZE_16_9, cost_usd=0.02, daily_quota=50),
-    ImageModel(name="dall-e-3", model_id="dall-e-3",
-               api_style="openai", size=SIZE_16_9, cost_usd=0.04, daily_quota=30),
-    ImageModel(name="stability-xl", model_id="stable-diffusion-xl",
-               api_style="stability", size=SIZE_16_9, cost_usd=0.03, daily_quota=40),
-    # Cloudflare Workers AI (flux-1-schnell) — grátis via wrangler OAuth, sem API key paga
+    # Produção: Cloudflare primeiro. gemini/dall-e/stability NÃO têm cliente
+    # próprio — o ramo default ia para DashScope e gerava "Model not exist".
     ImageModel(name="cf-flux-schnell", model_id="@cf/black-forest-labs/flux-1-schnell",
                api_style="cloudflare", size=SIZE_16_9, cost_usd=0.0, daily_quota=200,
                env_key="CLOUDFLARE_API_TOKEN"),
+    ImageModel(name="gemini-3.6-flash-image", model_id="gemini-3.6-flash-image",
+               api_style="gemini", size=SIZE_16_9, cost_usd=0.02, daily_quota=50,
+               enabled=False),
+    ImageModel(name="dall-e-3", model_id="dall-e-3",
+               api_style="openai", size=SIZE_16_9, cost_usd=0.04, daily_quota=30,
+               enabled=False),
+    ImageModel(name="stability-xl", model_id="stable-diffusion-xl",
+               api_style="stability", size=SIZE_16_9, cost_usd=0.03, daily_quota=40,
+               enabled=False),
 ]
 
 PROMPT_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash"]
@@ -667,71 +670,94 @@ def _call_multimodal(model: ImageModel, prompt: str, key: str) -> Image.Image:
     return _download_image(url)
 
 
+def _wrangler_oauth_creds() -> tuple[str, str]:
+    """Lê oauth_token + account_id do wrangler local. Não mistura token A com conta B."""
+    token = ""
+    account = ""
+    for cfg in (Path.home() / ".config/.wrangler/config/default.toml",
+                Path.home() / ".wrangler/config/default.toml"):
+        try:
+            text = cfg.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for line in text.splitlines():
+            s = line.strip()
+            if s.startswith("oauth_token") and "=" in s and not token:
+                token = s.split("=", 1)[1].strip().strip('"').strip("'")
+            elif s.startswith("account_id") and "=" in s and not account:
+                account = s.split("=", 1)[1].strip().strip('"').strip("'")
+        if token:
+            break
+    return account, token
+
+
 def _call_cloudflare(model: ImageModel, prompt: str, key: str) -> Image.Image:
-    """Cloudflare Workers AI REST (flux-1-schnell). key = API token; account id do .env."""
+    """Cloudflare Workers AI REST (flux-1-schnell). Token env ou OAuth wrangler."""
     import io
 
-    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    env_account = (
+        os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+        or os.environ.get("CF_ACCOUNT_ID", "").strip()
+    )
+    wr_account, wr_token = _wrangler_oauth_creds()
+    token = key if key and not key.startswith("***") else wr_token
+    # Se o token veio do wrangler, a conta tem de ser a do wrangler (ou a env se for a mesma).
+    if token and wr_token and token == wr_token:
+        account = wr_account or env_account
+    else:
+        account = env_account or wr_account
     if not account or account.startswith("["):
-        raise ModelFailed("CLOUDFLARE_ACCOUNT_ID ausente no .env")
-    token = key
-    if not token or token.startswith("***"):
-        # fallback: OAuth do wrangler (mesma lógica do plugin image_gen/cloudflare)
-        from pathlib import Path
-        for cfg in (Path.home() / ".config/.wrangler/config/default.toml",
-                    Path.home() / ".wrangler/config/default.toml"):
-            try:
-                text = cfg.read_text(encoding="utf-8")
-            except OSError:
-                continue
-            for line in text.splitlines():
-                s = line.strip()
-                if s.startswith("oauth_token"):
-                    token = s.split("=", 1)[1].strip().strip('"').strip("'")
-                    break
-                if s.startswith("api_token"):
-                    token = s.split("=", 1)[1].strip().strip('"').strip("'")
-                    break
-            if token:
-                account = account or next(
-                    (l.split("=", 1)[1].strip().strip('"').strip("'")
-                     for l in text.splitlines()
-                     if l.strip().startswith("account_id")), "")
-                break
-        if not token:
-            raise ModelFailed("sem CLOUDFLARE_API_TOKEN nem wrangler oauth_token")
+        raise ModelFailed("CLOUDFLARE_ACCOUNT_ID ausente (env e wrangler)")
+    if not token:
+        raise ModelFailed("sem CLOUDFLARE_API_TOKEN nem wrangler oauth_token")
+
     endpoint = (
         f"https://api.cloudflare.com/client/v4/accounts/{account}"
         f"/ai/run/{model.model_id}"
     )
-    try:
-        resp = requests.post(
-            endpoint,
-            json={"prompt": prompt[:2000], "steps": 4},
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            timeout=HTTP_TIMEOUT,
-        )
-    except requests.exceptions.Timeout as e:
-        raise ModelFailed(f"timeout {HTTP_TIMEOUT}s") from e
-    except requests.exceptions.RequestException as e:
-        raise ModelFailed(f"rede: {e}") from e
 
-    ctype = resp.headers.get("content-type", "")
-    if resp.status_code != 200:
-        _classify_error(resp.status_code, None, resp.text[:300])
-    if "image" in ctype:
-        return Image.open(io.BytesIO(resp.content)).convert("RGB")
-    try:
-        data = resp.json()
-    except ValueError as e:
-        raise ModelFailed(f"resposta inesperada ({ctype})") from e
-    b64 = (
-        ((data.get("result") or {}).get("image"))
-        or data.get("image")
-    )
-    if not b64:
-        _classify_error(resp.status_code, data, str(data)[:300])
-    return Image.open(io.BytesIO(base64.b64decode(b64))).convert("RGB")
+    last_err = ""
+    for attempt in (1, 2):
+        try:
+            resp = requests.post(
+                endpoint,
+                json={"prompt": prompt[:2000], "steps": 4},
+                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                timeout=HTTP_TIMEOUT,
+            )
+        except requests.exceptions.Timeout as e:
+            raise ModelFailed(f"timeout {HTTP_TIMEOUT}s") from e
+        except requests.exceptions.RequestException as e:
+            raise ModelFailed(f"rede: {e}") from e
+
+        ctype = resp.headers.get("content-type", "")
+        if resp.status_code == 401 and attempt == 1 and wr_token and token != wr_token:
+            # token de env inválido — tenta o OAuth do wrangler uma vez
+            token = wr_token
+            if wr_account:
+                account = wr_account
+                endpoint = (
+                    f"https://api.cloudflare.com/client/v4/accounts/{account}"
+                    f"/ai/run/{model.model_id}"
+                )
+            last_err = resp.text[:200]
+            continue
+        if resp.status_code != 200:
+            _classify_error(resp.status_code, None, resp.text[:300])
+        if "image" in ctype:
+            return Image.open(io.BytesIO(resp.content)).convert("RGB")
+        try:
+            data = resp.json()
+        except ValueError as e:
+            raise ModelFailed(f"resposta inesperada ({ctype})") from e
+        b64 = (
+            ((data.get("result") or {}).get("image"))
+            or data.get("image")
+        )
+        if not b64:
+            _classify_error(resp.status_code, data, str(data)[:300])
+        return Image.open(io.BytesIO(base64.b64decode(b64))).convert("RGB")
+    raise ModelFailed(f"auth HTTP 401 após retry: {last_err}"[:200])
 
 
 def _call_wan(model: ImageModel, prompt: str, key: str) -> Image.Image:
@@ -840,11 +866,13 @@ def _call_model_once(model: ImageModel, prompt: str) -> tuple[Image.Image, int]:
     if not key or key.startswith("***"):
         if model.api_style == "cloudflare":
             key = ""  # _call_cloudflare faz fallback para o OAuth do wrangler
-        else:
-            # tenta fallback genérico
+        elif model.api_style in ("multimodal", "wan", "async") and model.env_key == "DASHSCOPE_API_KEY":
             key = os.environ.get("DASHSCOPE_API_KEY", "").strip()
             if not key or key.startswith("***"):
                 raise ModelFailed(f"chave ausente: {model.env_key}")
+        else:
+            # NÃO injetar DASHSCOPE_API_KEY em gemini/openai/stability/cloudflare
+            raise ModelFailed(f"chave ausente: {model.env_key} (sem fallback DashScope)")
 
     if quota_remaining(model.model_id, model.daily_quota) <= 0:
         raise ModelFailed(f"quota local esgotada para {model.model_id}")
@@ -858,8 +886,10 @@ def _call_model_once(model: ImageModel, prompt: str) -> tuple[Image.Image, int]:
             img = _call_async(model, prompt, key)
         elif style == "cloudflare":
             img = _call_cloudflare(model, prompt, key)
-        else:
+        elif style == "multimodal":
             img = _call_multimodal(model, prompt, key)
+        else:
+            raise ModelFailed(f"api_style não implementado: {style} ({model.name})")
     except (SafetyRejected, ModelFailed):
         raise
     except Exception as e:
@@ -1070,6 +1100,35 @@ def update_episode_metadata(date: str, episode_id: str, thumb_meta: dict) -> Pat
     return side
 
 
+def _record_editorial_manifest(date_s: str, episode_id_s: str, thumb_meta: dict) -> None:
+    """Grava o manifesto explícito da editorial BM. Sem isso o mockup YouTube não roda."""
+    if not episode_id_s.startswith("bm_"):
+        return
+    video_id = episode_id_s[3:]
+    rel = thumb_meta.get("path_jpg") or thumb_meta.get("path") or ""
+    if not rel:
+        return
+    path = Path(rel)
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    if path.suffix.lower() == ".webp":
+        jpg = path.with_suffix(".jpg")
+        if jpg.is_file():
+            path = jpg
+    try:
+        import episode_image_manifest as eim
+        eim.record_editorial(
+            video_id=video_id,
+            date=date_s,
+            editorial_image_path=path,
+            model=str(thumb_meta.get("image_model_used") or ""),
+            is_placeholder=bool(thumb_meta.get("is_placeholder")),
+            generated_at=str(thumb_meta.get("generated_at") or ""),
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.error("falha ao gravar image-manifest de %s: %s", episode_id_s, exc)
+
+
 # ---------------------------------------------------------------------------
 # API principal
 # ---------------------------------------------------------------------------
@@ -1173,15 +1232,38 @@ def generate_thumbnail_for_episode(
     summary_s: str = str(story["summary"])
 
     out_webp = THUMBNAILS_DIR / date_s / f"{episode_id_s}.webp"
+    out_jpg = THUMBNAILS_DIR / date_s / f"{episode_id_s}.jpg"
     if out_webp.exists() and not force:
         log.info("thumbnail já existe para %s (use --force para regenerar)", episode_id_s)
+        prev_placeholder = False
+        prev_model = "cached"
+        if episode_id_s.startswith("bm_"):
+            try:
+                import episode_image_manifest as eim
+                prev = eim.load_manifest(episode_id_s[3:])
+                prev_placeholder = bool(prev.get("editorial_is_placeholder"))
+                prev_model = str(prev.get("editorial_image_model") or prev_model)
+            except Exception:
+                pass
+        if prev_model == "cached":
+            # tenta o bloco thumbnail já gravado no especial
+            try:
+                vid = episode_id_s[3:] if episode_id_s.startswith("bm_") else ""
+                bm = PROJECT_ROOT / "output" / "brasil_e_mundo" / "episodes" / f"especial-{vid}.json"
+                if vid and bm.exists():
+                    block = (json.loads(bm.read_text(encoding="utf-8")).get("thumbnail") or {})
+                    prev_placeholder = bool(block.get("is_placeholder"))
+                    prev_model = str(block.get("image_model_used") or prev_model)
+            except Exception:
+                pass
         existing = {
             "path": str(out_webp.relative_to(PROJECT_ROOT)),
-            "image_model_used": "cached",
+            "path_jpg": str(out_jpg.relative_to(PROJECT_ROOT)) if out_jpg.exists() else "",
+            "image_model_used": prev_model,
             "prompt_model_used": "cached",
             "image_prompt": "",
             "fallback_level": -1,
-            "is_placeholder": False,
+            "is_placeholder": prev_placeholder,
             "generated_at": datetime.fromtimestamp(out_webp.stat().st_mtime, tz=timezone.utc).isoformat(),
             "estimated_cost_usd": 0.0,
             "generation_attempts": [],
@@ -1189,6 +1271,7 @@ def generate_thumbnail_for_episode(
             "skipped": True,
         }
         update_episode_metadata(date_s, episode_id_s, existing)
+        _record_editorial_manifest(date_s, episode_id_s, existing)
         return existing
 
     image_prompt, prompt_model = generate_image_prompt(headline_s, summary_s)
@@ -1242,6 +1325,7 @@ def generate_thumbnail_for_episode(
 
     meta_path = update_episode_metadata(date_s, episode_id_s, thumb_meta)
     thumb_meta["metadata_path"] = str(meta_path) if meta_path else None
+    _record_editorial_manifest(date_s, episode_id_s, thumb_meta)
     _log_event(
         "thumbnail_done",
         episode_id=episode_id_s,

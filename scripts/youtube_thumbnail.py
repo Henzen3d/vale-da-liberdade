@@ -5,20 +5,15 @@ YouTube Thumbnail Generator — Vale da Liberdade
 Renderiza gerador-thumbnail-vale-liberdade.html (modo card-media) via Playwright
 para produzir a thumbnail final do YouTube de um episódio BM.
 
+A imagem editorial NÃO é descoberta por heurística. O caminho vem do manifesto
+`especial-{id}.image-manifest.json` gravado pelo gerador Cloudflare.
+
 Uso:
     python3 scripts/youtube_thumbnail.py --video-id ZzVHeO4h6fE
     python3 scripts/youtube_thumbnail.py --video-id ZzVHeO4h6fE --date 2026-08-23
-    python3 scripts/youtube_thumbnail.py --last          # último especial gerado
+    python3 scripts/youtube_thumbnail.py --last          # último especial COM manifesto
 
-Comportamento:
-- Título curto: gerado pelo Gemini (simplificação do título/vídeo, ≤ 60 chars)
-  com highlight; fallback = truncamento heurístico do título do vídeo.
-- Apresentador: ciclo sequencial sobre Apresentador/peter*.{jpeg,jpg,png},
-  começando em peter01; contador persistente (novas imagens entram no ciclo).
-- Tema: thumbnails/{data}/bm_{video_id}.jpg (ou ep_{data}.jpg p/ diário).
-- Saída: thumbnails/{data}/yt_{episode_id}.png (+ .jpg)
-
-Requer: playwright (venv do projeto), google-genai global (opcional, só título).
+Saída: thumbnails/{data}/yt_bm_{video_id}.png (+ .jpg)
 """
 from __future__ import annotations
 
@@ -31,6 +26,8 @@ import sys
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+import episode_image_manifest as eim
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 GERADOR_DIR = PROJECT_ROOT / "references" / "youtube" / "gerador-thumbnail"
@@ -72,28 +69,6 @@ def load_episode(video_id: str) -> dict | None:
     p = EPS_DIR / f"especial-{video_id}.json"
     if p.exists():
         return json.loads(p.read_text(encoding="utf-8"))
-    return None
-
-
-def find_episode_date(video_id: str) -> str | None:
-    """Procura thumbnails/{data}/bm_{id}.* para inferir a data do episódio."""
-    if not THUMBS_DIR.is_dir():
-        return None
-    hits = sorted(THUMBS_DIR.glob(f"*/bm_{video_id}.jpg"))
-    return hits[-1].parent.name if hits else None
-
-
-def episode_topic_image(video_id: str, date: str | None) -> Path | None:
-    candidates = []
-    if date:
-        candidates.append(THUMBS_DIR / date / f"bm_{video_id}.jpg")
-        candidates.append(THUMBS_DIR / date / f"ep_{date}.jpg")
-    # fallback: varre todas as datas
-    for d in sorted(THUMBS_DIR.glob(f"*/bm_{video_id}.jpg"), reverse=True):
-        candidates.append(d)
-    for c in candidates:
-        if c.exists():
-            return c
     return None
 
 
@@ -139,8 +114,16 @@ def next_presenter() -> Path:
         except Exception:
             idx = 0
     chosen = files[idx]
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps({"presenter": chosen.name}, ensure_ascii=False, indent=2))
     return chosen
+
+
+def presenter_from_name(name: str) -> Path | None:
+    if not name:
+        return None
+    cand = PRESENTER_DIR / name
+    return cand if cand.is_file() else None
 
 
 # --------------------------------------------------------------------------- #
@@ -173,6 +156,7 @@ Responda SOMENTE com JSON válido:
 {{"title": "...", "highlight": "..."}}"""
         data = None
         last_err = None
+        raw = ""
         for key in keys:
             client = genai.Client(api_key=key)
             for model in ("gemini-flash-latest", "gemini-flash-lite-latest"):
@@ -192,7 +176,6 @@ Responda SOMENTE com JSON válido:
         t = data.get("title", "").strip()
         h = data.get("highlight", "").strip()
         if t and h and h.lower() in t.lower() and len(t) <= MAX_TITLE_CHARS + 10:
-            # garantir substring exata respeitando caixa
             pos = t.lower().rfind(h.lower())
             h = t[pos : pos + len(h)]
             print(f"   ✍️  manchete (Gemini): {t!r} hl={h!r}")
@@ -201,7 +184,6 @@ Responda SOMENTE com JSON válido:
     except Exception as exc:
         print(f"   ⚠️  Gemini falhou ({exc}); usando truncamento heurístico")
         t = fallback_title
-        # highlight = últimas 2-3 palavras
         words = t.rsplit(" ", 3)
         h = words[-1] if len(words) > 1 else t
         return t, h
@@ -214,7 +196,6 @@ def heuristic_short_title(title: str) -> str:
     cut = t[:MAX_TITLE_CHARS]
     if ":" in cut:
         return cut.split(":")[0].strip()[:MAX_TITLE_CHARS]
-    # corta no último espaço antes do limite
     return cut[: cut.rfind(" ")].rstrip(":,!-").strip()
 
 
@@ -252,28 +233,139 @@ def build_url(port: int, cfg: dict) -> str:
     return f"http://127.0.0.1:{port}/{rel_dir}/{HTML_NAME}?{qs}"
 
 
-def render(url: str, out_png: Path) -> None:
+def _render_to(cfg: dict, out_png: Path) -> None:
     from playwright.sync_api import sync_playwright
 
     handler = functools.partial(SimpleHTTPRequestHandler, directory=str(PROJECT_ROOT))
-    import logging
-
-    logging.getLogger("httpserver").setLevel(logging.ERROR)
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     port = httpd.server_address[1]
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     try:
+        final_url = build_url(port, cfg)
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(viewport={"width": 1400, "height": 900})
-            page.goto(url, wait_until="networkidle", timeout=60000)
+            page.goto(final_url, wait_until="networkidle", timeout=60000)
             page.wait_for_function("window.__THUMB_READY__ === true", timeout=30000)
             page.wait_for_timeout(600)
-            stage = page.locator(".stage").first
-            stage.screenshot(path=str(out_png))
+            page.locator(".stage").first.screenshot(path=str(out_png))
             browser.close()
     finally:
         httpd.shutdown()
+
+
+def generate_youtube_thumbnail(
+    video_id: str,
+    date: str | None = None,
+    *,
+    force: bool = False,
+    dry_run: bool = False,
+) -> dict:
+    """Gera (ou reusa) a thumbnail YouTube amarrada à editorial do manifesto."""
+    topic = eim.resolve_editorial_image(video_id)
+    man = eim.load_manifest(video_id)
+    date = str(date or man.get("date") or topic.parent.name)
+    info = eim.describe_editorial(video_id, topic)
+    print(f"📺 {video_id} ({date})")
+    print(
+        f"   episode_id: {info['episode_id']}\n"
+        f"   editorial_image: {info['editorial_image']}\n"
+        f"   editorial_image_exists: {info['editorial_image_exists']}\n"
+        f"   editorial_image_size: {info['editorial_image_size']}\n"
+        f"   editorial_image_hash: {info['editorial_image_hash']}"
+    )
+
+    out_png = THUMBS_DIR / date / f"yt_bm_{video_id}.png"
+    existing = man.get("youtube_thumbnail_path")
+    existing_p = Path(existing) if existing else out_png
+    if (
+        not force
+        and existing_p.is_file()
+        and man.get("youtube_thumbnail_input_hash") == info["editorial_image_hash"]
+    ):
+        print(f"   ⏭️  thumbnail já amarrada a este hash — reusando {existing_p}")
+        return {
+            "ok": True,
+            "skipped": True,
+            "video_id": video_id,
+            "date": date,
+            "editorial_image_path": str(topic),
+            "editorial_image_hash": info["editorial_image_hash"],
+            "youtube_thumbnail_path": str(existing_p),
+            "youtube_thumbnail_input_hash": man.get("youtube_thumbnail_input_hash"),
+        }
+
+    presenter_name = man.get("youtube_presenter") or ""
+    presenter = presenter_from_name(presenter_name) if presenter_name else None
+    if presenter is None:
+        presenter = next_presenter()
+    print(f"   apresentador: {presenter.name}")
+
+    title = man.get("youtube_title") or ""
+    highlight = man.get("youtube_highlight") or ""
+    if not title or not highlight:
+        episode = load_episode(video_id)
+        title_full, context = episode_text(episode, video_id)
+        title, highlight = generate_headline(title_full, context)
+
+    cfg = dict(BASE_CONFIG)
+    cfg.update({
+        "title": title,
+        "highlight": highlight,
+        "presenterImage": presenter,
+        "topicImage": topic,
+    })
+
+    if dry_run:
+        return {
+            "ok": True,
+            "dry_run": True,
+            "video_id": video_id,
+            "config": {k: (str(v) if isinstance(v, Path) else v) for k, v in cfg.items()},
+        }
+
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    _render_to(cfg, out_png)
+    out_jpg = out_png.with_suffix(".jpg")
+    try:
+        from PIL import Image
+        img = Image.open(out_png).convert("RGB")
+        img.save(out_jpg, quality=92)
+        final = out_jpg
+        print(f"✅ {out_jpg.relative_to(PROJECT_ROOT) if PROJECT_ROOT in out_jpg.parents else out_jpg}")
+    except Exception:
+        final = out_png
+        print(f"✅ {out_png}")
+
+    rec = eim.record_youtube_thumbnail(
+        video_id,
+        final,
+        editorial_used=topic,
+        extra={
+            "youtube_presenter": presenter.name,
+            "youtube_title": title,
+            "youtube_highlight": highlight,
+            "date": date,
+        },
+    )
+    print(
+        f"   thumbnail_input_hash: {rec['youtube_thumbnail_input_hash']}\n"
+        f"   thumbnail_output: {final}"
+    )
+    if rec["youtube_thumbnail_input_hash"] != info["editorial_image_hash"]:
+        raise eim.YoutubeThumbnailError(
+            f"hash da editorial usada no mockup != hash Cloudflare de {video_id}"
+        )
+    return {
+        "ok": True,
+        "skipped": False,
+        "video_id": video_id,
+        "date": date,
+        "editorial_image_path": str(topic),
+        "editorial_image_hash": info["editorial_image_hash"],
+        "youtube_thumbnail_path": str(final),
+        "youtube_thumbnail_input_hash": rec["youtube_thumbnail_input_hash"],
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -282,82 +374,31 @@ def render(url: str, out_png: Path) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Gera thumbnail YouTube (gerador HTML)")
     ap.add_argument("--video-id", help="ID do vídeo BM (especial-{id})")
-    ap.add_argument("--date", help="Data YYYY-MM-DD (inferida das thumbnails se ausente)")
-    ap.add_argument("--last", action="store_true", help="Usa o especial mais recente")
+    ap.add_argument("--date", help="Data YYYY-MM-DD (lida do manifesto se ausente)")
+    ap.add_argument("--last", action="store_true", help="Usa o especial mais recente COM manifesto")
+    ap.add_argument("--force", action="store_true", help="Regenera mesmo se o hash já bater")
     ap.add_argument("--dry-run", action="store_true", help="Só mostra config, não renderiza")
     args = ap.parse_args()
 
     video_id = args.video_id
     if args.last or not video_id:
-        specials = sorted(EPS_DIR.glob("especial-*.json"), key=lambda p: p.stat().st_mtime)
+        specials = sorted(EPS_DIR.glob("especial-*.image-manifest.json"), key=lambda p: p.stat().st_mtime)
         if not specials:
-            print("Nenhum especial encontrado"); return 1
-        video_id = specials[-1].stem.replace("especial-", "")
-        print(f"▶ Último especial: {video_id}")
+            print("Nenhum manifesto de imagem encontrado")
+            return 1
+        video_id = specials[-1].name.replace("especial-", "").replace(".image-manifest.json", "")
+        print(f"▶ Último especial com manifesto: {video_id}")
 
-    date = args.date or find_episode_date(video_id)
-    episode = load_episode(video_id)
-    topic = episode_topic_image(video_id, date)
-    if not topic:
-        print(f"❌ Thumbnail de tema não encontrada para {video_id} (data={date})"); return 1
-    if not date:
-        date = topic.parent.name
-
-    title_full, context = episode_text(episode, video_id)
-    print(f"📺 {video_id} ({date})")
-    print(f"   tema: {topic.relative_to(PROJECT_ROOT)}")
-
-    presenter = next_presenter()
-    print(f"   apresentador: {presenter.name}")
-
-    title, highlight = generate_headline(title_full, context)
-
-    cfg = dict(BASE_CONFIG)
-    cfg.update({"title": title, "highlight": highlight,
-                "presenterImage": presenter, "topicImage": topic})
-
-    if args.dry_run:
-        print(json.dumps({k: (str(v) if isinstance(v, Path) else v) for k, v in cfg.items()},
-                         ensure_ascii=False, indent=2))
-        return 0
-
-    out_png = THUMBS_DIR / date / f"yt_bm_{video_id}.png"
-    out_png.parent.mkdir(parents=True, exist_ok=True)
-    url = build_url(0, cfg)  # porta resolvida dentro de render(); rebuild abaixo
-    # render() inicia o próprio servidor; construir URL com porta correta:
-    http_port_holder = {}
-
-    def _render_with_port():
-        from playwright.sync_api import sync_playwright
-        handler = functools.partial(SimpleHTTPRequestHandler, directory=str(PROJECT_ROOT))
-        httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
-        port = httpd.server_address[1]
-        threading.Thread(target=httpd.serve_forever, daemon=True).start()
-        try:
-            final_url = build_url(port, cfg)
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page(viewport={"width": 1400, "height": 900})
-                page.goto(final_url, wait_until="networkidle", timeout=60000)
-                page.wait_for_function("window.__THUMB_READY__ === true", timeout=30000)
-                page.wait_for_timeout(600)
-                page.locator(".stage").first.screenshot(path=str(out_png))
-                browser.close()
-        finally:
-            httpd.shutdown()
-
-    _render_with_port()
-
-    # variante JPG
     try:
-        from PIL import Image
-        img = Image.open(out_png).convert("RGB")
-        out_jpg = out_png.with_suffix(".jpg")
-        img.save(out_jpg, quality=92)
-        print(f"✅ {out_jpg.relative_to(PROJECT_ROOT)}")
-    except Exception:
-        print(f"✅ {out_png.relative_to(PROJECT_ROOT)}")
-    return 0
+        result = generate_youtube_thumbnail(
+            video_id, date=args.date, force=args.force, dry_run=args.dry_run,
+        )
+    except (eim.EditorialImageError, eim.YoutubeThumbnailError) as exc:
+        print(f"❌ {exc}")
+        return 1
+    if args.dry_run:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result.get("ok") else 1
 
 
 if __name__ == "__main__":

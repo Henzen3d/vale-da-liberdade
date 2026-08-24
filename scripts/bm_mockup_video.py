@@ -497,18 +497,23 @@ def ticker_headlines(episode: dict, video_id: str | None = None) -> list[str]:
 
 
 def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
-    # Preferir o mockup dinâmico do YouTube (yt_bm_, gerado pelo
-    # youtube_thumbnail.py na etapa 4.6 do bm_pipeline); cair para a
-    # imagem de tema da LLM (bm_) se o mockup ainda não existir.
-    names = [f"yt_bm_{video_id}.jpg", f"yt_bm_{video_id}.png",
-             f"bm_{video_id}.jpg", f"bm_{video_id}.webp", f"bm_{video_id}.png"]
-    for base in THUMB_DIRS:
-        folder = base / ymd
-        for name in names:
-            cand = folder / name
-            if cand.is_file() and cand.stat().st_size > 2000:
-                return cand
-    return None
+    """Só a thumbnail YouTube amarrada no manifesto. Sem fallback para bm_*."""
+    import episode_image_manifest as eim
+    from youtube_thumbnail import generate_youtube_thumbnail
+    try:
+        return eim.resolve_youtube_thumbnail(video_id)
+    except eim.YoutubeThumbnailError:
+        pass
+    except eim.EditorialImageError as exc:
+        print(f"  ❌ editorial inválida — não envio thumbnail ao YouTube: {exc}")
+        return None
+    # editorial ok, mockup ainda não existe: tenta gerar agora (mesmo caminho da 4.6)
+    try:
+        result = generate_youtube_thumbnail(video_id, date=ymd)
+        return Path(result["youtube_thumbnail_path"])
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ❌ sem thumbnail YouTube válida para {video_id}: {exc}")
+        return None
 
 
 def build_chapters(scenes: list[dict], dur: float) -> list[tuple[float, str]]:

@@ -429,8 +429,10 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
             print("❌ FALHA na geração de áudio. Abortando.")
             sys.exit(2)
 
-    # 4.5. Thumbnail automática (não-bloqueante)
-    print("\n🖼️  Etapa 4.5/6 — Thumbnail automática")
+    # 4.5. Imagem editorial (Cloudflare). Não bloqueia o áudio.
+    print("\n🖼️  Etapa 4.5/6 — Imagem editorial Cloudflare")
+    thumb = {"failed": True, "is_placeholder": True}
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     try:
         from thumbnail_generator import generate_thumbnail_safe
         # tenta ler título/resumo/data do JSON do especial
@@ -478,13 +480,35 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         )
         if thumb.get("path"):
             print(
-                f"  ✅ thumbnail: {thumb.get('path')} "
+                f"  ✅ editorial: {thumb.get('path')} "
                 f"(model={thumb.get('image_model_used')} placeholder={thumb.get('is_placeholder')})"
             )
         else:
-            print(f"  ⚠️  thumbnail sem path (não bloqueia): {thumb.get('error', thumb)}")
+            print(f"  ⚠️  editorial sem path (não bloqueia o áudio): {thumb.get('error', thumb)}")
     except Exception as e:
-        print(f"⚠️  thumbnail falhou (não bloqueia): {e}")
+        print(f"⚠️  editorial falhou (não bloqueia o áudio): {e}")
+        thumb = {"failed": True, "is_placeholder": True}
+
+    # 4.6. Thumbnail YouTube (mockup). Falha clara — nunca publica imagem errada.
+    print("\n🖼️  Etapa 4.6/7 — Thumbnail YouTube (mockup)")
+    try:
+        from youtube_thumbnail import generate_youtube_thumbnail
+        from episode_image_manifest import EditorialImageError, YoutubeThumbnailError
+        if thumb.get("is_placeholder") or thumb.get("failed") or not thumb.get("path"):
+            print(
+                "  ❌ editorial Cloudflare inválida/ausente/placeholder — "
+                "NÃO gero mockup YouTube e NÃO uso fallback"
+            )
+        else:
+            yt = generate_youtube_thumbnail(video_id, date=date_str)
+            print(
+                f"  ✅ youtube_thumbnail: {yt.get('youtube_thumbnail_path')} "
+                f"input_hash={yt.get('youtube_thumbnail_input_hash')}"
+            )
+    except (EditorialImageError, YoutubeThumbnailError) as e:
+        print(f"  ❌ thumbnail YouTube recusada: {e}")
+    except Exception as e:
+        print(f"  ❌ thumbnail YouTube falhou: {e}")
 
     # 5. Feed + Persona
     print("\n📡 Etapa 5/7 — Feed RSS + Persona watch")
