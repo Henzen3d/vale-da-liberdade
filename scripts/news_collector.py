@@ -82,11 +82,10 @@ logging.basicConfig(
 log = logging.getLogger("news-collector")
 
 # User-Agent realista para evitar bloqueios HTTP
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-}
+try:
+    from http_fetch import BROWSER_HEADERS as HEADERS  # noqa: E402
+except ImportError:
+    from scripts.http_fetch import BROWSER_HEADERS as HEADERS  # type: ignore
 
 
 def load_config():
@@ -260,6 +259,10 @@ def fetch_rss_source(source, hours=48):
                 break
             else:
                 log.warning(f"[{source['id']}] HTTP {response.status_code} ao buscar RSS (tentativa {attempt+1}/2).")
+                if response.status_code in (401, 403, 429):
+                    # Bloqueio antibot: backoff exponencial com cap (transitório)
+                    time.sleep(min(2 ** attempt * 2, 30))
+                    continue
         except Exception as e:
             log.warning(f"[{source['id']}] Erro na requisição HTTP (tentativa {attempt+1}/2): {e}")
             if attempt == 0:
@@ -466,9 +469,9 @@ def fetch_browser_source(source, hours=48):
 
 def fetch_source_wrapper(source, hours=48):
     """Wrapper para despachar a coleta com base no método da fonte."""
-    # Adicionar jitter aleatório mais espaçado para evitar concorrência e problemas de resolução de DNS
+    # Delay/jitter humano (2-6s) entre fontes para evitar padrão robótico
     import random
-    time.sleep(random.uniform(0.2, 1.0))
+    time.sleep(random.uniform(2.0, 6.0))
 
     start_time = time.time()
     method = source.get("method", "rss")

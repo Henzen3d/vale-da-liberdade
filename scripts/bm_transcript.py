@@ -269,9 +269,13 @@ def extract_source_urls(description: str) -> list[str]:
 def fetch_source_name(url: str) -> str:
     """Best-effort: tenta capturar o nome do veículo via <title> da página."""
     try:
+        from http_fetch import BROWSER_HEADERS
+    except ImportError:
+        from scripts.http_fetch import BROWSER_HEADERS  # type: ignore
+    try:
         req = urllib.request.Request(
             url,
-            headers={"User-Agent": "Mozilla/5.0 (WebjornalBot/1.0)"},
+            headers={"User-Agent": BROWSER_HEADERS["User-Agent"]},
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
             html = resp.read(8192).decode("utf-8", errors="ignore")

@@ -72,6 +72,10 @@ def log(msg: str) -> None:
 def get(url: str, **kw) -> requests.Response:
     headers = dict(kw.pop("headers", {}) or {})
     headers.setdefault("User-Agent", WM_UA if "wikimedia" in url or "wikipedia" in url else UA)
+    # Delay/jitter humano (2-6s) entre downloads do mesmo host para não acumular reputação de bot
+    import random
+    import time
+    time.sleep(random.uniform(2.0, 6.0))
     return requests.get(url, timeout=TIMEOUT, headers=headers, **kw)
 
 
