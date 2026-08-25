@@ -1,301 +1,805 @@
 {
-  "generated_at": "2026-08-15T14:12:38",
+  "generated_at": "2026-08-25T14:31:27",
   "category": "especial",
   "page": 11,
   "page_size": 12,
-  "total_pages": 12,
+  "total_pages": 20,
   "episodes": [
     {
-      "id": "especial-Dc_JrYKJITQ",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 17:11:53 +0000",
+      "id": "especial-gK77T_NS96g",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 21:11:51 +0000",
       "type": "especial",
-      "title": "O efeito Biden e a maquiagem estatal: a derrocada do PT e a farsa dos números oficiais",
-      "excerpt": "O mofo estatal está ficando insuportável de esconder. O governo do amor acumula péssimas notícias, e nem a máquina de propaganda consegue disfarçar o cheiro de velharia das ideias ...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "economia",
-        "corrupção"
-      ],
-      "duration_min": 4.6,
-      "words": 757,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-Dc_JrYKJITQ.mp3",
-      "script_url": "./episodes/especial-Dc_JrYKJITQ.md",
-      "audio_bytes": 6687600,
-      "sources": [
-        "BBC"
-      ],
-      "cover_url": "./thumbnails/2026-08-03/bm_Dc_JrYKJITQ.webp",
-      "published_at": "2026-08-15T14:12:33",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_Dc_JrYKJITQ.webp"
-    },
-    {
-      "id": "especial-9LW7PUzeX6I",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 16:11:44 +0000",
-      "type": "especial",
-      "title": "Milei Rasga o Pano do Estamento e Expõe a Farsa da Descondenação Estatal",
-      "excerpt": "O ser supremo do Palácio do Planalto achou mesmo que o teatro das firulas burocráticas e dos malabarismos jurídicos conseguiria limpar sua imagem no cenário internacional. Só que o...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "corrupção",
-        "ditadura judiciária"
-      ],
-      "duration_min": 4.4,
-      "words": 764,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-9LW7PUzeX6I.mp3",
-      "script_url": "./episodes/especial-9LW7PUzeX6I.md",
-      "audio_bytes": 6277582,
-      "sources": [
-        "Infobae"
-      ],
-      "cover_url": "./thumbnails/2026-08-03/bm_9LW7PUzeX6I.webp",
-      "published_at": "2026-08-15T14:12:26",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_9LW7PUzeX6I.webp"
-    },
-    {
-      "id": "especial-XyLLAG0KZZg",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 14:13:16 +0000",
-      "type": "especial",
-      "title": "Pesquisa BTG Nexus expõe empate no primeiro turno e desespero no chiqueiro de Brasília",
-      "excerpt": "A farsa eleitoral de 2026 está pegando fogo, e os parasitas de Brasília já têm novos dados oficiais para se descabelar no chiqueiro político. A nova pesquisa BTG Nexus foi liberada...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "eleições"
-      ],
-      "duration_min": 4.6,
-      "words": 836,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-XyLLAG0KZZg.mp3",
-      "script_url": "./episodes/especial-XyLLAG0KZZg.md",
-      "audio_bytes": 6568481,
-      "sources": [
-        "Poder360"
-      ],
-      "cover_url": "./thumbnails/2026-08-03/bm_XyLLAG0KZZg.webp",
-      "published_at": "2026-08-15T14:12:37",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_XyLLAG0KZZg.webp"
-    },
-    {
-      "id": "especial-GCcCu6tPS_s",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 11:54:49 +0000",
-      "type": "especial",
-      "title": "A Ilusão do Estado Mínimo e o Inevitável Fim das Hierarquias",
-      "excerpt": "Conservadores adoram apontar o dedo para o anarcocapitalismo enquanto se abraçam à ilusão de um Estado mínimo que nunca existiu e jamais existirá. O comentarista Leandro Ruschel re...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "economia"
-      ],
-      "duration_min": 4.9,
-      "words": 701,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-GCcCu6tPS_s.mp3",
-      "script_url": "./episodes/especial-GCcCu6tPS_s.md",
-      "audio_bytes": 7079436,
-      "sources": [
-        "Leandroruschel"
-      ],
-      "cover_url": "./thumbnails/2026-08-03/bm_GCcCu6tPS_s.webp",
-      "published_at": "2026-08-15T14:12:37",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_GCcCu6tPS_s.webp"
-    },
-    {
-      "id": "especial-a-_juUYVuk8",
-      "date": "2026-08-03",
-      "pubDate": "Mon, 03 Aug 2026 05:11:38 +0000",
-      "type": "especial",
-      "title": "Os Diários de Fauci e a Farsa Sanitária Estatal",
-      "excerpt": "A imprensa brasileira finalmente decidiu repercutir o caso dos diários do doutor Anthony Fauci, liberados pelo senador norte-americano Rand Paul. Mas não se engane: a grande mídia ...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "economia"
-      ],
-      "duration_min": 4.0,
-      "words": 696,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-a-_juUYVuk8.mp3",
-      "script_url": "./episodes/especial-a-_juUYVuk8.md",
-      "audio_bytes": 5788569,
-      "sources": [
-        "Estadão"
-      ],
-      "cover_url": "./thumbnails/2026-08-03/bm_a-_juUYVuk8.webp",
-      "published_at": "2026-08-15T14:12:34",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/bm_a-_juUYVuk8.webp"
-    },
-    {
-      "id": "especial-UKUvQSO2-a4",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 21:20:47 +0000",
-      "type": "especial",
-      "title": "CENTRÃO LULOU: Kassab e o Sistema em DESESPERO com Eleições",
-      "excerpt": "O Centrão jogou as máscaras no lixo de vez, meu amigo! Quem diria que a velhada da política tradicional correria assim, em bloco, para se ajoelhar aos pés do governo estatal? Gilbe...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "eleições"
-      ],
-      "duration_min": 5.0,
-      "words": 878,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-UKUvQSO2-a4.mp3",
-      "script_url": "./episodes/especial-UKUvQSO2-a4.md",
-      "audio_bytes": 7187897,
-      "sources": [
-        "Kassab diz a empresários que chance de Flávio é zero"
-      ],
-      "cover_url": "./thumbnails/2026-08-14/bm_UKUvQSO2-a4.webp",
-      "published_at": "2026-08-15T14:12:34",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_UKUvQSO2-a4.webp"
-    },
-    {
-      "id": "especial-Nivu0XF9PJ4",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 21:18:05 +0000",
-      "type": "especial",
-      "title": "CASAS BAHIA Fecha 300 Lojas: Apenas 'SENSAÇÃO' Econômica?",
-      "excerpt": "Segundo a narrativa oficial e os porta-vozes da grande imprensa, a nossa economia está voando. Segundo essa gente, a economia brasileira não tá ótima, tá uma maravilha, e o único p...",
-      "manchetes": [],
-      "quadros": [
-        "economia",
-        "impostos, taxas e tarifas",
-        "política"
-      ],
-      "duration_min": 4.7,
-      "words": 809,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-Nivu0XF9PJ4.mp3",
-      "script_url": "./episodes/especial-Nivu0XF9PJ4.md",
-      "audio_bytes": 6836811,
-      "sources": [
-        "Dourados News"
-      ],
-      "cover_url": "./thumbnails/2026-08-14/bm_Nivu0XF9PJ4.webp",
-      "published_at": "2026-08-15T14:12:30",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_Nivu0XF9PJ4.webp"
-    },
-    {
-      "id": "especial-JAB2uXzcD7k",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 20:42:36 +0000",
-      "type": "especial",
-      "title": "Brasil no nível dois: acusações de transbordo e a guerra tarifária dos EUA",
-      "excerpt": "Os EUA apontam o Brasil como cúmplice na fraude de transbordo que burla tarifas sobre a China....",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "economia",
-        "impostos"
-      ],
-      "duration_min": 1.4,
-      "words": 232,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-JAB2uXzcD7k.mp3",
-      "script_url": "./episodes/especial-JAB2uXzcD7k.md",
-      "audio_bytes": 2054522,
-      "sources": [
-        "CNN Brasil"
-      ],
-      "cover_url": "./thumbnails/2026-08-14/bm_JAB2uXzcD7k.webp",
-      "published_at": "2026-08-15T14:12:32",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_JAB2uXzcD7k.webp"
-    },
-    {
-      "id": "especial-3A5vQ21v54g",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 20:39:42 +0000",
-      "type": "especial",
-      "title": "MORAES Sobe nas TAMANCAS e Enfrenta FACHIN no STF",
-      "excerpt": "O circo da burocracia estatal em Brasília pegou fogo de vez, e o espetáculo expõe sem pudor a verdadeira cara do monopólio judicial. O ministro Alexandre de Moraes subiu nas tamanc...",
+      "title": "MORAES QUEBRA SIGILO de JORNALISTA no CASO do CARRO de DINO",
+      "excerpt": "A imprensa brasileira passou anos aplaudindo o arbítrio estatal, contanto que o chicote do leviatã estalasse nas costas dos inimigos da vez. O problema de alimentar uma besta com p...",
       "manchetes": [],
       "quadros": [
         "ditadura judiciária",
-        "política"
+        "política",
+        "corrupção"
       ],
-      "duration_min": 4.3,
-      "words": 723,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-3A5vQ21v54g.mp3",
-      "script_url": "./episodes/especial-3A5vQ21v54g.md",
-      "audio_bytes": 6120847,
+      "duration_min": 4.2,
+      "words": 696,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-gK77T_NS96g.mp3",
+      "script_url": "./episodes/especial-gK77T_NS96g.md",
+      "audio_bytes": 5984801,
       "sources": [
-        "Moraes defende investigação de jornalista no caso Flávio Din"
+        "CNN Brasil",
+        "Jornalista divulga vídeo sobre uso de carro oficial ligado a",
+        "Blog sobre política, com crítica da mídia e informação alter",
+        "Alexandre de Moraes pode afastar governador desafeto de Fláv",
+        "Flávio Dino decide contra adversário no Maranhão",
+        "Contrafatos",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "cover_url": "./thumbnails/2026-08-14/bm_3A5vQ21v54g.webp",
-      "published_at": "2026-08-15T14:12:37",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_3A5vQ21v54g.webp"
+      "referencias": [
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/politica/moraes-determina-busca-e-apreensao-contra-fonte-de-jornalista-no-ma/?utm_source=social&amp;utm_medium=twitter-feed&amp;utm_campaign=politica-cnn-brasil&amp;utm_content=link"
+        },
+        {
+          "veiculo": "Jornalista divulga vídeo sobre uso de carro oficial ligado a",
+          "url": "https://www.poder360.com.br/poder-justica/jornalista-divulga-video-sobre-uso-de-carro-oficial-ligado-a-flavio-dino/"
+        },
+        {
+          "veiculo": "Blog sobre política, com crítica da mídia e informação alter",
+          "url": "https://www.luispablo.com.br/"
+        },
+        {
+          "veiculo": "Alexandre de Moraes pode afastar governador desafeto de Fláv",
+          "url": "https://atarde.com.br/politica/alexandre-de-moraes-pode-afastar-governador-desafeto-de-flavio-dino-1383804"
+        },
+        {
+          "veiculo": "Flávio Dino decide contra adversário no Maranhão",
+          "url": "https://revistaoeste.com/politica/flavio-dino-decide-contra-adversario-no-maranhao/"
+        },
+        {
+          "veiculo": "Contrafatos",
+          "url": "https://www.contrafatos.com.br/eua-entram-no-caso-de-jornalista-maranhense-sancoes-contra-moraes-podem-voltar/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-gK77T_NS96g.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-gK77T_NS96g.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-gK77T_NS96g.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_gK77T_NS96g.webp",
+      "published_at": "2026-08-25T14:31:27",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-gK77T_NS96g.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_gK77T_NS96g.webp"
     },
     {
-      "id": "especial-4Y1qKeWlpzs",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 20:37:20 +0000",
+      "id": "especial-nKLn_d4x9gU",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 19:11:52 +0000",
       "type": "especial",
-      "title": "JOVENS ATLETAS perdem PATROCÍNIO por causa da LEI FELCA",
-      "excerpt": "Lei Felca está tirando o patrocínio de jovens atletas brasileiros....",
+      "title": "JPMORGAN REBAIXA AÇÕES no Brasil e IBOVESPA DESPENCA",
+      "excerpt": "O maior banco de investimentos dos Estados Unidos olhou para o abismo das finanças públicas brasileiras e tomou a decisão inevitável: o JPMorgan rebaixou a recomendação de compra d...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "política"
+      ],
+      "duration_min": 4.0,
+      "words": 686,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-nKLn_d4x9gU.mp3",
+      "script_url": "./episodes/especial-nKLn_d4x9gU.md",
+      "audio_bytes": 5776657,
+      "sources": [
+        "Estadão",
+        "Google Search",
+        "Riotimesonline",
+        "Carta de Retratação às Brasileiras e aos Brasileiros",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Estadão",
+          "url": "https://www.estadao.com.br/economia/jpmorgan-rebaixa-recomendacao-de-investimentos-no-brasil-de-overweight-compra-para-neutro/"
+        },
+        {
+          "veiculo": "Google Search",
+          "url": "https://www.google.com/search?q=ibovespa&oq=ibovespa&sourceid=chrome&ie=UTF-8"
+        },
+        {
+          "veiculo": "Riotimesonline",
+          "url": "https://www.riotimesonline.com/jpmorgan-downgrade-brazil-ibovespa-2026/"
+        },
+        {
+          "veiculo": "Carta de Retratação às Brasileiras e aos Brasileiros",
+          "url": "https://desculpapelacartinha.com/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-nKLn_d4x9gU.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-nKLn_d4x9gU.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-nKLn_d4x9gU.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_nKLn_d4x9gU.webp",
+      "published_at": "2026-08-25T14:31:16",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-nKLn_d4x9gU.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_nKLn_d4x9gU.webp"
+    },
+    {
+      "id": "especial-YE9Eze5w27E",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 17:12:12 +0000",
+      "type": "especial",
+      "title": "LINDBERG e a POLÊMICA do DENUNCIANTE no PL: Não Faz Sentido",
+      "excerpt": "Circo político em estado puro! Quando um burocrata do sistema cai em desgraça no Teatro das Tesouras, a primeira reação nunca é apresentar provas reais de inocência. A saída dessa ...",
       "manchetes": [],
       "quadros": [
         "política",
-        "economia"
+        "corrupção"
       ],
-      "duration_min": 2.5,
-      "words": 418,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-4Y1qKeWlpzs.mp3",
-      "script_url": "./episodes/especial-4Y1qKeWlpzs.md",
-      "audio_bytes": 3670143,
+      "duration_min": 3.4,
+      "words": 565,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-YE9Eze5w27E.mp3",
+      "script_url": "./episodes/especial-YE9Eze5w27E.md",
+      "audio_bytes": 4950352,
       "sources": [
-        "Diário Causa Operária"
+        "G1",
+        "Deputado acusa polícia da Câmara de investigação ilegal a pe",
+        "Metrópoles",
+        "Tribunal Regional Eleitoral de Santa Catarina",
+        "X",
+        "Partidoliberal",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "cover_url": "./thumbnails/2026-08-14/bm_4Y1qKeWlpzs.webp",
-      "published_at": "2026-08-15T14:12:28",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_4Y1qKeWlpzs.webp"
+      "referencias": [
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/politica/noticia/2026/08/10/lindbergh-e-acusado-de-forjar-acusacao-de-estupro-contra-alfredo-gaspar-deputado-petista-nega.ghtml"
+        },
+        {
+          "veiculo": "Deputado acusa polícia da Câmara de investigação ilegal a pe",
+          "url": "https://iclnoticias.com.br/deputado-policia-camara-ilegal/"
+        },
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/colunas/igor-gadelha/homem-que-relatou-armacao-contra-vice-de-flavio-e-filiado-ao-pl"
+        },
+        {
+          "veiculo": "Tribunal Regional Eleitoral de Santa Catarina",
+          "url": "https://www.tre-sc.jus.br/comunicacao/noticias/2026/Marco/eleicoes-2026-prazo-para-janela-partidaria-filiacao-e-domicilio-eleitoral-encerram-no-inicio-de-abril"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/ColunaCH/status/2087147690899509591"
+        },
+        {
+          "veiculo": "Partidoliberal",
+          "url": "https://partidoliberal.org.br/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-YE9Eze5w27E.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-YE9Eze5w27E.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-YE9Eze5w27E.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_YE9Eze5w27E.webp",
+      "published_at": "2026-08-25T14:31:18",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-YE9Eze5w27E.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_YE9Eze5w27E.webp"
     },
     {
-      "id": "especial-EtedURJc57Y",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 20:33:13 +0000",
+      "id": "especial-EwZxO3DKHoQ",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 16:12:14 +0000",
       "type": "especial",
-      "title": "FLÁVIO REGISTRA CANDIDATURA: LULA EM RISCO DE SEGUNDO TURNO?",
-      "excerpt": "Flávio Bolsonaro finalmente tem candidatura registrada, número 22, enquanto o Estado ainda tenta engessar a escolha com burocracia e prazos artificiais....",
+      "title": "PESQUISA GERP Mostra EMPATE em 38% Entre FLÁVIO e LULA",
+      "excerpt": "Mais um circo eleitoral se desenha no horizonte e a burocracia estatal tenta desesperadamente prever qual grupo de parasitas vai controlar a máquina da coerção a partir do próximo ...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política"
+      ],
+      "duration_min": 4.2,
+      "words": 711,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-EwZxO3DKHoQ.mp3",
+      "script_url": "./episodes/especial-EwZxO3DKHoQ.md",
+      "audio_bytes": 6023671,
+      "sources": [
+        "Confira os números da pesquisa Gerp para presidente",
+        "Flávio e Lula têm empate técnico no 2º turno, diz Gerp",
+        "Poder360",
+        "Lula é rejeitado por 48% e Flávio, por 44%, diz pesquisa Ger",
+        "Estadão",
+        "CNN Brasil",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Confira os números da pesquisa Gerp para presidente",
+          "url": "https://www.gazetadopovo.com.br/eleicoes/2026/pesquisa-eleitoral-2026/gerp-presidente-agosto-2026/"
+        },
+        {
+          "veiculo": "Flávio e Lula têm empate técnico no 2º turno, diz Gerp",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/flavio-e-lula-tem-empate-tecnico-no-2o-turno-diz-gerp/"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://static.poder360.com.br/uploads/2026/08/PRESIDENCIA_DO_BRASIL_DIVULGACAO_26a_Relatorio_Eleicoes_2026_Presidente.pdf"
+        },
+        {
+          "veiculo": "Lula é rejeitado por 48% e Flávio, por 44%, diz pesquisa Ger",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/lula-e-rejeitado-por-48-e-flavio-por-44-diz-pesquisa-gerp/"
+        },
+        {
+          "veiculo": "Estadão",
+          "url": "https://www.estadao.com.br/opiniao/o-rancoso-programa-de-lula/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/eleicoes/plano-de-lula-promete-ministerio-da-seguranca-e-regulacao-das-redes-sociais/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-EwZxO3DKHoQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-EwZxO3DKHoQ.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-EwZxO3DKHoQ.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_EwZxO3DKHoQ.webp",
+      "published_at": "2026-08-25T14:31:13",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-EwZxO3DKHoQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_EwZxO3DKHoQ.webp"
+    },
+    {
+      "id": "especial-fpFBa19CB1I",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 14:13:40 +0000",
+      "type": "especial",
+      "title": "Como a IA está FALINDO o ESTADO da Inglaterra",
+      "excerpt": "Sabe qual é a melhor notícia das últimas semanas? A inteligência artificial está literalmente quebrando o Estado britânico. E não, isso não é um exercício teórico de futurologia li...",
       "manchetes": [],
       "quadros": [
         "política",
         "economia",
         "impostos"
       ],
-      "duration_min": 4.3,
-      "words": 754,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-EtedURJc57Y.mp3",
-      "script_url": "./episodes/especial-EtedURJc57Y.md",
-      "audio_bytes": 6159717,
+      "duration_min": 4.5,
+      "words": 749,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-fpFBa19CB1I.mp3",
+      "script_url": "./episodes/especial-fpFBa19CB1I.md",
+      "audio_bytes": 6497010,
       "sources": [
-        "Blog do BG"
+        "Infobae",
+        "YouTube",
+        "YouTube",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "cover_url": "./thumbnails/2026-08-14/bm_EtedURJc57Y.webp",
-      "published_at": "2026-08-15T14:12:21",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_EtedURJc57Y.webp"
+      "referencias": [
+        {
+          "veiculo": "Infobae",
+          "url": "https://www.infobae.com/economist/2026/08/10/como-la-ia-esta-quebrando-al-estado-britanico/"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=2K23wqZqUuw"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=WiE-KG5g9AY"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-fpFBa19CB1I.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-fpFBa19CB1I.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-fpFBa19CB1I.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_fpFBa19CB1I.webp",
+      "published_at": "2026-08-25T14:31:16",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-fpFBa19CB1I.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_fpFBa19CB1I.webp"
     },
     {
-      "id": "especial-kuNFRdX6zhM",
-      "date": "2026-08-14",
-      "pubDate": "Fri, 14 Aug 2026 10:11:57 +0000",
+      "id": "especial-FFxaXb9SZbE",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 10:11:55 +0000",
       "type": "especial",
-      "title": "A POLÊMICA da WNBA: O que É UMA MULHER para a Liga?",
-      "excerpt": "A engenharia social politicamente correta conseguiu se superar no esporte americano. A WNBA, a liga de basquete feminino dos Estados Unidos, criou uma comissão especial para respon...",
+      "title": "YOUTUBE Dificulta MONETIZAÇÃO Após Avanço da IA",
+      "excerpt": "Achou que viver de monetização na internet seria um caminho suave e sem obstáculos? Pois o mercado privado acabou de mandar um recado bem claro para quem achava que dava para enriq...",
       "manchetes": [],
       "quadros": [
+        "economia",
         "política"
       ],
-      "duration_min": 4.0,
-      "words": 661,
-      "audio_url": "./audio/especial-kuNFRdX6zhM.mp3",
-      "script_url": "./episodes/especial-kuNFRdX6zhM.md",
-      "audio_bytes": 5791704,
+      "duration_min": 4.2,
+      "words": 683,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-FFxaXb9SZbE.mp3",
+      "script_url": "./episodes/especial-FFxaXb9SZbE.md",
+      "audio_bytes": 5999221,
       "sources": [
-        "ESPN"
+        "G1",
+        "CNN Brasil",
+        "YouTube",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "cover_url": "./thumbnails/2026-08-14/bm_kuNFRdX6zhM.webp",
-      "published_at": "2026-08-15T14:12:31",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/bm_kuNFRdX6zhM.webp"
+      "referencias": [
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/tecnologia/noticia/2026/08/10/youtube-dobra-exigencia-de-horas-de-exibicao-para-novos-criadores-comecarem-a-ganhar-dinheiro-com-videos-na-plataforma.ghtml"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/eleicoes/plano-de-lula-promete-ministerio-da-seguranca-e-regulacao-das-redes-sociais/"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/@palacioassombrado"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-FFxaXb9SZbE.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-FFxaXb9SZbE.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-FFxaXb9SZbE.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_FFxaXb9SZbE.webp",
+      "published_at": "2026-08-25T14:31:20",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-FFxaXb9SZbE.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_FFxaXb9SZbE.webp"
+    },
+    {
+      "id": "especial-bkH6gOKAyww",
+      "date": "2026-08-10",
+      "pubDate": "Tue, 11 Aug 2026 02:11:46 +0000",
+      "type": "especial",
+      "title": "SPLIT PAYMENT Vai Render R$ 0,39 por Transação aos BANCOS",
+      "excerpt": "Ser banqueiro no Brasil não é um negócio de risco, é um privilégio estatal. O leviatã brasileiro faz absolutamente de tudo para proteger e enriquecer os oligopólios financeiros enq...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "impostos, taxas e tarifas"
+      ],
+      "duration_min": 4.2,
+      "words": 758,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-bkH6gOKAyww.mp3",
+      "script_url": "./episodes/especial-bkH6gOKAyww.md",
+      "audio_bytes": 6052511,
+      "sources": [
+        "Governo estuda pagar R$ 0,39 para bancos por operação do spl",
+        "Migalhas",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Governo estuda pagar R$ 0,39 para bancos por operação do spl",
+          "url": "https://www.jota.info/coberturas-especiais/pulso-da-reforma/governo-estuda-pagar-r-039-para-bancos-por-operacao-do-split-payment"
+        },
+        {
+          "veiculo": "Migalhas",
+          "url": "https://www.migalhas.com.br/depeso/459440/o-split-payment-introduzido-pela-reforma-tributaria-e-modernizacao"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-bkH6gOKAyww.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-bkH6gOKAyww.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-bkH6gOKAyww.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_bkH6gOKAyww.webp",
+      "published_at": "2026-08-25T14:31:14",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-bkH6gOKAyww.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_bkH6gOKAyww.webp"
+    },
+    {
+      "id": "especial-cIKwBwnv_I8",
+      "date": "2026-08-10",
+      "pubDate": "Tue, 11 Aug 2026 00:12:06 +0000",
+      "type": "especial",
+      "title": "BERGER era a LIGAÇÃO de LULINHA no MINISTÉRIO DA SAÚDE?",
+      "excerpt": "Vocês acham mesmo que a burocracia em Brasília funciona para servir ao cidadão? Toda semana surge mais um escândalo mostrando exatamente como a engrenagem do Estado opera na prátic...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção"
+      ],
+      "duration_min": 5.0,
+      "words": 848,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-cIKwBwnv_I8.mp3",
+      "script_url": "./episodes/especial-cIKwBwnv_I8.md",
+      "audio_bytes": 7149026,
+      "sources": [
+        "Informante da PF aponta assessor de Lula como elo de Lulinha",
+        "CNN Brasil",
+        "O Globo",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Informante da PF aponta assessor de Lula como elo de Lulinha",
+          "url": "https://claudiodantas.com.br/informante-pf-assessor-de-lula-elo-de-lulinha/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/politica/informante-da-pf-apontou-elo-entre-lulinha-e-atual-assessor-do-planalto/"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/lauro-jardim/post/2026/08/alem-de-marcola-pf-encontra-outro-nome-do-planalto-que-recebeu-dinheiro-de-lobista.ghtml"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-cIKwBwnv_I8.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-cIKwBwnv_I8.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-cIKwBwnv_I8.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_cIKwBwnv_I8.webp",
+      "published_at": "2026-08-25T14:31:25",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-cIKwBwnv_I8.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_cIKwBwnv_I8.webp"
+    },
+    {
+      "id": "especial-upNpLFqbAJU",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 23:11:46 +0000",
+      "type": "especial",
+      "title": "LULA Afasta SIDÔNIO na Campanha: Entenda a MANOBRA da SECOM",
+      "excerpt": "A imprensa corporativa adora uma narrativa mastigada para inglês ver, não é mesmo? A manchete da vez diz que Lula afastou o marqueteiro Sidônio Palmeira do comando de sua campanha ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "eleições",
+        "corrupção"
+      ],
+      "duration_min": 4.3,
+      "words": 731,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-upNpLFqbAJU.mp3",
+      "script_url": "./episodes/especial-upNpLFqbAJU.md",
+      "audio_bytes": 6120847,
+      "sources": [
+        "Lula afasta Sidônio da campanha após crise com Marcola e Lul",
+        "YouTube",
+        "O Globo",
+        "Lula afasta Sidônio do núcleo de sua campanha à reeleição",
+        "VEJA",
+        "Veja",
+        "CNN Brasil",
+        "Valor Econômico",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Lula afasta Sidônio da campanha após crise com Marcola e Lul",
+          "url": "https://www.gazetadopovo.com.br/eleicoes/2026/lula-afasta-sidonio-da-campanha-apos-desgaste-com-marcola-e-crise-que-atingiu-lulinha/"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=3NBFTh3HUbs"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/lauro-jardim/post/2026/08/alem-de-marcola-pf-encontra-outro-nome-do-planalto-que-recebeu-dinheiro-de-lobista.ghtml"
+        },
+        {
+          "veiculo": "Lula afasta Sidônio do núcleo de sua campanha à reeleição",
+          "url": "https://revistaoeste.com/politica/lula-afasta-sidonio-do-nucleo-de-sua-campanha-a-reeleicao/"
+        },
+        {
+          "veiculo": "VEJA",
+          "url": "https://veja.abril.com.br/politica/quem-e-o-socio-que-sidonio-indicou-para-ser-marqueteiro-da-campanha-de-lula/"
+        },
+        {
+          "veiculo": "Veja",
+          "url": "https://veja.abril.com.br/politica/especialistas-alertam-para-conflito-de-interesses-entre-secom-e-campanha-de-lula/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/politica/mendonca-manda-governo-lula-abrir-dados-de-gastos-com-publicidade/"
+        },
+        {
+          "veiculo": "Valor Econômico",
+          "url": "https://valor.globo.com/politica/noticia/2026/08/08/mendonca-determina-entrega-de-dados-sobre-encontro-do-pt-e-de-projeto-porta-vozes-de-lula.ghtml"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-upNpLFqbAJU.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-upNpLFqbAJU.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-upNpLFqbAJU.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_upNpLFqbAJU.webp",
+      "published_at": "2026-08-25T14:31:12",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-upNpLFqbAJU.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_upNpLFqbAJU.webp"
+    },
+    {
+      "id": "especial-PGiBQc1q9y0",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 21:12:44 +0000",
+      "type": "especial",
+      "title": "FLÁVIO EMPATA com Lula no 2º Turno em Nova PESQUISA",
+      "excerpt": "Mais uma semana, mais um capítulo do espetáculo eleitoral do Estado brasileiro. A nova pesquisa BTG Nexus acabou de sair e confirma o que todo mundo já desconfiava: a população con...",
+      "manchetes": [],
+      "quadros": [
+        "eleições",
+        "política"
+      ],
+      "duration_min": 4.1,
+      "words": 689,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-PGiBQc1q9y0.mp3",
+      "script_url": "./episodes/especial-PGiBQc1q9y0.md",
+      "audio_bytes": 5867564,
+      "sources": [
+        "Lula tem 47% contra 44% de Flávio no 2º turno, diz BTG/Nexus",
+        "Poder360",
+        "VEJA",
+        "Exame",
+        "Pix, Igreja Católica e PM lideram confiança no Brasil",
+        "CNN Brasil",
+        "UOL",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Lula tem 47% contra 44% de Flávio no 2º turno, diz BTG/Nexus",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/lula-tem-47-contra-44-de-flavio-no-2o-turno-diz-btg-nexus/"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://static.poder360.com.br/uploads/2026/08/BTG-Nexus-Eleicoes2026-Brasil-10.ago_.2026.pdf"
+        },
+        {
+          "veiculo": "VEJA",
+          "url": "https://veja.abril.com.br/politica/cientista-politico-ve-em-nova-pesquisa-uma-tendencia-que-pode-favorecer-flavio-no-segundo-turno/"
+        },
+        {
+          "veiculo": "Exame",
+          "url": "https://exame.com/brasil/lula-tem-44-contra-40-de-flavio-em-primeiro-turno-e-renan-santos-aparece-com-10-diz-palver/"
+        },
+        {
+          "veiculo": "Pix, Igreja Católica e PM lideram confiança no Brasil",
+          "url": "https://www.gazetadopovo.com.br/vida-e-cidadania/pix-igreja-catolica-e-pm-lideram-confianca-no-brasil-stf-e-imprensa-enfrentam-desconfianca/?utm_source=instagram&amp;utm_medium=midia-social&amp;utm_campaign=gazeta-do-povo"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/eleicoes/campanha-de-lula-define-slogan-o-brasil-pronto-pra-mais/"
+        },
+        {
+          "veiculo": "UOL",
+          "url": "https://noticias.uol.com.br/eleicoes/2026/08/10/flavio-bolsonaro-define-slogan-de-campanha-o-brasil-vai-vencer.ghtm"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/CentralDireitaB/status/2086779528391557229"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-PGiBQc1q9y0.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-PGiBQc1q9y0.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-PGiBQc1q9y0.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_PGiBQc1q9y0.webp",
+      "published_at": "2026-08-25T14:31:12",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-PGiBQc1q9y0.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_PGiBQc1q9y0.webp"
+    },
+    {
+      "id": "especial-8ZadVx8jvqI",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 19:12:05 +0000",
+      "type": "especial",
+      "title": "LINDBERGH SOB SUSPEITA: R$ 16 MIL por Falsa Acusação?",
+      "excerpt": "Olha o nível da podridão no esgoto de Brasília. A política estatal não se alimenta apenas dos seus impostos surrupiados todos os dias; ela se alimenta do assassinato de reputações ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção"
+      ],
+      "duration_min": 3.6,
+      "words": 587,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-8ZadVx8jvqI.mp3",
+      "script_url": "./episodes/especial-8ZadVx8jvqI.md",
+      "audio_bytes": 5236863,
+      "sources": [
+        "O Antagonista",
+        "Metrópoles",
+        "X",
+        "X",
+        "X",
+        "X",
+        "Diário do Centro do Mundo",
+        "Metrópoles",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "O Antagonista",
+          "url": "https://oantagonista.com.br/brasil/boletim-indica-trama-para-forjar-acusacao-de-estupro-contra-vice-de-flavio/"
+        },
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/colunas/igor-gadelha/camara-envia-ao-stf-relato-de-suposta-armacao-contra-vice-de-flavio"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/mauad_joao/status/2086803016838005157"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/wilsonlimaslz/status/2086782920732143849"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/wilsonlimaslz/status/2086822348309614879"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/brunosouzasc/status/2086841571027112101"
+        },
+        {
+          "veiculo": "Diário do Centro do Mundo",
+          "url": "https://www.diariodocentrodomundo.com.br/lindbergh-reage-denuncia-armacao-alfredo-gaspar-picaretagem/"
+        },
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/colunas/manoela-alcantara/dino-manda-pf-investigar-emendas-pix-do-vice-de-flavio-citadas-por-tcu"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-8ZadVx8jvqI.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-8ZadVx8jvqI.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-8ZadVx8jvqI.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_8ZadVx8jvqI.webp",
+      "published_at": "2026-08-25T14:31:15",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-8ZadVx8jvqI.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_8ZadVx8jvqI.webp"
+    },
+    {
+      "id": "especial-JRac4M4YbNc",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 17:11:41 +0000",
+      "type": "especial",
+      "title": "COLÔMBIA Sofre TERREMOTO de 7,4 GRAUS e Mostra Falhas",
+      "excerpt": "Um terremoto devastador de magnitude 7.4 atingiu o noroeste da Colômbia e fez a terra tremer com força estarrecedora. O epicentro foi registrado bem próximo da cidade de Pereira, m...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "socialismo/comunismo"
+      ],
+      "duration_min": 3.0,
+      "words": 495,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-JRac4M4YbNc.mp3",
+      "script_url": "./episodes/especial-JRac4M4YbNc.md",
+      "audio_bytes": 4283289,
+      "sources": [
+        "G1",
+        "X",
+        "Google Maps",
+        "CNN",
+        "X",
+        "X",
+        "X",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/mundo/noticia/2026/08/10/terremoto-de-magnitude-68-atinge-a-colombia-e-chacoalha-bogota.ghtml"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/Tob1P4xao/status/2086798738836562149"
+        },
+        {
+          "veiculo": "Google Maps",
+          "url": "https://www.google.com/maps/place/Aeroporto+Internacional+Mateca%C3%B1a/@4.8124061,-75.7393811,1777m/data=!3m1!1e3!4m6!3m5!1s0x8e387de79024b6c7:0x817d2126f2ddb5b5!8m2!3d4.8151963!4d-75.7362559!16zL20vMDdmcjJ5!5m1!1e2?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D"
+        },
+        {
+          "veiculo": "CNN",
+          "url": "https://www.cnn.com/2026/08/10/world/live-news/colombia-earthquake-san-jose-del-palmar"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/alexzapateiro/status/2086808908543250608"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/AlertaMundoNews/status/2086809191730073964"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/Jupacg/status/2086806363435356393"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/AlertaNews24/status/2086811543862210722"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-JRac4M4YbNc.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-JRac4M4YbNc.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-JRac4M4YbNc.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_JRac4M4YbNc.webp",
+      "published_at": "2026-08-25T14:31:16",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-JRac4M4YbNc.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_JRac4M4YbNc.webp"
     }
   ]
 }

@@ -1,304 +1,532 @@
 {
-  "generated_at": "2026-08-15T14:12:38",
+  "generated_at": "2026-08-25T14:31:27",
   "category": "todos",
   "page": 1,
   "page_size": 12,
-  "total_pages": 16,
+  "total_pages": 21,
   "episodes": [
     {
-      "id": "especial-EyBRDSYNimc",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 23:12:14 +0000",
-      "type": "especial",
-      "title": "LULA Sincero? A Frase Que Revela o FRACASSO do PT",
-      "excerpt": "Lula finalmente resolveu falar uma verdade. Citando a falecida economista de esquerda Maria da Conceição Tavares, o chefe do Executivo disparou com todas as letras em um palanque: ...",
-      "manchetes": [],
+      "id": "2026-08-25",
+      "date": "2026-08-25",
+      "episode": 34,
+      "title": "Homem de 40 anos é preso em Timbó investigado por abordar crianças e…",
+      "excerpt": "Inquérito da morte de empresário em Indaial é encerrado sem indiciamento e família protesta no Fórum · Homem de 40 anos é preso em Timbó investigado por abordar crianças e adolescentes perto de escolas",
+      "manchetes": [
+        "Inquérito da morte de empresário em Indaial é encerrado sem indiciamento e família protesta no Fórum",
+        "Homem de 40 anos é preso em Timbó investigado por abordar crianças e adolescentes perto de escolas",
+        "Alerta médico acende sinal vermelho para o uso sem controle de canetas emagrecedoras por jovens",
+        "Câmeras de videomonitoramento sem áudio são autorizadas nas salas de aula da rede municipal de Blumenau",
+        "Cervejaria nascida na Oktoberfest de Blumenau anuncia expansão com nova fábrica no Paraguai"
+      ],
       "quadros": [
-        "política",
-        "economia",
-        "socialismo/comunismo"
-      ],
-      "duration_min": 4.9,
-      "words": 822,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-EyBRDSYNimc.mp3",
-      "script_url": "./episodes/especial-EyBRDSYNimc.md",
-      "audio_bytes": 7014235,
-      "sources": [
-        "Pleno.News"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_EyBRDSYNimc.webp",
-      "published_at": "2026-08-15T14:12:34",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_EyBRDSYNimc.webp"
-    },
-    {
-      "id": "especial-6l6prqkisIY",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 21:12:51 +0000",
-      "type": "especial",
-      "title": "ANDREI RODRIGUES e BANCO MASTER: Salvar a PRÓPRIA PELE?",
-      "excerpt": "Sabe qual é a maior piada do Estado brasileiro? É a ilusão de que as chamadas 'instituições da lei' existem para proteger você. Na verdade, quando a água bate na bunda da burocraci...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "corrupção",
-        "impostos, taxas e tarifas"
-      ],
-      "duration_min": 5.1,
-      "words": 872,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-6l6prqkisIY.mp3",
-      "script_url": "./episodes/especial-6l6prqkisIY.md",
-      "audio_bytes": 7332093,
-      "sources": [
-        "O Globo"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_6l6prqkisIY.webp",
-      "published_at": "2026-08-15T14:12:34",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_6l6prqkisIY.webp"
-    },
-    {
-      "id": "especial-YCR09rQPN1s",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 19:11:43 +0000",
-      "type": "especial",
-      "title": "LULINHA em MADRID: Luxo em ENDEREÇO NOBRE sob Suspeita",
-      "excerpt": "O Estado é uma máquina fascinante de criar milagres financeiros com o seu dinheiro, mas o parasitismo político adora se fingir de vítima para o rebanho de pagadores de impostos....",
-      "manchetes": [],
-      "quadros": [
-        "corrupção",
-        "política"
-      ],
-      "duration_min": 3.7,
-      "words": 642,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-YCR09rQPN1s.mp3",
-      "script_url": "./episodes/especial-YCR09rQPN1s.md",
-      "audio_bytes": 5343443,
-      "sources": [
-        "Diário do Poder"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_YCR09rQPN1s.webp",
-      "published_at": "2026-08-15T14:12:35",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_YCR09rQPN1s.webp"
-    },
-    {
-      "id": "especial-bHU7dK79vtY",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 17:12:36 +0000",
-      "type": "especial",
-      "title": "ANPD Suspende LIVES no DISCORD após Pressão da JANJA",
-      "excerpt": "Aí você faz o L achando que tá escolhendo um presidente e descobre que levou junto uma censora não eleita mandando na internet brasileira. A Agência Nacional de Proteção de Dados, ...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "eleições"
-      ],
-      "duration_min": 3.6,
-      "words": 634,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-bHU7dK79vtY.mp3",
-      "script_url": "./episodes/especial-bHU7dK79vtY.md",
-      "audio_bytes": 5172289,
-      "sources": [
-        "Metrópoles"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_bHU7dK79vtY.webp",
-      "published_at": "2026-08-15T14:12:26",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_bHU7dK79vtY.webp"
-    },
-    {
-      "id": "especial-xktyiKARMlM",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 16:13:24 +0000",
-      "type": "especial",
-      "title": "Ação da PF Contra PCO É Apenas ISCA Para Atingir o PL?",
-      "excerpt": "A Polícia Federal deflagrou uma operação contra o PCO e o seu eterno candidato à Presidência, Rui Costa Pimenta, sob a justificativa de apurar supostos desvios de fundo partidário....",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "ditadura judiciária",
-        "eleições"
-      ],
-      "duration_min": 4.1,
-      "words": 714,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-xktyiKARMlM.mp3",
-      "script_url": "./episodes/especial-xktyiKARMlM.md",
-      "audio_bytes": 5938408,
-      "sources": [
-        "Candidato do PCO à Presidência, Rui Costa Pimenta é alvo de"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_xktyiKARMlM.webp",
-      "published_at": "2026-08-15T14:12:27",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_xktyiKARMlM.webp"
-    },
-    {
-      "id": "especial-uwMdwclhROY",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 14:13:27 +0000",
-      "type": "especial",
-      "title": "TRUMP TROCA de AVIÃO por CAMINHÃO de CATERING",
-      "excerpt": "Sabe qual é a real utilidade de um orçamento público bilionário, drenado do bolso do pagador de impostos para sustentar o maior aparato militar e de inteligência do planeta? Absolu...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "guerras"
-      ],
-      "duration_min": 4.7,
-      "words": 834,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-uwMdwclhROY.mp3",
-      "script_url": "./episodes/especial-uwMdwclhROY.md",
-      "audio_bytes": 6801702,
-      "sources": [
-        "G1"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_uwMdwclhROY.webp",
-      "published_at": "2026-08-15T14:12:24",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_uwMdwclhROY.webp"
-    },
-    {
-      "id": "especial-JGHBTzmej2I",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 10:11:42 +0000",
-      "type": "especial",
-      "title": "XANDÃO acaba com SIGILO da FONTE e ASSUSTA imprensa",
-      "excerpt": "O Estado não tolera concorrência e muito menos exposição. Quando um burocrata de toga decide usar a máquina pública para moer quem ousou revelar os privilégios da elite, o tal esta...",
-      "manchetes": [],
-      "quadros": [
-        "política",
-        "ditadura judiciária"
-      ],
-      "duration_min": 3.7,
-      "words": 617,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-JGHBTzmej2I.mp3",
-      "script_url": "./episodes/especial-JGHBTzmej2I.md",
-      "audio_bytes": 5278241,
-      "sources": [
-        "Moraes aboliu o sigilo da fonte jornalística no Brasil"
-      ],
-      "cover_url": "./thumbnails/2026-08-12/bm_JGHBTzmej2I.webp",
-      "published_at": "2026-08-15T14:12:37",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_JGHBTzmej2I.webp"
-    },
-    {
-      "id": "especial-HAvbrbV3Tnw",
-      "date": "2026-08-12",
-      "pubDate": "Wed, 12 Aug 2026 08:11:48 +0000",
-      "type": "especial",
-      "title": "MIRIAM LEITÃO Culpa a 'SENSAÇÃO de POBREZA' do POVO",
-      "excerpt": "Você já reparou como a elite estatista adora explicar a realidade do alto de suas bolhas engomadas? A nova pérola da vez vem direto da imprensa tradicional: segundo a comentarista ...",
-      "manchetes": [],
-      "quadros": [
-        "impostos, taxas e tarifas",
+        "seguranca",
+        "saude",
+        "educacao",
         "politica",
-        "economia"
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
       ],
-      "duration_min": 3.7,
-      "words": 639,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-HAvbrbV3Tnw.mp3",
-      "script_url": "./episodes/especial-HAvbrbV3Tnw.md",
-      "audio_bytes": 5357235,
+      "duration_min": 13.5,
+      "words": 2266,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-08-25.mp3",
+      "script_url": "./episodes/2026-08-25.md",
+      "audio_bytes": 19415084,
       "sources": [
-        "G1"
+        "ndmais_blumenau",
+        "informeblumenau",
+        "oblumenauense",
+        "blogdojaime",
+        "mesorregional",
+        "altovaleagora",
+        "blogdoprisco",
+        "gcd",
+        "ajnoticias",
+        "nsctotal",
+        "altovalenoticias",
+        "upiara",
+        "agencia_brasil",
+        "pancho",
+        "g1_brasil",
+        "jatv",
+        "g1_sc",
+        "bbc_brasil",
+        "bbc_world",
+        "correio_braziliense",
+        "oglobo_geral",
+        "cnn_brasil",
+        "estadao_politica",
+        "terra_brasil_noticias",
+        "metropoles",
+        "valor_geral",
+        "cnn_politica",
+        "veja",
+        "g1_politica",
+        "gazetadopovo_politica",
+        "oglobo_politica",
+        "metropoles_politica",
+        "g1_economia",
+        "veja_politica",
+        "oglobo_economia",
+        "gazetadopovo_economia",
+        "veja_economia"
       ],
-      "cover_url": "./thumbnails/2026-08-12/bm_HAvbrbV3Tnw.webp",
-      "published_at": "2026-08-15T14:12:22",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/bm_HAvbrbV3Tnw.webp"
+      "sponsors": [
+        {
+          "name": "Fix Serviços",
+          "website_url": "https://fixblu.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-25/ep_2026-08-25.webp",
+      "published_at": "2026-08-25T14:31:11",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-25/ep_2026-08-25.webp"
     },
     {
-      "id": "especial-BqFwykQftmA",
-      "date": "2026-08-11",
-      "pubDate": "Wed, 12 Aug 2026 01:12:04 +0000",
-      "type": "especial",
-      "title": "NOVELA de MINAS: CLEITINHO Hesita e PL Aposta em ROSCOE",
-      "excerpt": "Se você ainda acredita que o teatro eleitoral brasileiro tem qualquer compromisso com a sua liberdade, prepare o estômago. Em Minas Gerais, o segundo maior curral eleitoral do país...",
+      "id": "2026-08-24",
+      "date": "2026-08-24",
+      "episode": null,
+      "title": "Edição de 24 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
       "manchetes": [],
-      "quadros": [
-        "política",
-        "eleições"
+      "quadros": [],
+      "duration_min": 12.9,
+      "words": null,
+      "audio_url": "./audio/2026-08-24.mp3",
+      "script_url": null,
+      "audio_bytes": 18600063,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Facilita Vistorias",
+          "website_url": "https://facilitavistorias.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
       ],
-      "duration_min": 5.3,
-      "words": 916,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-BqFwykQftmA.mp3",
-      "script_url": "./episodes/especial-BqFwykQftmA.md",
-      "audio_bytes": 7701360,
-      "sources": [
-        "Valor Econômico"
-      ],
-      "cover_url": "./thumbnails/2026-08-11/bm_BqFwykQftmA.webp",
-      "published_at": "2026-08-15T14:12:32",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_BqFwykQftmA.webp"
+      "cover_url": "./thumbnails/2026-08-24/ep_2026-08-24.webp",
+      "published_at": "2026-08-25T14:13:41",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-24/ep_2026-08-24.webp"
     },
     {
-      "id": "especial-jd37RNck03A",
-      "date": "2026-08-11",
-      "pubDate": "Wed, 12 Aug 2026 00:11:37 +0000",
-      "type": "especial",
-      "title": "FLÁVIO e MICHELLE JUNTOS e o Teatro no TSE",
-      "excerpt": "A política estatal é uma cena mambembe de quinta categoria, custeada obrigatoriamente com o dinheiro que o governo extorque de você todo mês em forma de imposto....",
+      "id": "2026-08-23",
+      "date": "2026-08-23",
+      "episode": null,
+      "title": "Edição de 23 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
       "manchetes": [],
-      "quadros": [
-        "política",
-        "eleições",
-        "ditadura judiciária"
+      "quadros": [],
+      "duration_min": 16.3,
+      "words": null,
+      "audio_url": "./audio/2026-08-23.mp3",
+      "script_url": null,
+      "audio_bytes": 23524667,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Fix Serviços",
+          "website_url": "https://fixblu.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
       ],
-      "duration_min": 4.1,
-      "words": 695,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-jd37RNck03A.mp3",
-      "script_url": "./episodes/especial-jd37RNck03A.md",
-      "audio_bytes": 5865056,
-      "sources": [
-        "Michelle diz que família &quot;se uniu&quot; e grava propaga"
-      ],
-      "cover_url": "./thumbnails/2026-08-11/bm_jd37RNck03A.webp",
-      "published_at": "2026-08-15T14:12:31",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_jd37RNck03A.webp"
+      "cover_url": "./thumbnails/2026-08-23/ep_2026-08-23.webp",
+      "published_at": "2026-08-25T14:13:41",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-23/ep_2026-08-23.webp"
     },
     {
-      "id": "especial-JlOQ4tmf83U",
-      "date": "2026-08-05",
-      "pubDate": "Wed, 05 Aug 2026 23:13:48 +0000",
-      "type": "especial",
-      "title": "Delação no Banco Master e Máfia do INSS: O Pavor Petista com a Máquina de Contar Propina",
-      "excerpt": "O crime estatal nunca descansa, meus amigos. E quando a água bate no pescoço do circo político, os ratos são os primeiros a correr atrás de um acordo de delação premiada para salva...",
+      "id": "2026-08-22",
+      "date": "2026-08-22",
+      "episode": null,
+      "title": "Edição de 22 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
       "manchetes": [],
-      "quadros": [
-        "política",
-        "corrupção",
-        "economia"
+      "quadros": [],
+      "duration_min": 14.5,
+      "words": null,
+      "audio_url": "./audio/2026-08-22.mp3",
+      "script_url": null,
+      "audio_bytes": 20950457,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Facilita Vistorias",
+          "website_url": "https://facilitavistorias.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
       ],
-      "duration_min": 5.3,
-      "words": 873,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-JlOQ4tmf83U.mp3",
-      "script_url": "./episodes/especial-JlOQ4tmf83U.md",
-      "audio_bytes": 7688194,
-      "sources": [
-        "Metrópoles"
-      ],
-      "cover_url": "./thumbnails/2026-08-05/bm_JlOQ4tmf83U.webp",
-      "published_at": "2026-08-15T14:12:28",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-05/bm_JlOQ4tmf83U.webp"
+      "cover_url": "./thumbnails/2026-08-22/ep_2026-08-22.webp",
+      "published_at": "2026-08-25T14:13:41",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-22/ep_2026-08-22.webp"
     },
     {
-      "id": "especial-vIxmGV8aTlE",
-      "date": "2026-08-05",
-      "pubDate": "Wed, 05 Aug 2026 21:13:34 +0000",
-      "type": "especial",
-      "title": "O Xadrez dos Deuses de Toga: Liminares, Propaganda Estatal e o Circo da Inelegibilidade",
-      "excerpt": "Bem-vindos a mais um capítulo da comédia pastelão que a burocracia estatal chama de Justiça. Enquanto você acorda cedo para trabalhar e ver metade do seu fruto roubado por impostos...",
+      "id": "2026-08-21",
+      "date": "2026-08-21",
+      "episode": null,
+      "title": "Edição de 21 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
       "manchetes": [],
+      "quadros": [],
+      "duration_min": 15.1,
+      "words": null,
+      "audio_url": "./audio/2026-08-21.mp3",
+      "script_url": null,
+      "audio_bytes": 21697768,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Fix Serviços",
+          "website_url": "https://fixblu.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-21/ep_2026-08-21.webp",
+      "published_at": "2026-08-25T14:13:41",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-21/ep_2026-08-21.webp"
+    },
+    {
+      "id": "2026-08-20",
+      "date": "2026-08-20",
+      "episode": null,
+      "title": "Edição de 20 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
+      "manchetes": [],
+      "quadros": [],
+      "duration_min": 14.4,
+      "words": null,
+      "audio_url": "./audio/2026-08-20.mp3",
+      "script_url": null,
+      "audio_bytes": 20766137,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Facilita Vistorias",
+          "website_url": "https://facilitavistorias.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-20/ep_2026-08-20.webp",
+      "published_at": "2026-08-25T14:13:41",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-20/ep_2026-08-20.webp"
+    },
+    {
+      "id": "2026-08-19",
+      "date": "2026-08-19",
+      "episode": null,
+      "title": "Edição de 19 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
+      "manchetes": [],
+      "quadros": [],
+      "duration_min": 19.0,
+      "words": null,
+      "audio_url": "./audio/2026-08-19.mp3",
+      "script_url": null,
+      "audio_bytes": 27318274,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Fix Serviços",
+          "website_url": "https://fixblu.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-19/ep_2026-08-19.webp",
+      "published_at": "2026-08-25T14:13:42",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-19/ep_2026-08-19.webp"
+    },
+    {
+      "id": "2026-08-18",
+      "date": "2026-08-18",
+      "episode": null,
+      "title": "Edição de 18 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
+      "manchetes": [],
+      "quadros": [],
+      "duration_min": 16.2,
+      "words": null,
+      "audio_url": "./audio/2026-08-18.mp3",
+      "script_url": null,
+      "audio_bytes": 23280161,
+      "sources": [],
+      "sponsors": [
+        {
+          "name": "Facilita Vistorias",
+          "website_url": "https://facilitavistorias.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-18/ep_2026-08-18.webp",
+      "published_at": "2026-08-25T14:13:42",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-18/ep_2026-08-18.webp"
+    },
+    {
+      "id": "2026-08-17",
+      "date": "2026-08-17",
+      "episode": null,
+      "title": "Edição de 17 de agosto de 2026",
+      "excerpt": "Cobertura diária do Vale da Liberdade.",
+      "manchetes": [],
+      "quadros": [],
+      "duration_min": 18.9,
+      "words": null,
+      "audio_url": "./audio/2026-08-17.mp3",
+      "script_url": null,
+      "audio_bytes": 27167182,
+      "sources": [],
+      "sponsors": [],
+      "cover_url": "./thumbnails/2026-08-17/ep_2026-08-17.webp",
+      "published_at": "2026-08-25T14:13:42",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-17/ep_2026-08-17.webp"
+    },
+    {
+      "id": "2026-08-16",
+      "date": "2026-08-16",
+      "episode": 34,
+      "title": "Candidatos à Presidência declaram patrimônios de R$ 33 mil a R$ 242…",
+      "excerpt": "Funcionário furta furadeira de patrão e coloca anúncio de venda na internet em Blumenau · Acidente entre três veículos deixa um motociclista morto na BR-470 em Navegantes",
+      "manchetes": [
+        "Funcionário furta furadeira de patrão e coloca anúncio de venda na internet em Blumenau",
+        "Acidente entre três veículos deixa um motociclista morto na BR-470 em Navegantes",
+        "Candidatos à Presidência declaram ao TSE bens entre trinta mil e duzentos e quarenta e dois milhões de reais",
+        "Justiça suspende edital da Prefeitura de São Paulo para gestão de três escolas por entidades sociais",
+        "Santa Catarina registra oficialmente oito candidatos ao Governo do Estado e treze disputando o Senado"
+      ],
       "quadros": [
-        "ditadura judiciária",
-        "eleições",
-        "política"
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
       ],
-      "duration_min": 4.4,
-      "words": 771,
-      "audio_url": "https://audio.mob.tec.br/audio/especial-vIxmGV8aTlE.mp3",
-      "script_url": "./episodes/especial-vIxmGV8aTlE.md",
-      "audio_bytes": 6379146,
+      "duration_min": 15.3,
+      "words": 2277,
+      "audio_url": "./audio/2026-08-16.mp3",
+      "script_url": "./episodes/2026-08-16.md",
+      "audio_bytes": 22060765,
       "sources": [
-        "O Globo"
+        "ndmais_blumenau",
+        "oblumenauense",
+        "blogdojaime",
+        "blogdoprisco",
+        "informeblumenau",
+        "altovaleagora",
+        "upiara",
+        "gcd",
+        "mesorregional",
+        "ajnoticias",
+        "nsctotal",
+        "pancho",
+        "jatv",
+        "g1_brasil",
+        "altovalenoticias",
+        "g1_sc",
+        "agencia_brasil",
+        "bbc_brasil",
+        "bbc_world",
+        "correio_braziliense",
+        "estadao_politica",
+        "terra_brasil_noticias",
+        "oglobo_geral",
+        "cnn_brasil",
+        "metropoles",
+        "veja",
+        "valor_geral",
+        "gazetadopovo_politica",
+        "oglobo_politica",
+        "metropoles_politica",
+        "veja_politica",
+        "gazetadopovo_economia",
+        "g1_politica",
+        "cnn_politica",
+        "oglobo_economia",
+        "g1_economia",
+        "veja_economia"
       ],
-      "cover_url": "./thumbnails/2026-08-05/bm_vIxmGV8aTlE.webp",
-      "published_at": "2026-08-15T14:12:33",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-05/bm_vIxmGV8aTlE.webp"
+      "sponsors": [
+        {
+          "name": "Facilita Vistorias",
+          "website_url": "https://facilitavistorias.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-16/ep_2026-08-16.webp",
+      "published_at": "2026-08-25T14:13:42",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-16/ep_2026-08-16.webp"
+    },
+    {
+      "id": "2026-08-15",
+      "date": "2026-08-15",
+      "episode": 33,
+      "title": "Casas Bahia fecha 298 lojas e gera forte impacto",
+      "excerpt": "Blumenau acumula 560 casos de violência contra a mulher em 2026 e alerta estaduais de tempestade mobilizam Defesa Civil · Rio do Sul enfrenta escassez de médicos especialistas e Taió inicia cadastramento emergencial na Barragem Oeste",
+      "manchetes": [
+        "Blumenau acumula 560 casos de violência contra a mulher em 2026 e alerta estaduais de tempestade mobilizam Defesa Civil",
+        "Rio do Sul enfrenta escassez de médicos especialistas e Taió inicia cadastramento emergencial na Barragem Oeste",
+        "Estudantes de Blumenau conquistam 37 medalhas em matemática e projeto de triagem auditiva ganha destaque nacional",
+        "Casas Bahia fecha 298 lojas e demite 1.900 funcionários enquanto rios do Alto Vale ameaçam subir até 7,5 metros",
+        "Tragédia na BR-470 deixa duas vítimas fatais em Pouso Redondo e Coreia do Sul propõe fim oficial da guerra"
+      ],
+      "quadros": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
+      ],
+      "duration_min": 14.0,
+      "words": 2119,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-08-15.mp3",
+      "script_url": "./episodes/2026-08-15.md",
+      "audio_bytes": 20146721,
+      "sources": [
+        "oblumenauense",
+        "blogdojaime",
+        "ndmais_blumenau",
+        "blogdoprisco",
+        "informeblumenau",
+        "mesorregional",
+        "gcd",
+        "upiara",
+        "altovaleagora",
+        "ajnoticias",
+        "nsctotal",
+        "g1_brasil",
+        "jatv",
+        "g1_sc",
+        "pancho",
+        "agencia_brasil",
+        "bbc_world",
+        "bbc_brasil",
+        "cnn_brasil",
+        "oglobo_geral",
+        "correio_braziliense",
+        "altovalenoticias",
+        "estadao_politica",
+        "terra_brasil_noticias",
+        "veja",
+        "metropoles",
+        "valor_geral",
+        "cnn_politica",
+        "oglobo_politica",
+        "gazetadopovo_politica",
+        "g1_politica",
+        "veja_politica",
+        "metropoles_politica",
+        "oglobo_economia",
+        "gazetadopovo_economia",
+        "veja_economia",
+        "g1_economia"
+      ],
+      "sponsors": [
+        {
+          "name": "Fix Serviços",
+          "website_url": "https://fixblu.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-15/ep_2026-08-15.webp",
+      "published_at": "2026-08-25T14:13:42",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-15/ep_2026-08-15.webp"
+    },
+    {
+      "id": "2026-08-14",
+      "date": "2026-08-14",
+      "episode": 32,
+      "title": "Justiça dá cinco dias para desocupação da Barragem de José Boiteux",
+      "excerpt": "Defesa Civil alerta para temporais de granizo e risco de enchente no Vale do Itajaí · Tragédia na BR-470 em Pouso Redondo deixa dois mortos e motorista gravemente ferido",
+      "manchetes": [
+        "Defesa Civil alerta para temporais de granizo e risco de enchente no Vale do Itajaí",
+        "Tragédia na BR-470 em Pouso Redondo deixa dois mortos e motorista gravemente ferido",
+        "Justiça concede prazo de cinco dias para desocupação da Barragem de José Boiteux",
+        "Ocupação hoteleira atinge 95% na região de Blumenau com a véspera da Febratex 2026",
+        "Vereador Almir Vieira reassume gabinete na Câmara de Blumenau e reacomoda equipe",
+        "Robô com inteligência artificial para indústria têxtil é apresentado na Vila Germânica"
+      ],
+      "quadros": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
+      ],
+      "duration_min": 17.6,
+      "words": 2715,
+      "audio_url": "https://audio.mob.tec.br/audio/2026-08-14.mp3",
+      "script_url": "./episodes/2026-08-14.md",
+      "audio_bytes": 25387302,
+      "sources": [
+        "ndmais_blumenau",
+        "oblumenauense",
+        "blogdojaime",
+        "informeblumenau",
+        "blogdoprisco",
+        "gcd",
+        "upiara",
+        "altovaleagora",
+        "ajnoticias",
+        "nsctotal",
+        "pancho",
+        "altovalenoticias",
+        "g1_brasil",
+        "g1_sc",
+        "jatv",
+        "agencia_brasil",
+        "bbc_brasil",
+        "bbc_world",
+        "oglobo_geral",
+        "cnn_brasil",
+        "correio_braziliense",
+        "estadao_politica",
+        "terra_brasil_noticias",
+        "veja",
+        "valor_geral",
+        "mesorregional",
+        "oglobo_politica",
+        "metropoles",
+        "cnn_politica",
+        "g1_politica",
+        "gazetadopovo_politica",
+        "veja_politica",
+        "metropoles_politica",
+        "oglobo_economia",
+        "gazetadopovo_economia",
+        "g1_economia",
+        "veja_economia",
+        "cand_umenau?hl=en",
+        "src_040",
+        "cand_mfoco.com.br",
+        "cand_ara-o-tce-sc",
+        "cand_rioav.com.br"
+      ],
+      "sponsors": [
+        {
+          "name": "Facilita Vistorias",
+          "website_url": "https://facilitavistorias.com.br",
+          "logo_url": null,
+          "placement": "mid-roll"
+        }
+      ],
+      "cover_url": "./thumbnails/2026-08-14/ep_2026-08-14.webp",
+      "published_at": "2026-08-25T14:13:42",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/ep_2026-08-14.webp"
     }
   ]
 }

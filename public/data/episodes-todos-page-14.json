@@ -1,888 +1,766 @@
 {
-  "generated_at": "2026-08-15T14:12:38",
+  "generated_at": "2026-08-25T14:31:27",
   "category": "todos",
   "page": 14,
   "page_size": 12,
-  "total_pages": 16,
+  "total_pages": 21,
   "episodes": [
     {
-      "id": "2026-08-02",
-      "date": "2026-08-02",
-      "episode": 20,
-      "title": "Episódio 20 · 2 de agosto de 2026",
-      "excerpt": "Voos regionais entre Blumenau e Florianópolis começam em novembro por R$ 315 · Prisão por tráfico no bairro Ponta Aguda recolhe quase um quilo de crack",
-      "manchetes": [
-        "Voos regionais entre Blumenau e Florianópolis começam em novembro por R$ 315",
-        "Prisão por tráfico no bairro Ponta Aguda recolhe quase um quilo de crack",
-        "Mais de 38 mil alunos retornam às salas de aula na rede municipal de Blumenau",
-        "Convenções partidárias em Santa Catarina oficializam chapas majoritárias e proporcionais",
-        "Queda de avião de turismo no Peru deixa treze mortos nas Linhas de Nazca"
-      ],
+      "id": "especial-wkpJEqSCv9c",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 00:16:02 +0000",
+      "type": "especial",
+      "title": "LULINHA na ESPANHA: EMPREITEIRA Bilionária Sob SUSPEITA",
+      "excerpt": "Você aí trabalhando quarenta horas por semana para sustentar a máquina estatal, e o filho do presidente vivendo confortavelmente na Europa. Mas calma, segundo os burocratas do part...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "política",
+        "corrupção",
+        "impostos"
       ],
-      "duration_min": 22.2,
-      "words": 3105,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-02.mp3",
-      "script_url": "./episodes/2026-08-02.md",
-      "audio_bytes": 31921885,
+      "duration_min": 4.4,
+      "words": 769,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-wkpJEqSCv9c.mp3",
+      "script_url": "./episodes/especial-wkpJEqSCv9c.md",
+      "audio_bytes": 6397954,
       "sources": [
-        "oblumenauense",
-        "blogdojaime",
-        "ndmais_blumenau",
-        "altovalenoticias",
-        "informeblumenau",
-        "blogdoprisco",
-        "altovaleagora",
-        "nsctotal",
-        "mesorregional",
-        "gcd",
-        "upiara",
-        "g1_sc",
-        "ajnoticias",
-        "g1_brasil",
-        "pancho",
-        "agencia_brasil",
-        "jatv",
-        "bbc_brasil",
-        "cnn_brasil",
-        "oglobo_geral",
-        "bbc_world",
-        "correio_braziliense",
-        "veja",
-        "estadao_politica",
-        "terra_brasil_noticias",
-        "gazetadopovo_politica",
-        "valor_geral",
-        "cnn_politica",
-        "metropoles",
-        "oglobo_politica",
-        "veja_politica",
-        "g1_politica",
-        "gazetadopovo_economia",
-        "metropoles_politica",
-        "oglobo_economia",
-        "veja_economia",
-        "g1_economia",
-        "cand_umenau?hl=en",
-        "cand_mfoco.com.br",
-        "src_040",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
+        "Lulinha vive em condições precárias na Espanha, diz vice do",
+        "CNN Brasil",
+        "VEJA",
+        "Estadão",
+        "O Globo",
+        "Veja",
+        "Brasil 247",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-08-02/ep_2026-08-02.webp",
-      "published_at": "2026-08-15T14:12:18",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-02/ep_2026-08-02.webp"
-    },
-    {
-      "id": "2026-08-01",
-      "date": "2026-08-01",
-      "episode": 19,
-      "title": "Episódio 19 · 1 de agosto de 2026",
-      "excerpt": "Gaspar presta apoio emergencial a Guabiruba após quinhentas ocorrências de destelhamento · Pregoeiro da Prefeitura de Itapema é brutalmente assassinado no bairro Morretes",
-      "manchetes": [
-        "Gaspar presta apoio emergencial a Guabiruba após quinhentas ocorrências de destelhamento",
-        "Pregoeiro da Prefeitura de Itapema é brutalmente assassinado no bairro Morretes",
-        "Mais de trinta e oito mil alunos retornam às aulas na rede municipal de Blumenau",
-        "Agronômica decreta situação de emergência por cento e oitenta dias após granizo",
-        "Fifa recua e cancela venda de participações comerciais em grandes competições"
+      "referencias": [
+        {
+          "veiculo": "Lulinha vive em condições precárias na Espanha, diz vice do",
+          "url": "https://www.poder360.com.br/poder-justica/lulinha-vive-em-condicoes-precarias-na-espanha-diz-vice-do-pt/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/politica/vice-do-pt-diz-que-lulinha-vive-em-condicoes-precarias-na-espanha/"
+        },
+        {
+          "veiculo": "VEJA",
+          "url": "https://veja.abril.com.br/brasil/o-avanco-das-investigacoes-contra-lulinha-no-stf-e-as-novas-revelacoes-a-caminho/"
+        },
+        {
+          "veiculo": "Estadão",
+          "url": "https://www.estadao.com.br/politica/carlos-andreazza/desconfiancas-entre-mendonca-e-pf-so-existem-pois-o-investigado-e-lulinha/"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/politica/noticia/2026/08/08/ala-do-stf-ve-como-inadmissivel-tom-da-manifestacao-de-chefes-da-pf-em-apoio-ao-diretor-geral-em-meio-a-crise-com-mendonca.ghtml"
+        },
+        {
+          "veiculo": "Veja",
+          "url": "https://veja.abril.com.br/politica/a-bronca-de-juizes-do-stf-com-o-ministro-da-justica/"
+        },
+        {
+          "veiculo": "Brasil 247",
+          "url": "https://www.brasil247.com/entrevistas/subversao-de-andre-mendonca-repete-erros-da-lava-jato-diz-pedro-serrano/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-wkpJEqSCv9c.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-wkpJEqSCv9c.md",
+          "self": true
+        }
       ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 21.7,
-      "words": 3017,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-01.mp3",
-      "script_url": "./episodes/2026-08-01.md",
-      "audio_bytes": 31260717,
-      "sources": [
-        "oblumenauense",
-        "blogdojaime",
-        "ndmais_blumenau",
-        "altovalenoticias",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "altovaleagora",
-        "nsctotal",
-        "upiara",
-        "ajnoticias",
-        "g1_brasil",
-        "pancho",
-        "g1_sc",
-        "agencia_brasil",
-        "bbc_brasil",
-        "mesorregional",
-        "bbc_world",
-        "jatv",
-        "cnn_brasil",
-        "estadao_politica",
-        "oglobo_geral",
-        "correio_braziliense",
-        "terra_brasil_noticias",
-        "valor_geral",
-        "veja",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "metropoles",
-        "veja_politica",
-        "cnn_politica",
-        "metropoles_politica",
-        "oglobo_economia",
-        "g1_economia",
-        "gazetadopovo_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
-      ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-08-01/ep_2026-08-01.webp",
-      "published_at": "2026-08-15T14:12:18",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-01/ep_2026-08-01.webp"
-    },
-    {
-      "id": "2026-07-31",
-      "date": "2026-07-31",
-      "episode": 18,
-      "title": "Episódio 18 · 31 de julho de 2026",
-      "excerpt": "PF investiga 74 ligações entre Jaques Wagner e sócio do Banco Master · Senador articulou encontro discreto com ministro da AGU",
-      "manchetes": [
-        "PF investiga 74 ligações entre Jaques Wagner e sócio do Banco Master",
-        "Senador articulou encontro discreto com ministro da AGU",
-        "Vorcaro aponta ministros favoráveis à venda do banco para o BRB",
-        "André Mendonça libera relatórios em timing considerado inadequado pelo PT",
-        "Governo impõe sigilo de 100 anos sobre lista de visitantes de Vorcaro"
-      ],
-      "quadros": [
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 7.2,
-      "words": 877,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-31.mp3",
-      "script_url": "./episodes/2026-07-31.md",
-      "audio_bytes": 10376507,
-      "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "altovalenoticias",
-        "blogdoprisco",
-        "informeblumenau",
-        "gcd",
-        "upiara",
-        "altovaleagora",
-        "ajnoticias",
-        "nsctotal",
-        "g1_brasil",
-        "pancho",
-        "jatv",
-        "g1_sc",
-        "agencia_brasil",
-        "mesorregional",
-        "bbc_world",
-        "bbc_brasil",
-        "cnn_brasil",
-        "oglobo_geral",
-        "estadao_politica",
-        "correio_braziliense",
-        "terra_brasil_noticias",
-        "veja",
-        "metropoles",
-        "valor_geral",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "cnn_politica",
-        "oglobo_politica",
-        "veja_politica",
-        "gazetadopovo_economia",
-        "veja_economia",
-        "metropoles_politica",
-        "g1_economia",
-        "oglobo_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
-      ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-07-31/ep_2026-07-31.webp",
-      "published_at": "2026-08-15T14:12:18",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-07-31/ep_2026-07-31.webp"
-    },
-    {
-      "id": "2026-07-30",
-      "date": "2026-07-30",
-      "episode": 17,
-      "title": "Episódio 17 · 30 de julho de 2026",
-      "excerpt": "Ciclista é atropelado na Rua Pedro Simon em Gaspar e fica ferido · Fuga de 16 anos termina em prisão de homicida no bairro Fidélis",
-      "manchetes": [
-        "Ciclista é atropelado na Rua Pedro Simon em Gaspar e fica ferido",
-        "Fuga de 16 anos termina em prisão de homicida no bairro Fidélis",
-        "Hospital Santo Antônio lança Jantar Dourado 2026 com show do cantor Daniel",
-        "Blumenau abre 350 vagas formais de emprego e se destaca em Santa Catarina",
-        "Radar meteorológico de Lontras gera bate-boca entre Prefeitura e Estado"
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 18.3,
-      "words": 2231,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-30.mp3",
-      "script_url": "./episodes/2026-07-30.md",
-      "audio_bytes": 26372223,
-      "sources": [
-        "ndmais_blumenau",
-        "oblumenauense",
-        "blogdojaime",
-        "informeblumenau",
-        "altovalenoticias",
-        "blogdoprisco",
-        "altovaleagora",
-        "gcd",
-        "mesorregional",
-        "upiara",
-        "ajnoticias",
-        "nsctotal",
-        "g1_brasil",
-        "pancho",
-        "agencia_brasil",
-        "g1_sc",
-        "cnn_brasil",
-        "jatv",
-        "bbc_brasil",
-        "bbc_world",
-        "oglobo_geral",
-        "terra_brasil_noticias",
-        "metropoles",
-        "correio_braziliense",
-        "estadao_politica",
-        "veja",
-        "valor_geral",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "g1_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "veja_economia",
-        "g1_economia",
-        "metropoles_politica",
-        "gazetadopovo_economia",
-        "oglobo_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
-      ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-07-30/ep_2026-07-30.webp",
-      "published_at": "2026-08-15T14:12:18",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-07-30/ep_2026-07-30.webp"
-    },
-    {
-      "id": "2026-07-29",
-      "date": "2026-07-29",
-      "episode": 17,
-      "title": "Episódio 17 · 29 de julho de 2026",
-      "excerpt": "Temporal traz granizo, 13 ocorrências em Blumenau e deixa 17 mil casas no escuro no Médio Vale. · Obras estatais paralisadas na 2 de Setembro e Frederico Jensen preocupam comerciantes com chuva.",
-      "manchetes": [
-        "Temporal traz granizo, 13 ocorrências em Blumenau e deixa 17 mil casas no escuro no Médio Vale.",
-        "Obras estatais paralisadas na 2 de Setembro e Frederico Jensen preocupam comerciantes com chuva.",
-        "Polícia recupera ar-condicionado de 8,5 mil reais furtado em condomínio no bairro Victor Konder.",
-        "Indaial gasta recursos públicos para lançar totens digitais de inteligência turística em pastelaria.",
-        "Santa Catarina e São Paulo lideram ranking nacional de cidades mais seguras do Brasil."
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 21.1,
-      "words": 3162,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-29.mp3",
-      "script_url": "./episodes/2026-07-29.md",
-      "audio_bytes": 30329461,
-      "sources": [
-        "blogdojaime",
-        "oblumenauense",
-        "ndmais_blumenau",
-        "informeblumenau",
-        "altovalenoticias",
-        "blogdoprisco",
-        "altovaleagora",
-        "upiara",
-        "gcd",
-        "ajnoticias",
-        "pancho",
-        "g1_brasil",
-        "g1_sc",
-        "agencia_brasil",
-        "bbc_brasil",
-        "jatv",
-        "cnn_brasil",
-        "bbc_world",
-        "correio_braziliense",
-        "oglobo_geral",
-        "estadao_politica",
-        "veja",
-        "terra_brasil_noticias",
-        "mesorregional",
-        "metropoles",
-        "valor_geral",
-        "nsctotal",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "oglobo_politica",
-        "g1_politica",
-        "veja_politica",
-        "metropoles_politica",
-        "g1_economia",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "cand_rioav.com.br",
-        "src_040",
-        "cand_mfoco.com.br",
-        "cand_ara-o-tce-sc"
-      ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-07-29/ep_2026-07-29.webp",
-      "published_at": "2026-08-15T14:12:18",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-07-29/ep_2026-07-29.webp"
-    },
-    {
-      "id": "2026-07-28",
-      "date": "2026-07-28",
-      "episode": 16,
-      "title": "Episódio 16 · 28 de julho de 2026",
-      "excerpt": "Obras paradas por corrupção em Blumenau terão de ser relicitadas · Ex-policial militar é encontrado morto em rio no Alto Vale",
-      "manchetes": [
-        "Obras paradas por corrupção em Blumenau terão de ser relicitadas",
-        "Ex-policial militar é encontrado morto em rio no Alto Vale",
-        "Blumenau engata duas semanas consecutivas sem novos casos de dengue",
-        "Justiça Federal libera uso da marca Kegelfest para Rio do Sul em 2026",
-        "Atleta blumenauense Gian Pitbull vence por nocaute em Abu Dhabi"
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 11.1,
-      "words": 1644,
-      "audio_url": "https://news.mob.tec.br/audio/2026-07-28.mp3",
-      "script_url": "./episodes/2026-07-28.md",
-      "audio_bytes": 16002656,
-      "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "oblumenauense",
-        "blogdoprisco",
-        "altovalenoticias",
-        "informeblumenau",
-        "altovaleagora",
-        "upiara",
-        "gcd",
-        "ajnoticias",
-        "g1_brasil",
-        "pancho",
-        "jatv",
-        "agencia_brasil",
-        "g1_sc",
-        "cnn_brasil",
-        "bbc_brasil",
-        "bbc_world",
-        "correio_braziliense",
-        "mesorregional",
-        "oglobo_geral",
-        "terra_brasil_noticias",
-        "estadao_politica",
-        "veja",
-        "metropoles",
-        "nsctotal",
-        "valor_geral",
-        "cnn_politica",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "veja_politica",
-        "g1_politica",
-        "g1_economia",
-        "gazetadopovo_economia",
-        "metropoles_politica",
-        "oglobo_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc",
-        "cand_mfoco.com.br"
-      ],
-      "sponsors": [],
+      "share_url": "./ep/especial-wkpJEqSCv9c.html",
       "cover_url": null,
-      "published_at": "2026-08-15T14:12:18"
+      "published_at": "2026-08-25T14:31:23",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-wkpJEqSCv9c.html"
     },
     {
-      "id": "2026-07-27",
-      "date": "2026-07-27",
-      "episode": 15,
-      "title": "Episódio 15 · 27 de julho de 2026",
-      "excerpt": "Tragédia na BR-470 mata motociclista no quilômetro 34 em Gaspar · Blumenau gasta R$ 6,9 milhões em brinquedos escolares enquanto adia reformas estruturais",
-      "manchetes": [
-        "Tragédia na BR-470 mata motociclista no quilômetro 34 em Gaspar",
-        "Blumenau gasta R$ 6,9 milhões em brinquedos escolares enquanto adia reformas estruturais",
-        "Ituporanga limpa dois quilômetros de rios com empresa terceirizada para conter cheias",
-        "Tarifaço americano ameaça indústria de Santa Catarina e FIESC acende alerta",
-        "Gian Pitbull nocauteia em Abu Dhabi e aproxima Vale do Itajaí do UFC"
-      ],
+      "id": "especial-fjNNW3ffpnQ",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 23:14:03 +0000",
+      "type": "especial",
+      "title": "ECONOMISTA da Isentosfera OUSA CRITICAR Xandão e o STF",
+      "excerpt": "Olá! Tem gente finalmente acordando do transe estatista, embora o estrago já esteja totalmente feito na nossa liberdade. O economista e ex-diretor do Banco Central, Alexandre Schwa...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "ditadura judiciária",
+        "política"
       ],
-      "duration_min": 12.5,
-      "words": 1853,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-27.mp3",
-      "script_url": "./episodes/2026-07-27.md",
-      "audio_bytes": 17935508,
+      "duration_min": 5.4,
+      "words": 858,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-fjNNW3ffpnQ.mp3",
+      "script_url": "./episodes/especial-fjNNW3ffpnQ.md",
+      "audio_bytes": 7735214,
       "sources": [
-        "ndmais_blumenau",
-        "oblumenauense",
-        "blogdojaime",
-        "informeblumenau",
-        "altovalenoticias",
-        "blogdoprisco",
-        "gcd",
-        "altovaleagora",
-        "upiara",
-        "ajnoticias",
-        "g1_brasil",
-        "pancho",
-        "g1_sc",
-        "jatv",
-        "agencia_brasil",
-        "mesorregional",
-        "bbc_brasil",
-        "bbc_world",
-        "cnn_brasil",
-        "correio_braziliense",
-        "oglobo_geral",
-        "estadao_politica",
-        "nsctotal",
-        "terra_brasil_noticias",
-        "veja",
-        "metropoles",
-        "valor_geral",
-        "g1_politica",
-        "gazetadopovo_politica",
-        "oglobo_politica",
-        "cnn_politica",
-        "veja_politica",
-        "oglobo_economia",
-        "metropoles_politica",
-        "g1_economia",
-        "gazetadopovo_economia",
-        "veja_economia",
-        "cand_rioav.com.br"
+        "diretor do BC critica Moraes e diz: &#039;Daqui eu vou para",
+        "Economista afirma que STF e Alexandre de Moraes est&atilde;o",
+        "Carta de Retratação às Brasileiras e aos Brasileiros",
+        "Flávio Bolsonaro apoia 47 nomes ao Senado em 2026",
+        "Ocafezinho",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": null,
-      "published_at": "2026-08-15T14:12:19"
+      "referencias": [
+        {
+          "veiculo": "diretor do BC critica Moraes e diz: &#039;Daqui eu vou para",
+          "url": "https://revistaoeste.com/politica/ex-diretor-do-bc-critica-moraes-e-acrescenta-daqui-eu-vou-para-a-cadeia/"
+        },
+        {
+          "veiculo": "Economista afirma que STF e Alexandre de Moraes est&atilde;o",
+          "url": "https://www.folhadoestado.com.br/politica-nacional/economista-afirma-que-stf-e-alexandre-de-moraes-estao-fora-de-controle-e-dispara-daqui-eu-vou-para-a-cadeia/641254"
+        },
+        {
+          "veiculo": "Carta de Retratação às Brasileiras e aos Brasileiros",
+          "url": "https://desculpapelacartinha.com/"
+        },
+        {
+          "veiculo": "Flávio Bolsonaro apoia 47 nomes ao Senado em 2026",
+          "url": "https://www.diariodocentrodomundo.com.br/tropa-de-flavio-ao-senado-mira-stf-abraca-centrao-e-tem-so-15-de-mulheres/"
+        },
+        {
+          "veiculo": "Ocafezinho",
+          "url": "https://www.ocafezinho.com/2026/08/09/flavio-arma-tropa-de-47-senadores-com-mira-no-stf-e-so-15-de-mulheres/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-fjNNW3ffpnQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-fjNNW3ffpnQ.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-fjNNW3ffpnQ.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_fjNNW3ffpnQ.webp",
+      "published_at": "2026-08-25T14:31:17",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-fjNNW3ffpnQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_fjNNW3ffpnQ.webp"
     },
     {
-      "id": "2026-07-26",
-      "date": "2026-07-26",
-      "episode": 14,
-      "title": "Episódio 14 · 26 de julho de 2026",
-      "excerpt": "Grave colisão na BR-470 em Rodeio mobiliza helicóptero Arcanjo 03 e deixa vítima presa em ferragens · Defesa Civil de Santa Catarina emite alerta para temporais e chuvas intensas neste domingo",
-      "manchetes": [
-        "Grave colisão na BR-470 em Rodeio mobiliza helicóptero Arcanjo 03 e deixa vítima presa em ferragens",
-        "Defesa Civil de Santa Catarina emite alerta para temporais e chuvas intensas neste domingo",
-        "Coleta seletiva de lixo reciclável em Rio do Sul salta quase cinquenta por cento em 2026",
-        "Estudantes da rede municipal são selecionados para programa de imersão da Nasa nos Estados Unidos",
-        "Metropolitano vence por três a zero no Sesi e garante vice-campeonato da Série B estadual"
-      ],
+      "id": "especial-3NBFTh3HUbs",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 21:11:47 +0000",
+      "type": "especial",
+      "title": "MARCOLA Não Está SOZINHO: Novo Nome do PLANALTO sob SUSPEITA",
+      "excerpt": "O estado brasileiro nunca decepciona na sua capacidade infinita de operar como um colossal balcão de negócios escusos. Se você realmente acreditava que a farra com dinheiro de lobi...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "corrupção",
+        "política"
       ],
-      "duration_min": 8.9,
-      "words": 1675,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-26.mp3",
-      "script_url": "./episodes/2026-07-26.md",
-      "audio_bytes": 12886770,
+      "duration_min": 4.2,
+      "words": 711,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-3NBFTh3HUbs.mp3",
+      "script_url": "./episodes/especial-3NBFTh3HUbs.md",
+      "audio_bytes": 6115831,
       "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "blogdoprisco",
-        "altovalenoticias",
-        "upiara",
-        "informeblumenau",
-        "altovaleagora",
-        "ajnoticias",
-        "pancho",
-        "g1_brasil",
-        "jatv",
-        "g1_sc",
-        "mesorregional",
-        "agencia_brasil",
-        "bbc_brasil",
-        "oglobo_geral",
-        "bbc_world",
-        "cnn_brasil",
-        "correio_braziliense",
-        "terra_brasil_noticias",
-        "estadao_politica",
-        "nsctotal",
-        "metropoles",
-        "veja",
-        "valor_geral",
-        "cnn_politica",
-        "g1_politica",
-        "oglobo_politica",
-        "veja_politica",
-        "gazetadopovo_politica",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "metropoles_politica",
-        "oglobo_economia",
-        "veja_economia",
-        "gcd",
-        "cand_rioav.com.br"
+        "O Globo",
+        "Governo Federal",
+        "Casa Civil",
+        "Governo Federal",
+        "Secretaria de Relações Institucionais",
+        "Governo Federal",
+        "Governo Federal",
+        "Governo Federal",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": null,
-      "published_at": "2026-08-15T14:12:19"
+      "referencias": [
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/lauro-jardim/post/2026/08/alem-de-marcola-pf-encontra-outro-nome-do-planalto-que-recebeu-dinheiro-de-lobista.ghtml"
+        },
+        {
+          "veiculo": "Governo Federal",
+          "url": "https://www.gov.br/planalto/pt-br/acesso-a-informacao/institucional/principais-cargos-e-respectivos-ocupantes-201cquem-e-quem201d"
+        },
+        {
+          "veiculo": "Casa Civil",
+          "url": "https://www.gov.br/casacivil/pt-br/composicao/ministra"
+        },
+        {
+          "veiculo": "Governo Federal",
+          "url": "https://www.gov.br/secretariageral/pt-br/acesso-a-informacao/institucional/quem-e-quem-cargos"
+        },
+        {
+          "veiculo": "Secretaria de Relações Institucionais",
+          "url": "https://www.gov.br/sri/acl_users/credentials_cookie_auth/require_login?came_from=https%3A//www.gov.br/sri/pt-br/acesso-a-informacao/institucional/quem-e-quem"
+        },
+        {
+          "veiculo": "Governo Federal",
+          "url": "https://www.gov.br/sri/pt-br/composicao/ministra-1"
+        },
+        {
+          "veiculo": "Governo Federal",
+          "url": "https://www.gov.br/secom/pt-br/acesso-a-informacao/institucional/quem-e-quem"
+        },
+        {
+          "veiculo": "Governo Federal",
+          "url": "https://www.gov.br/planalto/pt-br/acesso-a-informacao/institucional/gabinete-pessoal-do-presidente-da-republica"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-3NBFTh3HUbs.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-3NBFTh3HUbs.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-3NBFTh3HUbs.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_3NBFTh3HUbs.webp",
+      "published_at": "2026-08-25T14:31:14",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-3NBFTh3HUbs.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_3NBFTh3HUbs.webp"
     },
     {
-      "id": "2026-07-25",
-      "date": "2026-07-25",
-      "episode": 14,
-      "title": "Episódio 14 · 25 de julho de 2026",
-      "excerpt": "Santa Catarina alcança menor taxa de mortes violentas do Brasil em 2025, superando São Paulo. · Prefeitura de Blumenau investe R$ 6,9 milhões em novos parques para 79 escolas e CEIs.",
-      "manchetes": [
-        "Santa Catarina alcança menor taxa de mortes violentas do Brasil em 2025, superando São Paulo.",
-        "Prefeitura de Blumenau investe R$ 6,9 milhões em novos parques para 79 escolas e CEIs.",
-        "Lei autoriza spray de pimenta para defesa pessoal de mulheres em todo o Brasil.",
-        "Clínica estética clandestina em Balneário Camboriú é proibida de atuar e pagará por danos coletivos.",
-        "Hospital Santo Antônio detalha avanço das obras em Blumenau e resultados em Gaspar.",
-        "Blumenau vence por WO após Jaraguá desistir da última rodada da Série B do Catarinense."
-      ],
+      "id": "especial-k_AtSSU2840",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 19:14:00 +0000",
+      "type": "especial",
+      "title": "DISCORD PROIBIDO no BRASIL? O Novo Ataque de CENSURA do GOVERNO",
+      "excerpt": "O Estado brasileiro nunca perde a oportunidade de instrumentalizar uma tragédia humana para avançar sua sanha regulatória e autoritária sobre a população....",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "brasil",
-        "educacao",
-        "politica",
-        "esportes",
-        "rapidinhas"
+        "política",
+        "ditadura judiciária"
       ],
-      "duration_min": 14.7,
-      "words": 2200,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-25.mp3",
-      "script_url": "./episodes/2026-07-25.md",
-      "audio_bytes": 21183051,
+      "duration_min": 4.8,
+      "words": 679,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-k_AtSSU2840.mp3",
+      "script_url": "./episodes/especial-k_AtSSU2840.md",
+      "audio_bytes": 6888220,
       "sources": [
-        "oblumenauense",
-        "blogdojaime",
-        "informeblumenau",
-        "ndmais_blumenau",
-        "blogdoprisco",
-        "altovalenoticias",
-        "gcd",
-        "altovaleagora",
-        "upiara",
-        "ajnoticias",
-        "pancho",
-        "g1_brasil",
-        "jatv",
-        "g1_sc",
-        "agencia_brasil",
-        "bbc_brasil",
-        "cnn_brasil",
-        "bbc_world",
-        "oglobo_geral",
-        "estadao_politica",
-        "correio_braziliense",
-        "nsctotal",
-        "terra_brasil_noticias",
-        "mesorregional",
-        "veja",
-        "valor_geral",
-        "gazetadopovo_politica",
-        "metropoles",
-        "cnn_politica",
-        "oglobo_politica",
-        "g1_politica",
-        "veja_politica",
-        "metropoles_politica",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "veja_economia"
+        "CNN Brasil",
+        "BBC News Brasil",
+        "G1",
+        "ANPD abre processo contra Discord por caso de adolescente de",
+        "Poder360",
+        "Poder360",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": null,
-      "published_at": "2026-08-15T14:12:19"
+      "referencias": [
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/politica/janja-volta-a-pedir-que-discord-seja-banido-do-pais-nao-respeita-o-eca/"
+        },
+        {
+          "veiculo": "BBC News Brasil",
+          "url": "https://www.bbc.com/portuguese/articles/cx27g394pyjo"
+        },
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/politica/noticia/2026/08/07/apos-janja-cobrar-medidas-agu-vai-se-reunir-com-representantes-do-discord-nesta-sexta.ghtml"
+        },
+        {
+          "veiculo": "ANPD abre processo contra Discord por caso de adolescente de",
+          "url": "https://www.poder360.com.br/poder-brasil/anpd-abre-processo-contra-discord-por-caso-de-adolescente-de-13-anos/"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://static.poder360.com.br/uploads/2026/08/anpd-discord-2.pdf-7.ago_.2026-2.pdf"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/janja-e-a-cara-desse-governo-gasta-muito-e-quer-censura-diz-novo/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-k_AtSSU2840.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-k_AtSSU2840.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-k_AtSSU2840.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_k_AtSSU2840.webp",
+      "published_at": "2026-08-25T14:31:25",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-k_AtSSU2840.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_k_AtSSU2840.webp"
     },
     {
-      "id": "2026-07-24",
-      "date": "2026-07-24",
-      "episode": 13,
-      "title": "Episódio 13 · 24 de julho de 2026",
-      "excerpt": "Incêndio em silo de Indaial mobiliza bombeiros e brigadistas; fogo controlado pela equipe da empresa. · Polícia Civil conclui investigação de latrocínio em Presidente Getúlio; suspeito indiciado por roubo seguido de morte.",
-      "manchetes": [
-        "Incêndio em silo de Indaial mobiliza bombeiros e brigadistas; fogo controlado pela equipe da empresa.",
-        "Polícia Civil conclui investigação de latrocínio em Presidente Getúlio; suspeito indiciado por roubo seguido de morte.",
-        "Motociclista gravemente ferido após colisão com caminhão na Avenida Martin Luther, em Blumenau.",
-        "Três suspeitos de organização criminosa da Paraíba são presos em Blumenau e Brusque em operação conjunta.",
-        "Prefeito de Timbó avança nos preparativos para implantação do CAPS I Microrregional, com previsão de início em outubro.",
-        "Prefeito Egidio Ferrari de Blumenau critica gestões anteriores: “meteram as mãos nos cofres públicos”."
-      ],
+      "id": "especial-PR3TaqvvXOQ",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 17:14:01 +0000",
+      "type": "especial",
+      "title": "LULA Pode PERDER a ELEIÇÃO Mesmo Liderando Pesquisas?",
+      "excerpt": "O leviatã estatal adora vender a ilusão de controle absoluto, mas a realidade dos fatos insiste em desmentir a burocracia central. A grande imprensa vive tentando convencer o pagad...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "eleições",
+        "política",
+        "economia"
       ],
-      "duration_min": 12.9,
-      "words": 2018,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-24.mp3",
-      "script_url": "./episodes/2026-07-24.md",
-      "audio_bytes": 18528592,
+      "duration_min": 4.6,
+      "words": 714,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-PR3TaqvvXOQ.mp3",
+      "script_url": "./episodes/especial-PR3TaqvvXOQ.md",
+      "audio_bytes": 6677569,
       "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "oblumenauense",
-        "altovalenoticias",
-        "informeblumenau",
-        "blogdoprisco",
-        "upiara",
-        "gcd",
-        "altovaleagora",
-        "ajnoticias",
-        "g1_brasil",
-        "pancho",
-        "g1_sc",
-        "agencia_brasil",
-        "bbc_brasil",
-        "jatv",
-        "bbc_world",
-        "cnn_brasil",
-        "oglobo_geral",
-        "nsctotal",
-        "correio_braziliense",
-        "terra_brasil_noticias",
-        "estadao_politica",
-        "metropoles",
-        "veja",
-        "mesorregional",
-        "valor_geral",
-        "cnn_politica",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "metropoles_politica",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "veja_economia"
+        "Lula pode perder a eleição mesmo estando bem nas pesquisas?",
+        "Veja",
+        "Crusoé",
+        "tarifaço",
+        "Lula tenta esfriar crise tarifária e diplomática com Trump",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": null,
-      "published_at": "2026-08-15T14:12:19"
+      "referencias": [
+        {
+          "veiculo": "Lula pode perder a eleição mesmo estando bem nas pesquisas?",
+          "url": "https://spdiario.com.br/noticias/reinaldo-polito/lula-pode-perder-a-eleicao-mesmo-estando-bem-nas-pesquisas.html"
+        },
+        {
+          "veiculo": "Veja",
+          "url": "https://veja.abril.com.br/coluna/radar-economico/lula-vende-um-governo-ao-eleitor-durigan-outro-a-faria-lima/"
+        },
+        {
+          "veiculo": "Crusoé",
+          "url": "https://crusoe.com.br/noticias/o-voto-do-cansaco/"
+        },
+        {
+          "veiculo": "tarifaço",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/flavio-engaja-4-vezes-mais-que-lula-nas-redes-pos-tarifaco/"
+        },
+        {
+          "veiculo": "Lula tenta esfriar crise tarifária e diplomática com Trump",
+          "url": "https://www.correiobraziliense.com.br/politica/2026/08/7476461-lula-tenta-esfriar-crise-tarifaria-e-diplomatica-com-trump.html"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-PR3TaqvvXOQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-PR3TaqvvXOQ.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-PR3TaqvvXOQ.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_PR3TaqvvXOQ.webp",
+      "published_at": "2026-08-25T14:31:20",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-PR3TaqvvXOQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_PR3TaqvvXOQ.webp"
     },
     {
-      "id": "2026-07-23",
-      "date": "2026-07-23",
-      "episode": 13,
-      "title": "Episódio 13 · 23 de julho de 2026",
-      "excerpt": "Incêndio destrói estufa de fumo e causa prejuízo de R$ 200 mil em Taió · Guarda Municipal de Rio do Sul intensifica uso de radar móvel nas ruas",
-      "manchetes": [
-        "Incêndio destrói estufa de fumo e causa prejuízo de R$ 200 mil em Taió",
-        "Guarda Municipal de Rio do Sul intensifica uso de radar móvel nas ruas",
-        "Professor de jiu-jítsu é preso em Blumenau após 13 anos usando identidade falsa",
-        "Escola centenária de Florianópolis é transferida para o TCE/SC",
-        "Rio Itajaí-Mirim pode atingir 4,20 metros e causar alagamentos em Brusque"
-      ],
+      "id": "especial-DSDgy3HYWuk",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 16:15:22 +0000",
+      "type": "especial",
+      "title": "LULA a Serviço da DITADURA Castrista? O Ataque AMERICANO",
+      "excerpt": "O conceito arcaico de Estado-nação está ruindo diante dos nossos olhos, e a burocracia estatal simplesmente não consegue acompanhar a velocidade e a dinâmica das trocas voluntárias...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "política",
+        "socialismo/comunismo"
       ],
-      "duration_min": 16.4,
-      "words": 2618,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-23.mp3",
-      "script_url": "./episodes/2026-07-23.md",
-      "audio_bytes": 23655071,
+      "duration_min": 3.7,
+      "words": 489,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-DSDgy3HYWuk.mp3",
+      "script_url": "./episodes/especial-DSDgy3HYWuk.md",
+      "audio_bytes": 5310842,
       "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "altovalenoticias",
-        "informeblumenau",
-        "blogdoprisco",
-        "altovaleagora",
-        "mesorregional",
-        "gcd",
-        "upiara",
-        "ajnoticias",
-        "g1_brasil",
-        "pancho",
-        "g1_sc",
-        "jatv",
-        "agencia_brasil",
-        "bbc_brasil",
-        "bbc_world",
-        "oglobo_geral",
-        "correio_braziliense",
-        "cnn_brasil",
-        "estadao_politica",
-        "metropoles",
-        "terra_brasil_noticias",
-        "nsctotal",
-        "veja",
-        "valor_geral",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "oglobo_politica",
-        "g1_politica",
-        "veja_politica",
-        "metropoles_politica",
-        "veja_economia",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "oglobo_economia",
-        "oblumenauense"
+        "X",
+        "X",
+        "X",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": null,
-      "published_at": "2026-08-15T14:12:19"
+      "referencias": [
+        {
+          "veiculo": "X",
+          "url": "https://x.com/RepCarlos/status/2086259948267155569"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/RepCarlos/status/2086260752222937502"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/RepCarlos"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/JeffreyChiquini/status/2086420924203434114"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-DSDgy3HYWuk.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-DSDgy3HYWuk.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-DSDgy3HYWuk.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_DSDgy3HYWuk.webp",
+      "published_at": "2026-08-25T14:31:20",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-DSDgy3HYWuk.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_DSDgy3HYWuk.webp"
     },
     {
-      "id": "2026-07-22",
-      "date": "2026-07-22",
-      "episode": 12,
-      "title": "Episódio 12 · 22 de julho de 2026",
-      "excerpt": "Operário é resgatado após soterramento em obra em Blumenau · Seis acidentes deixam cinco motociclistas e um ciclista feridos em Blumenau",
-      "manchetes": [
-        "Operário é resgatado após soterramento em obra em Blumenau",
-        "Seis acidentes deixam cinco motociclistas e um ciclista feridos em Blumenau",
-        "Bombeiros combatem incêndio em silo por 10 horas em Pouso Redondo",
-        "Prefeitura de Gaspar oferece transporte gratuito para doação de sangue no Hemosc",
-        "Quadrilha aluga casa em Blumenau para guardar duas toneladas de cocaína"
-      ],
+      "id": "especial-T435tnMaYUQ",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 15:15:21 +0000",
+      "type": "especial",
+      "title": "BRICS e DRONES: O Plano de LULA para AJUDAR PUTIN na GUERRA",
+      "excerpt": "Sempre que governantes se reúnem com sorrisos amarelos prometendo 'cooperação científica' e 'desenvolvimento tecnológico', o indivíduo pagador de impostos deve colocar a mão no bol...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude"
+        "política",
+        "guerras"
       ],
-      "duration_min": 9.6,
-      "words": 1435,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-07-22.mp3",
-      "script_url": "./episodes/2026-07-22.md",
-      "audio_bytes": 3459549,
+      "duration_min": 4.8,
+      "words": 674,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-T435tnMaYUQ.mp3",
+      "script_url": "./episodes/especial-T435tnMaYUQ.md",
+      "audio_bytes": 6962826,
       "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "oblumenauense",
-        "informeblumenau",
-        "altovalenoticias",
-        "mesorregional",
-        "altovaleagora",
-        "blogdoprisco",
-        "gcd",
-        "upiara",
-        "ajnoticias",
-        "g1_brasil",
-        "agencia_brasil",
-        "g1_sc",
-        "nsctotal",
-        "pancho",
-        "jatv",
-        "bbc_brasil",
-        "bbc_world",
-        "cnn_brasil",
-        "correio_braziliense",
-        "oglobo_geral",
-        "terra_brasil_noticias",
-        "estadao_politica",
-        "veja",
-        "valor_geral",
-        "metropoles",
-        "g1_politica",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "oglobo_politica",
-        "veja_politica",
-        "oglobo_economia",
-        "metropoles_politica",
-        "gazetadopovo_economia",
-        "veja_economia",
-        "g1_economia"
+        "YouTube",
+        "TASS",
+        "Rússia amplia agenda de cooperação com Brasil em defesa, ene",
+        "UFRJ recebe comitiva russa para ampliar cooperação científic",
+        "Client Challenge",
+        "En",
+        "Beyondparallel",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": null,
-      "published_at": "2026-08-15T14:12:19"
+      "referencias": [
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=rUQPm4CtKYc"
+        },
+        {
+          "veiculo": "TASS",
+          "url": "https://tass.com/economy/2170345"
+        },
+        {
+          "veiculo": "Rússia amplia agenda de cooperação com Brasil em defesa, ene",
+          "url": "https://tvtnews.com.br/russia-agenda-cooperacao-brasil-defesa-energia-tecnologia/"
+        },
+        {
+          "veiculo": "UFRJ recebe comitiva russa para ampliar cooperação científic",
+          "url": "https://ufrj.br/2026/08/ufrj-recebe-comitiva-russa-para-ampliar-cooperacao-cientifica-e-tecnologica/"
+        },
+        {
+          "veiculo": "Client Challenge",
+          "url": "https://www.lemonde.fr/en/international/article/2025/12/30/us-sanctions-iran-venezuela-drone-network-amid-maduro-pressure_6748950_4.html"
+        },
+        {
+          "veiculo": "En",
+          "url": "http://en.kremlin.ru/events/president/news/76175"
+        },
+        {
+          "veiculo": "Beyondparallel",
+          "url": "https://beyondparallel.csis.org/a-closer-look-at-the-yelabuga-uav-factory/"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/Gerashchenko_en/status/2028406418324308431"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-T435tnMaYUQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-T435tnMaYUQ.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-T435tnMaYUQ.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_T435tnMaYUQ.webp",
+      "published_at": "2026-08-25T14:31:13",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-T435tnMaYUQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_T435tnMaYUQ.webp"
+    },
+    {
+      "id": "especial-YoURjG7p2nc",
+      "date": "2026-08-09",
+      "pubDate": "Sun, 09 Aug 2026 10:14:50 +0000",
+      "type": "especial",
+      "title": "INSS: Mendonça DERRUBA Sigilo de Foto com Vice-Líder",
+      "excerpt": "O Estado brasileiro é uma máquina espetacular de moer o pagador de impostos para financiar o deleite da elite política. Se você achava que o seu dinheiro confiscado via INSS servia...",
+      "manchetes": [],
+      "quadros": [
+        "corrupção",
+        "política"
+      ],
+      "duration_min": 5.5,
+      "words": 781,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-YoURjG7p2nc.mp3",
+      "script_url": "./episodes/especial-YoURjG7p2nc.md",
+      "audio_bytes": 7966555,
+      "sources": [
+        "revista piauí",
+        "G1",
+        "Fraudes no INSS: os fundamentos da operação contra o senador",
+        "YouTube",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "revista piauí",
+          "url": "https://piaui.uol.com.br/web/willer-tomaz-foto-piscina-weverton-inss/"
+        },
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/politica/blog/camila-bomfim/post/2026/08/04/operacao-sem-desconto-fraude-inss-aposentadorias-pensoes.ghtml"
+        },
+        {
+          "veiculo": "Fraudes no INSS: os fundamentos da operação contra o senador",
+          "url": "https://www.jota.info/stf/do-supremo/fraudes-no-inss-os-fundamentos-da-operacao-contra-o-senador-weverton-rocha"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=fyrlT6qLKPo"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-YoURjG7p2nc.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-YoURjG7p2nc.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-YoURjG7p2nc.html",
+      "cover_url": "./thumbnails/2026-08-09/bm_YoURjG7p2nc.webp",
+      "published_at": "2026-08-25T14:31:20",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-YoURjG7p2nc.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/bm_YoURjG7p2nc.webp"
+    },
+    {
+      "id": "especial-_43uC9tdzJw",
+      "date": "2026-08-08",
+      "pubDate": "Sun, 09 Aug 2026 00:13:14 +0000",
+      "type": "especial",
+      "title": "TRABALHAR por APLICATIVO Virou RENDA PRINCIPAL e IRRITA Soças",
+      "excerpt": "A imprensa tradicional e a burocracia estatal estão totalmente incomodadas com um fenômeno inevitável de mercado: o trabalho por aplicativo deixou de ser só um bico temporário e vi...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "impostos, taxas e tarifas",
+        "política"
+      ],
+      "duration_min": 4.6,
+      "words": 732,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-_43uC9tdzJw.mp3",
+      "script_url": "./episodes/especial-_43uC9tdzJw.md",
+      "audio_bytes": 6694496,
+      "sources": [
+        "G1",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/trabalho-e-carreira/noticia/2026/08/08/apps-deixaram-de-ser-so-um-bico-como-o-perfil-dos-trabalhadores-de-aplicativos-esta-mudando.ghtml"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-_43uC9tdzJw.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-_43uC9tdzJw.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-_43uC9tdzJw.html",
+      "cover_url": "./thumbnails/2026-08-08/bm__43uC9tdzJw.webp",
+      "published_at": "2026-08-25T14:31:19",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-_43uC9tdzJw.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-08/bm__43uC9tdzJw.webp"
+    },
+    {
+      "id": "especial-HX7SjvhGjnI",
+      "date": "2026-08-08",
+      "pubDate": "Sat, 08 Aug 2026 23:12:26 +0000",
+      "type": "especial",
+      "title": "LULA e ALCOLUMBRE Brigam em JANTAR na Casa de MORAES",
+      "excerpt": "Olha só a que ponto chega o espetáculo da política em Brasília. O famoso jantar da promiscuidade republicana, que reuniu Lula, Davi Alcolumbre e o ministro Alexandre de Moraes na m...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária",
+        "corrupção"
+      ],
+      "duration_min": 4.9,
+      "words": 819,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-HX7SjvhGjnI.mp3",
+      "script_url": "./episodes/especial-HX7SjvhGjnI.md",
+      "audio_bytes": 7074421,
+      "sources": [
+        "O Globo",
+        "YouTube",
+        "O Globo",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/malu-gaspar/post/2026/08/a-lavagem-de-roupa-suja-entre-lula-e-alcolumbre-na-casa-de-alexandre-de-moraes.ghtml"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=6fxko3GM7wI"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/bela-megale/post/2026/08/apos-lavar-roupa-suja-lula-e-alcolumbre-tem-segundo-encontro-programado.ghtml"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-HX7SjvhGjnI.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-HX7SjvhGjnI.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-HX7SjvhGjnI.html",
+      "cover_url": "./thumbnails/2026-08-08/bm_HX7SjvhGjnI.webp",
+      "published_at": "2026-08-25T14:31:22",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-HX7SjvhGjnI.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-08/bm_HX7SjvhGjnI.webp"
+    },
+    {
+      "id": "especial-M82Byj2KPsg",
+      "date": "2026-08-08",
+      "pubDate": "Sat, 08 Aug 2026 21:14:04 +0000",
+      "type": "especial",
+      "title": "LULINHA e STF: A Nova MANOBRA para ESCONDER o ESCÂNDALO",
+      "excerpt": "Você ainda acredita que a imprensa tradicional e a burocracia estatal operam de boa-fé pra te manter informado? Se a sua resposta for sim, lamento dizer, mas você continua caindo n...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção"
+      ],
+      "duration_min": 5.9,
+      "words": 935,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-M82Byj2KPsg.mp3",
+      "script_url": "./episodes/especial-M82Byj2KPsg.md",
+      "audio_bytes": 8540831,
+      "sources": [
+        "O Globo",
+        "Veja",
+        "Revistaoeste",
+        "Cartacapital",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/lauro-jardim/post/2026/08/caso-lulinha-ganha-forca-nas-redes-e-vira-municao-eleitoral-da-oposicao.ghtml"
+        },
+        {
+          "veiculo": "Veja",
+          "url": "https://veja.abril.com.br/politica/as-revelacoes-da-testemunha-chave-que-envolveu-lulinha-no-escandalo-do-inss/"
+        },
+        {
+          "veiculo": "Revistaoeste",
+          "url": "https://revistaoeste.com/politica/audios-de-luchsinger-mostram-convivio-com-lulinha-em-brasilia/"
+        },
+        {
+          "veiculo": "Cartacapital",
+          "url": "https://www.cartacapital.com.br/politica/pt-pede-ao-stf-investigacao-sobre-vazamento-de-audios-de-lulinha-para-campanha-de-flavio/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-M82Byj2KPsg.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-M82Byj2KPsg.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-M82Byj2KPsg.html",
+      "cover_url": "./thumbnails/2026-08-08/bm_M82Byj2KPsg.webp",
+      "published_at": "2026-08-25T14:31:22",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-M82Byj2KPsg.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-08/bm_M82Byj2KPsg.webp"
+    },
+    {
+      "id": "especial-VXNZIHHY1qQ",
+      "date": "2026-08-08",
+      "pubDate": "Sat, 08 Aug 2026 19:14:44 +0000",
+      "type": "especial",
+      "title": "TOFFOLI e o CASO dos CARTÓRIOS na BAHIA: MILHÕES em JOGO no STF",
+      "excerpt": "O estado cria a burocracia, te vende a ilusão de segurança jurídica e, no final do dia, usa o seu próprio tribunal superior para proteger a farra dos apadrinhados com o dinheiro es...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "corrupção",
+        "ditadura judiciária"
+      ],
+      "duration_min": 4.8,
+      "words": 717,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-VXNZIHHY1qQ.mp3",
+      "script_url": "./episodes/especial-VXNZIHHY1qQ.md",
+      "audio_bytes": 6984142,
+      "sources": [
+        "Metrópoles",
+        "Poder360",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/colunas/andreza-matais/acao-cartorio-bahia-stf-14-sem-julgamento-arrecadacao"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://www.poder360.com.br/poder-economia/donos-de-cartorios-sao-os-profissionais-que-mais-acumulam-patrimonio/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-VXNZIHHY1qQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-VXNZIHHY1qQ.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-VXNZIHHY1qQ.html",
+      "cover_url": "./thumbnails/2026-08-08/bm_VXNZIHHY1qQ.webp",
+      "published_at": "2026-08-25T14:31:17",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-VXNZIHHY1qQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-08/bm_VXNZIHHY1qQ.webp"
     }
   ]
 }

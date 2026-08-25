@@ -1,89 +1,10 @@
-/**
- * Heartbeat de sessão (~60s) para tempo ouvido.
- * Não grava IP. Usa fingerprint + session_id.
- */
-(function (window) {
-  const BEAT_MS = 60000;
-  const MAX_DELTA = 90;
-  let sessionId = null;
-  let episodeId = null;
-  let lastSent = 0;
-  let lastTick = 0;
-  let inflight = false;
-
-  function client() {
-    return window.supabaseClient || null;
-  }
-
-  function fp() {
-    if (window.InteractionBar && InteractionBar.generateFingerprint) {
-      return InteractionBar.generateFingerprint();
-    }
-    return Promise.resolve(null);
-  }
-
-  function isAd() {
-    return !!(window.PlayerManager && PlayerManager.isAdMode && PlayerManager.isAdMode());
-  }
-
-  async function sendBeat(delta, position, duration, ended) {
-    const id = episodeId;
-    if (!id || !client() || inflight) return;
-    const d = Math.max(1, Math.min(MAX_DELTA, Math.round(delta || 60)));
-    inflight = true;
-    try {
-      const fingerprint = await fp();
-      const { data, error } = await client().rpc('fn_listen_heartbeat', {
-        p_episode_id: id,
-        p_fingerprint: fingerprint,
-        p_session_id: sessionId,
-        p_delta_seconds: d,
-        p_duration_seconds: duration > 0 ? Math.floor(duration) : null,
-        p_position_seconds: position >= 0 ? Math.floor(position) : null,
-      });
-      if (error) throw error;
-      if (data && data.session_id) sessionId = data.session_id;
-      lastSent = Date.now();
-      if (ended) sessionId = null;
-    } catch (err) {
-      console.warn('[heartbeat]', err);
-    } finally {
-      inflight = false;
-    }
-  }
-
-  function onPlayerEvent(e) {
-    const d = (e && e.detail) || {};
-    if (d.adMode || isAd()) return;
-    const ep = d.episode && d.episode.id;
-    const now = Date.now();
-    if (ep && ep !== episodeId) {
-      if (episodeId && lastTick && now - lastTick < BEAT_MS * 2) {
-        sendBeat((now - (lastSent || lastTick)) / 1000, d.currentTime, d.duration, true);
-      }
-      episodeId = ep;
-      sessionId = null;
-      lastSent = 0;
-      lastTick = now;
-    }
-    if (!episodeId && ep) episodeId = ep;
-
-    if (d.type === 'play') {
-      lastTick = now;
-      if (!lastSent) lastSent = now;
-    } else if (d.type === 'timeupdate' && !d.paused) {
-      lastTick = now;
-      if (!lastSent) lastSent = now;
-      if (now - lastSent >= BEAT_MS) {
-        sendBeat((now - lastSent) / 1000, d.currentTime, d.duration, false);
-      }
-    } else if (d.type === 'pause' || d.type === 'ended') {
-      if (lastSent && now - lastSent >= 5000) {
-        sendBeat((now - lastSent) / 1000, d.currentTime, d.duration, d.type === 'ended');
-      }
-      lastTick = 0;
-    }
-  }
-
-  window.addEventListener('playerevent', onPlayerEvent);
-})(window);
+(function(window){const BEAT_MS=60000;const MAX_DELTA=90;let sessionId=null;let episodeId=null;let lastSent=0;let lastTick=0;let inflight=false;function client(){return window.supabaseClient||null;}
+function fp(){if(window.InteractionBar&&InteractionBar.generateFingerprint){return InteractionBar.generateFingerprint();}
+return Promise.resolve(null);}
+function isAd(){return!!(window.PlayerManager&&PlayerManager.isAdMode&&PlayerManager.isAdMode());}
+async function sendBeat(delta,position,duration,ended){const id=episodeId;if(!id||!client()||inflight)return;const d=Math.max(1,Math.min(MAX_DELTA,Math.round(delta||60)));inflight=true;try{const fingerprint=await fp();const{data,error}=await client().rpc('fn_listen_heartbeat',{p_episode_id:id,p_fingerprint:fingerprint,p_session_id:sessionId,p_delta_seconds:d,p_duration_seconds:duration>0?Math.floor(duration):null,p_position_seconds:position>=0?Math.floor(position):null,});if(error)throw error;if(data&&data.session_id)sessionId=data.session_id;lastSent=Date.now();if(ended)sessionId=null;}catch(err){console.warn('[heartbeat]',err);}finally{inflight=false;}}
+function onPlayerEvent(e){const d=(e&&e.detail)||{};if(d.adMode||isAd())return;const ep=d.episode&&d.episode.id;const now=Date.now();if(ep&&ep!==episodeId){if(episodeId&&lastTick&&now-lastTick<BEAT_MS*2){sendBeat((now-(lastSent||lastTick))/1000,d.currentTime,d.duration,true);}
+episodeId=ep;sessionId=null;lastSent=0;lastTick=now;}
+if(!episodeId&&ep)episodeId=ep;if(d.type==='play'){lastTick=now;if(!lastSent)lastSent=now;}else if(d.type==='timeupdate'&&!d.paused){lastTick=now;if(!lastSent)lastSent=now;if(now-lastSent>=BEAT_MS){sendBeat((now-lastSent)/1000,d.currentTime,d.duration,false);}}else if(d.type==='pause'||d.type==='ended'){if(lastSent&&now-lastSent>=5000){sendBeat((now-lastSent)/1000,d.currentTime,d.duration,d.type==='ended');}
+lastTick=0;}}
+window.addEventListener('playerevent',onPlayerEvent);})(window);

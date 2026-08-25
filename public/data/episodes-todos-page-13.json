@@ -1,1003 +1,800 @@
 {
-  "generated_at": "2026-08-15T14:12:38",
+  "generated_at": "2026-08-25T14:31:27",
   "category": "todos",
   "page": 13,
   "page_size": 12,
-  "total_pages": 16,
+  "total_pages": 21,
   "episodes": [
     {
-      "id": "2026-08-14",
-      "date": "2026-08-14",
-      "episode": 32,
-      "title": "Justiça dá cinco dias para desocupação da Barragem de José Boiteux",
-      "excerpt": "Defesa Civil alerta para temporais de granizo e risco de enchente no Vale do Itajaí · Tragédia na BR-470 em Pouso Redondo deixa dois mortos e motorista gravemente ferido",
-      "manchetes": [
-        "Defesa Civil alerta para temporais de granizo e risco de enchente no Vale do Itajaí",
-        "Tragédia na BR-470 em Pouso Redondo deixa dois mortos e motorista gravemente ferido",
-        "Justiça concede prazo de cinco dias para desocupação da Barragem de José Boiteux",
-        "Ocupação hoteleira atinge 95% na região de Blumenau com a véspera da Febratex 2026",
-        "Vereador Almir Vieira reassume gabinete na Câmara de Blumenau e reacomoda equipe",
-        "Robô com inteligência artificial para indústria têxtil é apresentado na Vila Germânica"
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 17.6,
-      "words": 2715,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-14.mp3",
-      "script_url": "./episodes/2026-08-14.md",
-      "audio_bytes": 25387302,
-      "sources": [
-        "ndmais_blumenau",
-        "oblumenauense",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "upiara",
-        "altovaleagora",
-        "ajnoticias",
-        "nsctotal",
-        "pancho",
-        "altovalenoticias",
-        "g1_brasil",
-        "g1_sc",
-        "jatv",
-        "agencia_brasil",
-        "bbc_brasil",
-        "bbc_world",
-        "oglobo_geral",
-        "cnn_brasil",
-        "correio_braziliense",
-        "estadao_politica",
-        "terra_brasil_noticias",
-        "veja",
-        "valor_geral",
-        "mesorregional",
-        "oglobo_politica",
-        "metropoles",
-        "cnn_politica",
-        "g1_politica",
-        "gazetadopovo_politica",
-        "veja_politica",
-        "metropoles_politica",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_mfoco.com.br",
-        "cand_ara-o-tce-sc",
-        "cand_rioav.com.br"
-      ],
-      "sponsors": [
-        {
-          "name": "Facilita Vistorias",
-          "website_url": "https://facilitavistorias.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
-        }
-      ],
-      "cover_url": "./thumbnails/2026-08-14/ep_2026-08-14.webp",
-      "published_at": "2026-08-15T14:12:16",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-14/ep_2026-08-14.webp"
-    },
-    {
-      "id": "2026-08-13",
-      "date": "2026-08-13",
-      "episode": 31,
-      "title": "Tapa-buracos emergencial age em trecho danificado da SC-114 em…",
-      "excerpt": "Alerta de tempestade: Vale do Itajaí prevê até 90 milímetros de chuva até sábado. · Blumenau chega a 560 registros de violência contra a mulher em 2026.",
-      "manchetes": [
-        "Alerta de tempestade: Vale do Itajaí prevê até 90 milímetros de chuva até sábado.",
-        "Blumenau chega a 560 registros de violência contra a mulher em 2026.",
-        "Tapa-buracos emergencial tenta salvar trecho esburacado da SC-114.",
-        "Apagão e fumaça: incêndio em Piçarras deixa mais de dois mil sem luz.",
-        "Crise do abastecimento: AGIR e MP pressionam SAMAE por soluções em Blumenau."
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 16.9,
-      "words": 2563,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-13.mp3",
-      "script_url": "./episodes/2026-08-13.md",
-      "audio_bytes": 24291413,
-      "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "oblumenauense",
-        "informeblumenau",
-        "blogdoprisco",
-        "upiara",
-        "gcd",
-        "altovaleagora",
-        "ajnoticias",
-        "nsctotal",
-        "g1_brasil",
-        "pancho",
-        "g1_sc",
-        "altovalenoticias",
-        "jatv",
-        "agencia_brasil",
-        "mesorregional",
-        "bbc_brasil",
-        "cnn_brasil",
-        "bbc_world",
-        "estadao_politica",
-        "correio_braziliense",
-        "veja",
-        "metropoles",
-        "oglobo_geral",
-        "terra_brasil_noticias",
-        "valor_geral",
-        "cnn_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "gazetadopovo_economia",
-        "metropoles_politica",
-        "veja_economia",
-        "oglobo_economia",
-        "g1_economia",
-        "cand_umenau?hl=en",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "src_040",
-        "cand_ara-o-tce-sc"
-      ],
-      "sponsors": [
-        {
-          "name": "Fix Serviços",
-          "website_url": "https://fixblu.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
-        }
-      ],
-      "cover_url": "./thumbnails/2026-08-13/ep_2026-08-13.webp",
-      "published_at": "2026-08-15T14:12:16",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-13/ep_2026-08-13.webp"
-    },
-    {
-      "id": "2026-08-12",
-      "date": "2026-08-12",
-      "episode": 30,
-      "title": "Incêndio destrói fábrica de salgadinhos de 600 m² em Indaial",
-      "excerpt": "Incêndio avassalador destrói fábrica de salgadinhos de 600 metros em Indaial · Polícia Militar apreende mais de 24 mil comprimidos de ecstasy em Blumenau",
-      "manchetes": [
-        "Incêndio avassalador destrói fábrica de salgadinhos de 600 metros em Indaial",
-        "Polícia Militar apreende mais de 24 mil comprimidos de ecstasy em Blumenau",
-        "Pomerode bate recorde histórico no IDEB e lidera educação no Vale Europeu",
-        "Câmara de Blumenau aprova exigência de transparência para contratos emergenciais",
-        "Editorial do Mesorregional critica busca e apreensão do STF contra jornalista"
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 15.9,
-      "words": 2416,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-12.mp3",
-      "script_url": "./episodes/2026-08-12.md",
-      "audio_bytes": 22855724,
-      "sources": [
-        "oblumenauense",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "altovaleagora",
-        "gcd",
-        "upiara",
-        "altovalenoticias",
-        "mesorregional",
-        "ndmais_blumenau",
-        "ajnoticias",
-        "g1_brasil",
-        "g1_sc",
-        "nsctotal",
-        "agencia_brasil",
-        "pancho",
-        "jatv",
-        "bbc_brasil",
-        "cnn_brasil",
-        "bbc_world",
-        "correio_braziliense",
-        "oglobo_geral",
-        "estadao_politica",
-        "veja",
-        "terra_brasil_noticias",
-        "cnn_politica",
-        "metropoles",
-        "valor_geral",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "metropoles_politica",
-        "g1_politica",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "veja_politica",
-        "g1_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "src_040",
-        "cand_ara-o-tce-sc"
-      ],
-      "sponsors": [
-        {
-          "name": "Facilita Vistorias",
-          "website_url": "https://facilitavistorias.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
-        }
-      ],
-      "cover_url": "./thumbnails/2026-08-12/ep_2026-08-12.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-12/ep_2026-08-12.webp"
-    },
-    {
-      "id": "2026-08-11",
+      "id": "especial-EwZxO3DKHoQ",
       "date": "2026-08-11",
-      "episode": 29,
-      "title": "Temporais aumentam risco de alagamentos em SC nesta semana",
-      "excerpt": "Incêndio mobiliza bombeiros em pastelaria no bairro Itoupava Seca em Blumenau · Indaial aplica 150 doses de vacina antirrábica preventiva em áreas com risco de alagamento",
-      "manchetes": [
-        "Incêndio mobiliza bombeiros em pastelaria no bairro Itoupava Seca em Blumenau",
-        "Indaial aplica 150 doses de vacina antirrábica preventiva em áreas com risco de alagamento",
-        "Câmara de Blumenau avalia segurança nas escolas e capacitação de 40 horas para vigilantes",
-        "Temporais ganham força e elevam risco de alagamentos em Santa Catarina nesta semana",
-        "Investidores de Wall Street injetam 500 bilhões de dólares na Nvidia para expansão de IA"
-      ],
+      "pubDate": "Tue, 11 Aug 2026 16:12:14 +0000",
+      "type": "especial",
+      "title": "PESQUISA GERP Mostra EMPATE em 38% Entre FLÁVIO e LULA",
+      "excerpt": "Mais um circo eleitoral se desenha no horizonte e a burocracia estatal tenta desesperadamente prever qual grupo de parasitas vai controlar a máquina da coerção a partir do próximo ...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "eleições",
+        "política"
       ],
-      "duration_min": 12.7,
-      "words": 1972,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-11.mp3",
-      "script_url": "./episodes/2026-08-11.md",
-      "audio_bytes": 18280324,
+      "duration_min": 4.2,
+      "words": 711,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-EwZxO3DKHoQ.mp3",
+      "script_url": "./episodes/especial-EwZxO3DKHoQ.md",
+      "audio_bytes": 6023671,
       "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "upiara",
-        "altovaleagora",
-        "nsctotal",
-        "ajnoticias",
-        "g1_brasil",
-        "jatv",
-        "altovalenoticias",
-        "mesorregional",
-        "agencia_brasil",
-        "g1_sc",
-        "pancho",
-        "bbc_brasil",
-        "bbc_world",
-        "correio_braziliense",
-        "cnn_brasil",
-        "oglobo_geral",
-        "metropoles",
-        "terra_brasil_noticias",
-        "veja",
-        "estadao_politica",
-        "valor_geral",
-        "g1_politica",
-        "oglobo_politica",
-        "veja_politica",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "metropoles_politica",
-        "veja_economia",
-        "gazetadopovo_economia",
-        "oglobo_economia",
-        "g1_economia",
-        "cand_mfoco.com.br",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
+        "Confira os números da pesquisa Gerp para presidente",
+        "Flávio e Lula têm empate técnico no 2º turno, diz Gerp",
+        "Poder360",
+        "Lula é rejeitado por 48% e Flávio, por 44%, diz pesquisa Ger",
+        "Estadão",
+        "CNN Brasil",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Fix Serviços",
-          "website_url": "https://fixblu.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "Confira os números da pesquisa Gerp para presidente",
+          "url": "https://www.gazetadopovo.com.br/eleicoes/2026/pesquisa-eleitoral-2026/gerp-presidente-agosto-2026/"
+        },
+        {
+          "veiculo": "Flávio e Lula têm empate técnico no 2º turno, diz Gerp",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/flavio-e-lula-tem-empate-tecnico-no-2o-turno-diz-gerp/"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://static.poder360.com.br/uploads/2026/08/PRESIDENCIA_DO_BRASIL_DIVULGACAO_26a_Relatorio_Eleicoes_2026_Presidente.pdf"
+        },
+        {
+          "veiculo": "Lula é rejeitado por 48% e Flávio, por 44%, diz pesquisa Ger",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/lula-e-rejeitado-por-48-e-flavio-por-44-diz-pesquisa-gerp/"
+        },
+        {
+          "veiculo": "Estadão",
+          "url": "https://www.estadao.com.br/opiniao/o-rancoso-programa-de-lula/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/eleicoes/plano-de-lula-promete-ministerio-da-seguranca-e-regulacao-das-redes-sociais/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-EwZxO3DKHoQ.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-EwZxO3DKHoQ.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-11/ep_2026-08-11.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/ep_2026-08-11.webp"
+      "share_url": "./ep/especial-EwZxO3DKHoQ.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_EwZxO3DKHoQ.webp",
+      "published_at": "2026-08-25T14:31:13",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-EwZxO3DKHoQ.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_EwZxO3DKHoQ.webp"
     },
     {
-      "id": "2026-08-10",
+      "id": "especial-fpFBa19CB1I",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 14:13:40 +0000",
+      "type": "especial",
+      "title": "Como a IA está FALINDO o ESTADO da Inglaterra",
+      "excerpt": "Sabe qual é a melhor notícia das últimas semanas? A inteligência artificial está literalmente quebrando o Estado britânico. E não, isso não é um exercício teórico de futurologia li...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "economia",
+        "impostos"
+      ],
+      "duration_min": 4.5,
+      "words": 749,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-fpFBa19CB1I.mp3",
+      "script_url": "./episodes/especial-fpFBa19CB1I.md",
+      "audio_bytes": 6497010,
+      "sources": [
+        "Infobae",
+        "YouTube",
+        "YouTube",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Infobae",
+          "url": "https://www.infobae.com/economist/2026/08/10/como-la-ia-esta-quebrando-al-estado-britanico/"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=2K23wqZqUuw"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=WiE-KG5g9AY"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-fpFBa19CB1I.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-fpFBa19CB1I.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-fpFBa19CB1I.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_fpFBa19CB1I.webp",
+      "published_at": "2026-08-25T14:31:16",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-fpFBa19CB1I.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_fpFBa19CB1I.webp"
+    },
+    {
+      "id": "especial-FFxaXb9SZbE",
+      "date": "2026-08-11",
+      "pubDate": "Tue, 11 Aug 2026 10:11:55 +0000",
+      "type": "especial",
+      "title": "YOUTUBE Dificulta MONETIZAÇÃO Após Avanço da IA",
+      "excerpt": "Achou que viver de monetização na internet seria um caminho suave e sem obstáculos? Pois o mercado privado acabou de mandar um recado bem claro para quem achava que dava para enriq...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "política"
+      ],
+      "duration_min": 4.2,
+      "words": 683,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-FFxaXb9SZbE.mp3",
+      "script_url": "./episodes/especial-FFxaXb9SZbE.md",
+      "audio_bytes": 5999221,
+      "sources": [
+        "G1",
+        "CNN Brasil",
+        "YouTube",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/tecnologia/noticia/2026/08/10/youtube-dobra-exigencia-de-horas-de-exibicao-para-novos-criadores-comecarem-a-ganhar-dinheiro-com-videos-na-plataforma.ghtml"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/eleicoes/plano-de-lula-promete-ministerio-da-seguranca-e-regulacao-das-redes-sociais/"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/@palacioassombrado"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-FFxaXb9SZbE.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-FFxaXb9SZbE.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-FFxaXb9SZbE.html",
+      "cover_url": "./thumbnails/2026-08-11/bm_FFxaXb9SZbE.webp",
+      "published_at": "2026-08-25T14:31:20",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-FFxaXb9SZbE.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-11/bm_FFxaXb9SZbE.webp"
+    },
+    {
+      "id": "especial-bkH6gOKAyww",
       "date": "2026-08-10",
-      "episode": 28,
-      "title": "China evacua 1 milhão por tufão e Senado altera Código Civil",
-      "excerpt": "Oito prisões mobilizam a Polícia Militar em Blumenau durante o fim de semana · IDEB de Blumenau e Gaspar registra avanço expressivo nos anos iniciais do ensino fundamental",
-      "manchetes": [
-        "Oito prisões mobilizam a Polícia Militar em Blumenau durante o fim de semana",
-        "IDEB de Blumenau e Gaspar registra avanço expressivo nos anos iniciais do ensino fundamental",
-        "Carro invade loja de tintas em Taió após motorista idosa se confundir com pedais",
-        "Samae inicia fiscalização para comércios de Blumenau que produzem mais de 200 litros de lixo por dia",
-        "Senado avança com reforma do Código Civil e tufão provoca evacuação de um milhão na China"
-      ],
+      "pubDate": "Tue, 11 Aug 2026 02:11:46 +0000",
+      "type": "especial",
+      "title": "SPLIT PAYMENT Vai Render R$ 0,39 por Transação aos BANCOS",
+      "excerpt": "Ser banqueiro no Brasil não é um negócio de risco, é um privilégio estatal. O leviatã brasileiro faz absolutamente de tudo para proteger e enriquecer os oligopólios financeiros enq...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "economia",
+        "impostos, taxas e tarifas"
       ],
-      "duration_min": 21.6,
-      "words": 3272,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-10.mp3",
-      "script_url": "./episodes/2026-08-10.md",
-      "audio_bytes": 31067368,
+      "duration_min": 4.2,
+      "words": 758,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-bkH6gOKAyww.mp3",
+      "script_url": "./episodes/especial-bkH6gOKAyww.md",
+      "audio_bytes": 6052511,
       "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "altovaleagora",
-        "upiara",
-        "ajnoticias",
-        "nsctotal",
-        "pancho",
-        "mesorregional",
-        "g1_brasil",
-        "g1_sc",
-        "altovalenoticias",
-        "agencia_brasil",
-        "jatv",
-        "bbc_world",
-        "correio_braziliense",
-        "oglobo_geral",
-        "bbc_brasil",
-        "estadao_politica",
-        "cnn_brasil",
-        "veja",
-        "terra_brasil_noticias",
-        "metropoles",
-        "valor_geral",
-        "g1_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "oglobo_economia",
-        "metropoles_politica",
-        "gazetadopovo_economia",
-        "veja_economia",
-        "g1_economia",
-        "cand_rioav.com.br",
-        "cand_umenau?hl=en",
-        "cand_mfoco.com.br",
-        "src_040",
-        "cand_ara-o-tce-sc"
+        "Governo estuda pagar R$ 0,39 para bancos por operação do spl",
+        "Migalhas",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Facilita Vistorias",
-          "website_url": "https://facilitavistorias.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "Governo estuda pagar R$ 0,39 para bancos por operação do spl",
+          "url": "https://www.jota.info/coberturas-especiais/pulso-da-reforma/governo-estuda-pagar-r-039-para-bancos-por-operacao-do-split-payment"
+        },
+        {
+          "veiculo": "Migalhas",
+          "url": "https://www.migalhas.com.br/depeso/459440/o-split-payment-introduzido-pela-reforma-tributaria-e-modernizacao"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-bkH6gOKAyww.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-bkH6gOKAyww.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-10/ep_2026-08-10.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/ep_2026-08-10.webp"
+      "share_url": "./ep/especial-bkH6gOKAyww.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_bkH6gOKAyww.webp",
+      "published_at": "2026-08-25T14:31:14",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-bkH6gOKAyww.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_bkH6gOKAyww.webp"
     },
     {
-      "id": "2026-08-09",
-      "date": "2026-08-09",
-      "episode": 27,
-      "title": "Blumenau Futsal empata com Joinville e avança para semifinal da…",
-      "excerpt": "Apagão na infraestrutura: Blumenau troca caça-buracos por formulário na internet e adia obra da Via Expressa. · Operações da PM apreendem quase vinte quilos de drogas após manobras suspeitas em Blumenau e Lontras.",
-      "manchetes": [
-        "Apagão na infraestrutura: Blumenau troca caça-buracos por formulário na internet e adia obra da Via Expressa.",
-        "Operações da PM apreendem quase vinte quilos de drogas após manobras suspeitas em Blumenau e Lontras.",
-        "Hospital Santa Isabel renova Unidade de Transplantes com recurso próprio enquanto Gaspar depende de repasse estadual.",
-        "Impasse no Porto de Itajaí gera alerta em Brasília após críticas de Amin ao edital de arrendamento na ANTAQ.",
-        "Blumenau Futsal empata com Joinville e avança para a semifinal da Talentos LNF."
-      ],
+      "id": "especial-cIKwBwnv_I8",
+      "date": "2026-08-10",
+      "pubDate": "Tue, 11 Aug 2026 00:12:06 +0000",
+      "type": "especial",
+      "title": "BERGER era a LIGAÇÃO de LULINHA no MINISTÉRIO DA SAÚDE?",
+      "excerpt": "Vocês acham mesmo que a burocracia em Brasília funciona para servir ao cidadão? Toda semana surge mais um escândalo mostrando exatamente como a engrenagem do Estado opera na prátic...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "política",
+        "corrupção"
       ],
-      "duration_min": 19.1,
-      "words": 2959,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-09.mp3",
-      "script_url": "./episodes/2026-08-09.md",
-      "audio_bytes": 27547106,
+      "duration_min": 5.0,
+      "words": 848,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-cIKwBwnv_I8.mp3",
+      "script_url": "./episodes/especial-cIKwBwnv_I8.md",
+      "audio_bytes": 7149026,
       "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "upiara",
-        "altovaleagora",
-        "ajnoticias",
-        "nsctotal",
-        "g1_brasil",
-        "altovalenoticias",
-        "mesorregional",
-        "pancho",
-        "jatv",
-        "g1_sc",
-        "bbc_brasil",
-        "agencia_brasil",
-        "bbc_world",
-        "cnn_brasil",
-        "oglobo_geral",
-        "correio_braziliense",
-        "terra_brasil_noticias",
-        "veja",
-        "estadao_politica",
-        "metropoles",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "valor_geral",
-        "g1_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "metropoles_politica",
-        "gazetadopovo_economia",
-        "oglobo_economia",
-        "g1_economia",
-        "veja_economia",
-        "cand_mfoco.com.br",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
+        "Informante da PF aponta assessor de Lula como elo de Lulinha",
+        "CNN Brasil",
+        "O Globo",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Facilita Vistorias",
-          "website_url": "https://facilitavistorias.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "Informante da PF aponta assessor de Lula como elo de Lulinha",
+          "url": "https://claudiodantas.com.br/informante-pf-assessor-de-lula-elo-de-lulinha/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/politica/informante-da-pf-apontou-elo-entre-lulinha-e-atual-assessor-do-planalto/"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/lauro-jardim/post/2026/08/alem-de-marcola-pf-encontra-outro-nome-do-planalto-que-recebeu-dinheiro-de-lobista.ghtml"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-cIKwBwnv_I8.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-cIKwBwnv_I8.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-09/ep_2026-08-09.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-09/ep_2026-08-09.webp"
+      "share_url": "./ep/especial-cIKwBwnv_I8.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_cIKwBwnv_I8.webp",
+      "published_at": "2026-08-25T14:31:25",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-cIKwBwnv_I8.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_cIKwBwnv_I8.webp"
     },
     {
-      "id": "2026-08-08",
-      "date": "2026-08-08",
-      "episode": 26,
-      "title": "Blumenau registra 75% de aumento nas mortes no trânsito em 2026",
-      "excerpt": "Mortes no trânsito de Blumenau saltam 75% em 2026 com nove motociclistas mortos · Justiça condena Estado por paciente de Taió que esperou cinco anos por cirurgia de quadril",
-      "manchetes": [
-        "Mortes no trânsito de Blumenau saltam 75% em 2026 com nove motociclistas mortos",
-        "Justiça condena Estado por paciente de Taió que esperou cinco anos por cirurgia de quadril",
-        "Indaial bate recorde histórico no Ideb enquanto Rio do Sul despenca para 5,7",
-        "Blumenau cancela contrato de R$ 1,6 milhão do caça-buracos e lança app para morador",
-        "Ataque russo mata três perto de Kiev após alerta de colapso na defesa aérea ucraniana"
-      ],
+      "id": "especial-upNpLFqbAJU",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 23:11:46 +0000",
+      "type": "especial",
+      "title": "LULA Afasta SIDÔNIO na Campanha: Entenda a MANOBRA da SECOM",
+      "excerpt": "A imprensa corporativa adora uma narrativa mastigada para inglês ver, não é mesmo? A manchete da vez diz que Lula afastou o marqueteiro Sidônio Palmeira do comando de sua campanha ...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "infraestrutura",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "política",
+        "eleições",
+        "corrupção"
       ],
-      "duration_min": 13.6,
-      "words": 2009,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-08.mp3",
-      "script_url": "./episodes/2026-08-08.md",
-      "audio_bytes": 19568057,
+      "duration_min": 4.3,
+      "words": 731,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-upNpLFqbAJU.mp3",
+      "script_url": "./episodes/especial-upNpLFqbAJU.md",
+      "audio_bytes": 6120847,
       "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "oblumenauense",
-        "informeblumenau",
-        "blogdoprisco",
-        "upiara",
-        "gcd",
-        "altovaleagora",
-        "ajnoticias",
-        "nsctotal",
-        "mesorregional",
-        "pancho",
-        "g1_brasil",
-        "g1_sc",
-        "jatv",
-        "agencia_brasil",
-        "bbc_brasil",
-        "altovalenoticias",
-        "cnn_brasil",
-        "estadao_politica",
-        "bbc_world",
-        "oglobo_geral",
-        "correio_braziliense",
-        "metropoles",
-        "terra_brasil_noticias",
-        "veja",
-        "valor_geral",
-        "cnn_politica",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "veja_politica",
-        "g1_economia",
-        "veja_economia",
-        "metropoles_politica",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_rioav.com.br",
-        "cand_mfoco.com.br",
-        "cand_ara-o-tce-sc"
+        "Lula afasta Sidônio da campanha após crise com Marcola e Lul",
+        "YouTube",
+        "O Globo",
+        "Lula afasta Sidônio do núcleo de sua campanha à reeleição",
+        "VEJA",
+        "Veja",
+        "CNN Brasil",
+        "Valor Econômico",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Fix Serviços",
-          "website_url": "https://fixblu.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "Lula afasta Sidônio da campanha após crise com Marcola e Lul",
+          "url": "https://www.gazetadopovo.com.br/eleicoes/2026/lula-afasta-sidonio-da-campanha-apos-desgaste-com-marcola-e-crise-que-atingiu-lulinha/"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=3NBFTh3HUbs"
+        },
+        {
+          "veiculo": "O Globo",
+          "url": "https://oglobo.globo.com/blogs/lauro-jardim/post/2026/08/alem-de-marcola-pf-encontra-outro-nome-do-planalto-que-recebeu-dinheiro-de-lobista.ghtml"
+        },
+        {
+          "veiculo": "Lula afasta Sidônio do núcleo de sua campanha à reeleição",
+          "url": "https://revistaoeste.com/politica/lula-afasta-sidonio-do-nucleo-de-sua-campanha-a-reeleicao/"
+        },
+        {
+          "veiculo": "VEJA",
+          "url": "https://veja.abril.com.br/politica/quem-e-o-socio-que-sidonio-indicou-para-ser-marqueteiro-da-campanha-de-lula/"
+        },
+        {
+          "veiculo": "Veja",
+          "url": "https://veja.abril.com.br/politica/especialistas-alertam-para-conflito-de-interesses-entre-secom-e-campanha-de-lula/"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/politica/mendonca-manda-governo-lula-abrir-dados-de-gastos-com-publicidade/"
+        },
+        {
+          "veiculo": "Valor Econômico",
+          "url": "https://valor.globo.com/politica/noticia/2026/08/08/mendonca-determina-entrega-de-dados-sobre-encontro-do-pt-e-de-projeto-porta-vozes-de-lula.ghtml"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-upNpLFqbAJU.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-upNpLFqbAJU.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-08/ep_2026-08-08.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-08/ep_2026-08-08.webp"
+      "share_url": "./ep/especial-upNpLFqbAJU.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_upNpLFqbAJU.webp",
+      "published_at": "2026-08-25T14:31:12",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-upNpLFqbAJU.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_upNpLFqbAJU.webp"
     },
     {
-      "id": "2026-08-07",
-      "date": "2026-08-07",
-      "episode": 25,
-      "title": "Hospital Santa Isabel amplia leitos de transplante em Blumenau com…",
-      "excerpt": "Menino de dois anos engasgado é salvo por bombeiros em Taió · Hospital Santa Isabel amplia leitos de transplante com recursos próprios em Blumenau",
-      "manchetes": [
-        "Menino de dois anos engasgado é salvo por bombeiros em Taió",
-        "Hospital Santa Isabel amplia leitos de transplante com recursos próprios em Blumenau",
-        "Paciente aguarda desde 2021 por cirurgia no SUS e perde vaga na véspera",
-        "Ideb de Blumenau evolui nos anos iniciais mas estagna em 5,7 no final do ciclo",
-        "Meta recebe nova multa de 567 milhões de dólares por segurança infantil"
-      ],
+      "id": "especial-PGiBQc1q9y0",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 21:12:44 +0000",
+      "type": "especial",
+      "title": "FLÁVIO EMPATA com Lula no 2º Turno em Nova PESQUISA",
+      "excerpt": "Mais uma semana, mais um capítulo do espetáculo eleitoral do Estado brasileiro. A nova pesquisa BTG Nexus acabou de sair e confirma o que todo mundo já desconfiava: a população con...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "eleições",
+        "política"
       ],
-      "duration_min": 18.2,
-      "words": 2666,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-07.mp3",
-      "script_url": "./episodes/2026-08-07.md",
-      "audio_bytes": 26217369,
+      "duration_min": 4.1,
+      "words": 689,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-PGiBQc1q9y0.mp3",
+      "script_url": "./episodes/especial-PGiBQc1q9y0.md",
+      "audio_bytes": 5867564,
       "sources": [
-        "ndmais_blumenau",
-        "blogdojaime",
-        "oblumenauense",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "altovaleagora",
-        "upiara",
-        "nsctotal",
-        "ajnoticias",
-        "mesorregional",
-        "g1_brasil",
-        "pancho",
-        "g1_sc",
-        "agencia_brasil",
-        "altovalenoticias",
-        "jatv",
-        "bbc_brasil",
-        "cnn_brasil",
-        "bbc_world",
-        "correio_braziliense",
-        "oglobo_geral",
-        "estadao_politica",
-        "terra_brasil_noticias",
-        "veja",
-        "metropoles",
-        "valor_geral",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "oglobo_politica",
-        "veja_politica",
-        "g1_politica",
-        "metropoles_politica",
-        "oglobo_economia",
-        "veja_economia",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "src_040",
-        "cand_umenau?hl=en",
-        "cand_rioav.com.br",
-        "cand_mfoco.com.br",
-        "cand_ara-o-tce-sc"
+        "Lula tem 47% contra 44% de Flávio no 2º turno, diz BTG/Nexus",
+        "Poder360",
+        "VEJA",
+        "Exame",
+        "Pix, Igreja Católica e PM lideram confiança no Brasil",
+        "CNN Brasil",
+        "UOL",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Fix Serviços",
-          "website_url": "https://fixblu.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "Lula tem 47% contra 44% de Flávio no 2º turno, diz BTG/Nexus",
+          "url": "https://www.poder360.com.br/poder-eleicoes-2026/lula-tem-47-contra-44-de-flavio-no-2o-turno-diz-btg-nexus/"
+        },
+        {
+          "veiculo": "Poder360",
+          "url": "https://static.poder360.com.br/uploads/2026/08/BTG-Nexus-Eleicoes2026-Brasil-10.ago_.2026.pdf"
+        },
+        {
+          "veiculo": "VEJA",
+          "url": "https://veja.abril.com.br/politica/cientista-politico-ve-em-nova-pesquisa-uma-tendencia-que-pode-favorecer-flavio-no-segundo-turno/"
+        },
+        {
+          "veiculo": "Exame",
+          "url": "https://exame.com/brasil/lula-tem-44-contra-40-de-flavio-em-primeiro-turno-e-renan-santos-aparece-com-10-diz-palver/"
+        },
+        {
+          "veiculo": "Pix, Igreja Católica e PM lideram confiança no Brasil",
+          "url": "https://www.gazetadopovo.com.br/vida-e-cidadania/pix-igreja-catolica-e-pm-lideram-confianca-no-brasil-stf-e-imprensa-enfrentam-desconfianca/?utm_source=instagram&amp;utm_medium=midia-social&amp;utm_campaign=gazeta-do-povo"
+        },
+        {
+          "veiculo": "CNN Brasil",
+          "url": "https://www.cnnbrasil.com.br/blogs/caio-junqueira/eleicoes/campanha-de-lula-define-slogan-o-brasil-pronto-pra-mais/"
+        },
+        {
+          "veiculo": "UOL",
+          "url": "https://noticias.uol.com.br/eleicoes/2026/08/10/flavio-bolsonaro-define-slogan-de-campanha-o-brasil-vai-vencer.ghtm"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/CentralDireitaB/status/2086779528391557229"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-PGiBQc1q9y0.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-PGiBQc1q9y0.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-07/ep_2026-08-07.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-07/ep_2026-08-07.webp"
+      "share_url": "./ep/especial-PGiBQc1q9y0.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_PGiBQc1q9y0.webp",
+      "published_at": "2026-08-25T14:31:12",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-PGiBQc1q9y0.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_PGiBQc1q9y0.webp"
     },
     {
-      "id": "2026-08-06",
-      "date": "2026-08-06",
-      "episode": 24,
-      "title": "Episódio 24 · 6 de agosto de 2026",
-      "excerpt": "Operação em Blumenau investiga plano de ataques com explosivos durante período eleitoral · Desmanche clandestino de veículos é descoberto às margens da BR-470 em Gaspar",
-      "manchetes": [
-        "Operação em Blumenau investiga plano de ataques com explosivos durante período eleitoral",
-        "Desmanche clandestino de veículos é descoberto às margens da BR-470 em Gaspar",
-        "Gaspar registra média de duas mulheres vítimas de violência doméstica por dia",
-        "Vigilância Sanitária contabiliza 19 mil ações preventivas no último ano em Blumenau",
-        "Flávio Bolsonaro define Alfredo Gaspar como candidato a vice-presidente"
-      ],
+      "id": "especial-8ZadVx8jvqI",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 19:12:05 +0000",
+      "type": "especial",
+      "title": "LINDBERGH SOB SUSPEITA: R$ 16 MIL por Falsa Acusação?",
+      "excerpt": "Olha o nível da podridão no esgoto de Brasília. A política estatal não se alimenta apenas dos seus impostos surrupiados todos os dias; ela se alimenta do assassinato de reputações ...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil"
+        "política",
+        "corrupção"
       ],
-      "duration_min": 23.3,
-      "words": 3456,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-06.mp3",
-      "script_url": "./episodes/2026-08-06.md",
-      "audio_bytes": 33622143,
+      "duration_min": 3.6,
+      "words": 587,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-8ZadVx8jvqI.mp3",
+      "script_url": "./episodes/especial-8ZadVx8jvqI.md",
+      "audio_bytes": 5236863,
       "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "gcd",
-        "upiara",
-        "altovaleagora",
-        "altovalenoticias",
-        "nsctotal",
-        "ajnoticias",
-        "g1_brasil",
-        "g1_sc",
-        "agencia_brasil",
-        "pancho",
-        "jatv",
-        "mesorregional",
-        "bbc_brasil",
-        "bbc_world",
-        "cnn_brasil",
-        "correio_braziliense",
-        "oglobo_geral",
-        "terra_brasil_noticias",
-        "veja",
-        "estadao_politica",
-        "valor_geral",
-        "metropoles",
-        "g1_politica",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "oglobo_economia",
-        "g1_economia",
-        "veja_economia",
-        "metropoles_politica",
-        "gazetadopovo_economia",
-        "src_040",
-        "cand_umenau?hl=en",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc"
+        "O Antagonista",
+        "Metrópoles",
+        "X",
+        "X",
+        "X",
+        "X",
+        "Diário do Centro do Mundo",
+        "Metrópoles",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-08-06/ep_2026-08-06.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-06/ep_2026-08-06.webp"
-    },
-    {
-      "id": "2026-08-05",
-      "date": "2026-08-05",
-      "episode": 23,
-      "title": "Episódio 23 · 5 de agosto de 2026",
-      "excerpt": "Jovem de vinte anos é encontrado morto em cela de delegacia em Rio do Sul · Prefeitura de Pouso Redondo decreta luto oficial após atropelamento fatal de irmãos na BR-470",
-      "manchetes": [
-        "Jovem de vinte anos é encontrado morto em cela de delegacia em Rio do Sul",
-        "Prefeitura de Pouso Redondo decreta luto oficial após atropelamento fatal de irmãos na BR-470",
-        "Balneário Piçarras é condenado a indenizar jovem por erro e atraso em diagnóstico médico",
-        "Blumenau rompe contrato de carro caça-buracos a quatro meses do término do serviço",
-        "Justiça de Joinville valida cancelamento de apostas esportivas feitas durante revisão do VAR"
-      ],
-      "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ],
-      "duration_min": 20.6,
-      "words": 3085,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-05.mp3",
-      "script_url": "./episodes/2026-08-05.md",
-      "audio_bytes": 29679952,
-      "sources": [
-        "oblumenauense",
-        "blogdojaime",
-        "informeblumenau",
-        "altovalenoticias",
-        "blogdoprisco",
-        "altovaleagora",
-        "gcd",
-        "ajnoticias",
-        "nsctotal",
-        "mesorregional",
-        "g1_brasil",
-        "g1_sc",
-        "pancho",
-        "jatv",
-        "agencia_brasil",
-        "bbc_brasil",
-        "cnn_brasil",
-        "bbc_world",
-        "estadao_politica",
-        "correio_braziliense",
-        "oglobo_geral",
-        "terra_brasil_noticias",
-        "valor_geral",
-        "metropoles",
-        "cnn_politica",
-        "veja",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "metropoles_politica",
-        "veja_politica",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "oglobo_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "cand_mfoco.com.br",
-        "cand_rioav.com.br",
-        "src_040",
-        "upiara",
-        "cand_ara-o-tce-sc",
-        "ndmais_blumenau"
-      ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Facilita Vistorias",
-          "website_url": "https://facilitavistorias.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "O Antagonista",
+          "url": "https://oantagonista.com.br/brasil/boletim-indica-trama-para-forjar-acusacao-de-estupro-contra-vice-de-flavio/"
+        },
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/colunas/igor-gadelha/camara-envia-ao-stf-relato-de-suposta-armacao-contra-vice-de-flavio"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/mauad_joao/status/2086803016838005157"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/wilsonlimaslz/status/2086782920732143849"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/wilsonlimaslz/status/2086822348309614879"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/brunosouzasc/status/2086841571027112101"
+        },
+        {
+          "veiculo": "Diário do Centro do Mundo",
+          "url": "https://www.diariodocentrodomundo.com.br/lindbergh-reage-denuncia-armacao-alfredo-gaspar-picaretagem/"
+        },
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/colunas/manoela-alcantara/dino-manda-pf-investigar-emendas-pix-do-vice-de-flavio-citadas-por-tcu"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-8ZadVx8jvqI.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-8ZadVx8jvqI.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-05/ep_2026-08-05.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-05/ep_2026-08-05.webp"
+      "share_url": "./ep/especial-8ZadVx8jvqI.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_8ZadVx8jvqI.webp",
+      "published_at": "2026-08-25T14:31:15",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-8ZadVx8jvqI.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_8ZadVx8jvqI.webp"
     },
     {
-      "id": "2026-08-04",
-      "date": "2026-08-04",
-      "episode": 22,
-      "title": "Episódio 22 · 4 de agosto de 2026",
-      "excerpt": "Quinta morte na Rua Bahia em Blumenau reabre debate após retirada de lombada eletrônica. · Mapa do MPSC revela que quase setenta por cento das vítimas de feminicídio tinham histórico de agressão.",
-      "manchetes": [
-        "Quinta morte na Rua Bahia em Blumenau reabre debate após retirada de lombada eletrônica.",
-        "Mapa do MPSC revela que quase setenta por cento das vítimas de feminicídio tinham histórico de agressão.",
-        "Rio do Sul credencia clínicas privadas para ampliar exames e fisioterapia pelo SUS.",
-        "SENAI abre seletivas em cinco cidades catarinenses para maior torneio mundial de profissões.",
-        "Setor produtivo do Vale do Itajaí define pauta para candidatos nas eleições de 2026."
-      ],
+      "id": "especial-JRac4M4YbNc",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 17:11:41 +0000",
+      "type": "especial",
+      "title": "COLÔMBIA Sofre TERREMOTO de 7,4 GRAUS e Mostra Falhas",
+      "excerpt": "Um terremoto devastador de magnitude 7.4 atingiu o noroeste da Colômbia e fez a terra tremer com força estarrecedora. O epicentro foi registrado bem próximo da cidade de Pereira, m...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "política",
+        "socialismo/comunismo"
       ],
-      "duration_min": 17.4,
-      "words": 2408,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-04.mp3",
-      "script_url": "./episodes/2026-08-04.md",
-      "audio_bytes": 25007377,
+      "duration_min": 3.0,
+      "words": 495,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-JRac4M4YbNc.mp3",
+      "script_url": "./episodes/especial-JRac4M4YbNc.md",
+      "audio_bytes": 4283289,
       "sources": [
-        "blogdojaime",
-        "ndmais_blumenau",
-        "oblumenauense",
-        "informeblumenau",
-        "altovalenoticias",
-        "blogdoprisco",
-        "gcd",
-        "mesorregional",
-        "upiara",
-        "ajnoticias",
-        "nsctotal",
-        "g1_sc",
-        "pancho",
-        "jatv",
-        "g1_brasil",
-        "agencia_brasil",
-        "bbc_world",
-        "bbc_brasil",
-        "altovaleagora",
-        "cnn_brasil",
-        "correio_braziliense",
-        "oglobo_geral",
-        "estadao_politica",
-        "terra_brasil_noticias",
-        "valor_geral",
-        "veja",
-        "metropoles",
-        "gazetadopovo_politica",
-        "cnn_politica",
-        "veja_politica",
-        "oglobo_politica",
-        "g1_politica",
-        "g1_economia",
-        "veja_economia",
-        "metropoles_politica",
-        "oglobo_economia",
-        "gazetadopovo_economia",
-        "cand_umenau?hl=en",
-        "src_040",
-        "cand_rioav.com.br",
-        "cand_ara-o-tce-sc",
-        "cand_mfoco.com.br"
+        "G1",
+        "X",
+        "Google Maps",
+        "CNN",
+        "X",
+        "X",
+        "X",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [
+      "referencias": [
         {
-          "name": "Fix Serviços",
-          "website_url": "https://fixblu.com.br",
-          "logo_url": null,
-          "placement": "mid-roll"
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/mundo/noticia/2026/08/10/terremoto-de-magnitude-68-atinge-a-colombia-e-chacoalha-bogota.ghtml"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/Tob1P4xao/status/2086798738836562149"
+        },
+        {
+          "veiculo": "Google Maps",
+          "url": "https://www.google.com/maps/place/Aeroporto+Internacional+Mateca%C3%B1a/@4.8124061,-75.7393811,1777m/data=!3m1!1e3!4m6!3m5!1s0x8e387de79024b6c7:0x817d2126f2ddb5b5!8m2!3d4.8151963!4d-75.7362559!16zL20vMDdmcjJ5!5m1!1e2?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D"
+        },
+        {
+          "veiculo": "CNN",
+          "url": "https://www.cnn.com/2026/08/10/world/live-news/colombia-earthquake-san-jose-del-palmar"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/alexzapateiro/status/2086808908543250608"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/AlertaMundoNews/status/2086809191730073964"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/Jupacg/status/2086806363435356393"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/AlertaNews24/status/2086811543862210722"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-JRac4M4YbNc.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-JRac4M4YbNc.md",
+          "self": true
         }
       ],
-      "cover_url": "./thumbnails/2026-08-04/ep_2026-08-04.webp",
-      "published_at": "2026-08-15T14:12:17",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-04/ep_2026-08-04.webp"
+      "share_url": "./ep/especial-JRac4M4YbNc.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_JRac4M4YbNc.webp",
+      "published_at": "2026-08-25T14:31:16",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-JRac4M4YbNc.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_JRac4M4YbNc.webp"
     },
     {
-      "id": "2026-08-03",
-      "date": "2026-08-03",
-      "episode": 21,
-      "title": "Episódio 21 · 3 de agosto de 2026",
-      "excerpt": "Homem é preso em Agronômica após agressão com pedaço de madeira · Parapentista cai em árvore no Morro Azul e mobiliza helicóptero em Timbó",
-      "manchetes": [
-        "Homem é preso em Agronômica após agressão com pedaço de madeira",
-        "Parapentista cai em árvore no Morro Azul e mobiliza helicóptero em Timbó",
-        "Campanha Nacional de Multivacinação e AGFs abertos no fim de semana em Blumenau",
-        "Concurso Literário Manoel Karam bate recorde com 173 inscritos em Rio do Sul",
-        "Via Mar em Joinville aguarda PPP e partidos definem candidaturas em convenções em SC"
-      ],
+      "id": "especial-ecZnx8X-UPI",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 16:11:43 +0000",
+      "type": "especial",
+      "title": "TARCÍSIO ATROPELA HADDAD no DEBATE: O Circo Eleitoral",
+      "excerpt": "Começou mais um circo eleitoral no Brasil. A Band realizou a primeira rodada de debates para governador em catorze estados, marcando o início da temporada em que parasitas da polít...",
+      "manchetes": [],
       "quadros": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
+        "política",
+        "eleições"
       ],
-      "duration_min": 16.0,
-      "words": 2409,
-      "audio_url": "https://audio.mob.tec.br/audio/2026-08-03.mp3",
-      "script_url": "./episodes/2026-08-03.md",
-      "audio_bytes": 23105872,
+      "duration_min": 3.4,
+      "words": 568,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-ecZnx8X-UPI.mp3",
+      "script_url": "./episodes/especial-ecZnx8X-UPI.md",
+      "audio_bytes": 4932798,
       "sources": [
-        "oblumenauense",
-        "ndmais_blumenau",
-        "blogdojaime",
-        "informeblumenau",
-        "blogdoprisco",
-        "altovalenoticias",
-        "gcd",
-        "upiara",
-        "altovaleagora",
-        "ajnoticias",
-        "nsctotal",
-        "g1_brasil",
-        "g1_sc",
-        "agencia_brasil",
-        "pancho",
-        "jatv",
-        "cnn_brasil",
-        "mesorregional",
-        "bbc_brasil",
-        "bbc_world",
-        "correio_braziliense",
-        "terra_brasil_noticias",
-        "oglobo_geral",
-        "estadao_politica",
-        "veja",
-        "cnn_politica",
-        "metropoles",
-        "valor_geral",
-        "oglobo_politica",
-        "gazetadopovo_politica",
-        "g1_politica",
-        "metropoles_politica",
-        "veja_politica",
-        "gazetadopovo_economia",
-        "g1_economia",
-        "veja_economia",
-        "cand_umenau?hl=en",
-        "cand_rioav.com.br",
-        "src_040",
-        "cand_mfoco.com.br",
-        "cand_ara-o-tce-sc",
-        "oglobo_economia"
+        "Diário do Poder",
+        "Exame",
+        "X",
+        "X",
+        "X",
+        "X",
+        "X",
+        "X",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
       ],
-      "sponsors": [],
-      "cover_url": "./thumbnails/2026-08-03/ep_2026-08-03.webp",
-      "published_at": "2026-08-15T14:12:18",
-      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-03/ep_2026-08-03.webp"
+      "referencias": [
+        {
+          "veiculo": "Diário do Poder",
+          "url": "https://diariodopoder.com.br/destaque-2/no-debate-da-band-tarcisio-lembra-caso-de-traficante-no-palanque-de-haddad-e-lula"
+        },
+        {
+          "veiculo": "Exame",
+          "url": "https://exame.com/brasil/debate-da-band-para-governador-veja-horarios-estados-regras-e-onde-assistir/"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/CentralDireitaB/status/2086578959244788033"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/CentralDireitaB/status/2085086251355418786"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/Jakelyneloiola_/status/2086636560049471629"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/EnioViterbo/status/2086810732209873095"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/brpollsx/status/2086620416638898303"
+        },
+        {
+          "veiculo": "X",
+          "url": "https://x.com/CaioAugstOR/status/2086609555690078371"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-ecZnx8X-UPI.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-ecZnx8X-UPI.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-ecZnx8X-UPI.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_ecZnx8X-UPI.webp",
+      "published_at": "2026-08-25T14:31:12",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-ecZnx8X-UPI.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_ecZnx8X-UPI.webp"
+    },
+    {
+      "id": "especial-PlBbhW6dR_Q",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 14:11:38 +0000",
+      "type": "especial",
+      "title": "FALTA de ENXOFRE Ameaça COLHEITAS e Revela ERRO Estatal",
+      "excerpt": "Você acha que a comida no seu prato depende apenas do clima ou do trabalho duro do agricultor? Pois saiba que burocratas, guerras promovidas por governos e canetadas protecionistas...",
+      "manchetes": [],
+      "quadros": [
+        "economia",
+        "guerras",
+        "política"
+      ],
+      "duration_min": 3.7,
+      "words": 611,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-PlBbhW6dR_Q.mp3",
+      "script_url": "./episodes/especial-PlBbhW6dR_Q.md",
+      "audio_bytes": 5386702,
+      "sources": [
+        "The National Interest",
+        "Valorinternational",
+        "Cnbc",
+        "Reuters",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "The National Interest",
+          "url": "https://nationalinterest.org/feature/how-to-counter-chinas-weaponization-of-us-food-security"
+        },
+        {
+          "veiculo": "Valorinternational",
+          "url": "https://valorinternational.globo.com/agribusiness/news/2026/06/26/sulfur-shortage-raises-risk-of-fertilizer-production-halts.ghtml"
+        },
+        {
+          "veiculo": "Cnbc",
+          "url": "https://www.cnbc.com/2026/08/08/uae-ship-targeted-missile-us-iran-tensions-stay-high.html"
+        },
+        {
+          "veiculo": "Reuters",
+          "url": "https://www.reuters.com/world/asia-pacific/iran-says-oman-deal-is-final-stages-us-must-act-open-hormuz-2026-08-09/"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-PlBbhW6dR_Q.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-PlBbhW6dR_Q.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-PlBbhW6dR_Q.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_PlBbhW6dR_Q.webp",
+      "published_at": "2026-08-25T14:31:20",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-PlBbhW6dR_Q.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_PlBbhW6dR_Q.webp"
+    },
+    {
+      "id": "especial-IQtvmrk0PyA",
+      "date": "2026-08-10",
+      "pubDate": "Mon, 10 Aug 2026 10:14:16 +0000",
+      "type": "especial",
+      "title": "EX-MARIDO de Maria da Penha é PRESO Por Dar ENTREVISTA?",
+      "excerpt": "O Estado brasileiro atingiu um novo patamar de insanidade autoritária: mandar prender um homem não por um crime de sangue recente, mas pelo crime gravíssimo de tentar conceder uma ...",
+      "manchetes": [],
+      "quadros": [
+        "política",
+        "ditadura judiciária"
+      ],
+      "duration_min": 3.8,
+      "words": 721,
+      "audio_url": "https://audio.mob.tec.br/audio/especial-IQtvmrk0PyA.mp3",
+      "script_url": "./episodes/especial-IQtvmrk0PyA.md",
+      "audio_bytes": 5451903,
+      "sources": [
+        "Metrópoles",
+        "G1",
+        "YouTube",
+        "Vale da Liberdade (site)",
+        "Vale da Liberdade (matéria transcrita)"
+      ],
+      "referencias": [
+        {
+          "veiculo": "Metrópoles",
+          "url": "https://www.metropoles.com/brasil/ex-marido-de-maria-da-penha-e-preso-apos-dar-entrevista"
+        },
+        {
+          "veiculo": "G1",
+          "url": "https://g1.globo.com/ce/ceara/noticia/2026/08/09/ex-marido-de-maria-da-penha-e-preso-apos-dar-entrevista-sobre-tentativa-de-matar-a-ativista.ghtml"
+        },
+        {
+          "veiculo": "YouTube",
+          "url": "https://www.youtube.com/watch?v=Aa1gNAC8ocE"
+        },
+        {
+          "veiculo": "Vale da Liberdade (site)",
+          "url": "https://news.mob.tec.br/ep/especial-IQtvmrk0PyA.html",
+          "self": true
+        },
+        {
+          "veiculo": "Vale da Liberdade (matéria transcrita)",
+          "url": "https://news.mob.tec.br/episodes/especial-IQtvmrk0PyA.md",
+          "self": true
+        }
+      ],
+      "share_url": "./ep/especial-IQtvmrk0PyA.html",
+      "cover_url": "./thumbnails/2026-08-10/bm_IQtvmrk0PyA.webp",
+      "published_at": "2026-08-25T14:31:13",
+      "share_url_abs": "https://news.mob.tec.br/ep/especial-IQtvmrk0PyA.html",
+      "cover_url_abs": "https://news.mob.tec.br/thumbnails/2026-08-10/bm_IQtvmrk0PyA.webp"
     }
   ]
 }

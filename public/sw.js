@@ -1,5 +1,5 @@
 /* Service Worker — Vale da Liberdade PWA */
-const CACHE = "vld-v1-202608160848";
+const CACHE = "vld-v1-202608251431";
 // Shell estático. IMPORTANTE (2026-08-16): NÃO precachear "./assets/css/*.css"
 // nem "./assets/js/*.js" SEM o ?v= de versão. O Cloudflare guarda a URL sem
 // versão com TTL de 1 ano (max-age=31536000) e pode servir conteúdo antigo

@@ -14,6 +14,194 @@
   ],
   "items": [
     {
+      "id": "vld-2026-08-25",
+      "url": "https://news.mob.tec.br/?ep=2026-08-25",
+      "title": "Homem de 40 anos é preso em Timbó investigado por abordar crianças e…",
+      "content_text": "Inquérito da morte de empresário em Indaial é encerrado sem indiciamento e família protesta no Fórum · Homem de 40 anos é preso em Timbó investigado por abordar crianças e adolescentes perto de escolas",
+      "date_published": "2026-08-25T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://audio.mob.tec.br/audio/2026-08-25.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 19415084,
+          "duration_in_seconds": 810
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
+      ]
+    },
+    {
+      "id": "vld-2026-08-24",
+      "url": "https://news.mob.tec.br/?ep=2026-08-24",
+      "title": "Edição de 24 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-24T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-24.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 18600063,
+          "duration_in_seconds": 774
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-23",
+      "url": "https://news.mob.tec.br/?ep=2026-08-23",
+      "title": "Edição de 23 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-23T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-23.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 23524667,
+          "duration_in_seconds": 978
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-22",
+      "url": "https://news.mob.tec.br/?ep=2026-08-22",
+      "title": "Edição de 22 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-22T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-22.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 20950457,
+          "duration_in_seconds": 870
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-21",
+      "url": "https://news.mob.tec.br/?ep=2026-08-21",
+      "title": "Edição de 21 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-21T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-21.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 21697768,
+          "duration_in_seconds": 906
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-20",
+      "url": "https://news.mob.tec.br/?ep=2026-08-20",
+      "title": "Edição de 20 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-20T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-20.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 20766137,
+          "duration_in_seconds": 864
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-19",
+      "url": "https://news.mob.tec.br/?ep=2026-08-19",
+      "title": "Edição de 19 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-19T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-19.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 27318274,
+          "duration_in_seconds": 1140
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-18",
+      "url": "https://news.mob.tec.br/?ep=2026-08-18",
+      "title": "Edição de 18 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-18T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-18.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 23280161,
+          "duration_in_seconds": 972
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-17",
+      "url": "https://news.mob.tec.br/?ep=2026-08-17",
+      "title": "Edição de 17 de agosto de 2026",
+      "content_text": "Cobertura diária do Vale da Liberdade.",
+      "date_published": "2026-08-17T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-17.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 27167182,
+          "duration_in_seconds": 1134
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": []
+    },
+    {
+      "id": "vld-2026-08-16",
+      "url": "https://news.mob.tec.br/?ep=2026-08-16",
+      "title": "Candidatos à Presidência declaram patrimônios de R$ 33 mil a R$ 242…",
+      "content_text": "Funcionário furta furadeira de patrão e coloca anúncio de venda na internet em Blumenau · Acidente entre três veículos deixa um motociclista morto na BR-470 em Navegantes",
+      "date_published": "2026-08-16T06:15:00Z",
+      "attachments": [
+        {
+          "url": "https://news.mob.tec.br/audio/2026-08-16.mp3",
+          "mime_type": "audio/mpeg",
+          "size_in_bytes": 22060765,
+          "duration_in_seconds": 918
+        }
+      ],
+      "image": "https://news.mob.tec.br/assets/cover.jpg",
+      "tags": [
+        "seguranca",
+        "saude",
+        "educacao",
+        "politica",
+        "esportes",
+        "brasil",
+        "mundo",
+        "rapidinhas"
+      ]
+    },
+    {
       "id": "vld-2026-08-15",
       "url": "https://news.mob.tec.br/?ep=2026-08-15",
       "title": "Casas Bahia fecha 298 lojas e gera forte impacto",
@@ -297,695 +485,6 @@
         "mundo",
         "rapidinhas"
       ]
-    },
-    {
-      "id": "vld-2026-08-04",
-      "url": "https://news.mob.tec.br/?ep=2026-08-04",
-      "title": "Episódio 22 · 4 de agosto de 2026",
-      "content_text": "Quinta morte na Rua Bahia em Blumenau reabre debate após retirada de lombada eletrônica. · Mapa do MPSC revela que quase setenta por cento das vítimas de feminicídio tinham histórico de agressão.",
-      "date_published": "2026-08-04T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-08-04.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 25007377,
-          "duration_in_seconds": 1044
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-08-03",
-      "url": "https://news.mob.tec.br/?ep=2026-08-03",
-      "title": "Episódio 21 · 3 de agosto de 2026",
-      "content_text": "Homem é preso em Agronômica após agressão com pedaço de madeira · Parapentista cai em árvore no Morro Azul e mobiliza helicóptero em Timbó",
-      "date_published": "2026-08-03T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-08-03.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 23105872,
-          "duration_in_seconds": 960
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-08-02",
-      "url": "https://news.mob.tec.br/?ep=2026-08-02",
-      "title": "Episódio 20 · 2 de agosto de 2026",
-      "content_text": "Voos regionais entre Blumenau e Florianópolis começam em novembro por R$ 315 · Prisão por tráfico no bairro Ponta Aguda recolhe quase um quilo de crack",
-      "date_published": "2026-08-02T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-08-02.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 31921885,
-          "duration_in_seconds": 1332
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-08-01",
-      "url": "https://news.mob.tec.br/?ep=2026-08-01",
-      "title": "Episódio 19 · 1 de agosto de 2026",
-      "content_text": "Gaspar presta apoio emergencial a Guabiruba após quinhentas ocorrências de destelhamento · Pregoeiro da Prefeitura de Itapema é brutalmente assassinado no bairro Morretes",
-      "date_published": "2026-08-01T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-08-01.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 31260717,
-          "duration_in_seconds": 1302
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-31",
-      "url": "https://news.mob.tec.br/?ep=2026-07-31",
-      "title": "Episódio 18 · 31 de julho de 2026",
-      "content_text": "PF investiga 74 ligações entre Jaques Wagner e sócio do Banco Master · Senador articulou encontro discreto com ministro da AGU",
-      "date_published": "2026-07-31T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-31.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 10376507,
-          "duration_in_seconds": 432
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-30",
-      "url": "https://news.mob.tec.br/?ep=2026-07-30",
-      "title": "Episódio 17 · 30 de julho de 2026",
-      "content_text": "Ciclista é atropelado na Rua Pedro Simon em Gaspar e fica ferido · Fuga de 16 anos termina em prisão de homicida no bairro Fidélis",
-      "date_published": "2026-07-30T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-30.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 26372223,
-          "duration_in_seconds": 1098
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-29",
-      "url": "https://news.mob.tec.br/?ep=2026-07-29",
-      "title": "Episódio 17 · 29 de julho de 2026",
-      "content_text": "Temporal traz granizo, 13 ocorrências em Blumenau e deixa 17 mil casas no escuro no Médio Vale. · Obras estatais paralisadas na 2 de Setembro e Frederico Jensen preocupam comerciantes com chuva.",
-      "date_published": "2026-07-29T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-29.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 30329461,
-          "duration_in_seconds": 1266
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-28",
-      "url": "https://news.mob.tec.br/?ep=2026-07-28",
-      "title": "Episódio 16 · 28 de julho de 2026",
-      "content_text": "Obras paradas por corrupção em Blumenau terão de ser relicitadas · Ex-policial militar é encontrado morto em rio no Alto Vale",
-      "date_published": "2026-07-28T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://news.mob.tec.br/audio/2026-07-28.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 16002656,
-          "duration_in_seconds": 666
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-27",
-      "url": "https://news.mob.tec.br/?ep=2026-07-27",
-      "title": "Episódio 15 · 27 de julho de 2026",
-      "content_text": "Tragédia na BR-470 mata motociclista no quilômetro 34 em Gaspar · Blumenau gasta R$ 6,9 milhões em brinquedos escolares enquanto adia reformas estruturais",
-      "date_published": "2026-07-27T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-27.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 17935508,
-          "duration_in_seconds": 750
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-26",
-      "url": "https://news.mob.tec.br/?ep=2026-07-26",
-      "title": "Episódio 14 · 26 de julho de 2026",
-      "content_text": "Grave colisão na BR-470 em Rodeio mobiliza helicóptero Arcanjo 03 e deixa vítima presa em ferragens · Defesa Civil de Santa Catarina emite alerta para temporais e chuvas intensas neste domingo",
-      "date_published": "2026-07-26T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-26.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 12886770,
-          "duration_in_seconds": 534
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-25",
-      "url": "https://news.mob.tec.br/?ep=2026-07-25",
-      "title": "Episódio 14 · 25 de julho de 2026",
-      "content_text": "Santa Catarina alcança menor taxa de mortes violentas do Brasil em 2025, superando São Paulo. · Prefeitura de Blumenau investe R$ 6,9 milhões em novos parques para 79 escolas e CEIs.",
-      "date_published": "2026-07-25T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-25.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 21183051,
-          "duration_in_seconds": 882
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "brasil",
-        "educacao",
-        "politica",
-        "esportes",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-24",
-      "url": "https://news.mob.tec.br/?ep=2026-07-24",
-      "title": "Episódio 13 · 24 de julho de 2026",
-      "content_text": "Incêndio em silo de Indaial mobiliza bombeiros e brigadistas; fogo controlado pela equipe da empresa. · Polícia Civil conclui investigação de latrocínio em Presidente Getúlio; suspeito indiciado por roubo seguido de morte.",
-      "date_published": "2026-07-24T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-24.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 18528592,
-          "duration_in_seconds": 774
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-23",
-      "url": "https://news.mob.tec.br/?ep=2026-07-23",
-      "title": "Episódio 13 · 23 de julho de 2026",
-      "content_text": "Incêndio destrói estufa de fumo e causa prejuízo de R$ 200 mil em Taió · Guarda Municipal de Rio do Sul intensifica uso de radar móvel nas ruas",
-      "date_published": "2026-07-23T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-23.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 23655071,
-          "duration_in_seconds": 983
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-07-22",
-      "url": "https://news.mob.tec.br/?ep=2026-07-22",
-      "title": "Episódio 12 · 22 de julho de 2026",
-      "content_text": "Operário é resgatado após soterramento em obra em Blumenau · Seis acidentes deixam cinco motociclistas e um ciclista feridos em Blumenau",
-      "date_published": "2026-07-22T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-22.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 3459549,
-          "duration_in_seconds": 576
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude"
-      ]
-    },
-    {
-      "id": "vld-2026-07-21",
-      "url": "https://news.mob.tec.br/?ep=2026-07-21",
-      "title": "Episódio 11 · 21 de julho de 2026",
-      "content_text": "Acidente em frente ao presídio mata motociclista e completa 12ª vítima fatal no trânsito de Blumenau em 2026 · Blumenau disponibiliza vacinação gratuita contra gripe e tétano em shoppings a partir desta segunda",
-      "date_published": "2026-07-21T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-21.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 2453277,
-          "duration_in_seconds": 408
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo"
-      ]
-    },
-    {
-      "id": "vld-2026-07-20",
-      "url": "https://news.mob.tec.br/?ep=2026-07-20",
-      "title": "Episódio 11 · 20 de julho de 2026",
-      "content_text": "Capotamento deixa motorista ferido no Salto Pilão, em Lontras · Furtos de cabos elétricos deixam Lontras sem luz e água",
-      "date_published": "2026-07-20T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-20.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 15089833,
-          "duration_in_seconds": 630
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo"
-      ]
-    },
-    {
-      "id": "vld-2026-07-18",
-      "url": "https://news.mob.tec.br/?ep=2026-07-18",
-      "title": "Episódio 11 · 18 de julho de 2026",
-      "content_text": "Extorsão com ameaças supera R$ 213 mil e revela fragilidade na proteção de vítimas em Blumenau · Adolescente blumenauense fica 22 dias em coma e família busca apoio para custear tratamento",
-      "date_published": "2026-07-18T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-07-18.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 28099440,
-          "duration_in_seconds": 1170
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo"
-      ]
-    },
-    {
-      "id": "vld-2026-06-26",
-      "url": "https://news.mob.tec.br/?ep=2026-06-26",
-      "title": "Edição de 26 de junho de 2026",
-      "content_text": "Estudante de 11 anos denuncia mãe mantida em cárcere privado e ajuda PM a prender foragido em Gaspar · Barragem Norte volta a preocupar moradores e Defesa Civil diante do risco de enchentes",
-      "date_published": "2026-06-26T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-26.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 21270822,
-          "duration_in_seconds": 888
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": []
-    },
-    {
-      "id": "vld-2026-06-25",
-      "url": "https://news.mob.tec.br/?ep=2026-06-25",
-      "title": "Edição de 25 de junho de 2026",
-      "content_text": "Mãe e padrasto são presos por suspeita de maus-tratos e homicídio de criança em José Boiteux · Brasil goleia Escócia por 3 a 0 e avança às oitavas da Copa",
-      "date_published": "2026-06-25T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-25.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 18141144,
-          "duration_in_seconds": 756
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": []
-    },
-    {
-      "id": "vld-2026-06-24",
-      "url": "https://news.mob.tec.br/?ep=2026-06-24",
-      "title": "Episódio 10 · 24 de junho de 2026",
-      "content_text": "Homem é baleado dentro de veículo no trânsito de Blumenau · Incêndio em estabelecimento comercial em Lontras",
-      "date_published": "2026-06-24T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-24.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 9922604,
-          "duration_in_seconds": 414
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-06-23",
-      "url": "https://news.mob.tec.br/?ep=2026-06-23",
-      "title": "Episódio 9 · 23 de junho de 2026",
-      "content_text": "Incêndio em veículo causa bloqueio parcial na BR-101 no Sul de SC · Prefeitura de Blumenau anuncia revisão do plano de mobilidade urbana",
-      "date_published": "2026-06-23T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-23.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 8268739,
-          "duration_in_seconds": 342
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "educacao",
-        "saude",
-        "politica",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-06-20",
-      "url": "https://news.mob.tec.br/?ep=2026-06-20",
-      "title": "Episódio 8 · 20 de junho de 2026",
-      "content_text": "Incêndio em carreta interdita BR-470 em Ibirama · SUS investirá R$ 70 milhões para atender viciados em apostas",
-      "date_published": "2026-06-20T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-20.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 4998000,
-          "duration_in_seconds": 210
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "politica",
-        "saude",
-        "educacao",
-        "esportes",
-        "brasil",
-        "mundo",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-06-19",
-      "url": "https://news.mob.tec.br/?ep=2026-06-19",
-      "title": "Edição de 19 de junho de 2026",
-      "content_text": "Envolvido em roubo a motorista de aplicativo em Blumenau morre em confronto com a PMSC · Ministério Público investiga suspensão de partos pelo SUS em hospital de Taió",
-      "date_published": "2026-06-19T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-19.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 1023885,
-          "duration_in_seconds": 54
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "cultura",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-06-18",
-      "url": "https://news.mob.tec.br/?ep=2026-06-18",
-      "title": "Episódio 6 · 18 de junho de 2026",
-      "content_text": "Câmara de Blumenau aprova programa de prevenção e combate à violência sexual contra crianças e adolescentes · Dois médicos são indiciados após investigação sobre morte de gestante em Indaial",
-      "date_published": "2026-06-18T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-18.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 5894445,
-          "duration_in_seconds": 294
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "economia"
-      ]
-    },
-    {
-      "id": "vld-2026-06-17",
-      "url": "https://news.mob.tec.br/?ep=2026-06-17",
-      "title": "Edição de 17 de junho de 2026",
-      "content_text": "TJSC mantém condenação de motorista por omissão de socorro em Ibirama. · Projeto de deputado de SC para apoio a esclerose múltipla avança na Câmara.",
-      "date_published": "2026-06-17T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-17.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 1346645,
-          "duration_in_seconds": 120
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "seguranca",
-        "saude",
-        "educacao",
-        "politica",
-        "esportes",
-        "rapidinhas"
-      ]
-    },
-    {
-      "id": "vld-2026-06-16",
-      "url": "https://news.mob.tec.br/?ep=2026-06-16",
-      "title": "Edição de 16 de junho de 2026",
-      "content_text": "Copa 2026 tem primeiro zero a zero com Espanha e Cabo Verde · Blumenau Futsal sub-20 encara Liga Caçador para seguir invicto no Estadual",
-      "date_published": "2026-06-16T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-16.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 11630445,
-          "duration_in_seconds": 582
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": []
-    },
-    {
-      "id": "vld-2026-06-15",
-      "url": "https://news.mob.tec.br/?ep=2026-06-15",
-      "title": "Edição de 15 de junho de 2026",
-      "content_text": "Vai daí, Ricardo... hoje o cardápio está pesado: corrupção em Blumenau com direito a piada de cigarro na cadeia, pedágios novos na BR-470, e o Estado gastando R$ 1 bi em enchente e…",
-      "date_published": "2026-06-15T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-15.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 5232069,
-          "duration_in_seconds": 462
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": [
-        "infraestrutura",
-        "seguranca",
-        "economia",
-        "saude",
-        "educacao",
-        "meio_ambiente",
-        "desportos",
-        "cultura"
-      ]
-    },
-    {
-      "id": "vld-2026-06-14",
-      "url": "https://news.mob.tec.br/?ep=2026-06-14",
-      "title": "Edição de 14 de junho de 2026",
-      "content_text": "Hoje o cardápio está carregado: escolas com segurança redesenhada, deputado propondo sorteio de exames do SUS, e um bebê surpreendendo a mãe \"que achava que tinha pedra nos rins\".",
-      "date_published": "2026-06-14T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-14.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 824325,
-          "duration_in_seconds": 186
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": []
-    },
-    {
-      "id": "vld-2026-06-12",
-      "url": "https://news.mob.tec.br/?ep=2026-06-12",
-      "title": "Edição de 12 de junho de 2026",
-      "content_text": "Começo com o caso que todo mundo está comentando em Blumenau: os índices de inflação do comércio local voltaram a subir e o pessoal já está sentindo no custo do supermercado. Ricar…",
-      "date_published": "2026-06-12T06:15:00Z",
-      "attachments": [
-        {
-          "url": "https://audio.mob.tec.br/audio/2026-06-12.mp3",
-          "mime_type": "audio/mpeg",
-          "size_in_bytes": 2750061,
-          "duration_in_seconds": 456
-        }
-      ],
-      "image": "https://news.mob.tec.br/assets/cover.jpg",
-      "tags": []
     }
   ]
 }
