@@ -694,6 +694,9 @@ def discover_especial_episodes() -> list[dict]:
         return eps
 
     for p in bm_episodes_dir.glob("especial-*.json"):
+        # Excluir arquivos de manifesto (gerados por episode_image_manifest.py)
+        if p.name.endswith(".image-manifest.json"):
+            continue
         video_id = p.name.replace("especial-", "").replace(".json", "")
         try:
             data = json.loads(p.read_text(encoding="utf-8"))
@@ -725,12 +728,16 @@ def discover_especial_episodes() -> list[dict]:
                 from datetime import datetime as _datetime, timezone as _timezone
                 mtime = _os.path.getmtime(audio_path)
                 date_str = _datetime.fromtimestamp(mtime, tz=_timezone.utc).strftime("%Y-%m-%d")
-        if not date_str:
+        if not date_str and audio_files:
             date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             audio_path = audio_files[0]
             m = re.search(r"_(\d{4}-\d{2}-\d{2})\.mp3$", audio_path.name)
             if m:
                 date_str = m.group(1)
+        # Se ainda não tiver data e não há áudio, pular este episódio
+        if not date_str:
+            print(f"  ⚠️ Sem data/audio para {video_id}, pulando")
+            continue
 
         md_file = bm_episodes_dir / f"especial-{video_id}.md"
 
