@@ -162,11 +162,15 @@ def is_short_or_live(title: str, url: str) -> bool:
 def is_interview(title: str) -> bool:
     """Entrevistas do ANCAPSU (ex.: 'PETER ENTREVISTA: ALTIVO DUARTE — Deputado').
 
-    Formato do canal: <APRESENTADOR> ENTREVISTA: <Convidado> ou 'ENTREVISTA COM …'.
+    Formato do canal: PETER ENTREVISTA[:] <Convidado> ou 'ENTREVISTA COM …'.
     Mesmo tratamento dos stories: ignorar — a pauta é notícia, não conversa.
+    Não filtra matéria *sobre* entrevista de terceiros (ex. 'FOLHA Entrevista DITADOR').
     """
     low = title.lower()
-    # "PETER ENTREVISTA: ...", "ENTREVISTA: ...", "ENTREVISTA COM ..."
+    # "PETER ENTREVISTA: ...", "PETER ENTREVISTA MARINA HELENA ..."
+    if re.search(r"\bpeter\s+entrevista\b", low):
+        return True
+    # "ENTREVISTA: ...", "ENTREVISTA COM ..."
     if re.search(r"\bentrevista\s*:", low):
         return True
     if re.search(r"\bentrevista\s+com\b", low):
