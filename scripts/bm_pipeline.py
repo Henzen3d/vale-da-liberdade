@@ -490,23 +490,38 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         thumb = {"failed": True, "is_placeholder": True}
 
     # 4.6. Thumbnail YouTube (mockup). Falha clara — nunca publica imagem errada.
+    # Playwright vive no .venv do projeto; HERMES_PY importa o módulo e trava.
     print("\n🖼️  Etapa 4.6/7 — Thumbnail YouTube (mockup)")
     try:
-        from youtube_thumbnail import generate_youtube_thumbnail
-        from episode_image_manifest import EditorialImageError, YoutubeThumbnailError
         if thumb.get("is_placeholder") or thumb.get("failed") or not thumb.get("path"):
             print(
                 "  ❌ editorial Cloudflare inválida/ausente/placeholder — "
                 "NÃO gero mockup YouTube e NÃO uso fallback"
             )
         else:
-            yt = generate_youtube_thumbnail(video_id, date=date_str)
-            print(
-                f"  ✅ youtube_thumbnail: {yt.get('youtube_thumbnail_path')} "
-                f"input_hash={yt.get('youtube_thumbnail_input_hash')}"
+            project_py = PROJECT_ROOT / ".venv" / "bin" / "python3"
+            yt_py = str(project_py) if project_py.is_file() else PY
+            cmd = [yt_py, str(SCRIPT_DIR / "youtube_thumbnail.py"), "--video-id", video_id]
+            if date_str:
+                cmd += ["--date", str(date_str)]
+            print(f"  ▶ youtube_thumbnail.py via {yt_py}")
+            result = subprocess.run(
+                cmd,
+                cwd=str(PROJECT_ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=180,
             )
-    except (EditorialImageError, YoutubeThumbnailError) as e:
-        print(f"  ❌ thumbnail YouTube recusada: {e}")
+            if result.stdout:
+                print(result.stdout[-2000:])
+            if result.returncode != 0:
+                err = (result.stderr or result.stdout or "")[-1500:]
+                print(f"  ❌ thumbnail YouTube falhou (exit {result.returncode}): {err}")
+            else:
+                print("  ✅ youtube_thumbnail gerada")
+    except subprocess.TimeoutExpired:
+        print("  ❌ thumbnail YouTube: timeout 180s (Playwright) — áudio segue")
     except Exception as e:
         print(f"  ❌ thumbnail YouTube falhou: {e}")
 
