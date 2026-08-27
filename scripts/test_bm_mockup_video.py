@@ -125,5 +125,21 @@ class LowerThirdCopyTests(unittest.TestCase):
         self.assertLessEqual(len(items), 7)
 
 
+class XVideoFitTests(unittest.TestCase):
+    def test_mockup_contains_portrait_video(self):
+        html = (
+            Path(__file__).resolve().parent.parent
+            / "references/youtube/mockup-browser/mockup-brower.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn(".portal-page-shot.is-portrait", html)
+        self.assertRegex(
+            html,
+            r"\.portal-page-shot\.is-portrait\s*\{[^}]*object-fit:\s*contain",
+        )
+        self.assertIn("pageVideo.videoHeight > pageVideo.videoWidth", html)
+        self.assertIn("is-portrait", html)
+        self.assertIn("classList.toggle", html)
+
+
 if __name__ == "__main__":
     unittest.main()

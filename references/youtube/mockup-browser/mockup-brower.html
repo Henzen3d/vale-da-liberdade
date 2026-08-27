@@ -347,6 +347,13 @@ html, body {
   background: #fff;
 }
 
+/* Vídeo do X em pé: caber inteiro. Horizontal continua cover (tela cheia). */
+.portal-page-shot.is-portrait {
+  object-fit: contain;
+  object-position: center;
+  background: #0b0d12;
+}
+
 /* Header do Portal de Notícias */
 .portal-navbar {
   height: 56px;
@@ -1104,12 +1111,24 @@ const VDL_MOCKUP_ENGINE = {
     const pageShot = document.getElementById("pageShot");
     const pageVideo = document.getElementById("pageVideo");
     if (pageVideo) {
+      const fitPageVideo = () => {
+        pageVideo.classList.toggle(
+          "is-portrait",
+          pageVideo.videoHeight > pageVideo.videoWidth && pageVideo.videoWidth > 0
+        );
+      };
+      if (!pageVideo.dataset.fitBound) {
+        pageVideo.dataset.fitBound = "1";
+        pageVideo.addEventListener("loadedmetadata", fitPageVideo);
+      }
       if (d.pageVideo) {
         const src = d.pageVideo;
         if (!pageVideo.src.endsWith(src)) {
           pageVideo.src = src;
           pageVideo.load();
           pageVideo.play().catch(() => {});
+        } else {
+          fitPageVideo();
         }
         pageVideo.hidden = false;
         if (pageShot) pageShot.hidden = true;
@@ -1117,6 +1136,7 @@ const VDL_MOCKUP_ENGINE = {
         try { pageVideo.pause(); } catch(e) {}
         pageVideo.removeAttribute("src");
         pageVideo.load();
+        pageVideo.classList.remove("is-portrait");
         pageVideo.hidden = true;
         if (pageShot && d.pageImage) pageShot.hidden = false;
       }

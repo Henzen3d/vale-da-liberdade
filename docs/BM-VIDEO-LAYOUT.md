@@ -80,6 +80,7 @@ references/youtube/mockup-browser/wallpaper/
 - **BBC:** esconde hero cinza vazio, rola até o `h1`
 - **G1:** esconde hero branco vazio, ancora no `h1` mais longo abaixo do header sticky
 - **Instagram:** fecha modal “Cadastre-se” no X; não tratar o header Entrar como login-wall
+- **X/Twitter vídeo:** se for vertical (`videoHeight > videoWidth`), o mockup usa `object-fit: contain` (vídeo inteiro, barras laterais). Horizontal continua `cover` (tela cheia).
 
 Não capturar YouTube, ANCAPSU, nem páginas `news.mob.tec.br/ep/`.
 
