@@ -111,6 +111,63 @@ def cmd_thumbnail(video_id: str, image: str) -> int:
     return 0
 
 
+def upload_caption(video_id: str, srt_path: str, language: str, name: str) -> None:
+    from googleapiclient.http import MediaFileUpload
+
+    yt = _yt()
+    existing = yt.captions().list(part="snippet", videoId=video_id).execute()
+    for item in existing.get("items") or []:
+        sn = item.get("snippet") or {}
+        if (sn.get("language") or "").lower() == language.lower():
+            yt.captions().delete(id=item["id"]).execute()
+            break
+    body = {
+        "snippet": {
+            "videoId": video_id,
+            "language": language,
+            "name": name,
+            "isDraft": False,
+        }
+    }
+    media = MediaFileUpload(srt_path, mimetype="application/octet-stream", resumable=True)
+    yt.captions().insert(part="snippet", body=body, media_body=media).execute()
+
+
+def set_english_localization(video_id: str, title_en: str, description_en: str) -> None:
+    yt = _yt()
+    got = yt.videos().list(part="snippet,localizations", id=video_id).execute()
+    items = got.get("items") or []
+    if not items:
+        raise RuntimeError(f"vídeo YouTube não encontrado: {video_id}")
+    sn = items[0].get("snippet") or {}
+    locs = dict(items[0].get("localizations") or {})
+    locs["en"] = {"title": title_en[:100], "description": description_en[:4900]}
+    body = {
+        "id": video_id,
+        "snippet": {
+            "title": sn.get("title") or title_en[:100],
+            "description": sn.get("description") or "",
+            "tags": sn.get("tags") or [],
+            "categoryId": sn.get("categoryId") or "25",
+            "defaultLanguage": "pt",
+        },
+        "localizations": locs,
+    }
+    yt.videos().update(part="snippet,localizations", body=body).execute()
+
+
+def cmd_captions(video_id: str, srt: str, language: str, name: str) -> int:
+    upload_caption(video_id, srt, language, name)
+    print(f"caption OK {language}")
+    return 0
+
+
+def cmd_localize_en(video_id: str, title: str, description: str) -> int:
+    set_english_localization(video_id, title, description)
+    print("localization en OK")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="YouTube OAuth upload")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -126,6 +183,15 @@ def main() -> int:
     t = sub.add_parser("thumbnail")
     t.add_argument("--video-id", required=True)
     t.add_argument("--image", required=True)
+    c = sub.add_parser("captions")
+    c.add_argument("--video-id", required=True)
+    c.add_argument("--srt", required=True)
+    c.add_argument("--language", required=True)
+    c.add_argument("--name", default="")
+    loc = sub.add_parser("localize-en")
+    loc.add_argument("--video-id", required=True)
+    loc.add_argument("--title", required=True)
+    loc.add_argument("--description", default="")
     args = ap.parse_args()
     if args.cmd == "auth":
         return cmd_auth(args.code)
@@ -135,6 +201,10 @@ def main() -> int:
         return cmd_upload(args.file, args.title, args.description, args.tags, args.privacy)
     if args.cmd == "thumbnail":
         return cmd_thumbnail(args.video_id, args.image)
+    if args.cmd == "captions":
+        return cmd_captions(args.video_id, args.srt, args.language, args.name or args.language)
+    if args.cmd == "localize-en":
+        return cmd_localize_en(args.video_id, args.title, args.description)
     return 2
 
 

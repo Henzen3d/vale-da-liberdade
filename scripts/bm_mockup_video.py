@@ -996,7 +996,12 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
         if thumb:
             set_youtube_thumbnail(yt_id, thumb)
         else:
-            print("  ⚠️  sem thumbnail bm_* do episódio")
+            print("  ⚠️  sem thumbnail YouTube do episódio")
+        try:
+            from youtube_captions import attach_captions_and_en
+            attach_captions_and_en(video_id, yt_id, audio, title, desc)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  legendas/EN falharam (vídeo já no ar): {exc}")
         state = load_state()
         state.setdefault("videos", {})[video_id] = {
             "yt_id": yt_id,
