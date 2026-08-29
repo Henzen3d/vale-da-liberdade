@@ -928,6 +928,7 @@ def publish_youtube(mp4: Path, title: str, desc: str, tags: list[str], privacy: 
         "--description", desc,
         "--tags", ", ".join(tags),
         "--privacy", privacy,
+        "--default-lang", "pt-BR",
     ]
     r = subprocess.run(up, capture_output=True, text=True, timeout=1800)
     out = (r.stdout or "") + (r.stderr or "")

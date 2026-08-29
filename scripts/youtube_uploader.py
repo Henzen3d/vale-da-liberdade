@@ -86,12 +86,18 @@ def cmd_whoami() -> int:
     return 0
 
 
-def cmd_upload(path: str, title: str, description: str, tags: str, privacy: str) -> int:
+def cmd_upload(path: str, title: str, description: str, tags: str, privacy: str, default_lang: str = "pt-BR") -> int:
     from googleapiclient.http import MediaFileUpload
     yt = _yt()
     tag_list = [t.strip() for t in (tags or "").split(",") if t.strip()]
     body = {
-        "snippet": {"title": title, "description": description, "tags": tag_list},
+        "snippet": {
+            "title": title,
+            "description": description,
+            "tags": tag_list,
+            "defaultLanguage": default_lang,
+            "defaultAudioLanguage": default_lang,
+        },
         "status": {"privacyStatus": privacy, "selfDeclaredMadeForKids": False},
     }
     media = MediaFileUpload(path, chunksize=64 * 1024 * 1024, resumable=True)
@@ -180,6 +186,7 @@ def main() -> int:
     u.add_argument("--description", default="")
     u.add_argument("--tags", default="")
     u.add_argument("--privacy", default="public", choices=["unlisted", "private", "public"])
+    u.add_argument("--default-lang", default="pt-BR", help="Idioma padrão do áudio (ex: pt-BR, en)")
     t = sub.add_parser("thumbnail")
     t.add_argument("--video-id", required=True)
     t.add_argument("--image", required=True)
@@ -198,7 +205,7 @@ def main() -> int:
     if args.cmd == "whoami":
         return cmd_whoami()
     if args.cmd == "upload":
-        return cmd_upload(args.file, args.title, args.description, args.tags, args.privacy)
+        return cmd_upload(args.file, args.title, args.description, args.tags, args.privacy, args.default_lang)
     if args.cmd == "thumbnail":
         return cmd_thumbnail(args.video_id, args.image)
     if args.cmd == "captions":
