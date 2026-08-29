@@ -208,8 +208,17 @@ def resolve_youtube_thumbnail(video_id: str) -> Path:
     path = _as_abs(raw)
     if not path.is_file():
         raise YoutubeThumbnailError(f"thumbnail YouTube inexistente: {path}")
-    editorial = resolve_editorial_image(video_id)
     input_hash = data.get("youtube_thumbnail_input_hash") or ""
+    topic_raw = data.get("youtube_topic_image_path") or ""
+    if topic_raw:
+        topic = _as_abs(topic_raw)
+        if topic.is_file() and input_hash and sha256_file(topic) != input_hash:
+            raise YoutubeThumbnailError(
+                f"thumbnail YouTube de {video_id} foi gerada com topic {input_hash}, "
+                f"mas o arquivo atual é {sha256_file(topic)}"
+            )
+        return path
+    editorial = resolve_editorial_image(video_id)
     editorial_hash = sha256_file(editorial)
     if input_hash and input_hash != editorial_hash:
         raise YoutubeThumbnailError(

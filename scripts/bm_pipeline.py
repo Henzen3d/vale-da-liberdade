@@ -495,31 +495,30 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
     try:
         if thumb.get("is_placeholder") or thumb.get("failed") or not thumb.get("path"):
             print(
-                "  ❌ editorial Cloudflare inválida/ausente/placeholder — "
-                "NÃO gero mockup YouTube e NÃO uso fallback"
+                "  ⚠️  editorial IA fraca/ausente — mockup tenta og:image da matéria "
+                "e só falha se as duas faltarem"
             )
+        project_py = PROJECT_ROOT / ".venv" / "bin" / "python3"
+        yt_py = str(project_py) if project_py.is_file() else PY
+        cmd = [yt_py, str(SCRIPT_DIR / "youtube_thumbnail.py"), "--video-id", video_id]
+        if date_str:
+            cmd += ["--date", str(date_str)]
+        print(f"  ▶ youtube_thumbnail.py via {yt_py}")
+        result = subprocess.run(
+            cmd,
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=180,
+        )
+        if result.stdout:
+            print(result.stdout[-2000:])
+        if result.returncode != 0:
+            err = (result.stderr or result.stdout or "")[-1500:]
+            print(f"  ❌ thumbnail YouTube falhou (exit {result.returncode}): {err}")
         else:
-            project_py = PROJECT_ROOT / ".venv" / "bin" / "python3"
-            yt_py = str(project_py) if project_py.is_file() else PY
-            cmd = [yt_py, str(SCRIPT_DIR / "youtube_thumbnail.py"), "--video-id", video_id]
-            if date_str:
-                cmd += ["--date", str(date_str)]
-            print(f"  ▶ youtube_thumbnail.py via {yt_py}")
-            result = subprocess.run(
-                cmd,
-                cwd=str(PROJECT_ROOT),
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=180,
-            )
-            if result.stdout:
-                print(result.stdout[-2000:])
-            if result.returncode != 0:
-                err = (result.stderr or result.stdout or "")[-1500:]
-                print(f"  ❌ thumbnail YouTube falhou (exit {result.returncode}): {err}")
-            else:
-                print("  ✅ youtube_thumbnail gerada")
+            print("  ✅ youtube_thumbnail gerada")
     except subprocess.TimeoutExpired:
         print("  ❌ thumbnail YouTube: timeout 180s (Playwright) — áudio segue")
     except Exception as e:

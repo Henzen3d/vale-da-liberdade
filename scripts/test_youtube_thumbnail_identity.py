@@ -207,7 +207,7 @@ class LegacyHeuristicBanTests(unittest.TestCase):
     def test_bm_pipeline_has_step_4_6(self) -> None:
         src = (SCRIPT_DIR / "bm_pipeline.py").read_text(encoding="utf-8")
         self.assertIn("Etapa 4.6", src)
-        self.assertIn("generate_youtube_thumbnail", src)
+        self.assertIn("youtube_thumbnail.py", src)
 
     def test_hourly_still_goes_through_pipeline(self) -> None:
         src = (PROJECT_ROOT / "scripts" / "bm-hourly-pipeline.sh").read_text(encoding="utf-8")
@@ -268,6 +268,65 @@ class YoutubeGenerateIdempotencyTests(unittest.TestCase):
         man = eim.load_manifest("IDEM")
         self.assertEqual(man["youtube_thumbnail_input_hash"], eim.sha256_file(self.img))
         self.assertEqual(man["editorial_image_hash"], man["youtube_thumbnail_input_hash"])
+
+
+class LayoutPolicyTests(unittest.TestCase):
+    def test_manual_flags_win(self) -> None:
+        mode, plant, font = yt.pick_layout(mode="card", plant="eucalyptus", font="plus")
+        self.assertEqual((mode, plant, font), ("card", "eucalyptus", "plus"))
+
+    def test_default_font_anton(self) -> None:
+        _mode, _plant, font = yt.pick_layout(mode="card-media", plant="none")
+        self.assertEqual(font, "anton")
+
+    def test_news_lead_beats_editorial(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        root = Path(tmp.name)
+        eps = root / "output" / "brasil_e_mundo" / "episodes"
+        thumbs = root / "thumbnails" / "2026-08-24"
+        eps.mkdir(parents=True)
+        thumbs.mkdir(parents=True)
+        editorial = _jpg(thumbs / "bm_NEWS.jpg", (10, 10, 10))
+        news = _jpg(thumbs / "news_lead_NEWS.jpg", (200, 10, 10))
+        patches = [
+            patch.object(eim, "PROJECT_ROOT", root),
+            patch.object(eim, "EPS_DIR", eps),
+            patch.object(eim, "THUMBS_DIR", root / "thumbnails"),
+            patch.object(yt, "PROJECT_ROOT", root),
+            patch.object(yt, "THUMBS_DIR", root / "thumbnails"),
+            patch.object(yt, "EPS_DIR", eps),
+        ]
+        for p in patches:
+            p.start()
+        try:
+            eim.record_editorial(
+                "NEWS", "2026-08-24", editorial,
+                "@cf/black-forest-labs/flux-1-schnell", False,
+            )
+
+            def fake_render(cfg, out_png: Path) -> None:
+                out_png.parent.mkdir(parents=True, exist_ok=True)
+                out_png.write_bytes(b"mockup")
+                Image.new("RGB", (100, 56), (1, 2, 3)).save(out_png.with_suffix(".jpg"), "JPEG")
+
+            with patch.object(yt, "fetch_news_lead_image", return_value=news), \
+                 patch.object(yt, "_render_to", side_effect=lambda cfg, out: fake_render(cfg, out)), \
+                 patch.object(yt, "next_presenter", return_value=editorial), \
+                 patch.object(yt, "generate_headline", return_value=("TITULO FIXO", "FIXO")):
+                r = yt.generate_youtube_thumbnail(
+                    "NEWS", date="2026-08-24", title="TITULO FIXO", highlight="FIXO",
+                    mode="card-media", plant="none", font="anton",
+                )
+            self.assertEqual(Path(r["editorial_image_path"]).resolve(), news.resolve())
+            man = eim.load_manifest("NEWS")
+            self.assertEqual(man["youtube_thumbnail_input_hash"], eim.sha256_file(news))
+            self.assertNotEqual(man["youtube_thumbnail_input_hash"], eim.sha256_file(editorial))
+            resolved = eim.resolve_youtube_thumbnail("NEWS")
+            self.assertTrue(resolved.is_file())
+        finally:
+            for p in patches:
+                p.stop()
+            tmp.cleanup()
 
 
 if __name__ == "__main__":
