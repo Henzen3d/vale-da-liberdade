@@ -352,6 +352,33 @@ def cmd_localize_en(video_id: str, title: str, description: str) -> int:
     return 0
 
 
+def post_channel_comment(video_id: str, text: str) -> str:
+    """Posta um comentário de nível superior do canal no vídeo.
+
+    Retorna o commentThread id. A API v3 NÃO expõe pin/destaque — isso é
+    exclusivo do YouTube Studio; o chamador avisa que o pin é manual.
+    """
+    yt = _yt()
+    body = {
+        "snippet": {
+            "videoId": video_id,
+            "topLevelComment": {"snippet": {"textOriginal": text}},
+        }
+    }
+    resp = yt.commentThreads().insert(part="snippet", body=body).execute()
+    return resp.get("id") or ""
+
+
+def cmd_comment(video_id: str, text: str) -> int:
+    if not text.strip():
+        print("❌ texto do comentário vazio", file=sys.stderr)
+        return 2
+    tid = post_channel_comment(video_id, text)
+    print(f"comment OK id={tid}")
+    print("ℹ️  fixar/destacar é manual no YouTube Studio (API v3 não suporta pin)")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="YouTube OAuth upload")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -381,6 +408,9 @@ def main() -> int:
     p = sub.add_parser("apply-policy")
     p.add_argument("--video-id", required=True)
     p.add_argument("--kind", default="news", choices=["news", "essay", "behind"])
+    cm = sub.add_parser("comment")
+    cm.add_argument("--video-id", required=True)
+    cm.add_argument("--text", required=True)
     args = ap.parse_args()
     if args.cmd == "auth":
         return cmd_auth(args.code)
@@ -398,6 +428,8 @@ def main() -> int:
         return cmd_localize_en(args.video_id, args.title, args.description)
     if args.cmd == "apply-policy":
         return cmd_apply_policy(args.video_id, args.kind)
+    if args.cmd == "comment":
+        return cmd_comment(args.video_id, args.text)
     return 2
 
 

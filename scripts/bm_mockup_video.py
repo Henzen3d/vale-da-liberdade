@@ -71,9 +71,13 @@ FIXED_TAGS = ("Brasil e Mundo", "Vale da Liberdade", "notícias", "comentário")
 DESC_TEMPLATE = (
     "{summary}\n\n"
     "Ouça no app: {app}\n\n"
+    "{assista}"
     "Fontes:\n{refs}\n\n"
     "#BrasilEMundo #{tags}\n"
 )
+
+# Quantos vídeos anteriores recomendar no bloco "Assista também".
+ASSISTA_TAMBEM_N = 2
 
 
 def _unescape(s: str) -> str:
@@ -660,6 +664,60 @@ def chapters_block(scenes: list[dict], dur: float, timeline_beats: list[Any] | N
     return "\n".join(lines)
 
 
+def _playlist_link(title: str, desc: str) -> tuple[str, str] | None:
+    """Playlist temática oficial escolhida por choose_playlists (nome, url) ou None."""
+    try:
+        sys.path.insert(0, str(SCRIPT_DIR))
+        from youtube_channel_policy import PLAYLIST_IDS, choose_playlists
+    except Exception:  # noqa: BLE001
+        return None
+    decision = choose_playlists(title, desc)
+    if not decision.names:
+        return None
+    name = decision.names[0]
+    pid = PLAYLIST_IDS.get(name)
+    if not pid:
+        return None
+    return name, f"https://www.youtube.com/playlist?list={pid}"
+
+
+def build_assista_tambem(video_id: str, title: str, desc_for_playlist: str) -> str:
+    """Bloco 'Assista também' com os últimos vídeos publicados + playlist temática.
+
+    Fonte: videos_published.json (state local). Títulos vêm do próprio state
+    ('title', gravado no save_state) com fallback para o JSON do episódio.
+    Nenhuma chamada de API — dados 100% locais.
+    """
+    lines: list[str] = []
+    try:
+        videos = load_state().get("videos", {})
+    except Exception:  # noqa: BLE001
+        videos = {}
+    # Ordena por published_at desc, exclui o vídeo atual e entradas sem yt_id.
+    cands = [
+        (vid, meta)
+        for vid, meta in videos.items()
+        if vid != video_id and meta.get("yt_id")
+    ]
+    cands.sort(key=lambda kv: kv[1].get("published_at") or "", reverse=True)
+    for vid, meta in cands[:ASSISTA_TAMBEM_N]:
+        rec_title = (meta.get("title") or "").strip()
+        if not rec_title:
+            try:
+                rec_title = _unescape((load_episode(vid).get("titulo") or "").strip())
+            except Exception:  # noqa: BLE001
+                rec_title = ""
+        rec_title = rec_title or "Comentário anterior"
+        yt = meta.get("yt_id")
+        lines.append(f"▶️ {rec_title}: https://youtu.be/{yt}")
+    pl = _playlist_link(title, desc_for_playlist)
+    if pl:
+        lines.append(f"▶️ Playlist {pl[0]}: {pl[1]}")
+    if not lines:
+        return ""
+    return "🔥 ASSISTA TAMBÉM:\n" + "\n".join(lines) + "\n\n"
+
+
 def build_metadata(
     video_id: str,
     episode: dict,
@@ -683,9 +741,11 @@ def build_metadata(
     if not summary:
         y, mo, d = ymd.split("-")
         summary = f"Comentário de {d}/{mo}/{y} sobre {veiculo or 'a pauta do dia'}."
+    assista = build_assista_tambem(video_id, title, summary)
     desc = DESC_TEMPLATE.format(
         summary=summary,
         app=APP_URL,
+        assista=assista,
         refs="\n".join(refs_ok) if refs_ok else "—",
         tags=" ".join(t.replace(" ", "") for t in tags if t),
     )
@@ -1098,6 +1158,59 @@ def publish_youtube(mp4: Path, title: str, desc: str, tags: list[str], privacy: 
     return m.group(1)
 
 
+def _previous_published(video_id: str) -> dict | None:
+    """Vídeo publicado imediatamente anterior (por published_at desc), com yt_id e título."""
+    try:
+        videos = load_state().get("videos", {})
+    except Exception:  # noqa: BLE001
+        return None
+    cands = [
+        (vid, meta)
+        for vid, meta in videos.items()
+        if vid != video_id and meta.get("yt_id")
+    ]
+    if not cands:
+        return None
+    cands.sort(key=lambda kv: kv[1].get("published_at") or "", reverse=True)
+    vid, meta = cands[0]
+    title = (meta.get("title") or "").strip()
+    if not title:
+        try:
+            title = _unescape((load_episode(vid).get("titulo") or "").strip())
+        except Exception:  # noqa: BLE001
+            title = ""
+    return {"yt_id": meta["yt_id"], "title": title or "nosso especial anterior"}
+
+
+def post_channel_cross_comment(yt_id: str, prev: dict) -> bool:
+    """Posta o primeiro comentário do canal com gancho para o vídeo anterior.
+
+    Não-bloqueante por design (chamador ignora retorno). A API v3 NÃO fixa
+    comentários — só o Studio faz o pin; avisamos no log.
+    """
+    text = (
+        f"👉 Gostou da análise? Veja também nosso especial: "
+        f"https://youtu.be/{prev['yt_id']} — {prev['title']}"
+    )
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "youtube_uploader.py"),
+        "comment",
+        "--video-id", yt_id,
+        "--text", text,
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  comentário do canal falhou: {exc}")
+        return False
+    if r.returncode != 0:
+        print(f"  ⚠️  comentário do canal: {(r.stderr or r.stdout or '')[-240:]}")
+        return False
+    print("  ✅ comentário do canal postado (fixar/destacar é manual no Studio)")
+    return True
+
+
 def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dict:
     episode = load_episode(video_id)
     if episode.get("_skip_video_reason"):
@@ -1173,10 +1286,16 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
             attach_captions_and_en(video_id, yt_id, audio, title, desc)
         except Exception as exc:  # noqa: BLE001
             print(f"  ⚠️  legendas/EN falharam (vídeo já no ar): {exc}")
+        # Comentário do canal com gancho para o vídeo anterior (tráfego cruzado).
+        # Não-bloqueante: falha aqui não derruba o pipeline nem o vídeo já publicado.
+        prev = _previous_published(video_id)
+        if prev:
+            post_channel_cross_comment(yt_id, prev)
         state = load_state()
         state.setdefault("videos", {})[video_id] = {
             "yt_id": yt_id,
             "url": result["url"],
+            "title": title,
             "mp4": str(mp4),
             "data": episode_date(audio),
             "published_at": datetime.now().isoformat(),
