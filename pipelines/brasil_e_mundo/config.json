@@ -1,0 +1,28 @@
+{
+  "channels": [
+    {
+      "name": "ANCAPSU",
+      "handle": "@ancap_su",
+      "channel_id": "UCLTWPE7XrHEe8m_xAmNbQ-Q",
+      "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCLTWPE7XrHEe8m_xAmNbQ-Q"
+    }
+  ],
+  "poll_interval_minutes": 60,
+  "target_word_count": 820,
+  "min_word_count": 680,
+  "max_word_count": 900,
+  "min_video_duration_s": 180,
+  "max_video_duration_s": 3600,
+  "feed_name": "Brasil e Mundo",
+  "tags": [
+    "política",
+    "economia",
+    "corrupção",
+    "eleições",
+    "guerras",
+    "ditadura judiciária",
+    "socialismo/comunismo",
+    "impostos",
+    "taxas e tarifas"
+  ]
+}

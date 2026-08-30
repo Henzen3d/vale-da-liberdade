@@ -2,10 +2,20 @@
 """Testes unitários do compositor mockup BM (sem rede, sem Playwright)."""
 from __future__ import annotations
 
+import sys
 import unittest
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
 
 from bm_mockup_video import (
+    MAX_PER_HOST,
+    MAX_SCENES,
+    build_chapters,
     build_metadata,
+    cache_path_for_url,
+    domain_of,
     episode_summary,
     find_episode_thumbnail,
     host_kind,
@@ -15,7 +25,7 @@ from bm_mockup_video import (
     source_scenes,
     ticker_headlines,
 )
-from pathlib import Path
+from bm_scene_timeline import SceneBeat
 
 
 class SourceFilterTests(unittest.TestCase):
@@ -40,6 +50,41 @@ class SourceFilterTests(unittest.TestCase):
         self.assertTrue(urls[0].startswith("https://www.cnnbrasil.com.br"))
         self.assertNotIn("utm_source", urls[0])
         self.assertEqual(urls[1], "https://www.bbc.com/portuguese/articles/cwy")
+
+    def test_source_scenes_respects_max_per_host_and_max_scenes(self):
+        # 12 referências de 4 domínios diferentes
+        ep = {
+            "abertura": [{"texto": "Fala inicial", "fonte_url": "https://folha.uol.com.br/m3"}],
+            "fonte_referencias": [
+                {"veiculo": "G1", "url": "https://g1.globo.com/1", "role": "primary"},
+                {"veiculo": "G1", "url": "https://g1.globo.com/2", "role": "supporting"},
+                {"veiculo": "G1", "url": "https://g1.globo.com/3", "role": "visual"},
+                {"veiculo": "G1", "url": "https://g1.globo.com/4", "role": "visual"},
+                {"veiculo": "CNN", "url": "https://cnnbrasil.com.br/1", "role": "supporting"},
+                {"veiculo": "CNN", "url": "https://cnnbrasil.com.br/2", "role": "supporting"},
+                {"veiculo": "CNN", "url": "https://cnnbrasil.com.br/3", "role": "supporting"},
+                {"veiculo": "Folha", "url": "https://folha.uol.com.br/m1", "role": "visual"},
+                {"veiculo": "Folha", "url": "https://folha.uol.com.br/m2", "role": "visual"},
+                {"veiculo": "Folha", "url": "https://folha.uol.com.br/m3", "role": "supporting"},
+                {"veiculo": "Metrópoles", "url": "https://metropoles.com/1", "role": "supporting"},
+                {"veiculo": "Metrópoles", "url": "https://metropoles.com/2", "role": "supporting"},
+                {"veiculo": "Metrópoles", "url": "https://metropoles.com/3", "role": "visual"},
+            ]
+        }
+        scenes = source_scenes(ep, max_sources=8)
+        self.assertLessEqual(len(scenes), 8)
+
+        # Nenhum host pode aparecer mais que 2 vezes
+        host_counts: dict[str, int] = {}
+        for s in scenes:
+            h = domain_of(s["url"])
+            host_counts[h] = host_counts.get(h, 0) + 1
+        for h, count in host_counts.items():
+            self.assertLessEqual(count, MAX_PER_HOST)
+
+        # A URL citada no roteiro (folha/m3) deve estar incluída entre as primeiras
+        urls = [s["url"] for s in scenes]
+        self.assertIn("https://folha.uol.com.br/m3", urls)
 
 
 class MetadataTests(unittest.TestCase):
@@ -66,6 +111,20 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("narrativa oficial é fraude", desc)
         self.assertIn("economia", tags)
 
+    def test_chapters_with_timeline_beats(self):
+        beats = [
+            SceneBeat(t0=0.0, t1=30.0, url="https://g1.globo.com/1", veiculo="G1", kind="source"),
+            SceneBeat(t0=30.0, t1=31.0, url="", veiculo="Transição", kind="broll"),
+            SceneBeat(t0=31.0, t1=90.0, url="https://folha.uol.com.br/2", veiculo="Folha", kind="source"),
+        ]
+        chapters = build_chapters([], dur=100.0, timeline_beats=beats)
+        labels = [c[1] for c in chapters]
+        self.assertIn("Introdução", labels)
+        self.assertIn("G1", labels)
+        self.assertIn("Folha", labels)
+        self.assertNotIn("Transição", labels)
+        self.assertIn("Conclusão", labels)
+
 
 class HostPrepareTests(unittest.TestCase):
     def test_host_kind(self):
@@ -74,6 +133,14 @@ class HostPrepareTests(unittest.TestCase):
         self.assertEqual(host_kind("https://www.bbc.co.uk/news"), "bbc")
         self.assertEqual(host_kind("https://g1.globo.com/politica/noticia/x.ghtml"), "g1")
         self.assertEqual(host_kind("https://www.cnnbrasil.com.br/x"), "generic")
+
+
+class CacheTests(unittest.TestCase):
+    def test_cache_path_for_url(self):
+        url = "https://www.cnnbrasil.com.br/politica/artigo"
+        p = cache_path_for_url(url)
+        self.assertTrue(p.name.endswith(".png"))
+        self.assertIn("capture-cache", str(p))
 
 
 class WallpaperThumbTests(unittest.TestCase):
@@ -86,7 +153,6 @@ class WallpaperThumbTests(unittest.TestCase):
         self.assertEqual(a, b)
         self.assertNotEqual(a.suffix.lower(), ".gif")
         if c is not None:
-            # ids diferentes quase sempre caem em arquivos diferentes
             self.assertTrue(a.exists())
 
     def test_summary_uses_abertura(self):
@@ -99,7 +165,9 @@ class WallpaperThumbTests(unittest.TestCase):
         p = find_episode_thumbnail("4B3BAjbSseU", "2026-08-22")
         if p is None:
             self.skipTest("thumbnail do episódio não está neste checkout")
-        self.assertTrue(p.name.startswith("bm_4B3BAjbSseU"))
+        # find_episode_thumbnail resolve a capa YouTube do manifesto (yt_bm_*),
+        # sem fallback para bm_*; aceita ambos os prefixos por segurança.
+        self.assertTrue(p.name.startswith(("yt_bm_4B3BAjbSseU", "bm_4B3BAjbSseU")))
 
 
 class LowerThirdCopyTests(unittest.TestCase):

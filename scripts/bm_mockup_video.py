@@ -18,7 +18,9 @@ import argparse
 import hashlib
 import html as _html
 import json
+import random
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -34,6 +36,8 @@ SCRIPT_DIR = ROOT / "scripts"
 MOCKUP_DIR = ROOT / "references" / "youtube" / "mockup-browser"
 MOCKUP_HTML = "mockup-brower.html"  # typo histórico no arquivo
 WALLPAPER_DIR = MOCKUP_DIR / "wallpaper"
+BROLL_DIR = ROOT / "references" / "youtube" / "broll"
+BROLL_INDEX = BROLL_DIR / "_index.json"
 AVATAR_LOOP = (
     ROOT / "references" / "youtube" / "Apresentadores"
     / "Peter Albuquerque" / "Peter-Loop-Picsart-BackgroundRemover.mp4"
@@ -50,11 +54,15 @@ AUDIO_DIR = ROOT / "output" / "brasil_e_mundo" / "audio"
 VIDEOS_OUT = ROOT / "output" / "videos"
 STATE_PATH = ROOT / "output" / "brasil_e_mundo" / "videos_published.json"
 WORK_ROOT = ROOT / "output" / "brasil_e_mundo" / "mockup_video"
+CAPTURE_CACHE_DIR = ROOT / "output" / "brasil_e_mundo" / "capture-cache"
 THUMB_DIRS = (ROOT / "thumbnails", ROOT / "public" / "thumbnails")
 
-MAX_DURATION_S = 480.0
+MAX_DURATION_S = 330.0
 MAX_PER_RUN = 1
 WINDOW_DAYS = 2
+MAX_SCENES = 8
+MAX_PER_HOST = 2
+CACHE_MAX_AGE_HOURS = 36.0
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -86,6 +94,40 @@ def _clean_url(u: str) -> str:
         return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(qs), parts.fragment))
     except Exception:
         return u
+
+
+def domain_of(url: str) -> str:
+    try:
+        return (urlsplit(url or "").netloc or "").lower().removeprefix("www.")
+    except Exception:
+        return ""
+
+
+def cache_path_for_url(url: str) -> Path:
+    url_hash = hashlib.sha256((url or "").strip().encode("utf-8")).hexdigest()[:16]
+    return CAPTURE_CACHE_DIR / f"{url_hash}.png"
+
+
+def get_cached_screenshot(url: str) -> Path | None:
+    path = cache_path_for_url(url)
+    if not path.exists() or path.stat().st_size <= 8000:
+        return None
+    age_seconds = time.time() - path.stat().st_mtime
+    if age_seconds > (CACHE_MAX_AGE_HOURS * 3600):
+        return None
+    return path
+
+
+def save_cached_screenshot(url: str, src_path: Path) -> Path | None:
+    if not src_path.exists() or src_path.stat().st_size <= 8000:
+        return None
+    CAPTURE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    dest = cache_path_for_url(url)
+    try:
+        shutil.copy2(src_path, dest)
+        return dest
+    except Exception:
+        return None
 
 
 def is_blocked_source_url(url: str) -> bool:
@@ -363,9 +405,19 @@ def episode_date(audio: Path) -> str:
     return m.group(1) if m else datetime.now().strftime("%Y-%m-%d")
 
 
-def source_scenes(episode: dict, max_sources: int = 4) -> list[dict]:
-    scenes: list[dict] = []
+def source_scenes(episode: dict, max_sources: int = MAX_SCENES) -> list[dict]:
+    # 1. Identificar URLs citadas diretamente no roteiro (quoted_in / fala com fonte_url)
+    quoted_urls: set[str] = set()
+    for section in ("abertura", "desenvolvimento", "fechamento"):
+        for item in episode.get(section) or []:
+            fu = _clean_url(item.get("fonte_url") or "")
+            if fu:
+                quoted_urls.add(fu)
+
+    # 2. Filtrar e classificar referências
+    candidates: list[dict] = []
     seen: set[str] = set()
+
     for ref in episode.get("fonte_referencias") or []:
         if ref.get("self"):
             continue
@@ -374,9 +426,47 @@ def source_scenes(episode: dict, max_sources: int = 4) -> list[dict]:
             continue
         seen.add(url)
         veiculo = (ref.get("veiculo") or "").strip() or urlsplit(url).netloc
-        scenes.append({"veiculo": veiculo, "url": url, "titulo": veiculo})
+        role = ref.get("role", "supporting")
+        is_quoted = (url in quoted_urls) or bool(ref.get("quoted_in"))
+
+        # Peso para ordenação: quoted (0) -> primary (1) -> supporting (2) -> visual (3)
+        if is_quoted:
+            priority = 0
+        elif role == "primary":
+            priority = 1
+        elif role == "supporting":
+            priority = 2
+        else:
+            priority = 3
+
+        candidates.append({
+            "veiculo": veiculo,
+            "url": url,
+            "titulo": veiculo,
+            "priority": priority,
+            "role": role,
+        })
+
+    # Ordenar por prioridade
+    candidates.sort(key=lambda x: x["priority"])
+
+    # 3. Aplicar teto de 2 URLs por host e limite global de cenas
+    scenes: list[dict] = []
+    host_counts: dict[str, int] = {}
+
+    for cand in candidates:
+        dom = domain_of(cand["url"])
+        if host_counts.get(dom, 0) >= MAX_PER_HOST:
+            continue
+        host_counts[dom] = host_counts.get(dom, 0) + 1
+        scenes.append({
+            "veiculo": cand["veiculo"],
+            "url": cand["url"],
+            "titulo": cand["titulo"],
+        })
         if len(scenes) >= max_sources:
             break
+
     return scenes
 
 
@@ -430,10 +520,10 @@ def _clip_line(text: str, limit: int) -> str:
     return s[:limit].rsplit(" ", 1)[0].rstrip(",;:") + "…"
 
 
-def one_line_subhead(episode: dict, limit: int = 78) -> str:
-    """Linha fina: submanchete de uma linha, nunca o nome da fonte."""
+def one_line_subhead(episode: dict, limit: int = 98) -> str:
+    """Linha fina: submanchete de uma linha, nunca o nome da fonte nem a fala de abertura do roteiro."""
     title = _unescape((episode.get("titulo") or "").strip())
-    for key in ("submanchete", "linha_fina", "resumo"):
+    for key in ("subtitulo", "submanchete", "linha_fina", "subhead", "resumo"):
         v = _unescape(str(episode.get(key) or "")).strip()
         if v and v.casefold() != title.casefold():
             return _clip_line(v, limit)
@@ -448,6 +538,10 @@ def one_line_subhead(episode: dict, limit: int = 78) -> str:
         rest = blob[len(sent):].lstrip(".!? ").strip()
         if rest:
             sent = rest.split(". ")[0].split("? ")[0].strip()
+    # Remove vícios de fala de abertura caso caia no texto do roteiro
+    sent = re.sub(r"^(fala\s+pessoal|ol[áa]\s+a\s+todos|ol[áa]|bem-vindos|hoje\s+vamos\s+falar|neste\s+v[íi]deo|peter:\s*)[,.\s-]*", "", sent, flags=re.IGNORECASE).strip()
+    if sent:
+        sent = sent[0].upper() + sent[1:]
     return _clip_line(sent or title, limit)
 
 
@@ -516,20 +610,37 @@ def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
         return None
 
 
-def build_chapters(scenes: list[dict], dur: float) -> list[tuple[float, str]]:
-    """Timestamps aproximados das cenas do mockup (mesma matemática do record_mockup)."""
-    n = max(len(scenes), 1)
-    per = max(8.0, dur / n)
-    entries: list[tuple[float, str]] = [(0.0, "Introdução")]
-    t = 0.8
-    for s in scenes:
-        entries.append((t, (s.get("veiculo") or "Fonte").strip()))
-        t += per
-    concl = max(t, dur - min(20.0, dur * 0.15))
-    entries.append((concl, "Conclusão"))
-    # normaliza: crescente, >=10s entre capítulos, dentro da duração
-    out: list[tuple[float, str]] = []
-    for ts, label in sorted(entries):
+def build_chapters(scenes: list[dict], dur: float, timeline_beats: list[Any] | None = None) -> list[tuple[float, str]]:
+    """Timestamps das cenas do mockup baseados na timeline calculada."""
+    entries: list[tuple[float, str]] = []
+    if timeline_beats:
+        for beat in timeline_beats:
+            b_dict = beat.to_dict() if hasattr(beat, "to_dict") else dict(beat)
+            if b_dict.get("kind") == "broll":
+                continue
+            t0 = float(b_dict.get("t0", 0.0))
+            label = (b_dict.get("veiculo") or "Fonte").strip()
+            if label and label.lower() not in {"transição", "introdução"}:
+                # Se for a primeira cena, posiciona com folga após introdução
+                ts = t0 if t0 >= 10.0 else max(10.0, round(dur * 0.08))
+                entries.append((ts, label))
+        concl = max(entries[-1][0] + 10.0 if entries else 0.0, dur - min(20.0, dur * 0.15))
+        entries.append((concl, "Conclusão"))
+    else:
+        n = max(len(scenes), 1)
+        per = max(8.0, dur / n)
+        t = 0.8
+        for s in scenes:
+            entries.append((t, (s.get("veiculo") or "Fonte").strip()))
+            t += per
+        concl = max(t, dur - min(20.0, dur * 0.15))
+        entries.append((concl, "Conclusão"))
+
+    # normaliza: Introdução sempre em 0:00, timestamps crescentes, >=10s entre capítulos
+    out: list[tuple[float, str]] = [(0, "Introdução")]
+    for ts, label in sorted(entries, key=lambda x: x[0]):
+        if label == "Introdução" or ts < 8.0:
+            continue
         ts = min(ts, max(dur - 1.0, 0.0))
         if out and ts - out[-1][0] < 10.0:
             continue
@@ -537,8 +648,8 @@ def build_chapters(scenes: list[dict], dur: float) -> list[tuple[float, str]]:
     return out
 
 
-def chapters_block(scenes: list[dict], dur: float) -> str:
-    ch = build_chapters(scenes, dur)
+def chapters_block(scenes: list[dict], dur: float, timeline_beats: list[Any] | None = None) -> str:
+    ch = build_chapters(scenes, dur, timeline_beats=timeline_beats)
     if len(ch) < 3:
         return ""
     lines = ["", "⏱ CAPÍTULOS:", "0:00 Introdução"]
@@ -549,7 +660,13 @@ def chapters_block(scenes: list[dict], dur: float) -> str:
     return "\n".join(lines)
 
 
-def build_metadata(video_id: str, episode: dict, audio: Path, scenes: list[dict] | None = None) -> tuple[str, str, list[str]]:
+def build_metadata(
+    video_id: str,
+    episode: dict,
+    audio: Path,
+    scenes: list[dict] | None = None,
+    timeline_beats: list[Any] | None = None,
+) -> tuple[str, str, list[str]]:
     title = _unescape((episode.get("titulo") or "").strip()) or f"Brasil & Mundo — Comentário ({video_id})"
     tags = list(FIXED_TAGS)
     tags.extend(episode.get("tags") or [])
@@ -572,8 +689,8 @@ def build_metadata(video_id: str, episode: dict, audio: Path, scenes: list[dict]
         refs="\n".join(refs_ok) if refs_ok else "—",
         tags=" ".join(t.replace(" ", "") for t in tags if t),
     )
-    if scenes:
-        desc += chapters_block(scenes, probe_duration_s(audio) or 0.0)
+    if scenes or timeline_beats:
+        desc += chapters_block(scenes or [], probe_duration_s(audio) or 0.0, timeline_beats=timeline_beats)
     seen: set[str] = set()
     uniq: list[str] = []
     for t in tags:
@@ -632,6 +749,30 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
 
     shot_dir.mkdir(parents=True, exist_ok=True)
     out: list[dict] = []
+
+    # 1. Checar cache em disco primeiro
+    to_fetch: list[tuple[int, dict, Path]] = []
+    for i, scene in enumerate(scenes):
+        dest = shot_dir / f"src-{i:02d}.png"
+        url = scene.get("url") or ""
+        cached = get_cached_screenshot(url)
+        if cached:
+            try:
+                shutil.copy2(cached, dest)
+                item = dict(scene)
+                item["shot"] = dest.name
+                item["video"] = None
+                out.append(item)
+                print(f"  ⚡ [cache] {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
+                continue
+            except Exception:
+                pass
+        to_fetch.append((i, scene, dest))
+
+    if not to_fetch:
+        return out
+
+    # 2. Capturar itens restantes com Playwright e delays educados
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         ctx = browser.new_context(
@@ -640,21 +781,35 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
             locale="pt-BR",
         )
         page = ctx.new_page()
-        for i, scene in enumerate(scenes):
-            dest = shot_dir / f"src-{i:02d}.png"
+        last_domain = ""
+
+        for i, scene, dest in to_fetch:
+            url = scene.get("url") or ""
+            current_domain = domain_of(url)
+
+            # Delay educado com jitter entre requisições
+            if last_domain:
+                if current_domain and current_domain == last_domain:
+                    delay = random.uniform(8.0, 15.0)
+                else:
+                    delay = random.uniform(3.5, 8.0)
+                print(f"  ⏳ Delay educado anti-bot: {delay:.1f}s...")
+                time.sleep(delay)
+            last_domain = current_domain
+
             try:
                 # X com vídeo embutido: baixa o clipe em vez de screenshot estático
-                if host_kind(scene["url"]) == "x":
-                    vid_rel = extract_x_video(scene["url"], shot_dir.parent, shot_dir.parent.name, i)
+                if host_kind(url) == "x":
+                    vid_rel = extract_x_video(url, shot_dir.parent, shot_dir.parent.name, i)
                     if vid_rel:
                         item = dict(scene)
                         item["shot"] = None
                         item["video"] = vid_rel
                         out.append(item)
                         continue
-                page.goto(scene["url"], wait_until="domcontentloaded", timeout=35000)
-                page.wait_for_timeout(1800)
-                prep = prepare_capture(page, scene["url"])
+                page.goto(url, wait_until="domcontentloaded", timeout=35000)
+                page.wait_for_timeout(2500 if not last_domain else 1800)
+                prep = prepare_capture(page, url)
                 print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
                 if prep.get("kind") == "instagram" and instagram_is_login_wall(page):
                     print(f"  ⚠️  Instagram ainda em login-wall — cena sem screenshot")
@@ -675,13 +830,14 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     pass
                 page.screenshot(path=str(dest), full_page=False)
                 if dest.exists() and dest.stat().st_size > 8000:
+                    save_cached_screenshot(url, dest)
                     item = dict(scene)
                     item["shot"] = dest.name
                     out.append(item)
                     print(f"  📸 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
                     continue
             except Exception as exc:
-                print(f"  ⚠️  captura falhou {scene['url']}: {exc}")
+                print(f"  ⚠️  captura falhou / skip:blocked {url}: {exc}")
             item = dict(scene)
             item["shot"] = None
             out.append(item)
@@ -690,12 +846,24 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     return out or scenes
 
 
-def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict], work: Path, wallpaper: Path | None = None) -> Path:
+def record_mockup(
+    video_id: str,
+    episode: dict,
+    audio: Path,
+    scenes: list[dict],
+    work: Path,
+    wallpaper: Path | None = None,
+    timeline_beats: list[Any] | None = None,
+) -> Path:
     from playwright.sync_api import sync_playwright
+    from bm_scene_timeline import build_scene_timeline
 
     rec_dir = work / "rec"
     rec_dir.mkdir(parents=True, exist_ok=True)
-    httpd, port = start_server([MOCKUP_DIR, work])
+    server_dirs = [MOCKUP_DIR, work]
+    if BROLL_DIR.is_dir():
+        server_dirs.append(BROLL_DIR)
+    httpd, port = start_server(server_dirs)
     try:
         dur = min(probe_duration_s(audio) or 60.0, MAX_DURATION_S)
         title = _unescape(episode.get("titulo") or "Brasil e Mundo")
@@ -705,7 +873,9 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
         ticker_items = ticker_headlines(episode, video_id)
         if not scenes:
             scenes = [{"veiculo": veiculo, "url": "https://news.mob.tec.br", "shot": None}]
-        per = max(8.0, dur / max(len(scenes), 1))
+
+        if not timeline_beats:
+            timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
 
         url = f"http://127.0.0.1:{port}/{MOCKUP_HTML}"
         raw_webm: Path | None = None
@@ -719,8 +889,7 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
                 locale="pt-BR",
             )
             page = ctx.new_page()
-            # Payload inicial vai na URL (loadFromURL): evita os dados demo do
-            # HTML aparecerem nos primeiros frames antes do primeiro update().
+
             def _qs_payload(payload: dict) -> str:
                 from urllib.parse import quote as _q
                 ticker = "|".join(payload.get("ticker") or [])
@@ -741,21 +910,25 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
                     pairs["wallpaper"] = payload["wallpaper"]
                 return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
 
-            first_scene = scenes[0] if scenes else {}
+            first_beat = timeline_beats[0] if timeline_beats else None
+            fb_dict = first_beat.to_dict() if hasattr(first_beat, "to_dict") else (dict(first_beat) if first_beat else {})
+            first_shot = fb_dict.get("shot") or (scenes[0].get("shot") if scenes else None)
+            first_vid = fb_dict.get("video") or (scenes[0].get("video") if scenes else None)
+            first_url = fb_dict.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
+
             init_payload = {
                 "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
                 "autor": "Peter Albuquerque", "data": ymd, "dataExtenso": ymd,
-                "url": first_scene.get("url") or "https://news.mob.tec.br",
+                "url": first_url or "https://news.mob.tec.br",
                 "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
                 "lowerTitle": title, "lowerSubtitle": subhead,
                 "liveText": "B&M", "brandSub": "B&M", "tag": "VALE DA LIBERDADE",
                 "ticker": ticker_items,
-                "pageImage": f"/shots/{first_scene['shot']}" if first_scene.get("shot") else "",
-                "pageVideo": first_scene.get("video") or "",
+                "pageImage": f"/shots/{first_shot}" if first_shot else "",
+                "pageVideo": first_vid or "",
                 "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
             }
             page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
-            # garante que wallpaper e primeira página decodificaram antes de gravar
             page.wait_for_function(
                 """() => {
                   const w = document.getElementById('sceneWallpaper');
@@ -766,45 +939,30 @@ def record_mockup(video_id: str, episode: dict, audio: Path, scenes: list[dict],
             )
             page.wait_for_timeout(400)
             started = time.monotonic()
-            idx = 1  # cena 0 já foi aplicada via URL
-            first = False
-            while time.monotonic() - started < dur:
-                scene = scenes[idx % len(scenes)]
-                page_image = f"/shots/{scene['shot']}" if scene.get("shot") else ""
-                page_video = scene.get("video") or ""
-                if first:
-                    payload = {
-                        "categoria": "BRASIL E MUNDO",
-                        "titulo": title,
-                        "resumo": subhead,
-                        "autor": "Peter Albuquerque",
-                        "data": ymd,
-                        "dataExtenso": ymd,
-                        "url": scene["url"],
-                        "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
-                        "lowerTitle": title,
-                        "lowerSubtitle": subhead,
-                        "liveText": "B&M",
-                        "brandSub": "B&M",
-                        "tag": "VALE DA LIBERDADE",
-                        "ticker": ticker_items,
-                        "pageImage": page_image,
-                        "pageVideo": page_video,
-                        "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
-                    }
-                    page.evaluate("data => window.VDL_MOCKUP && window.VDL_MOCKUP.update(data)", payload)
-                    first = False
-                else:
+
+            for idx, beat in enumerate(timeline_beats):
+                elapsed = time.monotonic() - started
+                if elapsed >= dur:
+                    break
+                b = beat.to_dict() if hasattr(beat, "to_dict") else dict(beat)
+                if idx > 0:
+                    page_image = f"/shots/{b['shot']}" if b.get("shot") else ""
+                    page_video = b.get("video") or ""
+                    if b.get("kind") == "broll" and b.get("broll_file"):
+                        page_video = f"/broll/{quote(b['broll_file'])}"
                     page.evaluate(
                         """({url, pageImage, pageVideo}) => {
                           if (!window.VDL_MOCKUP) return;
                           window.VDL_MOCKUP.update({url, pageImage, pageVideo});
                         }""",
-                        {"url": scene["url"], "pageImage": page_image, "pageVideo": page_video},
+                        {"url": b.get("url") or "https://news.mob.tec.br", "pageImage": page_image, "pageVideo": page_video},
                     )
+
+                beat_dur = float(b.get("t1", 0.0)) - float(b.get("t0", 0.0))
                 remain = dur - (time.monotonic() - started)
-                page.wait_for_timeout(int(min(per, remain) * 1000))
-                idx += 1
+                wait_time = max(0.1, min(beat_dur, remain))
+                page.wait_for_timeout(int(wait_time * 1000))
+
             raw_webm = Path(page.video.path())
             ctx.close()
             browser.close()
@@ -942,6 +1100,10 @@ def publish_youtube(mp4: Path, title: str, desc: str, tags: list[str], privacy: 
 
 def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dict:
     episode = load_episode(video_id)
+    if episode.get("_skip_video_reason"):
+        print(f"  ⏭️  Vídeo pulado: {episode['_skip_video_reason']}")
+        return {"video_id": video_id, "skipped": True, "reason": episode["_skip_video_reason"]}
+
     audio = resolve_audio(video_id)
     if not audio:
         raise FileNotFoundError(f"áudio BM não encontrado para {video_id}")
@@ -949,11 +1111,15 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
     if dur > MAX_DURATION_S:
         raise RuntimeError(f"{video_id}: áudio {dur:.0f}s > {MAX_DURATION_S:.0f}s — pulado")
 
-    scenes = source_scenes(episode)
-    title, desc, tags = build_metadata(video_id, episode, audio, scenes=scenes)
+    scenes = source_scenes(episode, max_sources=MAX_SCENES)
     wallpaper = pick_wallpaper(video_id)
+
+    from bm_scene_timeline import build_scene_timeline
+    timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
+
+    title, desc, tags = build_metadata(video_id, episode, audio, scenes=scenes, timeline_beats=timeline_beats)
     print(f"🎬 {video_id} · {dur:.0f}s · {title}")
-    print(f"   fontes: {len(scenes)} · upload={upload} privacy={privacy}")
+    print(f"   fontes: {len(scenes)} (beats: {len(timeline_beats)}) · upload={upload} privacy={privacy}")
     if wallpaper:
         print(f"   wallpaper: {wallpaper.name}")
     if dry_run:
@@ -961,6 +1127,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
             "video_id": video_id,
             "title": title,
             "scenes": scenes,
+            "beats": [b.to_dict() for b in timeline_beats],
             "wallpaper": wallpaper.name if wallpaper else None,
             "thumb": str(find_episode_thumbnail(video_id, episode_date(audio)) or ""),
             "desc": desc,
@@ -977,7 +1144,10 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
                 p.unlink()
     shots.mkdir(parents=True, exist_ok=True)
     captured = capture_sources(scenes, shots) if scenes else []
-    raw = record_mockup(video_id, episode, audio, captured or scenes, work, wallpaper=wallpaper)
+
+    # Recalcula timeline com as screenshots gravadas
+    timeline_beats = build_scene_timeline(episode, dur, captured or scenes, BROLL_INDEX)
+    raw = record_mockup(video_id, episode, audio, captured or scenes, work, wallpaper=wallpaper, timeline_beats=timeline_beats)
     mp4 = VIDEOS_OUT / f"especial-{video_id}-mockup.mp4"
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")

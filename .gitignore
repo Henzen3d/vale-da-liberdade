@@ -97,3 +97,8 @@ sources/sources_registry.json
 sources/sources_weekly_report.json
 sources/thumbnail_cascade_rank.json
 credentials/
+
+# BM Vídeo (caches e assets pesados)
+output/brasil_e_mundo/capture-cache/
+references/youtube/broll/*.mp4
+references/youtube/end-bumper/*.mp4

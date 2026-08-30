@@ -20,6 +20,7 @@ Leia `CANONICAL.md` e `../AGENT_GUIDE.md` antes de qualquer outro doc.
 | `presenters/peter.md` / `presenters/ricardo.md` | Fichas dos apresentadores |
 | `docs/ROTEIRO-NATURALIDADE-MULTILOCUTOR.md` | Relatório + diagramas do pipeline de roteiro/TTS para análise externa (naturalidade + multi-locutor) |
 | `docs/BM-VIDEO-LAYOUT.md` | Layout oficial do vídeo BM (avatar v6, wallpaper, thumbnail, descrição). Restaurar daqui se o compositor sumir. JSON: `docs/bm-video-layout.json` |
+| `docs/BM-EPISODE-PACING.md` | Ritmo, duração (4–5 min / 680–900 palavras), fontes extras, sync de cenas, captura educada e b-roll |
 
 Skills Hermes (fora deste repo; não duplicar aqui):
 

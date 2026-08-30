@@ -65,7 +65,7 @@ PERSONA_PETER = {
 def load_config() -> dict:
     if CONFIG_PATH.exists():
         return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    return {"target_word_count": 850, "max_word_count": 950, "tags": []}
+    return {"target_word_count": 820, "min_word_count": 680, "max_word_count": 900, "tags": []}
 
 
 def load_skill() -> str:
@@ -161,9 +161,11 @@ def enrich_referencias(data: dict, raw: dict, video_id: str) -> bool:
     Retorna True se alterou o data."""
     if data.get("fonte_referencias"):
         return False
-    from bm_transcript import domain_of
+    from bm_enrich_sources import domain_of, enrich_episode_sources
 
-    refs = _build_fonte_referencias(raw, video_id)
+    refs, _ = enrich_episode_sources(raw, video_id)
+    if not refs:
+        refs = _build_fonte_referencias(raw, video_id)
     if not refs:
         return False
     data["fonte_referencias"] = refs
@@ -376,17 +378,20 @@ def extract_json(text: str) -> dict:
 
 # ── Prompt ───────────────────────────────────────────────────────────────────
 
-def build_prompt(raw: dict, config: dict, skill_text: str) -> str:
-    target   = config.get("target_word_count", 850)
-    tags_str = ", ".join(config.get("tags", []))
-    fonte    = (
+def build_prompt(raw: dict, config: dict, skill_text: str, sources_briefing: str = "") -> str:
+    target    = config.get("target_word_count", 820)
+    min_words = config.get("min_word_count", 680)
+    max_words = config.get("max_word_count", 900)
+    tags_str  = ", ".join(config.get("tags", []))
+    fonte     = (
         f"Fonte original: {raw['source_names'][0]}" if raw.get("source_names")
         else "Fonte: transcrição do canal ANCAPSU"
     )
     guidelines = "\n".join(f"- {g}" for g in PERSONA_PETER["guidelines"])
+    briefing_block = f"\n=== BRIEFING DE FONTES EXTRAS PARA APROFUNDAR ===\n{sources_briefing}\n" if sources_briefing else ""
 
     return f"""Você é o roteirista do quadro "Brasil e Mundo" do Webjornal Vale da Liberdade.
-Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~5 minutos, narrado APENAS pelo Peter Albuquerque.
+Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4 a 5 minutos, narrado APENAS pelo Peter Albuquerque.
 
 === PERSONA PETER — {PERSONA_PETER['style'].upper()} ===
 {guidelines}
@@ -394,14 +399,14 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~5 minu
 === REGRAS DO QUADRO BRASIL E MUNDO (seguir ESTRITAMENTE) ===
 1. APENAS Peter fala. SEM menção ao Ricardo. SEM diálogos. SEM turnos de fala.
 2. SEM divisão em seções (segurança/saúde/educação/política/mundo). Comentário único e corrido.
-3. META DE PALAVRAS: {target} palavras (máximo {int(target * 1.15)}).
-   RESUMIR e CONDENSAR — o vídeo original é esticado para SEO. Você CORTA.
-4. Extrair: tese central + 2-4 argumentos fortes + gancho final.
-5. Descartar: repetições, digressões, enrolação, exemplos redundantes.
+3. META DE PALAVRAS: {target} palavras (piso {min_words}, máximo {max_words}).
+   Não invente fatos. Se a transcrição for curta, use o briefing de matérias extras para aprofundar a análise com contexto, antecedentes e fatos verificáveis. Meta {target} palavras ({min_words}–{max_words}).
+4. Extrair: tese central + 2-4 argumentos fortes + desdobramentos factuais + gancho final.
+5. Descartar: repetições, digressões, enrolação vazia.
 6. Preservar naturalidade do apresentador original, mas na VOZ do Peter.
 7. {fonte}
-8. NÃO invente dados. Use apenas o que está na transcrição.
-
+8. SINCRONIZAÇÃO VISUAL: Ao citar ou comentar a matéria de um veículo, inclua no objeto da fala o campo opcional "fonte_url" com a URL correspondente.
+{briefing_block}
 === ESTRUTURA DO ROTEIRO ===
 - abertura: 2-3 falas curtas (gancho de impacto, ~30s)
 - desenvolvimento: 5-8 falas (corpo da análise, ~3-4 min)
@@ -438,11 +443,11 @@ Canal: {raw['channel']}
   "fonte_veiculo": "{raw.get('source_names', [''])[0] if raw.get('source_names') else ''}",
   "tags": ["tag1", "tag2"],
   "abertura": [
-    {{"speaker": "Peter", "texto": "Fala de abertura..."}},
+    {{"speaker": "Peter", "texto": "Fala de abertura...", "fonte_url": "https://..."}},
     {{"speaker": "Peter", "texto": "Contexto inicial..."}}
   ],
   "desenvolvimento": [
-    {{"speaker": "Peter", "texto": "Argumento 1..."}},
+    {{"speaker": "Peter", "texto": "Argumento 1...", "fonte_url": "https://..."}},
     {{"speaker": "Peter", "texto": "Argumento 2..."}}
   ],
   "fechamento": [
@@ -535,12 +540,16 @@ def condense(video_id: str, force: bool = False) -> dict:
     config    = load_config()
     skill     = load_skill()
     raw       = load_raw(video_id)
-    target    = config.get("target_word_count", 850)
-    max_words = config.get("max_word_count", int(target * 1.15))
+    target    = config.get("target_word_count", 820)
+    min_words = config.get("min_word_count", 680)
+    max_words = config.get("max_word_count", 900)
 
-    print(f"🧠 Condensando transcrição de '{raw['title'][:60]}' ({raw['transcript_words']} palavras → ~{target} palavras)...")
+    from bm_enrich_sources import enrich_episode_sources
+    enriched_refs, sources_briefing = enrich_episode_sources(raw, video_id)
 
-    prompt    = build_prompt(raw, config, skill)
+    print(f"🧠 Condensando transcrição de '{raw['title'][:60]}' ({raw['transcript_words']} palavras → meta ~{target} palavras [{min_words}-{max_words}])...")
+
+    prompt    = build_prompt(raw, config, skill, sources_briefing=sources_briefing)
     max_rounds = 2
     data      = None
     last_err  = None
@@ -565,6 +574,25 @@ def condense(video_id: str, force: bool = False) -> dict:
                 data = extract_json(response_text)
                 words = count_words_in_roteiro(data)
                 print(f"  Após corte: {words} palavras")
+
+            elif words < min_words:
+                underage = target - words
+                print(f"  ⚠️  {words} palavras (mínimo {min_words}). Pedindo aprofundamento factual de ~{underage} palavras...")
+                expand_prompt = (
+                    f"O roteiro abaixo tem {words} palavras, mas a meta mínima é {min_words} palavras (alvo {target}).\n"
+                    f"Aprofunde a análise jornalística e os argumentos desenvolvendo mais os pontos e explorando os fatos das fontes extras, sem enrolação ou repetições.\n"
+                    f"Retorne APENAS o JSON completo atualizado.\n\n"
+                    f"JSON atual:\n{json.dumps(data, ensure_ascii=False)}"
+                )
+                if sources_briefing:
+                    expand_prompt += f"\n\n{sources_briefing}"
+                response_text = _call_llm(expand_prompt)
+                data = extract_json(response_text)
+                words = count_words_in_roteiro(data)
+                print(f"  Após aprofundamento: {words} palavras")
+                if words < min_words:
+                    print(f"  ⚠️  GATE duração: {words} palavras < {min_words} — áudio gerado, mas vídeo será pulado")
+                    data["_skip_video_reason"] = f"duração insuficiente: {words} palavras < {min_words}"
 
             break
         except Exception as exc:
@@ -592,17 +620,20 @@ def condense(video_id: str, force: bool = False) -> dict:
     if data is None:
         raise RuntimeError("Condensador terminou sem roteiro (data=None)")
 
-    # Referências: links da seção "Referências:" da descrição do YouTube
-    # (pareados URL↔veículo) + links do nosso próprio site (página do episódio
-    # e matéria transcrita). Salvo no JSON para o site E para uso futuro como
-    # fundo/imagens de background dos vídeos do YouTube.
-    if enrich_referencias(data, raw, video_id):
-        refs = data["fonte_referencias"]
-        externas = [r for r in refs if not r.get("self")]
-        print(
-            f"   📎 {len(refs)} referências registradas "
-            f"({len(externas)} fontes externas)"
-        )
+    # Atribuir referências enriquecidas ao JSON
+    data["fonte_referencias"] = enriched_refs
+    externas = [r for r in enriched_refs if not r.get("self")]
+    from bm_enrich_sources import domain_of
+    primaria = next(
+        (r for r in externas if "youtube.com" not in domain_of(r.get("url", ""))),
+        None,
+    ) or (externas[0] if externas else None)
+    if primaria:
+        data["fonte_veiculo"] = primaria["veiculo"]
+    print(
+        f"   📎 {len(enriched_refs)} referências registradas "
+        f"({len(externas)} fontes externas)"
+    )
 
     # Salvar JSON
     json_out.write_text(
@@ -620,7 +651,8 @@ def condense(video_id: str, force: bool = False) -> dict:
         print(f"   ⚠️  Índice de referências falhou (não bloqueia): {exc}")
 
     words = count_words_in_roteiro(data)
-    print(f"✅ Roteiro gerado: {words} palavras (~{words//150} min)")
+    est_min = words / 175.0
+    print(f"✅ Roteiro gerado: {words} palavras (~{est_min:.1f} min)")
     print(f"   JSON: {json_out}")
     print(f"   MD:   {md_out}")
 
@@ -642,7 +674,8 @@ def main():
     print(f"\n📻 Título: {data.get('titulo', '—')}")
     print(f"   Tags: {', '.join(data.get('tags', []))}")
     words = count_words_in_roteiro(data)
-    print(f"   Palavras: {words} (~{words//150} min de áudio)")
+    est_min = words / 175.0
+    print(f"   Palavras: {words} (~{est_min:.1f} min de áudio)")
 
 
 if __name__ == "__main__":

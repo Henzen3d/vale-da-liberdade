@@ -55,7 +55,10 @@ Engine: `youtube/Lower-third-engine/obs-overlay.html` via `scripts/faceless_lowe
 - Chromakey do overlay: `#00ff00` (`0x00FF00:0.10:0.22`)
 - Sempre **na frente** do avatar
 - Karaoke palavra-a-palavra: **proibido**
-- **Linha fina:** submanchete de 1 linha (`one_line_subhead`) — primeira frase da abertura, nunca o nome da fonte
+- Largura útil: **1576px** (`--lt-width`)
+- JSON obrigatório: `"titulo"` 40–65 (máx 80) + `"subtitulo"` 40–85
+- Teto visual: título ≤115 caracteres; subtítulo ≤98 e sempre um pouco mais curto que o título
+- **Linha fina:** submanchete editorial de 1 linha (`subtitulo` / `one_line_subhead`) — resumo jornalístico complementar, nunca o nome da fonte nem fala falada da abertura do roteiro
 - **Ticker:** título atual + até 6 especiais BM recentes (`ticker_headlines`). Sem URL, sem “FONTE:”
 - **Velocidade:** 55 px/s (antes 150). Grava **1 ciclo completo** do marquee e o ffmpeg loopa nesse ciclo — evita o tranco de 12 s no meio da frase
 - Animação: `translate3d` + `linear`
@@ -94,9 +97,13 @@ Não capturar YouTube, ANCAPSU, nem páginas `news.mob.tec.br/ep/`.
 | Descrição | resumo da `abertura` (≤380 caracteres, corta em frase) + linha `Ouça no app: https://news.mob.tec.br` + `Fontes:` (sem YouTube/ANCAPSU) |
 | Canal | Libertarian Life — OAuth em `credentials/token.json` |
 
+## Pacing, Cenas e Sincronização
+
+Regras detalhadas de ritmo, contagem de palavras (680–900 / 4–5 min), enriquecimento de fontes, anti-bot/cache e b-roll: ver [`docs/BM-EPISODE-PACING.md`](./BM-EPISODE-PACING.md).
+
 ## Limites do hourly
 
-- 1 vídeo/hora, janela 2 dias, áudio ≤ 480 s
+- 1 vídeo/hora, janela 2 dias, áudio ≤ 330 s (5m30s)
 - Falha de vídeo **não** derruba `process-queue`
 - Python do vídeo: `.venv` do **projeto** (Playwright)
 - Python da fila: venv do Hermes
