@@ -229,10 +229,11 @@ def _candidate_keys(env_name: str) -> list[str]:
 
 
 GEMINI_MODELS = [
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",   # primário: alta cota (500 RPD / 15 RPM), ágil e preciso
+    "gemini-3.1-flash-lite",   # secundário leve (500 RPD)
+    "gemini-3.6-flash",        # fallback alta capacidade
+    "gemini-3-flash-preview",  # fallback alternativo
+    "gemma-4-31b-it",          # fallback aberto
 ]
 OPENROUTER_MODELS = [
     "nvidia/nemotron-3-super-120b-a12b:free",
@@ -415,19 +416,23 @@ Canal: {raw['channel']}
 ---
 {raw['transcript'][:6000]}
 
-=== REGRAS DO TÍTULO (OBRIGATÓRIAS) ===
-O campo "titulo" deve ser BASEADO no título original do YouTube acima, ADAPTADO às regras abaixo (não copie verbatim; reescreva mantendo o tema central):
-- 40 a 60 caracteres; NUNCA passar de 70. Entidade/tema nas primeiras palavras.
-- Curiosidade com gap, sem prometer fato que o episódio não entrega.
-- Especificidade numérica se houver (R$, %, anos).
-- PROIBIDO acusação como fato consumado ("roubou", "farsa", "mentira", "propina", "desviou") -> use "no caso", "sob suspeita", "o escândalo de", "a polêmica de".
-- PROIBIDO alarmismo sensacionalista ("pânico", "chocante", "!!!") em tema sensível.
-- MANTENHA a formatação de maiúsculas/minúsculas do título original: palavras-chave destacadas em MAIÚSCULAS e demais em minúsculas (estilo dos títulos do YouTube deste canal). Não force tudo em minúsculas nem tudo em MAIÚSCULAS — preserve o contraste do original (ex.: "Xandão Ancap? Como o STF Sem Querer Derrotou a Arrecadação da Reforma Tributária").
-- Português do Brasil, voz ativa.
+=== REGRAS DO TÍTULO E SUBTÍTULO (OBRIGATÓRIAS) ===
+1. TÍTULO ("titulo"): Deve ser BASEADO no título original do YouTube acima, ADAPTADO às regras:
+   - 40 a 65 caracteres; NUNCA passar de 80. Entidade/tema nas primeiras palavras.
+   - Curiosidade com gap, sem prometer fato que o episódio não entrega.
+   - Especificidade numérica se houver (R$, %, anos).
+   - PROIBIDO acusação como fato consumado ("roubou", "farsa", "mentira", "propina", "desviou") -> use "no caso", "sob suspeita", "o escândalo de", "a polêmica de".
+   - PROIBIDO alarmismo sensacionalista ("pânico", "chocante", "!!!") em tema sensível.
+   - MANTENHA a formatação de maiúsculas/minúsculas do título original: palavras-chave destacadas em MAIÚSCULAS e demais em minúsculas (estilo dos títulos do YouTube deste canal).
+2. SUBTÍTULO / LINHA FINA ("subtitulo"):
+   - Submanchete jornalística de 1 linha (40 a 85 caracteres).
+   - Resumo claro e factual do núcleo da notícia que complementa o título.
+   - NUNCA coloque falas de abertura, saudações ("Fala pessoal", "Olá") nem o texto que o apresentador vai narrar. Trata-se da linha fina editorial do Lower Third.
 
 === FORMATO DE SAÍDA (JSON) ===
 {{
   "titulo": "Título adaptado do original conforme as regras acima",
+  "subtitulo": "Submanchete jornalística concisa de 1 linha complementando o título",
   "fonte_url": "{raw['url']}",
   "fonte_canal": "{raw['channel']}",
   "fonte_veiculo": "{raw.get('source_names', [''])[0] if raw.get('source_names') else ''}",

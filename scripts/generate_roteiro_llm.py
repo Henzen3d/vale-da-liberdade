@@ -103,11 +103,11 @@ OPENROUTER_MODELS = [
 ]
 
 GEMINI_MODELS = [
-    "gemini-3.6-flash",        # primário: melhor qualidade (2 RPD na chave AI Studio)
-    "gemini-3.5-flash",        # fallback capaz
-    "gemini-3.5-flash-lite",   # barato/alta velocidade (2 RPD)
-    "gemini-3.1-flash-lite",   # backup leve (0/15 RPM)
-    "gemma-4-31b-it",          # backup aberto (0/30 RPM)
+    "gemini-3.6-flash",        # primário: melhor qualidade editorial e nuance
+    "gemini-3-flash-preview",  # fallback capaz e rápido
+    "gemini-3.5-flash-lite",   # alta velocidade / 500 RPD
+    "gemini-3.1-flash-lite",   # backup leve (15 RPM / 500 RPD)
+    "gemma-4-31b-it",          # backup aberto (30 RPM / alta cota)
 ]
 
 

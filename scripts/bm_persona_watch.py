@@ -105,7 +105,7 @@ def _call_gemini_lite(prompt: str) -> str:
         raise RuntimeError("GEMINI_API_KEY ausente")
     from gemini_client import GeminiClient, GeminiMultiClient
     client = GeminiMultiClient(keys) if len(keys) > 1 else GeminiClient(api_key=keys[0])
-    for model in ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash"]:
+    for model in ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3-flash-preview", "gemma-4-31b-it"]:
         try:
             resp = client.generate_content(
                 model=model,

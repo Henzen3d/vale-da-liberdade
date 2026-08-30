@@ -231,11 +231,11 @@ def _candidate_keys(env_name: str) -> list[str]:
 
 
 GEMINI_MODELS = [
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemma-4-31b-it",
+    "gemini-3.5-flash-lite",   # primário: 500 RPD / 15 RPM, rápido e ideal para títulos curtos
+    "gemini-3.1-flash-lite",   # secundário: 500 RPD
+    "gemini-3.6-flash",        # fallback alta capacidade
+    "gemini-3-flash-preview",  # fallback alternativo
+    "gemma-4-31b-it",          # backup aberto
 ]
 OPENROUTER_MODELS = [
     "nvidia/nemotron-3-super-120b-a12b:free",

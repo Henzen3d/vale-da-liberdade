@@ -184,7 +184,7 @@ def _gemini_client():
 def _gemini_text(prompt: str) -> str:
     client = _gemini_client()
     last = None
-    for model in ("gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"):
+    for model in ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-3-flash-preview", "gemma-4-31b-it"):
         try:
             resp = client.generate_content(model, prompt)
             text = (getattr(resp, "text", None) or "").strip()
