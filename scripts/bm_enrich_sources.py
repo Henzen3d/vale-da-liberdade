@@ -22,6 +22,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +38,11 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 SOURCES_JSON_PATH = PROJECT_ROOT / "sources" / "sources.json"
 SITE_URL = os.environ.get("SITE_URL", "https://news.mob.tec.br").rstrip("/")
+
+# Idade máxima de item de RSS aceito como fonte de uma pauta atual.
+RSS_MAX_AGE_DAYS = int(os.environ.get("BM_RSS_MAX_AGE_DAYS", "7"))
+# Mínimo de palavras-chave discriminantes em comum para casar uma matéria.
+RSS_MIN_KEYWORD_HITS = int(os.environ.get("BM_RSS_MIN_KEYWORD_HITS", "2"))
 
 BLOCKED_DOMAINS = (
     "youtube.com",
@@ -143,16 +150,75 @@ def site_referencias(video_id: str) -> list[dict]:
     ]
 
 
+# Verbos/termos jornalísticos genéricos: aparecem em QUALQUER manchete e não
+# identificam pauta. Casar por eles produzia fontes totalmente fora do tema
+# (ex.: "mostra" casando "Levantamento do G1 mostra variação de preço...").
+GENERIC_TITLE_WORDS = {
+    "mostra", "mostram", "aguarda", "aguardam", "aponta", "apontam", "revela",
+    "revelam", "afirma", "afirmam", "declara", "diz", "dizem", "confira",
+    "veja", "saiba", "entenda", "assista", "anuncia", "anuncia", "anunciam",
+    "temem", "teme", "quer", "querem", "pode", "podem", "deve", "devem",
+    "após", "apos", "ainda", "assim", "outro", "outra", "outros", "outras",
+    "primeiro", "primeira", "última", "ultima", "último", "ultimo", "grande",
+    "melhor", "pior", "hoje", "ontem", "amanhã", "amanha", "ano", "anos",
+    "dias", "meses", "vezes", "caso", "casos", "gente", "coisa", "coisas",
+    "tudo", "nada", "pessoa", "pessoas", "parte", "forma", "fazer", "faz",
+}
+
+# Stopwords estruturais (preposições, dêiticos, termos do próprio canal).
+_STRUCTURAL_STOPS = {
+    "para", "com", "por", "que", "como", "mais", "sobre", "este", "esta",
+    "canal", "vídeo", "video", "especial", "brasil", "mundo", "pelo", "pela",
+    "entre", "depois", "antes", "contra", "agora", "quando", "muito", "novo",
+    "nova", "todos", "todas", "qual", "quais", "onde", "quem", "isso", "aquilo",
+}
+
+
 def extract_keywords_from_title(title: str) -> list[str]:
     """Extrai palavras-chave relevantes (>3 caracteres, sem stopwords)."""
-    stops = {
-        "para", "com", "por", "que", "como", "mais", "sobre", "este", "esta",
-        "canal", "vídeo", "video", "especial", "brasil", "mundo", "pelo", "pela",
-        "entre", "depois", "antes", "contra", "agora", "quando", "muito", "novo",
-        "nova", "todos", "todas", "qual", "quais", "onde", "quem", "isso", "aquilo",
-    }
     words = re.findall(r"\b[a-zA-ZáéíóúÁÉÍÓÚâêîôûÂÊÎÔÛãõÃÕçÇ0-9]{4,}\b", title.lower())
-    return [w for w in words if w not in stops]
+    return [w for w in words if w not in _STRUCTURAL_STOPS]
+
+
+def strong_keywords_from_title(title: str) -> list[str]:
+    """Só palavras-chave discriminantes: fora stopwords E verbos genéricos.
+
+    São essas que caracterizam a pauta (nomes próprios, siglas, temas).
+    """
+    return [w for w in extract_keywords_from_title(title) if w not in GENERIC_TITLE_WORDS]
+
+
+def _rss_item_is_recent(item: "ET.Element", max_age_days: int = RSS_MAX_AGE_DAYS) -> bool:
+    """Rejeita item de RSS sem data ou publicado há mais de `max_age_days`.
+
+    Feeds regionais do G1 devolviam matérias de 2018 no mesmo XML; sem esse
+    filtro elas entravam como 'fonte' de uma pauta de 2026.
+    """
+    raw_date = ""
+    for tag in ("pubDate", "{http://www.w3.org/2005/Atom}updated",
+                "{http://www.w3.org/2005/Atom}published",
+                "{http://purl.org/dc/elements/1.1/}date"):
+        el = item.find(tag)
+        if el is not None and (el.text or "").strip():
+            raw_date = el.text.strip()
+            break
+    if not raw_date:
+        return False  # sem data confiável => não usa
+
+    dt = None
+    try:
+        dt = parsedate_to_datetime(raw_date)
+    except Exception:  # noqa: BLE001
+        try:
+            dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+        except Exception:  # noqa: BLE001
+            return False
+    if dt is None:
+        return False
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    age = datetime.now(timezone.utc) - dt
+    return age <= timedelta(days=max_age_days)
 
 
 def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
@@ -164,8 +230,9 @@ def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
     except Exception:
         return []
 
-    keywords = extract_keywords_from_title(title)
-    if not keywords:
+    keywords = strong_keywords_from_title(title)
+    if len(keywords) < RSS_MIN_KEYWORD_HITS:
+        # Sem termos discriminantes suficientes, qualquer match seria ruído.
         return []
 
     results: list[dict] = []
@@ -205,9 +272,14 @@ def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
                 if not item_url or item_url in seen_urls or is_blocked_source(item_url):
                     continue
 
-                # Match de pelo menos uma keyword forte no título da notícia
+                # Rejeita matéria antiga (feeds regionais devolvem arquivo de anos atrás)
+                if not _rss_item_is_recent(item):
+                    continue
+
+                # Exige >= RSS_MIN_KEYWORD_HITS palavras discriminantes em comum.
                 title_low = item_title.lower()
-                if any(kw in title_low for kw in keywords):
+                hits = [kw for kw in keywords if kw in title_low]
+                if len(hits) >= RSS_MIN_KEYWORD_HITS:
                     seen_urls.add(item_url)
                     results.append({
                         "veiculo": src.get("name") or veiculo_from_url(item_url),

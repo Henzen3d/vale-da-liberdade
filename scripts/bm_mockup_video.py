@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import html as _html
 import json
+import os
 import random
 import re
 import shutil
@@ -49,6 +50,12 @@ AVATAR_CROP = "910:720:54:0"
 AVATAR_SCALE = "546:432"
 AVATAR_OVERLAY = "0:H-h+38"
 APP_URL = "https://news.mob.tec.br"
+
+# Screenshot com desvio padrão de luminância abaixo disso é considerada em
+# branco/preto (página não renderizou, login-wall) e a cena é descartada.
+BLANK_SHOT_STDDEV = float(os.environ.get("BM_BLANK_SHOT_STDDEV", "6.0"))
+# Tamanho mínimo do PNG para valer como captura real.
+MIN_SHOT_BYTES = int(os.environ.get("BM_MIN_SHOT_BYTES", "20000"))
 EPS_DIR = ROOT / "output" / "brasil_e_mundo" / "episodes"
 AUDIO_DIR = ROOT / "output" / "brasil_e_mundo" / "audio"
 VIDEOS_OUT = ROOT / "output" / "videos"
@@ -804,6 +811,25 @@ def start_server(directories: list[Path]) -> tuple[ThreadingHTTPServer, int]:
     return httpd, port
 
 
+def _shot_looks_blank(path: Path) -> bool:
+    """True se a screenshot for praticamente uniforme (página vazia/erro).
+
+    Capturas de login-wall ou de página que não renderizou saem como um
+    retângulo liso (branco ou preto). Elas viravam cena de 8s+ com o browser
+    mostrando nada. Usa desvio padrão da luminância como sinal.
+    """
+    try:
+        from PIL import Image, ImageStat
+    except Exception:  # noqa: BLE001
+        return False
+    try:
+        with Image.open(path) as im:
+            stat = ImageStat.Stat(im.convert("L"))
+            return (stat.stddev[0] if stat.stddev else 0.0) < BLANK_SHOT_STDDEV
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     from playwright.sync_api import sync_playwright
 
@@ -819,6 +845,15 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
         if cached:
             try:
                 shutil.copy2(cached, dest)
+                if dest.stat().st_size < MIN_SHOT_BYTES or _shot_looks_blank(dest):
+                    print(f"  🚫 [cache] {scene['veiculo']}: captura em branco — invalidando cache")
+                    try:
+                        cached.unlink()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    dest.unlink(missing_ok=True)
+                    to_fetch.append((i, scene, dest))
+                    continue
                 item = dict(scene)
                 item["shot"] = dest.name
                 item["video"] = None
@@ -889,13 +924,15 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 except Exception:
                     pass
                 page.screenshot(path=str(dest), full_page=False)
-                if dest.exists() and dest.stat().st_size > 8000:
+                if dest.exists() and dest.stat().st_size > MIN_SHOT_BYTES and not _shot_looks_blank(dest):
                     save_cached_screenshot(url, dest)
                     item = dict(scene)
                     item["shot"] = dest.name
                     out.append(item)
                     print(f"  📸 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
                     continue
+                print(f"  🚫 {scene['veiculo']}: screenshot em branco/pequena — cena descartada")
+                dest.unlink(missing_ok=True)
             except Exception as exc:
                 print(f"  ⚠️  captura falhou / skip:blocked {url}: {exc}")
             item = dict(scene)
@@ -1258,9 +1295,27 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dic
     shots.mkdir(parents=True, exist_ok=True)
     captured = capture_sources(scenes, shots) if scenes else []
 
-    # Recalcula timeline com as screenshots gravadas
-    timeline_beats = build_scene_timeline(episode, dur, captured or scenes, BROLL_INDEX)
-    raw = record_mockup(video_id, episode, audio, captured or scenes, work, wallpaper=wallpaper, timeline_beats=timeline_beats)
+    # Descarta cenas mortas: captura falhou (sem screenshot E sem vídeo).
+    # Sem esse filtro elas continuavam ocupando 8s+ da timeline exibindo o
+    # browser vazio — era o "frame preto/escuro travado" reportado.
+    usable = [c for c in captured if c.get("shot") or c.get("video")]
+    dropped = len(captured) - len(usable)
+    if dropped:
+        for c in captured:
+            if not (c.get("shot") or c.get("video")):
+                print(f"  🚫 cena descartada (captura falhou): {c.get('veiculo')} · {c.get('url')}")
+    if not usable:
+        usable = [{
+            "veiculo": episode.get("fonte_veiculo") or "Vale da Liberdade",
+            "url": APP_URL,
+            "titulo": episode.get("titulo") or "",
+            "shot": None,
+            "video": None,
+        }]
+
+    # Recalcula timeline só com as cenas que têm imagem/vídeo de verdade
+    timeline_beats = build_scene_timeline(episode, dur, usable, BROLL_INDEX)
+    raw = record_mockup(video_id, episode, audio, usable, work, wallpaper=wallpaper, timeline_beats=timeline_beats)
     mp4 = VIDEOS_OUT / f"especial-{video_id}-mockup.mp4"
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
