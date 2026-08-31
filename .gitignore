@@ -102,3 +102,18 @@ credentials/
 output/brasil_e_mundo/capture-cache/
 references/youtube/broll/*.mp4
 references/youtube/end-bumper/*.mp4
+
+# ---- Conteúdo gerado pelo publish/pipeline (2026-08-31) ----
+# Fonte de verdade = scripts/ + output/. Estes são regenerados a cada run
+# e poluíam o histórico. Deploy é via wrangler/R2, não via git do public/.
+public/data/
+public/episodes/
+public/feed.xml
+public/feed.json
+public/feed-brasil-e-mundo.xml
+episodes/
+sources/cache.json
+archive/index.md
+# Workspaces/experimentos locais
+moss-tts-nano/
+thumbnail-generetor/
