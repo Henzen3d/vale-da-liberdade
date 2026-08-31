@@ -88,6 +88,11 @@ def load_raw(video_id: str) -> dict:
 
 SITE_URL = os.environ.get("SITE_URL", "https://news.mob.tec.br").rstrip("/")
 
+# Quanto da transcrição enviamos ao modelo. 6000 chars cortava transcrições de
+# 1900–2700 palavras (~11–16k chars) pela metade, deixando o modelo com pouco
+# material — principal causa dos roteiros abaixo do piso.
+TRANSCRIPT_CHARS = int(os.environ.get("BM_TRANSCRIPT_CHARS", "16000"))
+
 
 def _site_referencias(video_id: str) -> list[dict]:
     """Links do PRÓPRIO site: página do episódio + matéria transcrita."""
@@ -399,8 +404,8 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4 a 5 
 === REGRAS DO QUADRO BRASIL E MUNDO (seguir ESTRITAMENTE) ===
 1. APENAS Peter fala. SEM menção ao Ricardo. SEM diálogos. SEM turnos de fala.
 2. SEM divisão em seções (segurança/saúde/educação/política/mundo). Comentário único e corrido.
-3. META DE PALAVRAS: {target} palavras (piso {min_words}, máximo {max_words}).
-   Não invente fatos. Se a transcrição for curta, use o briefing de matérias extras para aprofundar a análise com contexto, antecedentes e fatos verificáveis. Meta {target} palavras ({min_words}–{max_words}).
+3. META DE PALAVRAS: MIRE em {target} palavras (piso OBRIGATÓRIO {min_words}, máximo {max_words}). O roteiro NÃO pode ficar abaixo de {min_words} palavras — é regra rígida. Some abertura+desenvolvimento+fechamento e confira antes de responder.
+   Não invente fatos. Se a transcrição for curta, use o briefing de matérias extras e os antecedentes para aprofundar a análise com contexto e fatos verificáveis até atingir a meta. NUNCA entregue menos de {min_words} palavras.
 4. Extrair: tese central + 2-4 argumentos fortes + desdobramentos factuais + gancho final.
 5. Descartar: repetições, digressões, enrolação vazia.
 6. Preservar naturalidade do apresentador original, mas na VOZ do Peter.
@@ -419,7 +424,7 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4 a 5 
 Título original no YouTube: {raw['title']}
 Canal: {raw['channel']}
 ---
-{raw['transcript'][:6000]}
+{raw['transcript'][:TRANSCRIPT_CHARS]}
 
 === REGRAS DO TÍTULO E SUBTÍTULO (OBRIGATÓRIAS) ===
 1. TÍTULO ("titulo"): Deve ser BASEADO no título original do YouTube acima, ADAPTADO às regras:
@@ -576,20 +581,32 @@ def condense(video_id: str, force: bool = False) -> dict:
                 print(f"  Após corte: {words} palavras")
 
             elif words < min_words:
-                underage = target - words
-                print(f"  ⚠️  {words} palavras (mínimo {min_words}). Pedindo aprofundamento factual de ~{underage} palavras...")
-                expand_prompt = (
-                    f"O roteiro abaixo tem {words} palavras, mas a meta mínima é {min_words} palavras (alvo {target}).\n"
-                    f"Aprofunde a análise jornalística e os argumentos desenvolvendo mais os pontos e explorando os fatos das fontes extras, sem enrolação ou repetições.\n"
-                    f"Retorne APENAS o JSON completo atualizado.\n\n"
-                    f"JSON atual:\n{json.dumps(data, ensure_ascii=False)}"
-                )
-                if sources_briefing:
-                    expand_prompt += f"\n\n{sources_briefing}"
-                response_text = _call_llm(expand_prompt)
-                data = extract_json(response_text)
-                words = count_words_in_roteiro(data)
-                print(f"  Após aprofundamento: {words} palavras")
+                # Loop de expansão: até 2 passes, cada um pedindo um alvo
+                # concreto de palavras por bloco (não só "aprofunde").
+                for expand_pass in range(1, 3):
+                    if words >= min_words:
+                        break
+                    underage = target - words
+                    print(f"  ⚠️  {words} palavras (mínimo {min_words}). Expansão {expand_pass}/2: +~{underage} palavras factuais...")
+                    expand_prompt = (
+                        f"O roteiro JSON abaixo tem apenas {words} palavras somando abertura+desenvolvimento+fechamento, "
+                        f"mas a meta é {target} palavras (piso {min_words}, teto {max_words}).\n"
+                        f"AUMENTE em ~{underage} palavras SEM enrolação e SEM repetir frases:\n"
+                        f"- Acrescente 2 a 4 novas falas ao 'desenvolvimento' com contexto, antecedentes, "
+                        f"dados e desdobramentos factuais retirados da transcrição e das FONTES EXTRA.\n"
+                        f"- Aprofunde os argumentos existentes com um fato ou número a mais cada.\n"
+                        f"- Mantenha a persona do Peter (anarcocapitalista, irônico), o 'speaker':'Peter' e o mesmo formato JSON.\n"
+                        f"- NÃO invente fatos; use o material disponível.\n"
+                        f"Retorne APENAS o JSON completo atualizado.\n\n"
+                        f"JSON atual:\n{json.dumps(data, ensure_ascii=False)}"
+                    )
+                    if sources_briefing:
+                        expand_prompt += f"\n\n{sources_briefing}"
+                    expand_prompt += f"\n\n=== TRANSCRIÇÃO ORIGINAL (para extrair mais fatos) ===\n{raw['transcript'][:TRANSCRIPT_CHARS]}"
+                    response_text = _call_llm(expand_prompt)
+                    data = extract_json(response_text)
+                    words = count_words_in_roteiro(data)
+                    print(f"  Após expansão {expand_pass}: {words} palavras")
                 if words < min_words:
                     print(f"  ⚠️  GATE duração: {words} palavras < {min_words} — áudio gerado, mas vídeo será pulado")
                     data["_skip_video_reason"] = f"duração insuficiente: {words} palavras < {min_words}"
