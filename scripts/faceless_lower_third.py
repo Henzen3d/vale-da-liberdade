@@ -27,13 +27,13 @@ def clip_payload(
 ) -> dict:
     veiculo = (clip.get("veiculo") or host_of(clip.get("url") or "") or "FONTE").strip()
     host = host_of(clip.get("url") or "")
-    title = (clip.get("line") or episode_title or clip.get("quadro") or "").strip()
-    if len(title) > 88:
-        title = title[:85].rstrip() + "…"
+    title = (clip.get("line") or clip.get("titulo") or episode_title or clip.get("quadro") or "").strip()
+    if len(title) > 115:
+        title = title[:112].rstrip() + "…"
     bm = kind != "daily"
-    sub = (subtitle or clip.get("subhead") or clip.get("resumo") or "").strip()
-    if len(sub) > 88:
-        sub = sub[:85].rstrip() + "…"
+    sub = (subtitle or clip.get("subhead") or clip.get("subtitulo") or clip.get("submanchete") or clip.get("linha_fina") or clip.get("resumo") or "").strip()
+    if len(sub) > 98:
+        sub = sub[:95].rstrip() + "…"
     if isinstance(ticker, list):
         ticker_s = " | ".join(t.strip() for t in ticker if t and str(t).strip())
     elif ticker:
