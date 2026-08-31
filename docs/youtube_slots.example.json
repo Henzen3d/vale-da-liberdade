@@ -1,0 +1,21 @@
+{
+  "_comment": "Modelo de credentials/youtube_slots.json (o arquivo real é gitignored porque cita client_ids e contas). Ordem = prioridade: o uploader gasta o slot 1 até quase 10.000 unidades no dia (fuso America/Los_Angeles, reset à meia-noite PT) e só então passa para o próximo. Cada slot é um projeto Google Cloud distinto, com seu próprio client OAuth Desktop, mas TODOS precisam autorizar o MESMO canal. Confira com: youtube_uploader.py whoami-all. Autorizar um slot novo: youtube_uploader.py auth --slot slotN.",
+  "slots": [
+    {
+      "name": "slot1",
+      "client_secret": "client_secret.json",
+      "token": "token.json",
+      "project": "<projeto-google-cloud-1>",
+      "client_id": "<client-id-1>.apps.googleusercontent.com",
+      "account": "<email-dono-do-canal>"
+    },
+    {
+      "name": "slot2",
+      "client_secret": "client_secret.slot2.json",
+      "token": "token.slot2.json",
+      "project": "<projeto-google-cloud-2>",
+      "client_id": "<client-id-2>.apps.googleusercontent.com",
+      "account": "<email-da-segunda-conta>"
+    }
+  ]
+}

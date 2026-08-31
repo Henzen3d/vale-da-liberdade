@@ -26,6 +26,8 @@ from youtube_channel_policy import (
     recording_date_iso,
     video_resource_body,
 )
+import youtube_quota as yq
+from youtube_quota import QuotaExhausted
 
 ROOT = Path(__file__).resolve().parent.parent
 CRED_DIR = ROOT / "credentials"
@@ -40,12 +42,13 @@ SCOPES = [
 TZ = ZoneInfo("America/Sao_Paulo")
 
 
-def _flow():
+def _flow(slot: dict):
     from google_auth_oauthlib.flow import InstalledAppFlow
-    if not CLIENT_SECRET.exists():
-        raise SystemExit(f"❌ falta {CLIENT_SECRET}")
-    data = json.loads(CLIENT_SECRET.read_text(encoding="utf-8"))
-    flow = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), scopes=SCOPES)
+    secret = yq.client_secret_path(slot)
+    if not secret.exists():
+        raise SystemExit(f"❌ falta {secret}")
+    data = json.loads(secret.read_text(encoding="utf-8"))
+    flow = InstalledAppFlow.from_client_secrets_file(str(secret), scopes=SCOPES)
     try:
         flow.redirect_uri = data["installed"]["redirect_uris"][0]
     except Exception:
@@ -53,56 +56,154 @@ def _flow():
     return flow
 
 
-def cmd_auth(code: str | None) -> int:
+def _oauth_state_path(slot: dict) -> Path:
+    if slot["name"] == "slot1":
+        return OAUTH_STATE
+    return CRED_DIR / f"oauth_state.{slot['name']}.json"
+
+
+def cmd_auth(code: str | None, slot_name: str = "slot1") -> int:
     CRED_DIR.mkdir(parents=True, exist_ok=True)
-    flow = _flow()
+    slot = yq.slot_by_name(slot_name)
+    state_path = _oauth_state_path(slot)
+    flow = _flow(slot)
     if not code:
         url, _ = flow.authorization_url(access_type="offline", prompt="consent", include_granted_scopes="true")
         verifier = getattr(flow, "code_verifier", None)
-        OAUTH_STATE.write_text(json.dumps({"code_verifier": verifier}), encoding="utf-8")
-        OAUTH_STATE.chmod(0o600)
-        print("Abra esta URL na conta DONA do canal e autorize:")
+        state_path.write_text(json.dumps({"code_verifier": verifier}), encoding="utf-8")
+        state_path.chmod(0o600)
+        print(f"slot: {slot['name']}  projeto: {slot.get('project', '?')}")
+        print("Abra esta URL na conta DONA do canal (Vale da Liberdade) e autorize:")
         print(url)
-        print("Depois rode: youtube_uploader.py auth --code \"<url-ou-codigo>\"")
+        print(f'Depois rode: youtube_uploader.py auth --slot {slot["name"]} --code "<url-ou-codigo>"')
         return 0
     m = re.search(r"[?&]code=([^&]+)", code)
     if m:
         code = m.group(1)
-    if OAUTH_STATE.exists():
-        flow.code_verifier = json.loads(OAUTH_STATE.read_text(encoding="utf-8")).get("code_verifier")
+    if state_path.exists():
+        flow.code_verifier = json.loads(state_path.read_text(encoding="utf-8")).get("code_verifier")
     flow.fetch_token(code=code)
-    TOKEN_PATH.write_text(flow.credentials.to_json(), encoding="utf-8")
-    TOKEN_PATH.chmod(0o600)
-    print("✅ token salvo")
+    token_file = yq.token_path(slot)
+    token_file.write_text(flow.credentials.to_json(), encoding="utf-8")
+    token_file.chmod(0o600)
+    print(f"✅ token salvo em {token_file.name} (slot {slot['name']})")
     return 0
 
 
-def _creds():
+# Slot em uso na chamada corrente. Definido por run_with_slots().
+_ACTIVE_SLOT: dict | None = None
+
+
+def _active_slot() -> dict:
+    global _ACTIVE_SLOT
+    if _ACTIVE_SLOT is None:
+        usable = [s for s in yq.load_slots() if yq.token_path(s).exists()]
+        if not usable:
+            raise SystemExit("❌ nenhum slot autorizado — rode auth primeiro")
+        _ACTIVE_SLOT = usable[0]
+    return _ACTIVE_SLOT
+
+
+def _creds(slot: dict | None = None):
     from google.oauth2.credentials import Credentials
     from google.auth.transport.requests import Request
-    if not TOKEN_PATH.exists():
-        raise SystemExit("❌ sem token.json — rode auth primeiro")
-    creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+    slot = slot or _active_slot()
+    token_file = yq.token_path(slot)
+    if not token_file.exists():
+        raise SystemExit(f"❌ sem {token_file.name} — rode auth --slot {slot['name']} primeiro")
+    creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
     if creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
-        TOKEN_PATH.write_text(creds.to_json(), encoding="utf-8")
+        token_file.write_text(creds.to_json(), encoding="utf-8")
     return creds
 
 
-def _yt():
+def _yt(slot: dict | None = None):
     from googleapiclient.discovery import build
-    return build("youtube", "v3", credentials=_creds())
+    slot = slot or _active_slot()
+    service = build("youtube", "v3", credentials=_creds(slot))
+    return yq.ChargedResource(service, slot["name"])
+
+
+def run_with_slots(op: str, fn):
+    """Executa fn() no primeiro slot com folga; troca de slot se a quota estourar.
+
+    Gasta um slot até quase o limite diário antes de passar ao seguinte — a
+    escolha é por folga estimada (OP_COST) e, no erro 403 quotaExceeded do
+    Google, o slot é marcado como esgotado e a operação é repetida no próximo.
+    """
+    global _ACTIVE_SLOT
+    need = yq.OP_COST.get(op, 100)
+    candidates = [s for s in yq.pick_slots(need) if yq.token_path(s).exists()]
+    if not candidates:
+        authed = [s for s in yq.load_slots() if yq.token_path(s).exists()]
+        if not authed:
+            raise SystemExit("❌ nenhum slot autorizado — rode auth primeiro")
+        raise SystemExit("❌ todos os slots autorizados estão sem quota hoje (reset à meia-noite PT)")
+    last: Exception | None = None
+    for slot in candidates:
+        _ACTIVE_SLOT = slot
+        if len(candidates) > 1 or slot["name"] != "slot1":
+            print(f"[quota] slot={slot['name']} usado={yq.used(slot['name'])}/{yq.DAILY_LIMIT}", file=sys.stderr)
+        try:
+            return fn()
+        except QuotaExhausted as exc:
+            last = exc
+            print(f"[quota] {exc} — tentando próximo slot", file=sys.stderr)
+            continue
+    raise SystemExit(f"❌ quota esgotada em todos os slots: {last}")
 
 
 def cmd_whoami() -> int:
-    yt = _yt()
-    resp = yt.channels().list(part="snippet,statistics", mine=True).execute()
-    items = resp.get("items") or []
-    if not items:
-        print("canal vazio — a conta autorizada não é dona de canal")
-        return 1
-    sn = items[0]["snippet"]
-    print(f"{sn.get('title')}  id={items[0]['id']}")
+    def _run() -> int:
+        yt = _yt()
+        resp = yt.channels().list(part="snippet,statistics", mine=True).execute()
+        items = resp.get("items") or []
+        if not items:
+            print("canal vazio — a conta autorizada não é dona de canal")
+            return 1
+        sn = items[0]["snippet"]
+        print(f"slot: {_active_slot()['name']}")
+        print(f"{sn.get('title')}  id={items[0]['id']}")
+        return 0
+
+    return run_with_slots("whoami", _run)
+
+
+def cmd_whoami_all() -> int:
+    """Mostra o canal de cada slot autorizado — checa que apontam ao mesmo canal."""
+    global _ACTIVE_SLOT
+    rc = 0
+    ids: set[str] = set()
+    for slot in yq.load_slots():
+        token = yq.token_path(slot)
+        if not token.exists():
+            print(f"{slot['name']:6s} sem token ({token.name}) — rode auth --slot {slot['name']}")
+            rc = 1
+            continue
+        _ACTIVE_SLOT = slot
+        try:
+            resp = _yt(slot).channels().list(part="snippet", mine=True).execute()
+            items = resp.get("items") or []
+            if not items:
+                print(f"{slot['name']:6s} conta sem canal")
+                rc = 1
+                continue
+            cid = items[0]["id"]
+            ids.add(cid)
+            print(f"{slot['name']:6s} {items[0]['snippet'].get('title')}  id={cid}  proj={slot.get('project')}")
+        except Exception as exc:  # noqa: BLE001 — diagnóstico
+            print(f"{slot['name']:6s} ERRO: {exc}")
+            rc = 1
+    if len(ids) > 1:
+        print("⚠️  slots apontam para canais DIFERENTES:", ", ".join(sorted(ids)))
+        rc = 1
+    return rc
+
+
+def cmd_quota() -> int:
+    for line in yq.status_lines():
+        print(line)
     return 0
 
 
@@ -223,6 +324,21 @@ def cmd_upload(
     default_lang: str = "pt-BR",
     kind: str = "news",
 ) -> int:
+    return run_with_slots(
+        "upload",
+        lambda: _do_upload(path, title, description, tags, privacy, default_lang, kind),
+    )
+
+
+def _do_upload(
+    path: str,
+    title: str,
+    description: str,
+    tags: str,
+    privacy: str,
+    default_lang: str = "pt-BR",
+    kind: str = "news",
+) -> int:
     from googleapiclient.http import MediaFileUpload
     from googleapiclient.errors import HttpError
 
@@ -269,6 +385,10 @@ def cmd_upload(
 
 
 def cmd_apply_policy(video_id: str, kind: str = "news") -> int:
+    return run_with_slots("apply-policy", lambda: _do_apply_policy(video_id, kind))
+
+
+def _do_apply_policy(video_id: str, kind: str = "news") -> int:
     yt = _yt()
     info = apply_channel_policy(yt, video_id, kind=kind)
     print(f"ID: {info['id']}")
@@ -286,6 +406,10 @@ def cmd_apply_policy(video_id: str, kind: str = "news") -> int:
 
 
 def cmd_thumbnail(video_id: str, image: str) -> int:
+    return run_with_slots("thumbnail", lambda: _do_thumbnail(video_id, image))
+
+
+def _do_thumbnail(video_id: str, image: str) -> int:
     from googleapiclient.http import MediaFileUpload
     yt = _yt()
     media = MediaFileUpload(image)
@@ -341,15 +465,21 @@ def set_english_localization(video_id: str, title_en: str, description_en: str) 
 
 
 def cmd_captions(video_id: str, srt: str, language: str, name: str) -> int:
-    upload_caption(video_id, srt, language, name)
-    print(f"caption OK {language}")
-    return 0
+    def _run() -> int:
+        upload_caption(video_id, srt, language, name)
+        print(f"caption OK {language}")
+        return 0
+
+    return run_with_slots("captions", _run)
 
 
 def cmd_localize_en(video_id: str, title: str, description: str) -> int:
-    set_english_localization(video_id, title, description)
-    print("localization en OK")
-    return 0
+    def _run() -> int:
+        set_english_localization(video_id, title, description)
+        print("localization en OK")
+        return 0
+
+    return run_with_slots("localize-en", _run)
 
 
 def post_channel_comment(video_id: str, text: str) -> str:
@@ -373,10 +503,13 @@ def cmd_comment(video_id: str, text: str) -> int:
     if not text.strip():
         print("❌ texto do comentário vazio", file=sys.stderr)
         return 2
-    tid = post_channel_comment(video_id, text)
-    print(f"comment OK id={tid}")
-    print("ℹ️  fixar/destacar é manual no YouTube Studio (API v3 não suporta pin)")
-    return 0
+    def _run() -> int:
+        tid = post_channel_comment(video_id, text)
+        print(f"comment OK id={tid}")
+        print("ℹ️  fixar/destacar é manual no YouTube Studio (API v3 não suporta pin)")
+        return 0
+
+    return run_with_slots("comment", _run)
 
 
 def main() -> int:
@@ -384,7 +517,10 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("auth")
     a.add_argument("--code", default=None)
+    a.add_argument("--slot", default="slot1", help="slot de credencial (ver credentials/youtube_slots.json)")
     sub.add_parser("whoami")
+    sub.add_parser("whoami-all")
+    sub.add_parser("quota")
     u = sub.add_parser("upload")
     u.add_argument("--file", required=True)
     u.add_argument("--title", required=True)
@@ -413,9 +549,13 @@ def main() -> int:
     cm.add_argument("--text", required=True)
     args = ap.parse_args()
     if args.cmd == "auth":
-        return cmd_auth(args.code)
+        return cmd_auth(args.code, args.slot)
     if args.cmd == "whoami":
         return cmd_whoami()
+    if args.cmd == "whoami-all":
+        return cmd_whoami_all()
+    if args.cmd == "quota":
+        return cmd_quota()
     if args.cmd == "upload":
         return cmd_upload(
             args.file, args.title, args.description, args.tags, args.privacy, args.default_lang, args.kind
