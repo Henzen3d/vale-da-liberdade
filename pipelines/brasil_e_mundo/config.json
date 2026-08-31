@@ -9,7 +9,7 @@
   ],
   "poll_interval_minutes": 60,
   "target_word_count": 820,
-  "min_word_count": 680,
+  "min_word_count": 750,
   "max_word_count": 900,
   "min_video_duration_s": 180,
   "max_video_duration_s": 3600,

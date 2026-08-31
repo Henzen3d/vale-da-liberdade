@@ -24,8 +24,31 @@ from bm_mockup_video import (
     pick_wallpaper,
     source_scenes,
     ticker_headlines,
+    x_tweet_id,
 )
 from bm_scene_timeline import SceneBeat
+
+
+class XEmbedTests(unittest.TestCase):
+    def test_extracts_status_id_from_x_and_twitter(self):
+        self.assertEqual(
+            x_tweet_id("https://x.com/Maxcardoso/status/2094447494700626073"),
+            "2094447494700626073",
+        )
+        self.assertEqual(
+            x_tweet_id("https://twitter.com/mendlowicz/status/2094426086977253770"),
+            "2094426086977253770",
+        )
+        self.assertEqual(
+            x_tweet_id("https://x.com/user/status/123456789?s=20&t=abc"),
+            "123456789",
+        )
+
+    def test_returns_none_for_non_status_urls(self):
+        self.assertIsNone(x_tweet_id("https://x.com/Maxcardoso"))
+        self.assertIsNone(x_tweet_id("https://www.cnnbrasil.com.br/economia/"))
+        self.assertIsNone(x_tweet_id(""))
+        self.assertIsNone(x_tweet_id(None))
 
 
 class SourceFilterTests(unittest.TestCase):

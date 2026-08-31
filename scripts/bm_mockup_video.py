@@ -174,6 +174,66 @@ def host_kind(url: str) -> str:
     return "generic"
 
 
+_X_STATUS_RE = re.compile(r"(?:x|twitter)\.com/[^/]+/status/(\d+)")
+
+_X_EMBED_WRAP = """<!doctype html><html><head><meta charset="utf-8">
+<style>
+ html,body{margin:0;height:100%;background:#15202b;
+   display:flex;align-items:center;justify-content:center;
+   font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+ #box{width:640px;transform:scale(1.3);transform-origin:center center}
+ iframe{width:100%;border:0;display:block}
+</style></head><body>
+<div id="box"><iframe id="tw"
+ src="https://platform.twitter.com/embed/Tweet.html?id=__TWEET_ID__&theme=dark&dnt=true&lang=pt"
+ scrolling="no" allowtransparency="true"></iframe></div>
+<script>
+ window.addEventListener('message', function(e){
+   try{
+     var d = JSON.parse(e.data);
+     var p = d && d['twttr.embed'] && d['twttr.embed'].params;
+     var h = p && p[0] && p[0].height;
+     if(h){ document.getElementById('tw').style.height = h + 'px'; }
+   }catch(_){}
+ });
+ setTimeout(function(){
+   var f = document.getElementById('tw');
+   if(!f.style.height){ f.style.height = '540px'; }
+ }, 3000);
+</script></body></html>"""
+
+
+def x_tweet_id(url: str | None) -> str | None:
+    """Extrai o ID numérico de um status do X/Twitter."""
+    m = _X_STATUS_RE.search(url or "")
+    return m.group(1) if m else None
+
+
+def capture_x_embed(page, url: str, dest: Path) -> bool:
+    """Captura um post do X via embed oficial (platform.twitter.com).
+
+    O HTML do x.com devolve 403 para headless, mas o widget de embed é
+    público e não exige login. Renderiza o card em fundo escuro e tira
+    screenshot do viewport. Retorna True se a captura passou os filtros.
+    """
+    tid = x_tweet_id(url)
+    if not tid:
+        return False
+    try:
+        page.set_content(_X_EMBED_WRAP.replace("__TWEET_ID__", tid), wait_until="domcontentloaded")
+        page.wait_for_timeout(5500)
+        page.screenshot(path=str(dest), full_page=False)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  x-embed falhou ({tid}): {exc}")
+        dest.unlink(missing_ok=True)
+        return False
+    if not dest.exists() or dest.stat().st_size <= MIN_SHOT_BYTES or _shot_looks_blank(dest):
+        print(f"  🚫 x-embed vazio/indisponível ({tid}) — cena descartada")
+        dest.unlink(missing_ok=True)
+        return False
+    return True
+
+
 def extract_x_video(url: str, work: Path, video_id: str, idx: int) -> str | None:
     """Baixa o vídeo de um post do X (sem áudio é suficiente: mockup é mudo).
     Retorna caminho relativo ao server root ('/shots/...') ou None."""
@@ -830,6 +890,45 @@ def _shot_looks_blank(path: Path) -> bool:
         return False
 
 
+_BLOCK_TEXT_MARKERS = (
+    "access denied",
+    "you don't have permission to access",
+    "voce nao tem permissao",
+    "acesso restrito",
+    "errors.edgesuite.net",
+    "request blocked",
+    "attention required",
+    "just a moment",
+    "are you a robot",
+    "perimeterx",
+    "http error 403",
+    "403 forbidden",
+    "temporarily offline",
+)
+
+
+def page_looks_blocked(page, status: int | None = None) -> str | None:
+    """Devolve o marcador de bloqueio encontrado, ou None se a página é real.
+
+    Uma tela Akamai "Access Denied" rende PNG de ~28 KB com texto preto sobre
+    branco: passa em MIN_SHOT_BYTES e em _shot_looks_blank, e antes disso virava
+    cena de vídeo. Detectar pelo TEXTO é o único sinal confiável.
+    """
+    if status is not None and status in (401, 403, 429, 451):
+        return f"http-{status}"
+    try:
+        body = (page.inner_text("body") or "")[:3000].lower()
+    except Exception:  # noqa: BLE001
+        return None
+    if len(body.strip()) > 1500:
+        # Página com corpo longo é matéria real; interstitials são curtos.
+        return None
+    for marker in _BLOCK_TEXT_MARKERS:
+        if marker in body:
+            return marker
+    return None
+
+
 def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     from playwright.sync_api import sync_playwright
 
@@ -869,13 +968,34 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
 
     # 2. Capturar itens restantes com Playwright e delays educados
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True, args=["--disable-blink-features=AutomationControlled"]
+        )
         ctx = browser.new_context(
             viewport={"width": 1400, "height": 900},
             user_agent=UA,
             locale="pt-BR",
+            timezone_id="America/Sao_Paulo",
+            extra_http_headers={
+                "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                    "image/avif,image/webp,image/apng,*/*;q=0.8"
+                ),
+                "Upgrade-Insecure-Requests": "1",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1",
+            },
         )
         page = ctx.new_page()
+        try:
+            from playwright_stealth import Stealth
+
+            Stealth().apply_stealth_sync(page)
+        except Exception:  # noqa: BLE001
+            pass
         last_domain = ""
 
         for i, scene, dest in to_fetch:
@@ -902,8 +1022,27 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         item["video"] = vid_rel
                         out.append(item)
                         continue
-                page.goto(url, wait_until="domcontentloaded", timeout=35000)
+                    # sem vídeo: x.com dá 403 em headless, então usa o embed público
+                    if capture_x_embed(page, url, dest):
+                        save_cached_screenshot(url, dest)
+                        item = dict(scene)
+                        item["shot"] = dest.name
+                        out.append(item)
+                        print(f"  🐦 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB, embed)")
+                        continue
+                    item = dict(scene)
+                    item["shot"] = None
+                    out.append(item)
+                    continue
+                resp = page.goto(url, wait_until="domcontentloaded", timeout=35000)
                 page.wait_for_timeout(2500 if not last_domain else 1800)
+                blocked = page_looks_blocked(page, resp.status if resp else None)
+                if blocked:
+                    print(f"  🚫 {scene['veiculo']}: bloqueio antibot ({blocked}) — cena descartada")
+                    item = dict(scene)
+                    item["shot"] = None
+                    out.append(item)
+                    continue
                 prep = prepare_capture(page, url)
                 print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
                 if prep.get("kind") == "instagram" and instagram_is_login_wall(page):
@@ -1248,11 +1387,13 @@ def post_channel_cross_comment(yt_id: str, prev: dict) -> bool:
     return True
 
 
-def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool) -> dict:
+def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force: bool = False) -> dict:
     episode = load_episode(video_id)
-    if episode.get("_skip_video_reason"):
+    if episode.get("_skip_video_reason") and not force:
         print(f"  ⏭️  Vídeo pulado: {episode['_skip_video_reason']}")
         return {"video_id": video_id, "skipped": True, "reason": episode["_skip_video_reason"]}
+    if episode.get("_skip_video_reason") and force:
+        print(f"  ⚠️  Forçando geração (skip original: {episode['_skip_video_reason']})")
 
     audio = resolve_audio(video_id)
     if not audio:
@@ -1396,6 +1537,7 @@ def main() -> int:
     ap.add_argument("--upload", action="store_true")
     ap.add_argument("--privacy", default="public", choices=["unlisted", "private", "public"])
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true", help="Gera vídeo mesmo se _skip_video_reason")
     args = ap.parse_args()
 
     ids = [args.video_id] if args.video_id else (pending_ids(args.days, args.backfill) if args.pending else [])
@@ -1407,7 +1549,7 @@ def main() -> int:
     last_err = None
     for vid in ids:
         try:
-            process_one(vid, upload=args.upload, privacy=args.privacy, dry_run=args.dry_run)
+            process_one(vid, upload=args.upload, privacy=args.privacy, dry_run=args.dry_run, force=args.force)
             n_ok += 1
         except Exception as exc:
             last_err = exc
