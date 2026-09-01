@@ -115,7 +115,7 @@ def _read_raw_headlines(date: str) -> list[str]:
     return out
 
 
-def _clean_title(raw: str, preserve_case: bool = False) -> str:
+def clean_youtube_title(raw: str, preserve_case: bool = False) -> str:
     """Aplica as regras determinísticas de compliance + length.
 
     preserve_case=True preserva a formatação mista de maiúsculas/minúsculas
@@ -142,6 +142,9 @@ def _clean_title(raw: str, preserve_case: bool = False) -> str:
         t = cut[: sp] if sp > TITLE_MIN else t[:TITLE_MAX].rstrip()
         t = t.rstrip(" ,;:") + "…"
     return t.strip()
+
+
+_clean_title = clean_youtube_title
 
 
 def _sanitize_accent(text: str) -> str:
@@ -406,7 +409,7 @@ def _call_openrouter(prompt: str) -> str:
     raise RuntimeError(f"OpenRouter falhou: {last_err}")
 
 
-def _generate_via_llm(manchetes: list[str]) -> dict | None:
+def generate_title_via_llm(manchetes: list[str]) -> dict | None:
     bullet = "\n".join(f"- {m}" for m in manchetes)
     prompt = TITLE_PROMPT.format(manchetes=bullet)
     for name, fn in (("Gemini", _call_gemini), ("OpenRouter", _call_openrouter)):
@@ -418,6 +421,9 @@ def _generate_via_llm(manchetes: list[str]) -> dict | None:
         except Exception as exc:
             print(f"  ⚠ {name} falhou p/ título: {exc}")
     return None
+
+
+_generate_via_llm = generate_title_via_llm
 
 
 def _deterministic_title(manchetes: list[str]) -> str:
