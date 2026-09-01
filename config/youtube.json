@@ -1,0 +1,13 @@
+{
+  "youtube_schedule": {
+    "enabled": true,
+    "slots_brt": [
+      "07:00",
+      "11:30",
+      "18:00"
+    ],
+    "min_lead_minutes": 20,
+    "window_minutes": 30,
+    "timezone": "America/Sao_Paulo"
+  }
+}

@@ -39,7 +39,12 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/youtube.force-ssl",
 ]
-TZ = ZoneInfo("America/Sao_Paulo")
+try:
+    from zoneinfo import ZoneInfo
+    TZ = ZoneInfo("America/Sao_Paulo")
+except Exception:
+    from datetime import timezone, timedelta
+    TZ = timezone(timedelta(hours=-3))
 
 
 def _flow(slot: dict):
@@ -323,10 +328,24 @@ def cmd_upload(
     privacy: str,
     default_lang: str = "pt-BR",
     kind: str = "news",
+    publish_at: str | None = None,
+    localizations_file: str | None = None,
+    localizations_json: str | None = None,
 ) -> int:
     return run_with_slots(
         "upload",
-        lambda: _do_upload(path, title, description, tags, privacy, default_lang, kind),
+        lambda: _do_upload(
+            path,
+            title,
+            description,
+            tags,
+            privacy,
+            default_lang,
+            kind,
+            publish_at,
+            localizations_file,
+            localizations_json,
+        ),
     )
 
 
@@ -338,20 +357,53 @@ def _do_upload(
     privacy: str,
     default_lang: str = "pt-BR",
     kind: str = "news",
+    publish_at: str | None = None,
+    localizations_file: str | None = None,
+    localizations_json: str | None = None,
 ) -> int:
     from googleapiclient.http import MediaFileUpload
     from googleapiclient.errors import HttpError
 
     yt = _yt()
     tag_list = [t.strip() for t in (tags or "").split(",") if t.strip()]
+
+    # Parse localizations se fornecidas
+    localizations: dict[str, dict[str, str]] | None = None
+    if localizations_file:
+        loc_path = Path(localizations_file)
+        if loc_path.exists():
+            try:
+                localizations = json.loads(loc_path.read_text(encoding="utf-8"))
+            except Exception as exc:
+                print(f"  ⚠️  falha ao ler localizations-file: {exc}", file=sys.stderr)
+    elif localizations_json:
+        try:
+            localizations = json.loads(localizations_json)
+        except Exception as exc:
+            print(f"  ⚠️  falha ao decodificar localizations-json: {exc}", file=sys.stderr)
+
     # Áudio = pt-BR; título/descrição = pt. default_lang só altera o áudio se vier outro valor explícito.
-    body = video_resource_body(title, description, tag_list, privacy, kind=kind)
+    body = video_resource_body(
+        title,
+        description,
+        tag_list,
+        privacy,
+        kind=kind,
+        publish_at=publish_at,
+        localizations=localizations,
+    )
     if default_lang and default_lang != AUDIO_LANGUAGE:
         body["snippet"]["defaultAudioLanguage"] = default_lang
+
+    part_items = ["snippet", "status", "recordingDetails"]
+    if localizations:
+        part_items.append("localizations")
+    part_str = ",".join(part_items)
+
     media = MediaFileUpload(path, chunksize=64 * 1024 * 1024, resumable=True)
     try:
         resp = yt.videos().insert(
-            part="snippet,status,recordingDetails",
+            part=part_str,
             body=body,
             media_body=media,
         ).execute()
@@ -360,7 +412,7 @@ def _do_upload(
         if "containssyntheticmedia" in msg.replace("_", "") or "synthetic" in msg:
             body["status"].pop("containsSyntheticMedia", None)
             resp = yt.videos().insert(
-                part="snippet,status,recordingDetails",
+                part=part_str,
                 body=body,
                 media_body=media,
             ).execute()
@@ -369,6 +421,10 @@ def _do_upload(
     vid = resp.get("id")
     print(f"ID: {vid}")
     print(f"https://youtu.be/{vid}")
+    if publish_at:
+        print(f"agendamento (publishAt): {publish_at} (status=private)")
+    if localizations:
+        print(f"localizations embutidas: {', '.join(sorted(localizations.keys()))}")
     decision = choose_playlists(title, description)
     if decision.names:
         sync = sync_official_playlists(yt, vid, decision.names)
@@ -529,6 +585,9 @@ def main() -> int:
     u.add_argument("--privacy", default="public", choices=["unlisted", "private", "public"])
     u.add_argument("--default-lang", default="pt-BR", help="Idioma do áudio (título/descrição ficam pt)")
     u.add_argument("--kind", default="news", choices=["news", "essay", "behind"])
+    u.add_argument("--publish-at", default=None, help="ISO datetime para agendamento (publishAt)")
+    u.add_argument("--localizations-file", default=None, help="Arquivo JSON com localizações EN/ES")
+    u.add_argument("--localizations-json", default=None, help="String JSON com localizações EN/ES")
     t = sub.add_parser("thumbnail")
     t.add_argument("--video-id", required=True)
     t.add_argument("--image", required=True)
@@ -558,7 +617,16 @@ def main() -> int:
         return cmd_quota()
     if args.cmd == "upload":
         return cmd_upload(
-            args.file, args.title, args.description, args.tags, args.privacy, args.default_lang, args.kind
+            args.file,
+            args.title,
+            args.description,
+            args.tags,
+            args.privacy,
+            args.default_lang,
+            args.kind,
+            args.publish_at,
+            args.localizations_file,
+            args.localizations_json,
         )
     if args.cmd == "thumbnail":
         return cmd_thumbnail(args.video_id, args.image)

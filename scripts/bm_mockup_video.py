@@ -1312,7 +1312,16 @@ def set_youtube_thumbnail(yt_id: str, image: Path) -> bool:
     return True
 
 
-def publish_youtube(mp4: Path, title: str, desc: str, tags: list[str], privacy: str) -> str:
+def publish_youtube(
+    mp4: Path,
+    title: str,
+    desc: str,
+    tags: list[str],
+    privacy: str,
+    *,
+    publish_at: str | None = None,
+    localizations_file: Path | None = None,
+) -> str:
     up = [
         sys.executable,
         str(SCRIPT_DIR / "youtube_uploader.py"),
@@ -1324,6 +1333,10 @@ def publish_youtube(mp4: Path, title: str, desc: str, tags: list[str], privacy: 
         "--privacy", privacy,
         "--default-lang", "pt-BR",
     ]
+    if publish_at:
+        up.extend(["--publish-at", publish_at])
+    if localizations_file and localizations_file.exists():
+        up.extend(["--localizations-file", str(localizations_file)])
     r = subprocess.run(up, capture_output=True, text=True, timeout=1800)
     out = (r.stdout or "") + (r.stderr or "")
     if r.returncode != 0:
@@ -1469,9 +1482,45 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         "scenes": len(captured or scenes),
     }
     if upload:
-        yt_id = publish_youtube(mp4, title, desc, tags, privacy)
+        # 1. Gera localizações EN/ES antecipadamente para embutir no insert (custo de cota ZERO)
+        localizations_file: Path | None = None
+        loc_embedded = False
+        try:
+            from youtube_captions import translate_title_desc_multi
+            locs = translate_title_desc_multi(title, desc)
+            if locs:
+                loc_path = work / "localizations.json"
+                loc_path.write_text(json.dumps(locs, ensure_ascii=False, indent=2), encoding="utf-8")
+                localizations_file = loc_path
+                loc_embedded = True
+                print(f"  🌐 localizações EN/ES prontas para embutir no insert")
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  geração de localizações pré-insert falhou: {exc}")
+
+        # 2. Agendamento inteligente no próximo slot se privacy == public
+        publish_at: str | None = None
+        if privacy == "public":
+            try:
+                from youtube_channel_policy import next_publication_slot
+                publish_at = next_publication_slot()
+                if publish_at:
+                    print(f"  📅 agendado para o próximo slot: {publish_at}")
+            except Exception as exc:  # noqa: BLE001
+                print(f"  ⚠️  cálculo de slot falhou: {exc}")
+
+        yt_id = publish_youtube(
+            mp4,
+            title,
+            desc,
+            tags,
+            privacy,
+            publish_at=publish_at,
+            localizations_file=localizations_file,
+        )
         result["yt_id"] = yt_id
         result["url"] = f"https://youtu.be/{yt_id}"
+        if publish_at:
+            result["publish_at"] = publish_at
         thumb = find_episode_thumbnail(video_id, episode_date(audio))
         if thumb:
             set_youtube_thumbnail(yt_id, thumb)
@@ -1479,7 +1528,14 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             print("  ⚠️  sem thumbnail YouTube do episódio")
         try:
             from youtube_captions import attach_captions_and_en
-            attach_captions_and_en(video_id, yt_id, audio, title, desc)
+            attach_captions_and_en(
+                video_id,
+                yt_id,
+                audio,
+                title,
+                desc,
+                localizations_embedded=loc_embedded,
+            )
         except Exception as exc:  # noqa: BLE001
             print(f"  ⚠️  legendas/EN falharam (vídeo já no ar): {exc}")
         # Comentário do canal com gancho para o vídeo anterior (tráfego cruzado).
@@ -1495,6 +1551,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             "mp4": str(mp4),
             "data": episode_date(audio),
             "published_at": datetime.now().isoformat(),
+            "publish_at": publish_at,
             "engine": "mockup-browser",
             "wallpaper": wallpaper.name if wallpaper else None,
         }

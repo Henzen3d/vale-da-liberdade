@@ -62,5 +62,51 @@ class SrtFormatTests(unittest.TestCase):
         self.assertTrue(t)
 
 
+class MultiLocalizationTests(unittest.TestCase):
+    def test_translate_title_desc_multi_cached(self):
+        import hashlib
+        from unittest.mock import patch
+        import youtube_captions as yc
+
+        title = "STF impõe nova regra sobre empresas"
+        desc = "Análise completa do Vale da Liberdade."
+        key = hashlib.sha256(f"{title.strip()}||{desc.strip()}".encode("utf-8")).hexdigest()
+
+        mock_cache = {
+            key: {
+                "en": {"title": "STF imposes new rule on businesses", "description": "Full analysis."},
+                "es": {"title": "STF impone nueva regla sobre empresas", "description": "Análisis completo."},
+            }
+        }
+
+        with patch.object(yc, "_load_translations_cache", return_value=mock_cache):
+            res = yc.translate_title_desc_multi(title, desc)
+            self.assertEqual(res["en"]["title"], "STF imposes new rule on businesses")
+            self.assertEqual(res["es"]["title"], "STF impone nueva regla sobre empresas")
+
+    def test_translate_title_desc_multi_gemini_call(self):
+        from unittest.mock import patch
+        import youtube_captions as yc
+
+        title = "STF impõe nova regra sobre empresas"
+        desc = "Análise do Vale."
+
+        gemini_reply = (
+            '{\n'
+            '  "en": {"title": "STF imposes new rule on businesses", "description": "Analysis."},\n'
+            '  "es": {"title": "STF impone nueva regla sobre empresas", "description": "Análisis."}\n'
+            '}'
+        )
+
+        with patch.object(yc, "_load_translations_cache", return_value={}), \
+             patch.object(yc, "_gemini_text", return_value=gemini_reply), \
+             patch.object(yc, "_save_translations_cache") as mock_save:
+            res = yc.translate_title_desc_multi(title, desc)
+            self.assertEqual(res["en"]["title"], "STF imposes new rule on businesses")
+            self.assertEqual(res["es"]["description"], "Análisis.")
+            mock_save.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()
+

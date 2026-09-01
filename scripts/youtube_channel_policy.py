@@ -5,10 +5,12 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
-TZ = ZoneInfo("America/Sao_Paulo")
+from datetime import datetime, timezone, timedelta
+try:
+    from zoneinfo import ZoneInfo
+    TZ = ZoneInfo("America/Sao_Paulo")
+except Exception:
+    TZ = timezone(timedelta(hours=-3))
 
 CATEGORY_NEWS_POLITICS = "25"
 CATEGORY_EDUCATION = "27"
@@ -270,6 +272,81 @@ def choose_playlists(title: str, description: str = "") -> PlaylistDecision:
     return PlaylistDecision((top_name,), top_name)
 
 
+PUBLISH_SLOTS_BRT = ["07:00", "11:30", "18:00"]
+MIN_LEAD_MINUTES = 20
+PRIME_WINDOW_MINUTES = 30
+
+
+def _load_schedule_config() -> dict:
+    from pathlib import Path
+    import json
+    cfg_path = Path(__file__).resolve().parent.parent / "config" / "youtube.json"
+    if cfg_path.exists():
+        try:
+            data = json.loads(cfg_path.read_text(encoding="utf-8"))
+            return data.get("youtube_schedule") or {}
+        except Exception:
+            return {}
+    return {}
+
+
+def next_publication_slot(
+    now_dt: datetime | None = None,
+    slots: list[str] | None = None,
+    min_lead_minutes: int | None = None,
+    window_minutes: int | None = None,
+) -> str | None:
+    """Calcula o próximo slot ideal de publicação (America/Sao_Paulo).
+
+    - Se dentro da janela nobre de algum slot (ex: slot ± 30min) -> retorna None (publicação imediata).
+    - Se fora -> retorna ISO string do próximo slot (hoje ou amanhã) com folga mínima de min_lead_minutes.
+    """
+    cfg = _load_schedule_config()
+    if cfg.get("enabled") is False:
+        return None
+
+    slot_list = slots or cfg.get("slots_brt") or PUBLISH_SLOTS_BRT
+    min_lead = min_lead_minutes if min_lead_minutes is not None else cfg.get("min_lead_minutes", MIN_LEAD_MINUTES)
+    win_min = window_minutes if window_minutes is not None else cfg.get("window_minutes", PRIME_WINDOW_MINUTES)
+
+    now = now_dt or datetime.now(TZ)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=TZ)
+    else:
+        now = now.astimezone(TZ)
+
+    # 1. Checa se estamos dentro da janela nobre de algum slot de hoje
+    for s in slot_list:
+        try:
+            h, m = map(int, s.split(":"))
+            slot_today = now.replace(hour=h, minute=m, second=0, microsecond=0)
+            if slot_today - timedelta(minutes=win_min) <= now <= slot_today + timedelta(minutes=win_min):
+                return None  # Janela nobre -> publicar imediatamente!
+        except Exception:
+            continue
+
+    # 2. Busca o próximo slot com antecedência mínima de min_lead minutos
+    candidates: list[datetime] = []
+    for day_offset in (0, 1):
+        target_date = now.date() + timedelta(days=day_offset)
+        for s in slot_list:
+            try:
+                h, m = map(int, s.split(":"))
+                slot_time = datetime(
+                    target_date.year, target_date.month, target_date.day,
+                    h, m, 0, tzinfo=TZ
+                )
+                if slot_time >= now + timedelta(minutes=min_lead):
+                    candidates.append(slot_time)
+            except Exception:
+                continue
+
+    if candidates:
+        candidates.sort()
+        return candidates[0].isoformat()
+    return None
+
+
 def video_resource_body(
     title: str,
     description: str,
@@ -279,9 +356,11 @@ def video_resource_body(
     category_id: str | None = None,
     recording_date: str | None = None,
     kind: str = "news",
+    publish_at: str | None = None,
+    localizations: dict[str, dict[str, str]] | None = None,
 ) -> dict:
     cat = choose_category(title, description, kind=kind, override=category_id)
-    return {
+    body = {
         "snippet": {
             "title": title,
             "description": description,
@@ -291,7 +370,7 @@ def video_resource_body(
             "defaultAudioLanguage": AUDIO_LANGUAGE,
         },
         "status": {
-            "privacyStatus": privacy,
+            "privacyStatus": "private" if publish_at else privacy,
             "selfDeclaredMadeForKids": False,
             "containsSyntheticMedia": True,
         },
@@ -299,3 +378,9 @@ def video_resource_body(
             "recordingDate": recording_date or recording_date_iso(),
         },
     }
+    if publish_at:
+        body["status"]["publishAt"] = publish_at
+    if localizations:
+        body["localizations"] = localizations
+    return body
+

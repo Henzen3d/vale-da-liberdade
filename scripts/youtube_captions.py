@@ -7,6 +7,7 @@ Não bloqueia o upload se falhar.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -27,6 +28,7 @@ EPS_DIR = ROOT / "output" / "brasil_e_mundo" / "episodes"
 AUDIO_DIR = ROOT / "output" / "brasil_e_mundo" / "audio"
 CAPTIONS_DIR = ROOT / "output" / "brasil_e_mundo" / "captions"
 STATE_PATH = ROOT / "output" / "brasil_e_mundo" / "videos_published.json"
+TRANSLATIONS_CACHE = ROOT / "output" / "brasil_e_mundo" / "translations_cache.json"
 
 TITLE_MAX = 100
 
@@ -219,6 +221,85 @@ def translate_cues_en(cues: list[Cue]) -> list[Cue]:
     return out
 
 
+def _load_translations_cache() -> dict:
+    if TRANSLATIONS_CACHE.exists():
+        try:
+            return json.loads(TRANSLATIONS_CACHE.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_translations_cache(cache: dict) -> None:
+    try:
+        TRANSLATIONS_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = TRANSLATIONS_CACHE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(TRANSLATIONS_CACHE)
+    except Exception as exc:
+        print(f"  ⚠️  falha ao salvar translations_cache.json: {exc}", file=sys.stderr)
+
+
+def translate_title_desc_multi(title_pt: str, desc_pt: str) -> dict[str, dict[str, str]]:
+    """Traduz título e descrição para EN e ES em uma única chamada Gemini.
+
+    Retorna formato compatível com YouTube Data API v3 body['localizations']:
+    {
+        "en": {"title": "...", "description": "..."},
+        "es": {"title": "...", "description": "..."}
+    }
+    """
+    if not title_pt:
+        return {}
+
+    key = hashlib.sha256(f"{title_pt.strip()}||{desc_pt.strip()}".encode("utf-8")).hexdigest()
+    cache = _load_translations_cache()
+    if key in cache:
+        return cache[key]
+
+    prompt = (
+        "Translate this YouTube video title and description from Brazilian Portuguese "
+        "to natural English and natural Spanish (Latin American).\n"
+        "Guidelines:\n"
+        "- Tone: direct, journalistic, libertarian political/economic commentary.\n"
+        "- Title max 100 characters for each language.\n"
+        "- Keep all URLs, brand hashtags (#BrasilEMundo), and line breaks unchanged.\n"
+        "- Do not add quotes around titles.\n"
+        "- Reply ONLY JSON in this exact structure:\n"
+        "{\n"
+        '  "en": {"title": "...", "description": "..."},\n'
+        '  "es": {"title": "...", "description": "..."}\n'
+        "}\n\n"
+        + json.dumps({"title": title_pt, "description": desc_pt}, ensure_ascii=False)
+    )
+
+    try:
+        raw = _gemini_text(prompt)
+        m = re.search(r"\{[\s\S]*\}", raw)
+        data = json.loads(m.group(0) if m else raw)
+
+        result: dict[str, dict[str, str]] = {}
+        if isinstance(data.get("en"), dict):
+            result["en"] = {
+                "title": clamp_title(str(data["en"].get("title") or title_pt)),
+                "description": str(data["en"].get("description") or desc_pt).strip(),
+            }
+        if isinstance(data.get("es"), dict):
+            result["es"] = {
+                "title": clamp_title(str(data["es"].get("title") or title_pt)),
+                "description": str(data["es"].get("description") or desc_pt).strip(),
+            }
+
+        if result:
+            cache[key] = result
+            _save_translations_cache(cache)
+            return result
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  translate_title_desc_multi falhou: {exc}", file=sys.stderr)
+
+    return {}
+
+
 def translate_title_desc_en(title: str, description: str) -> tuple[str, str]:
     prompt = (
         "Translate this YouTube video title and description from Brazilian Portuguese "
@@ -255,6 +336,8 @@ def attach_captions_and_en(
     audio: Path | None,
     title_pt: str,
     desc_pt: str,
+    *,
+    localizations_embedded: bool = False,
 ) -> dict:
     """Gera SRT pt/en, sobe legendas e localização EN. Falha isolada."""
     import youtube_uploader as ytu
@@ -276,9 +359,14 @@ def attach_captions_and_en(
     ytu.upload_caption(yt_id, str(en_path), language="en", name="English")
     print("  ✅ caption en")
 
-    en_title, en_desc = translate_title_desc_en(title_pt, desc_pt)
-    ytu.set_english_localization(yt_id, en_title, en_desc)
-    print(f"  ✅ localization en: {en_title[:70]}")
+    en_title = ""
+    if not localizations_embedded:
+        en_title, en_desc = translate_title_desc_en(title_pt, desc_pt)
+        ytu.set_english_localization(yt_id, en_title, en_desc)
+        print(f"  ✅ localization en: {en_title[:70]}")
+    else:
+        print("  ⏭️  localizações EN/ES já embutidas no insert (economia de 51 un)")
+
     return {
         "pt_srt": str(pt_path),
         "en_srt": str(en_path),

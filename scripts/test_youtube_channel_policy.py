@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import sys
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+    TZ = ZoneInfo("America/Sao_Paulo")
+except Exception:
+    TZ = timezone(timedelta(hours=-3))
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -109,12 +113,79 @@ class CategoryAndBodyTests(unittest.TestCase):
         self.assertEqual(body["recordingDetails"]["recordingDate"], "2026-08-29T00:00:00-03:00")
         self.assertNotIn("location", body["recordingDetails"])
 
+    def test_body_with_publish_at_and_localizations(self):
+        locs = {
+            "en": {"title": "STF opens inquiry", "description": "Analysis."},
+            "es": {"title": "STF abre investigación", "description": "Análisis."},
+        }
+        body = video_resource_body(
+            "STF abre inquérito",
+            "Análise do Vale.",
+            ["vale"],
+            "public",
+            publish_at="2026-09-01T11:30:00-03:00",
+            localizations=locs,
+        )
+        # Quando publishAt é usado, privacyStatus DEVE ser 'private'
+        self.assertEqual(body["status"]["privacyStatus"], "private")
+        self.assertEqual(body["status"]["publishAt"], "2026-09-01T11:30:00-03:00")
+        self.assertEqual(body["localizations"], locs)
+
     def test_recording_date_sao_paulo(self):
-        now = datetime(2026, 8, 29, 23, 10, tzinfo=ZoneInfo("America/Sao_Paulo"))
+        now = datetime(2026, 8, 29, 23, 10, tzinfo=TZ)
         self.assertTrue(recording_date_iso(now).startswith("2026-08-29"))
-        utc = datetime(2026, 8, 30, 2, 10, tzinfo=ZoneInfo("UTC"))
+        utc = datetime(2026, 8, 30, 2, 10, tzinfo=timezone.utc)
         self.assertTrue(recording_date_iso(utc).startswith("2026-08-29"))
+
+
+class PublicationSlotTests(unittest.TestCase):
+    def test_prime_window_returns_none(self):
+        from youtube_channel_policy import next_publication_slot
+        # 07:15 BRT está dentro da janela de 07:00 (±30min)
+        now = datetime(2026, 9, 1, 7, 15, tzinfo=TZ)
+        self.assertIsNone(next_publication_slot(now))
+
+        # 11:45 BRT está dentro da janela de 11:30 (±30min)
+        now = datetime(2026, 9, 1, 11, 45, tzinfo=TZ)
+        self.assertIsNone(next_publication_slot(now))
+
+        # 17:40 BRT está dentro da janela de 18:00 (±30min)
+        now = datetime(2026, 9, 1, 17, 40, tzinfo=TZ)
+        self.assertIsNone(next_publication_slot(now))
+
+    def test_early_morning_slot(self):
+        from youtube_channel_policy import next_publication_slot
+        # 02:00 BRT -> próximo slot é 07:00 hoje
+        now = datetime(2026, 9, 1, 2, 0, tzinfo=TZ)
+        slot = next_publication_slot(now)
+        self.assertIsNotNone(slot)
+        self.assertTrue(slot.startswith("2026-09-01T07:00:00"))
+
+    def test_mid_morning_slot(self):
+        from youtube_channel_policy import next_publication_slot
+        # 09:30 BRT -> próximo slot é 11:30 hoje
+        now = datetime(2026, 9, 1, 9, 30, tzinfo=TZ)
+        slot = next_publication_slot(now)
+        self.assertIsNotNone(slot)
+        self.assertTrue(slot.startswith("2026-09-01T11:30:00"))
+
+    def test_afternoon_slot(self):
+        from youtube_channel_policy import next_publication_slot
+        # 14:00 BRT -> próximo slot é 18:00 hoje
+        now = datetime(2026, 9, 1, 14, 0, tzinfo=TZ)
+        slot = next_publication_slot(now)
+        self.assertIsNotNone(slot)
+        self.assertTrue(slot.startswith("2026-09-01T18:00:00"))
+
+    def test_late_night_rolls_to_next_day(self):
+        from youtube_channel_policy import next_publication_slot
+        # 21:00 BRT -> todos os slots de hoje passaram, próximo é 07:00 amanhã
+        now = datetime(2026, 9, 1, 21, 0, tzinfo=TZ)
+        slot = next_publication_slot(now)
+        self.assertIsNotNone(slot)
+        self.assertTrue(slot.startswith("2026-09-02T07:00:00"))
 
 
 if __name__ == "__main__":
     unittest.main()
+
