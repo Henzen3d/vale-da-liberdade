@@ -165,6 +165,15 @@ class CacheTests(unittest.TestCase):
         self.assertTrue(p.name.endswith(".png"))
         self.assertIn("capture-cache", str(p))
 
+    def test_cache_version_invalidates_unstyled_shots(self):
+        from bm_mockup_video import CAPTURE_CACHE_VERSION, wait_for_styled_capture
+        self.assertTrue(CAPTURE_CACHE_VERSION.startswith("css-"))
+        self.assertNotEqual(
+            cache_path_for_url("https://www.cnnbrasil.com.br/politica/artigo").name,
+            "same-as-old-hash",
+        )
+        self.assertTrue(callable(wait_for_styled_capture))
+
 
 class WallpaperThumbTests(unittest.TestCase):
     def test_pick_wallpaper_is_deterministic(self):
@@ -227,6 +236,11 @@ class XVideoFitTests(unittest.TestCase):
             html,
             r"\.portal-page-shot\.is-portrait\s*\{[^}]*object-fit:\s*contain",
         )
+        self.assertRegex(
+            html,
+            r"\.portal-page-shot\.is-portrait\s*\{[^}]*background:\s*#ffffff",
+        )
+        self.assertNotIn("background: #0b0d12", html)
         self.assertIn("pageVideo.videoHeight > pageVideo.videoWidth", html)
         self.assertIn("is-portrait", html)
         self.assertIn("classList.toggle", html)

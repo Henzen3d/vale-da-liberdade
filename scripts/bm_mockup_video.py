@@ -70,6 +70,8 @@ WINDOW_DAYS = 2
 MAX_SCENES = 8
 MAX_PER_HOST = 2
 CACHE_MAX_AGE_HOURS = 36.0
+# Invalida prints antigos (HTML sem CSS). Subir quando a captura mudar de novo.
+CAPTURE_CACHE_VERSION = "css-v2"
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -115,7 +117,8 @@ def domain_of(url: str) -> str:
 
 
 def cache_path_for_url(url: str) -> Path:
-    url_hash = hashlib.sha256((url or "").strip().encode("utf-8")).hexdigest()[:16]
+    raw = f"{CAPTURE_CACHE_VERSION}|{(url or '').strip()}"
+    url_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
     return CAPTURE_CACHE_DIR / f"{url_hash}.png"
 
 
@@ -220,8 +223,12 @@ def capture_x_embed(page, url: str, dest: Path) -> bool:
     if not tid:
         return False
     try:
-        page.set_content(_X_EMBED_WRAP.replace("__TWEET_ID__", tid), wait_until="domcontentloaded")
-        page.wait_for_timeout(5500)
+        page.set_content(_X_EMBED_WRAP.replace("__TWEET_ID__", tid), wait_until="load")
+        try:
+            page.wait_for_load_state("networkidle", timeout=8000)
+        except Exception:
+            pass
+        page.wait_for_timeout(3500)
         page.screenshot(path=str(dest), full_page=False)
     except Exception as exc:  # noqa: BLE001
         print(f"  ⚠️  x-embed falhou ({tid}): {exc}")
@@ -929,6 +936,51 @@ def page_looks_blocked(page, status: int | None = None) -> str | None:
     return None
 
 
+_WAIT_STYLED_JS = """() => {
+  if (document.readyState !== 'complete') return false;
+  const sheets = document.styleSheets;
+  if (!sheets || sheets.length === 0) return false;
+  let cssOk = false;
+  for (const s of sheets) {
+    try {
+      if (s.cssRules && s.cssRules.length > 0) { cssOk = true; break; }
+    } catch (e) {
+      cssOk = true; // CSS cross-origin já aplicado no layout
+      break;
+    }
+  }
+  if (!cssOk) return false;
+  const imgs = [...document.images].filter((im) => {
+    const r = im.getBoundingClientRect();
+    return r.width >= 60 && r.height >= 40 && r.bottom > 0 && r.top < innerHeight + 200;
+  });
+  if (imgs.length === 0) return true;
+  const loaded = imgs.filter((im) => im.complete && im.naturalWidth > 0);
+  return loaded.length >= Math.min(imgs.length, 2) || loaded.length >= 1;
+}"""
+
+
+def wait_for_styled_capture(page, timeout_ms: int = 20000) -> None:
+    """Espera CSS + fontes + imagens do viewport antes do screenshot.
+
+    `load` sozinho não basta: portais injetam CSS/hero via JS e o PNG sai
+    como texto cru sem formatação.
+    """
+    try:
+        page.wait_for_function(_WAIT_STYLED_JS, timeout=timeout_ms)
+    except Exception:
+        pass
+    try:
+        page.evaluate("() => (document.fonts && document.fonts.ready) || true")
+    except Exception:
+        pass
+    try:
+        page.wait_for_load_state("networkidle", timeout=8000)
+    except Exception:
+        pass
+    page.wait_for_timeout(600)
+
+
 def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     from playwright.sync_api import sync_playwright
 
@@ -1035,7 +1087,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     out.append(item)
                     continue
                 resp = page.goto(url, wait_until="load", timeout=45000)
-                page.wait_for_timeout(2500 if not last_domain else 1800)
+                wait_for_styled_capture(page)
                 blocked = page_looks_blocked(page, resp.status if resp else None)
                 if blocked:
                     print(f"  🚫 {scene['veiculo']}: bloqueio antibot ({blocked}) — cena descartada")
@@ -1045,6 +1097,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     continue
                 prep = prepare_capture(page, url)
                 print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
+                wait_for_styled_capture(page, timeout_ms=12000)
                 if prep.get("kind") == "instagram" and instagram_is_login_wall(page):
                     print(f"  ⚠️  Instagram ainda em login-wall — cena sem screenshot")
                     item = dict(scene)
