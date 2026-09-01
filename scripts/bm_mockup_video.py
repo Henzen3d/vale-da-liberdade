@@ -1034,7 +1034,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     item["shot"] = None
                     out.append(item)
                     continue
-                resp = page.goto(url, wait_until="domcontentloaded", timeout=35000)
+                resp = page.goto(url, wait_until="load", timeout=45000)
                 page.wait_for_timeout(2500 if not last_domain else 1800)
                 blocked = page_looks_blocked(page, resp.status if resp else None)
                 if blocked:
