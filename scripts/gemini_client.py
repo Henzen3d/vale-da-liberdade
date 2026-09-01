@@ -16,7 +16,12 @@ import os
 import random
 import sys
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+# RPD do AI Studio zera à meia-noite do Pacífico, não numa janela rolante de 24h.
+PACIFIC = ZoneInfo("America/Los_Angeles")
 
 # Logger dedicado do cliente Gemini
 log = logging.getLogger("gemini-client")
@@ -115,24 +120,67 @@ def _key_id(api_key: str) -> str:
     return api_key or "default"
 
 
-def _is_daily_quota_error(msg: str) -> bool:
-    """True só para cota do DIA — não para 429 genérico de RPM."""
+def _pacific_day_start(now_ts: float) -> float:
+    now = datetime.fromtimestamp(now_ts, tz=PACIFIC)
+    return now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+
+
+def _next_pacific_midnight(now_ts: float) -> float:
+    now = datetime.fromtimestamp(now_ts, tz=PACIFIC)
+    nxt = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    return nxt.timestamp()
+
+
+def _requests_in_rpd_window(requests: list, now_ts: float) -> list:
+    start = _pacific_day_start(now_ts)
+    return [t for t in requests if t >= start]
+
+
+def _collapse_fake_rpd_pad(requests: list) -> list:
+    """Descarta o artefato `[now] * RPD` do mark_exhausted (timestamps idênticos).
+
+    Chamadas reais de TTS/texto ficam ≥20s apart (3 RPM). Um bloco de timestamps
+    iguais não é uso — é a saturação sintética que travava o Round Robin o dia todo.
+    """
+    if not requests:
+        return []
+    out: list = []
+    i = 0
+    n = len(requests)
+    while i < n:
+        j = i + 1
+        while j < n and abs(float(requests[j]) - float(requests[i])) <= 0.05:
+            j += 1
+        if j - i == 1:
+            out.append(requests[i])
+        i = j
+    return out
+
+
+def _is_local_rpd_block(msg: str) -> bool:
+    m = (msg or "").lower()
+    return "limite diário atingido" in m
+
+
+def _is_google_daily_quota_error(msg: str) -> bool:
+    """True só quando o Google confirma cota do DIA (não 429 de RPM)."""
     m = (msg or "").lower()
     needles = (
-        "limite diário",
         "per-day",
         "per day",
         "requests per day",
-        "rpd",
         "daily request",
         "daily quota",
         "daily limit",
         "quota exceeded for metric",
+        "generaterequestsperday",
     )
-    if any(n in m for n in needles):
-        # "quota" sozinho é ambíguo (RPM vs RPD); as frases acima são o filtro.
-        return True
-    return False
+    return any(n in m for n in needles)
+
+
+def _is_daily_quota_error(msg: str) -> bool:
+    """Failover de chave: trava local de RPD ou cota diária confirmada pelo Google."""
+    return _is_local_rpd_block(msg) or _is_google_daily_quota_error(msg)
 
 
 def _is_rate_error(msg: str) -> bool:
@@ -201,17 +249,22 @@ class GeminiClient:
             key_data = usage.setdefault(key_id, {})
             model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
 
-            requests_minute = [t for t in model_data["requests"] if now - t < 60]
-            requests_day = [t for t in model_data["requests"] if now - t < 86400]
+            real_requests = _collapse_fake_rpd_pad(model_data.get("requests") or [])
+            requests_minute = [t for t in real_requests if now - t < 60]
+            requests_day = _requests_in_rpd_window(real_requests, now)
             tokens_minute = [entry for entry in model_data["tokens"] if now - entry["timestamp"] < 60]
 
             model_data["requests"] = requests_day
             model_data["tokens"] = tokens_minute
+            exhausted_until = float(model_data.get("exhausted_until") or 0)
+            if exhausted_until and exhausted_until <= now:
+                model_data["exhausted_until"] = 0
+                exhausted_until = 0
 
-            if len(requests_day) >= rpd:
+            if exhausted_until > now or len(requests_day) >= rpd:
                 raise RuntimeError(
                     f"Limite diário atingido (RPD de {rpd}) para o modelo {model}. "
-                    f"Aguarde o reset da janela de 24h ou alterne para outro modelo."
+                    f"Reset à meia-noite do Pacífico (AI Studio) ou alterne a chave."
                 )
 
             # Timer por chave: não disparar mais cedo que 60/RPM (TTS 3.1 = 20s).
@@ -275,17 +328,23 @@ class GeminiClient:
             log.debug(f"Erro silencioso no rollback de taxa: {e}")
 
     def _mark_daily_quota_exhausted(self, model: str) -> None:
-        """Satura RPD local só quando o Google confirma cota do dia."""
+        """Trava a chave até o próximo reset do Pacífico — sem forjar N timestamps."""
         try:
             usage = _load_usage(self.usage_file)
             key_id = _key_id(self.api_key)
             key_data = usage.setdefault(key_id, {})
             model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
-            rpd = self._get_limits(model)["rpd"]
             now = time.time()
-            model_data["requests"] = [now] * rpd
+            until = _next_pacific_midnight(now)
+            model_data["exhausted_until"] = until
+            model_data["requests"] = _collapse_fake_rpd_pad(
+                _requests_in_rpd_window(model_data.get("requests") or [], now)
+            )
             _save_usage(self.usage_file, usage)
-            log.warning(f"RPD local saturado ({rpd}) para {key_id} {model} — Google confirmou cota diária")
+            log.warning(
+                f"RPD Google confirmado para {key_id} {model} — "
+                f"chave travada até {datetime.fromtimestamp(until, tz=PACIFIC).isoformat()}"
+            )
         except Exception as e:
             log.debug(f"Erro ao marcar quota diária esgotada: {e}")
 
@@ -344,7 +403,7 @@ class GeminiClient:
                     )
                     if not is_transient:
                         raise
-                    if _is_daily_quota_error(error_msg):
+                    if _is_google_daily_quota_error(error_msg):
                         self._mark_daily_quota_exhausted(model)
                         raise
                     if attempt == max_retries:
@@ -447,7 +506,7 @@ class GeminiMultiClient:
                 raise
             except Exception as exc:
                 msg = str(exc).lower()
-                if _is_daily_quota_error(msg):
+                if _is_google_daily_quota_error(msg):
                     try:
                         client._mark_daily_quota_exhausted(model)
                     except Exception:
