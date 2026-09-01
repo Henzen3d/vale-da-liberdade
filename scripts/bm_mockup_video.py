@@ -1400,6 +1400,29 @@ def post_channel_cross_comment(yt_id: str, prev: dict) -> bool:
     return True
 
 
+def sync_dynamic_playlist_action(yt_id: str) -> bool:
+    """Sincroniza o vídeo na playlist dinâmica rotativa ('Últimas Notícias').
+
+    Não-bloqueante por design (chamador ignora retorno).
+    """
+    cmd = [
+        sys.executable,
+        str(SCRIPT_DIR / "youtube_uploader.py"),
+        "sync-dynamic-playlist",
+        "--video-id", yt_id,
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  playlist dinâmica falhou: {exc}")
+        return False
+    if r.returncode != 0:
+        print(f"  ⚠️  playlist dinâmica: {(r.stderr or r.stdout or '')[-240:]}")
+        return False
+    print(f"  ✅ playlist dinâmica sincronizada para {yt_id}")
+    return True
+
+
 def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force: bool = False) -> dict:
     episode = load_episode(video_id)
     if episode.get("_skip_video_reason") and not force:
@@ -1538,6 +1561,14 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             )
         except Exception as exc:  # noqa: BLE001
             print(f"  ⚠️  legendas/EN falharam (vídeo já no ar): {exc}")
+
+        # Sincronização da playlist dinâmica "Últimas Notícias"
+        # Não-bloqueante: falha aqui não derruba o pipeline nem o vídeo já publicado.
+        try:
+            sync_dynamic_playlist_action(yt_id)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  playlist dinâmica falhou (vídeo já no ar): {exc}")
+
         # Comentário do canal com gancho para o vídeo anterior (tráfego cruzado).
         # Não-bloqueante: falha aqui não derruba o pipeline nem o vídeo já publicado.
         prev = _previous_published(video_id)

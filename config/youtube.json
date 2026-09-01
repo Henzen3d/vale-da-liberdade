@@ -9,5 +9,11 @@
     "min_lead_minutes": 20,
     "window_minutes": 30,
     "timezone": "America/Sao_Paulo"
+  },
+  "dynamic_playlist": {
+    "enabled": true,
+    "title": "Últimas Notícias — Vale da Liberdade",
+    "playlist_id": "PLePrTPmrcBsU37d-ultimas-noticias",
+    "max_items": 10
   }
 }

@@ -28,8 +28,12 @@ ROOT = Path(__file__).resolve().parent.parent
 CRED_DIR = ROOT / "credentials"
 SLOTS_FILE = CRED_DIR / "youtube_slots.json"
 LEDGER_FILE = CRED_DIR / "youtube_quota.json"
-
-PACIFIC = ZoneInfo("America/Los_Angeles")
+try:
+    from zoneinfo import ZoneInfo
+    PACIFIC = ZoneInfo("America/Los_Angeles")
+except Exception:
+    from datetime import timezone, timedelta
+    PACIFIC = timezone(timedelta(hours=-7))
 DAILY_LIMIT = int(os.environ.get("YT_QUOTA_LIMIT", "10000"))
 # Folga para requests baratos de verificação (whoami, list) no fim do dia.
 SAFETY_MARGIN = int(os.environ.get("YT_QUOTA_MARGIN", "300"))
@@ -72,6 +76,7 @@ OP_COST = {
     "captions": 900,
     "localize-en": 60,
     "comment": 60,
+    "dynamic-playlist": 110,
     "whoami": 5,
     "quota": 0,
 }

@@ -568,6 +568,27 @@ def cmd_comment(video_id: str, text: str) -> int:
     return run_with_slots("comment", _run)
 
 
+def cmd_sync_dynamic_playlist(video_id: str, playlist_id: str | None = None, max_items: int | None = None) -> int:
+    from youtube_playlist_sync import sync_dynamic_playlist
+
+    def _run() -> int:
+        yt = _yt()
+        report = sync_dynamic_playlist(yt, video_id, playlist_id=playlist_id, max_items=max_items)
+        if report.get("skipped"):
+            print(f"playlist dinâmica pulada: {report.get('reason')}")
+            return 0
+        if report.get("already_top"):
+            print(f"vídeo {video_id} já no topo da playlist {report.get('playlist_id')}")
+            return 0
+        print(
+            f"playlist dinâmica OK: {report.get('playlist_id')} "
+            f"(vídeo {video_id} no topo, {len(report.get('removed', []))} removido(s), total={report.get('total_items')})"
+        )
+        return 0
+
+    return run_with_slots("dynamic-playlist", _run)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="YouTube OAuth upload")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -606,6 +627,10 @@ def main() -> int:
     cm = sub.add_parser("comment")
     cm.add_argument("--video-id", required=True)
     cm.add_argument("--text", required=True)
+    dpl = sub.add_parser("sync-dynamic-playlist")
+    dpl.add_argument("--video-id", required=True)
+    dpl.add_argument("--playlist-id", default=None)
+    dpl.add_argument("--max-items", type=int, default=None)
     args = ap.parse_args()
     if args.cmd == "auth":
         return cmd_auth(args.code, args.slot)
@@ -638,8 +663,11 @@ def main() -> int:
         return cmd_apply_policy(args.video_id, args.kind)
     if args.cmd == "comment":
         return cmd_comment(args.video_id, args.text)
+    if args.cmd == "sync-dynamic-playlist":
+        return cmd_sync_dynamic_playlist(args.video_id, args.playlist_id, args.max_items)
     return 2
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
