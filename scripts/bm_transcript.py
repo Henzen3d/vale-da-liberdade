@@ -267,11 +267,16 @@ def extract_source_urls(description: str) -> list[str]:
 
 
 def fetch_source_name(url: str) -> str:
-    """Best-effort: tenta capturar o nome do veículo via <title> da página."""
+    """Best-effort: tenta capturar o nome do veículo via <title> da página ou blocked-page-recovery."""
     try:
         from http_fetch import BROWSER_HEADERS
     except ImportError:
-        from scripts.http_fetch import BROWSER_HEADERS  # type: ignore
+        try:
+            from scripts.http_fetch import BROWSER_HEADERS  # type: ignore
+        except ImportError:
+            BROWSER_HEADERS = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            }
     try:
         req = urllib.request.Request(
             url,
@@ -282,15 +287,30 @@ def fetch_source_name(url: str) -> str:
             match = re.search(r"<title[^>]*>([^<]+)</title>", html, re.I)
             if match:
                 title = match.group(1).strip()
-                # Tentar extrair nome do veículo do título
-                # Ex: "Notícia tal - Gazeta do Povo" → "Gazeta do Povo"
-                parts = re.split(r"\s*[|—–-]\s*", title)
-                if len(parts) >= 2:
-                    return parts[-1].strip()[:60]
-                return title[:60]
+                # Verificar se não é página de erro/bloqueio
+                low = title.lower()
+                if not any(k in low for k in ("access denied", "403", "forbidden", "cloudflare", "perimeterx", "attention required")):
+                    parts = re.split(r"\s*[|—–-]\s*", title)
+                    if len(parts) >= 2:
+                        return parts[-1].strip()[:60]
+                    return title[:60]
     except Exception:
         pass
+
+    # Fallback: tentar recuperar via blocked-page-recovery
+    try:
+        from recover_page import recover_page
+        rec = recover_page(url, timeout=8.0, try_direct_first=False)
+        if rec.success and rec.title:
+            parts = re.split(r"\s*[|—–-]\s*", rec.title)
+            if len(parts) >= 2:
+                return parts[-1].strip()[:60]
+            return rec.title[:60]
+    except Exception:
+        pass
+
     return ""
+
 
 
 def download_subtitles(url: str, work_dir: Path) -> str | None:
