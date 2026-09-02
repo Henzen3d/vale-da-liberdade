@@ -175,10 +175,6 @@ def is_blocked_source_url(url: str) -> bool:
             "ancapsu",
             "news.mob.tec.br/ep/",
             "news.mob.tec.br/episodes/",
-            # nytimes.com: IP do VPS marcado no PerimeterX — print sai como
-            # página de challenge (testado 2026-08-24). Usar fonte alternativa
-            # (AP News, Guardian, BBC, El País) para captura visual.
-            "nytimes.com",
         )
     )
 

@@ -471,14 +471,14 @@ class BaseScraper:
                 # 10. Pausa final para renderização
                 page.wait_for_timeout(500)
 
-                # 9. Capturar
+                # 11. Capturar
                 self._take_screenshot(page, dest)
 
                 page.close()
                 ctx.close()
                 browser.close()
 
-                # 10. Validar
+                # 12. Validar
                 if not dest.exists() or dest.stat().st_size < MIN_SHOT_BYTES:
                     result["error"] = "screenshot muito pequeno ou inexistente"
                 elif _is_blank(dest):

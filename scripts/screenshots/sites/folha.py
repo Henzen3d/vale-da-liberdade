@@ -115,12 +115,12 @@ _CLEANUP_FOLHA_JS = """() => {
 # Scraper
 # ---------------------------------------------------------------------------
 
-@register("folha.uol.com.br", "www1.folha.uol.com.br", "folha.com.br")
+@register("folha.uol.com.br", "www1.folha.uol.com.br", "folha.com.br", "datafolha.folha.uol.com.br")
 class FolhaScraper(BaseScraper):
-    """Handler cirúrgico para a Folha de S.Paulo."""
+    """Handler cirúrgico para a Folha de S.Paulo e Datafolha."""
 
     name = "folha"
-    domains = ("folha.uol.com.br", "www1.folha.uol.com.br", "folha.com.br")
+    domains = ("folha.uol.com.br", "www1.folha.uol.com.br", "folha.com.br", "datafolha.folha.uol.com.br")
 
     def wait_for_content(self, page: Any) -> bool:
         """Espera o artigo da Folha carregar no DOM."""

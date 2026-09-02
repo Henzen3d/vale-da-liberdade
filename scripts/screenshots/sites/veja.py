@@ -178,12 +178,12 @@ _CLEANUP_VEJA_JS = """() => {
 # Scraper
 # ---------------------------------------------------------------------------
 
-@register("veja.abril.com.br")
+@register("veja.abril.com.br", "vejasp.abril.com.br", "abril.com.br")
 class VejaScraper(BaseScraper):
     """Handler cirúrgico para Veja (Editora Abril)."""
 
     name = "veja"
-    domains = ("veja.abril.com.br",)
+    domains = ("veja.abril.com.br", "vejasp.abril.com.br", "abril.com.br")
 
     def wait_for_content(self, page: Any) -> bool:
         """Espera o artigo carregar no DOM."""

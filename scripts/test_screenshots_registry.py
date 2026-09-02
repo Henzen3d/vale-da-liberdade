@@ -14,6 +14,7 @@ from scripts.screenshots.sites import get_scraper, list_registered  # noqa: E402
 
 # Domínios que o pipeline BM precisa despachar (get_scraper → try_handler_screenshot).
 REQUIRED_DOMAINS = (
+    "abril.com.br",
     "ainvestigacao.com",
     "ainvestigacao.com.br",
     "aosfatos.org",
@@ -28,6 +29,7 @@ REQUIRED_DOMAINS = (
     "congressoemfoco.com.br",
     "congressoemfoco.uol.com.br",
     "correiobraziliense.com.br",
+    "datafolha.folha.uol.com.br",
     "diariodocentrodomundo.com.br",
     "diariodopoder.com.br",
     "economia.uol.com.br",
@@ -64,6 +66,7 @@ REQUIRED_DOMAINS = (
     "uol.com.br",
     "valor.globo.com",
     "veja.abril.com.br",
+    "vejasp.abril.com.br",
     "www1.folha.uol.com.br",
 )
 
@@ -85,6 +88,18 @@ class RegistryTests(unittest.TestCase):
         self.assertIsNotNone(scraper)
         assert scraper is not None
         self.assertEqual(scraper.name, "folha")
+
+    def test_datafolha_folha_handler(self):
+        scraper = get_scraper("datafolha.folha.uol.com.br")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "folha")
+
+    def test_abril_parent_covers_subdomains(self):
+        scraper = get_scraper("vejasp.abril.com.br")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "veja")
 
     def test_piaui_wins_over_uol_parent(self):
         scraper = get_scraper("piaui.uol.com.br")
