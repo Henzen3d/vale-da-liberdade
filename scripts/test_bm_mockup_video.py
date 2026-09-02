@@ -167,7 +167,10 @@ class CacheTests(unittest.TestCase):
 
     def test_cache_version_invalidates_unstyled_shots(self):
         from bm_mockup_video import CAPTURE_CACHE_VERSION, wait_for_styled_capture
-        self.assertTrue(CAPTURE_CACHE_VERSION.startswith("css-"))
+        self.assertTrue(
+            CAPTURE_CACHE_VERSION.startswith("css-")
+            or CAPTURE_CACHE_VERSION.startswith("handler-")
+        )
         self.assertNotEqual(
             cache_path_for_url("https://www.cnnbrasil.com.br/politica/artigo").name,
             "same-as-old-hash",

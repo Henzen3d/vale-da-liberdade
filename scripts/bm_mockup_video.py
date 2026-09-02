@@ -34,6 +34,8 @@ from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_DIR = ROOT / "scripts"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 MOCKUP_DIR = ROOT / "references" / "youtube" / "mockup-browser"
 MOCKUP_HTML = "mockup-brower.html"  # typo histórico no arquivo
 WALLPAPER_DIR = MOCKUP_DIR / "wallpaper"
@@ -71,7 +73,7 @@ MAX_SCENES = 8
 MAX_PER_HOST = 2
 CACHE_MAX_AGE_HOURS = 36.0
 # Invalida prints antigos (HTML sem CSS). Subir quando a captura mudar de novo.
-CAPTURE_CACHE_VERSION = "css-v2"
+CAPTURE_CACHE_VERSION = "handler-v1"
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -114,6 +116,23 @@ def domain_of(url: str) -> str:
         return (urlsplit(url or "").netloc or "").lower().removeprefix("www.")
     except Exception:
         return ""
+
+
+def try_handler_screenshot(url: str, dest: Path, viewport: dict[str, int] | None = None) -> dict | None:
+    """Captura via handler dedicado (ads/paywall). None = sem handler, usar Playwright genérico."""
+    try:
+        from scripts.screenshots.sites import get_scraper
+        from scripts.screenshots.runner import capture as clean_capture
+    except Exception:
+        return None
+    if get_scraper(domain_of(url)) is None:
+        return None
+    return clean_capture(
+        url,
+        dest=dest,
+        viewport=viewport,
+        timeout_ms=45_000,
+    )
 
 
 def cache_path_for_url(url: str) -> Path:
@@ -1086,6 +1105,34 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     item["shot"] = None
                     out.append(item)
                     continue
+                if host_kind(url) not in ("x", "instagram"):
+                    handler_result = try_handler_screenshot(
+                        url, dest, viewport={"width": 1400, "height": 900}
+                    )
+                    if handler_result is not None:
+                        handler_name = handler_result.get("handler") or "?"
+                        if (
+                            handler_result.get("ok")
+                            and dest.exists()
+                            and dest.stat().st_size > MIN_SHOT_BYTES
+                            and not _shot_looks_blank(dest)
+                        ):
+                            save_cached_screenshot(url, dest)
+                            item = dict(scene)
+                            item["shot"] = dest.name
+                            item["video"] = None
+                            out.append(item)
+                            print(
+                                f"  📸 {scene['veiculo']}: {dest.name} "
+                                f"({dest.stat().st_size // 1024} KB, handler={handler_name})"
+                            )
+                            continue
+                        print(
+                            f"  ↪️  {scene['veiculo']}: handler={handler_name} falhou "
+                            f"({handler_result.get('error') or handler_result.get('http_status')}) "
+                            f"— fallback genérico"
+                        )
+                        dest.unlink(missing_ok=True)
                 resp = page.goto(url, wait_until="load", timeout=45000)
                 wait_for_styled_capture(page)
                 blocked = page_looks_blocked(page, resp.status if resp else None)
