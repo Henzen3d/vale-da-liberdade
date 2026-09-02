@@ -24,8 +24,36 @@ Leia `CANONICAL.md` e `../AGENT_GUIDE.md` antes de qualquer outro doc.
 
 Skills Hermes (fora deste repo; não duplicar aqui):
 
-- `web-jornal-production` — produção diária / B&M
+- `web-jornal-production` — produção diária / B&M. Canônica: `~/.hermes/skills/content/web-jornal-production` (não a cópia em `~/.hermes/skills/web-jornal-production`).
 - `web-jornal-frontend` — player e UX em `public/`
+
+## Mapa canônico — VIVO (produção)
+
+Não mexer nestes fluxos sem teste. Paths relativos à raiz do repo.
+
+| Subsistema | Fluxo canônico | Arquivos principais |
+|---|---|---|
+| Diário (06:00 America/Sao_Paulo) | Coleta → Roteiro → TTS Multi → Publicação | `scripts/pipeline.py`, `scripts/news_collector.py`, `scripts/generate_roteiro_llm.py`, `scripts/generate_script.py`, `scripts/tts_preprocessor.py`, `scripts/generate_gemini_tts_multi.py`, `scripts/publish_site.py`, `scripts/upload_r2.py` |
+| Brasil & Mundo | Monitor RSS → Fila → Mockup vídeo → Upload YT | `scripts/bm_monitor.py`, `scripts/bm_pipeline.py`, `scripts/bm_condensador.py`, `scripts/bm_enrich_sources.py`, `scripts/bm_mockup_video.py`, `scripts/youtube_uploader.py` |
+| Screenshots jornalísticos | Motor modular + handlers por domínio | `scripts/screenshots/base.py`, `scripts/screenshots/runner.py`, `scripts/screenshots/sites/`. Chamada: `try_handler_screenshot` em `bm_mockup_video.py`. Não existe `scripts/screenshots/core/`. |
+| Thumbnails | Papéis distintos, ambos vivos | Diário: `scripts/thumbnail_generator.py`. Produção BM: `scripts/youtube_thumbnail.py` (importado por `bm_mockup_video.find_episode_thumbnail` → `generate_youtube_thumbnail`). CLI manual/auxiliar: `scripts/hermes_youtube_thumbnail.py` (não é o import do mockup). |
+| Gatilhos oficiais | Wrappers de execução | `scripts/cron-wrapper.sh` (diário, job Hermes `no_agent`). `scripts/bm-hourly-pipeline.sh` (BM). |
+
+## Mapa canônico — MORTO / LEGADO (no papel)
+
+Arquivos **não apagados**. Não ligar, não otimizar, não tratar como spec.
+
+| Componente | Motivo | Ação |
+|---|---|---|
+| `scripts/bm_video_autopilot.py` | Substituído por `bm-hourly-pipeline.sh` + `bm_mockup_video.py` | Job Hermes pausado; legado |
+| `scripts/faceless_*.py` | Prova de conceito 22/08 (autopilot não ativado) | Legado |
+| `scripts/youtube_video_generator.py` | Renderizador de geração anterior | Legado |
+| `references/youtube/prototype/` | Protótipo HyperFrames bancada-render | Só referência de design |
+| `scripts/clean_screenshot.py` | Órfão monolítico; canônico = `scripts/screenshots/` | Isolado no papel |
+| `thumbnail-generetor/` | Pasta aninhada com typo e código legado | Isolado no papel |
+| `scripts/cron-wrapper-v2.sh`, `scripts/cron-daily.sh`, `scripts/daily-collect.sh` | Wrappers antigos; diário oficial = `cron-wrapper.sh` via Hermes | Obsoletos |
+
+Hierarquia de docs: `CANONICAL.md` + este `docs/INDEX.md` + `docs/BM-VIDEO-LAYOUT.md` (só layout visual) + skill `content/web-jornal-production`. `SYSTEM_MAP.md` espelha as tabelas acima.
 
 ## Histórico — não tratar como estado vigente
 
@@ -50,8 +78,12 @@ Outros:
 
 | Path | Uso |
 |---|---|
+| `ARCHITECTURE.md` (raiz) | Conceitual junho/2026 — **histórico / arquivo** |
+| `ROADMAP.md` (raiz) | Fases 0–6 de junho — **histórico / arquivo** |
+| `docs/PIPELINE_SCRIPTS_INVENTORY.md` | Inventário 15/08 com crontab antigo — **histórico / arquivo** |
 | `news_urls.md` | Lista antiga de URLs; fontes vigentes em `sources/sources.json` |
 | `references/youtube/` | Prototype HyperFrames / quadros |
+| `YOUTUBE_PIPELINE_MAP.md` | Rascunho untracked; não é spec |
 | `~/.hermes/skills/content/web-jornal-production/references/` | Referências operacionais da skill de produção |
 
 ## Arquivos que o site precisa em `public/`

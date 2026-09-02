@@ -1,5 +1,8 @@
 # Inventário de scripts — pesquisa e produção
 
+> ⚠️ **DOCUMENTO HISTÓRICO / ARQUIVO**: Este documento reflete o estado em Junho/Agosto de 2026.
+> Para especificações ativas e regras de produção, consulte `CANONICAL.md` e `docs/INDEX.md`.
+
 **Gerado:** 2026-08-15  
 **Repo:** `/home/osmar/web-jornal-vale-da-liberdade`  
 **Público:** para um agente (Agy / Gemini) sugerir melhorias **sem reexplorar o disco**.  

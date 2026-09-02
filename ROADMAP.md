@@ -1,5 +1,8 @@
 # ROADMAP — Plano de Melhorias Priorizado
 
+> ⚠️ **DOCUMENTO HISTÓRICO / ARQUIVO**: Este documento reflete o estado em Junho/Agosto de 2026.
+> Para especificações ativas e regras de produção, consulte `CANONICAL.md` e `docs/INDEX.md`.
+
 > Roadmap de execução faseado do **Web Jornal Vale da Liberdade**, classificado por
 > **Impacto × Esforço**. Cada fase é independentemente shippável e verificável.
 >

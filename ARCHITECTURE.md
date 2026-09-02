@@ -1,5 +1,8 @@
 # ARCHITECTURE — Web Jornal Vale da Liberdade
 
+> ⚠️ **DOCUMENTO HISTÓRICO / ARQUIVO**: Este documento reflete o estado em Junho/Agosto de 2026.
+> Para especificações ativas e regras de produção, consulte `CANONICAL.md` e `docs/INDEX.md`.
+
 > Documento de arquitetura real do projeto, refletindo o estado atual do código
 > após a migração Fase 1.1/1.2 (Gemini removido de filtro e geração de roteiro).
 > Mantido por: Hermes Agent | Última atualização: 2026-06-22

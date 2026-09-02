@@ -33,6 +33,9 @@ Se um comando falhar com “No such file”, o path está errado. Não inventar 
 | Composição HyperFrames | `references/youtube/prototype/bancada-render/build_episode_composition.py` |
 | Skill de produção | `~/.hermes/skills/content/web-jornal-production/SKILL.md` |
 | Índice de docs | `docs/INDEX.md` |
+| Mapa VIVO / MORTO | `docs/INDEX.md` (tabelas) e `SYSTEM_MAP.md` |
+
+Não usar como spec de produção: `ARCHITECTURE.md`, `ROADMAP.md`, `docs/PIPELINE_SCRIPTS_INVENTORY.md` (histórico Junho/Agosto 2026).
 
 ## Teste local do player
 

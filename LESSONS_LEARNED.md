@@ -282,3 +282,23 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 - **Causa raiz:** Comentário do código dizia "RFC 2822, comparável diretamente" — incorreto: só é comparável como string se o formato for ISO-8601.
 - **Solução aplicada:** `sort_key` agora normaliza com `email.utils.parsedate_to_datetime(pub).isoformat()` e ordena por tupla `(1, data)` para diários (primeiro) e `(0, pubDate)` para especiais (depois), ambos desc — conforme SKILL do web-jornal ("diários primeiro, depois especiais, mais recente primeiro"). Rebuild do catálogo/feed feito; `2026-08-16` agora é o card de destaque.
 - **Como evitar/repetir no futuro:** Nunca comparar RFC-2822 como string; normalizar para datetime/ISO antes de ordenar. Teste rápido: primeiro item do catálogo deve ser o episódio mais recente.
+
+---
+
+## [2026-08-31] Auditoria de Sistemas Vitais — Unificação de R2 e Isolamento de Legados sem Regressão
+
+- **Contexto:** Projeto acumulou scripts órfãos, runners soltos na raiz, duplicidade de uploaders (`upload_r2.py` e `batch_upload_r2.py`) e modelos ONNX pesados na raiz (`pt_BR-faber-medium.onnx` com 63.2 MB).
+- **O que aconteceu:** Múltiplas sessões adicionaram scripts ad-hoc para resolver tarefas pontuais sem consolidar com os módulos canônicos, gerando risco de IAs futuras chamarem scripts obsoletos ou corromperem o fluxo de produção.
+- **Causa raiz:** Ausência de uma pasta dedicada para scripts legados (`scripts/archive_legacy/`) e de uma suíte formal de testes para os contratos do pipeline.
+- **Solução aplicada:** 
+  1. `upload_r2.py` recebeu o método canônico `upload_all_audio()` (flag `--all`) com sidecars e logging estruturados; `batch_upload_r2.py` virou wrapper fino retrocompatível.
+  2. Scripts obsoletos de data estática (`build_roteiro_2026-07-18.py`, `build_roteiro_today.py`, `bm_video_autopilot.py`, `bm_karaoke.py`) foram movidos para `scripts/archive_legacy/`.
+  3. Modelos ONNX foram organizados em `voices/models/` e áudios de teste em `archive/audio_tests/`.
+  4. Criada suíte automatizada de testes unitários em `tests/` cobrindo regras de substituição do TTS, schemas de roteiro, contratos de R2 e integridade de cron wrappers (11 testes 100% OK).
+  5. `SYSTEM_MAP.md` e `archive/audit/2026-08-31-audit-report.md` criados como documentação viva.
+- **Como evitar/repetir no futuro:** Toda nova refatoração deve manter wrappers de retrocompatibilidade para scripts chamados por crons e passar pela suíte de testes `pytest tests/` ou `python -m unittest discover tests`.
+
+---
+
+*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-08-31*
+
