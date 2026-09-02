@@ -52,13 +52,13 @@ Quando o vídeo de origem do YouTube for curto ou superficial:
 
 ## 5. Política Anti-bloqueio (Captura Educada)
 
-1. **Cache em disco:** Screenshots são salvos em `output/brasil_e_mundo/capture-cache/{sha256(url)[:16]}.png`. Se o arquivo existir, tiver menos de 36 horas e tamanho > 8 KB, não revisitar o site.
+1. **Cache em disco:** Screenshots em `output/brasil_e_mundo/capture-cache/`. A chave inclui `CAPTURE_CACHE_VERSION` (`handler-v2` desde 2026-09-02) + URL — bump da versão invalida prints corrompidos sem precisar apagar o diretório. Se o arquivo existir, tiver menos de 36 horas e tamanho > 8 KB, não revisitar o site.
 2. **Delays aleatórios com jitter:**
    - Entre 3,5s e 8,0s de espera entre requisições para domínios diferentes.
    - Entre 8,0s e 15,0s de espera se duas URLs consecutivas forem do mesmo domínio.
 3. **Teto por domínio:** Máximo de 2 URLs do mesmo *registrable domain* por episódio.
 4. **Sem interação agressiva:** Uma página = um print. Não clicar em "leia mais", não abrir galerias nem navegar em paginações.
-5. **Tratamento de bloqueios:** Em caso de 403, Cloudflare challenge ou login-wall persistente, registrar `skip:blocked` e descartar a screenshot sem tentar bypass ou criar loops de retry.
+5. **Tratamento de bloqueios:** Em caso de 403, Cloudflare challenge ou login-wall persistente, registrar `skip:blocked` e descartar a screenshot sem tentar bypass ou criar loops de retry. **Não** usar `blocked-page-recovery` / `recover_page.py` para consertar print: essa escada é só texto (pauta/roteiro). O vídeo captura a URL original no Chromium.
 6. **Agendamento:** A captura Playwright ocorre exclusivamente no job do vídeo (máximo 1 execução por hora). Proibido rodar captura contínua no condensador.
 
 ---

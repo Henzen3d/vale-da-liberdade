@@ -144,30 +144,50 @@ _FIND_TITLE_JS = """() => {
     }
   });
 
-  // Posiciona com respiro de 24px acima do H1, descontando headers fixos/sticky
-  let y = h1.getBoundingClientRect().top + window.scrollY - sticky - 24;
-  // Se o título está próximo do topo (y < 240), mostra o topo completo com logo do jornal
-  if (y < 240) y = 0;
+  const rH1 = h1.getBoundingClientRect();
+  const absTop = rH1.top + window.scrollY;
+
+  // Se o H1 já fica visível e confortável no topo do viewport (até 480px),
+  // mantém y = 0 para preservar o logotipo e identidade institucional do jornal
+  if (absTop < 480) {
+    return {found: true, y: 0, sticky};
+  }
+
+  // Senão, posiciona com respiro de 24px acima do H1, descontando headers fixos
+  let y = absTop - sticky - 24;
+  if (y < 420) y = 0;
   return {found: true, y: Math.max(0, y), sticky};
 }"""
 
 # JS para forçar lazy-load de imagens (dispara IntersectionObserver).
-_FORCE_LAZY_JS = """() => {
-  // Substituir data-src → src
-  document.querySelectorAll('img[data-src]').forEach(img => {
-    if (!img.src || img.src.startsWith('data:')) {
-      img.src = img.dataset.src;
+_FORCE_LAZY_JS = """async () => {
+  // Substituir data-src / data-pagespeed-lazy-src / data-src-retina → src
+  document.querySelectorAll('img').forEach(img => {
+    const ds = img.dataset.src ||
+               img.getAttribute('data-pagespeed-lazy-src') ||
+               img.getAttribute('data-src-retina') ||
+               img.getAttribute('data-original');
+    if (ds && (!img.src || img.src.startsWith('data:'))) {
+      img.src = ds;
     }
-  });
-  document.querySelectorAll('img[loading="lazy"]').forEach(img => {
     img.loading = 'eager';
+    img.decoding = 'sync';
   });
   // Scroll rápido para disparar observers, volta ao topo
-  const max = document.body.scrollHeight;
-  for (let y = 0; y < max; y += 800) {
+  const max = Math.min(document.body.scrollHeight, 2400);
+  for (let y = 0; y < max; y += 600) {
     window.scrollTo(0, y);
   }
   window.scrollTo(0, 0);
+
+  // Aguarda decodificação de imagens do topo da página
+  try {
+    const topImgs = Array.from(document.querySelectorAll('img')).filter(im => {
+      const r = im.getBoundingClientRect();
+      return r.top < 1400 && im.src && !im.src.startsWith('data:');
+    });
+    await Promise.all(topImgs.map(im => (im.decode ? im.decode().catch(() => {}) : Promise.resolve())));
+  } catch (e) {}
 }"""
 
 # JS para limpar placeholders vazios (hero cinza/branco) e faixas "PUBLICIDADE" sem anúncio
@@ -180,13 +200,14 @@ _CLEAN_PLACEHOLDERS_JS = """() => {
   };
 
   // 1. Placeholders de mídia vazios (hero cinza/branco sem imagem carregada)
+  // Segurança: se contiver uma tag img com src válido que não seja data:, NÃO esconde
   document.querySelectorAll(
     'figure, picture, [data-testid="image"], [data-component="image-block"], .content-media, .content-featured-image, [class*="media-container"], [class*="hero-image"]'
   ).forEach(el => {
     const img = el.tagName === 'IMG' ? el : el.querySelector('img');
     const r = el.getBoundingClientRect();
-    // Se não há imagem ou se a imagem já concluiu o load e tem largura <= 10
-    const emptyImg = !img || (img.complete && img.naturalWidth <= 10);
+    const hasValidSrc = img && img.src && !img.src.startsWith('data:') && img.src.length > 15;
+    const emptyImg = !img || (img.complete && img.naturalWidth === 0 && !hasValidSrc);
     if (r.height > 60 && emptyImg && el.tagName !== 'IMG') hide(el);
   });
 
@@ -205,12 +226,16 @@ _CLEAN_PLACEHOLDERS_JS = """() => {
   if (h1) {
     const ty = h1.getBoundingClientRect().top;
     document.querySelectorAll('div, figure, section, aside').forEach(el => {
+      // Segurança: NUNCA esconder cabeçalhos, logos ou navegação institucional
+      if (el.closest('header, nav, [role="banner"], [class*="header"], [class*="topbar"], [class*="navbar"]')) return;
       if (el.contains(h1) || h1.contains(el)) return;
       const r = el.getBoundingClientRect();
       if (r.height < 60 || r.width < 240) return;
       if (r.bottom <= 8 || r.top >= ty - 4) return;
       const txt = (el.innerText || '').trim();
       if (txt.length > 40) return;
+      const svg = el.querySelector('svg');
+      if (svg) return;
       const img = el.querySelector('img');
       if (img && img.naturalWidth > 10) return;
       hide(el);
@@ -276,6 +301,8 @@ class BaseScraper:
     name: str = "genérico"
     # Domínios que este scraper atende (subclasse define)
     domains: tuple[str, ...] = ()
+    # Permite desabilitar stealth se causar distorção de layout (ex.: Claudio Dantas)
+    stealth_enabled: bool = True
 
     def __init__(
         self,
@@ -327,7 +354,9 @@ class BaseScraper:
         return browser, ctx
 
     def _apply_stealth(self, page: Any) -> None:
-        """Aplica playwright-stealth se disponível."""
+        """Aplica playwright-stealth se disponível e habilitado."""
+        if not getattr(self, "stealth_enabled", True):
+            return
         try:
             from playwright_stealth import Stealth
             Stealth().apply_stealth_sync(page)

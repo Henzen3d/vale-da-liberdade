@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Scraper cirúrgico para a BBC (bbc.com, bbc.co.uk).
+"""Scraper cirúrgico para Agência Brasil e EBC (agenciabrasil.ebc.com.br, ebc.com.br).
 
 Arquitetura do site:
-- CMS BBC Simorgh / Morph / WebCore com HTML semântico e acessível.
-- O texto integral da matéria vem no HTML dentro de ``article[role="main"]``, ``main#main-content`` ou blocos ``[data-component="text-block"]``.
+- Portal público da Empresa Brasil de Comunicação (EBC) baseado em Drupal.
+- O texto integral da matéria vem no HTML dentro de ``article``, ``.content-news``,
+  ``.field--name-body`` ou ``.news-body``.
 - Sem paywall comercial, mas com:
-  - Banners de consentimento de cookies GDPR / LGPD (``#bbcprivacy-modal``, ``#bbccookies-banner``)
-  - Promos internas e módulos de "Leia mais"
-  - Banners de download de app BBC News
-- O cabeçalho institucional (blocos BBC / BBC News) é preservado no topo de forma estática.
+  - Barra de acessibilidade e governo federal (#barra-brasil, VLibras)
+  - Botões de compartilhamento flutuantes
+  - Banner de consentimento LGPD / cookies
+  - Módulos de "leia também" e podcasts institucionais
+- O cabeçalho com o logo da Agência Brasil / EBC é preservado no topo de forma estática.
 """
 from __future__ import annotations
 
@@ -22,16 +24,15 @@ from scripts.screenshots.sites import register
 # JS de espera: aguarda o título e corpo da matéria
 # ---------------------------------------------------------------------------
 
-_WAIT_BBC_CONTENT_JS = """() => {
+_WAIT_AGENCIA_CONTENT_JS = """() => {
   const sels = [
-    'h1#main-heading',
-    'h1[data-testid="headline"]',
-    'article[role="main"] h1',
-    'main h1',
+    'h1.title',
+    'h1.page-title',
     'article h1',
-    'div[data-component="text-block"]',
-    'article',
     'h1',
+    '.content-news',
+    '.field--name-body',
+    'article',
   ];
   for (const s of sels) {
     const el = document.querySelector(s);
@@ -42,64 +43,60 @@ _WAIT_BBC_CONTENT_JS = """() => {
 
 
 # ---------------------------------------------------------------------------
-# JS cirúrgico de limpeza para BBC
+# JS cirúrgico de limpeza para Agência Brasil / EBC
 # ---------------------------------------------------------------------------
 
-_CLEANUP_BBC_JS = """() => {
+_CLEANUP_AGENCIA_JS = """() => {
   const removed = [];
 
-  // 1. Remover banners e modais de cookies/privacidade GDPR da BBC
-  const cookieSelectors = [
-    '#bbcprivacy-modal',
-    '#bbccookies-banner',
-    '#bbccookies-prompt',
-    '[data-testid="cookie-banner"]',
-    '[data-testid="privacy-banner"]',
-    '.bbc-privacy-modal',
+  // 1. Remover barras de governo e acessibilidade que ocupam topo excessivo
+  const overlaySelectors = [
+    '.search-container',
+    '#barra-brasil',
+    '.barra-brasil',
+    '.vlibras',
+    '[vw]',
+    '[vw-access-button]',
+    '#vlibras-widget',
+    '.access-button',
+    '.banner-lgpd',
+    '.banner-lgpd-consent',
     '#onetrust-banner-sdk',
     '#onetrust-consent-sdk',
-    '.banner-lgpd',
+    '.c-share-bar--floating',
+    '.share-bar-floating',
+    '.sticky-share',
+    '.floating-tools',
   ];
 
-  cookieSelectors.forEach(sel => {
+  overlaySelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
       el.remove();
       removed.push(sel);
     });
   });
 
-  // 2. Remover anúncios comerciais (BBC Global/Internacional tem ads) e promoções
-  const adSelectors = [
-    '[data-testid="article-message-banner"]',
-    '[data-component="message-banner"]',
-    '[id*="dotcom-ad"]',
-    '[class*="ad-slot"]',
-    '[class*="ad-container"]',
+  // 2. Remover anúncios ou blocos promocionais órfãos se existirem
+  const promoSelectors = [
+    '.publicidade',
+    '.ads-container',
+    '.banner-container',
     '[id*="google_ads"]',
-    '.bbccom_slot',
-    '[data-testid="ad-slot"]',
-    '[data-component="ad-block"]',
     '.taboola-container',
-    '.outbrain-container',
-    '.app-banner',
-    '[data-testid="app-download-banner"]',
   ];
 
-  adSelectors.forEach(sel => {
+  promoSelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
-      // Segurança: nunca remover se contiver o corpo do artigo ou título
-      if (el.querySelector('article, h1, [data-component="text-block"], main#main-content')) return;
+      if (el.querySelector('article, h1, .field--name-body')) return;
       el.remove();
       removed.push(sel);
     });
   });
 
-  // 3. Tornar o cabeçalho institucional (logo BBC) estático e visível
-  document.querySelectorAll('header, [role="banner"], [data-testid="header"], .bbc-header, nav').forEach(el => {
+  // 3. Garantir que o cabeçalho com a logo da Agência Brasil fique estático e visível
+  document.querySelectorAll('header, .header, .navbar, .header-site, .region-header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
-    if (window.getComputedStyle(el).display === 'none') {
-      el.style.setProperty('display', 'block', 'important');
-    }
+    el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
   });
 
@@ -115,7 +112,7 @@ _CLEANUP_BBC_JS = """() => {
   }
 
   // 5. Garantir que parágrafos, fotos e legendas estejam 100% visíveis
-  document.querySelectorAll('article *, main#main-content *, [data-component="text-block"] *').forEach(el => {
+  document.querySelectorAll('article *, .content-news *, .field--name-body *').forEach(el => {
     if (el.style.filter && el.style.filter !== 'none') el.style.filter = 'none';
     if (el.style.opacity && el.style.opacity !== '1') el.style.opacity = '1';
     if (el.style.display === 'none') {
@@ -143,18 +140,18 @@ _CLEANUP_BBC_JS = """() => {
 # Scraper
 # ---------------------------------------------------------------------------
 
-@register("bbc.com", "bbc.co.uk")
-class BbcScraper(BaseScraper):
-    """Handler cirúrgico para a BBC (bbc.com e bbc.co.uk)."""
+@register("agenciabrasil.ebc.com.br", "ebc.com.br")
+class AgenciaBrasilScraper(BaseScraper):
+    """Handler cirúrgico para a Agência Brasil e EBC."""
 
-    name = "bbc"
-    domains = ("bbc.com", "bbc.co.uk")
+    name = "agenciabrasil"
+    domains = ("agenciabrasil.ebc.com.br", "ebc.com.br")
 
     def wait_for_content(self, page: Any) -> bool:
-        """Espera o artigo da BBC carregar no DOM."""
+        """Espera o artigo da Agência Brasil carregar no DOM."""
         for _ in range(15):
             try:
-                info = page.evaluate(_WAIT_BBC_CONTENT_JS)
+                info = page.evaluate(_WAIT_AGENCIA_CONTENT_JS)
                 if info.get("found"):
                     return True
             except Exception:
@@ -164,9 +161,9 @@ class BbcScraper(BaseScraper):
         return False
 
     def cleanup(self, page: Any) -> dict:
-        """Remoção cirúrgica de banners e cookies da BBC."""
+        """Remoção cirúrgica de barras de governo, modais e acessibilidade."""
         try:
-            result = page.evaluate(_CLEANUP_BBC_JS)
-            return {"handler": "bbc", **result}
+            result = page.evaluate(_CLEANUP_AGENCIA_JS)
+            return {"handler": "agenciabrasil", **result}
         except Exception as exc:
-            return {"handler": "bbc", "error": str(exc)[:300]}
+            return {"handler": "agenciabrasil", "error": str(exc)[:300]}

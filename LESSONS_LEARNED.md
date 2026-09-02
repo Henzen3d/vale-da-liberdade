@@ -300,5 +300,15 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 
 ---
 
-*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-08-31*
+## [2026-09-02] Prints ruins no BM `k_quemjtEOg` — não foi `blocked-page-recovery`
+
+- **Contexto:** Vídeo das 06:15 com falhas visuais nos screenshots. Hipótese fácil: a skill `blocked-page-recovery` teria “estragado” o print.
+- **O que aconteceu:** Os prints saíram cortados/errados (logo BBC/Globo, Claudio Dantas, viewport WordPress, lazy-load). A skill de recovery **não** entra no caminho visual.
+- **Causa raiz:** (1) O job das 06:15 rodou **antes** do deploy dos handlers modulares (commit `501a828` ~09:10). (2) CSS/viewport de portais específicos. (3) Confusão de papéis: `scripts/recover_page.py` = texto de pauta/roteiro; prints = Chromium headless em `scripts/bm_mockup_video.py` + `scripts/screenshots/` sobre as URLs originais.
+- **Solução aplicada:** Handler `agenciabrasil.py` (EBC); `base.py` protege cabeçalho/logo (incl. SVG) e corrige race de imagem lazy; `claudiodantas.py` desliga stealth e remove `aside.cd-ad`; `bbc.py` preserva bloco B-B-C e tira banner promocional; `CAPTURE_CACHE_VERSION = "handler-v2"`. Cache legado em `output/brasil_e_mundo/capture-cache/` pode ser apagado.
+- **Como evitar/repetir no futuro:** Não diagnosticar print ruim como falha de `blocked-page-recovery`. Conferir se o job rodou depois do commit dos handlers. Suíte: `python3 -m unittest scripts.test_screenshots_registry` e `python3 -m unittest scripts.test_bm_mockup_video`.
+
+---
+
+*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-09-02*
 

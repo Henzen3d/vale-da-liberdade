@@ -68,6 +68,9 @@ _CLEANUP_CLAUDIO_JS = """() => {
 
   // 2. Remover outros banners de publicidade, sidebars e slots de anúncios
   const adSelectors = [
+    'aside.cd-ad',
+    '.cd-ad',
+    '[class*="cd-ad"]',
     '[id*="google_ads"]',
     '[class*="td-a-rec"]',
     '[class*="td-g-rec"]',
@@ -139,8 +142,9 @@ _CLEANUP_CLAUDIO_JS = """() => {
   // 7. Forçar imagens da matéria com eager loading
   document.querySelectorAll('img').forEach(img => {
     img.loading = 'eager';
-    if (img.dataset.src && (!img.src || img.src.startsWith('data:'))) {
-      img.src = img.dataset.src;
+    const ds = img.dataset.src || img.getAttribute('data-pagespeed-lazy-src');
+    if (ds && (!img.src || img.src.startsWith('data:'))) {
+      img.src = ds;
     }
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('visibility', 'visible', 'important');
@@ -160,6 +164,8 @@ class ClaudioDantasScraper(BaseScraper):
 
     name = "claudiodantas"
     domains = ("claudiodantas.com.br",)
+    # Desativa stealth pois o tema do site quebra a largura do layout com mockings de tela
+    stealth_enabled = False
 
     def wait_for_content(self, page: Any) -> bool:
         """Espera o artigo carregar no DOM."""

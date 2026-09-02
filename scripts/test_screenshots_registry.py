@@ -15,6 +15,7 @@ from scripts.screenshots.sites import get_scraper, list_registered  # noqa: E402
 # Domínios que o pipeline BM precisa despachar (get_scraper → try_handler_screenshot).
 REQUIRED_DOMAINS = (
     "abril.com.br",
+    "agenciabrasil.ebc.com.br",
     "ainvestigacao.com",
     "ainvestigacao.com.br",
     "aosfatos.org",

@@ -73,7 +73,7 @@ MAX_SCENES = 8
 MAX_PER_HOST = 2
 CACHE_MAX_AGE_HOURS = 36.0
 # Invalida prints antigos (HTML sem CSS). Subir quando a captura mudar de novo.
-CAPTURE_CACHE_VERSION = "handler-v1"
+CAPTURE_CACHE_VERSION = "handler-v2"
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
