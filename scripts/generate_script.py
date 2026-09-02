@@ -201,6 +201,7 @@ ORDEM DOS QUADROS E LOCUTOR DE ABERTURA:
 - SEMPRE prefixe falas com "Peter:" ou "Ricardo:" (exato, com dois-pontos)
 - NÃO use saudação temporal (bom dia, boa tarde, etc.)
 - NÃO invente dados — use apenas o que está nas notícias abaixo
+- NUNCA escreva Turguniev (nem variantes). O apresentador é Peter Albuquerque; troque essa palavra por Albuquerque. Essa forma nunca vai para o áudio
 - Especificidade extrema: R$, %, datas, nomes, números exatos
 - Voz ativa sempre ("Câmara aprova" não "É aprovado")
 - Peter SEMPRE traz ângulo libertário/anti-estado — mas NÃO em toda fala com a mesma fórmula (ver 7.1)

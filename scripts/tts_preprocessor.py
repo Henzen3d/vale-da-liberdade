@@ -580,6 +580,38 @@ def _extract_speaker_lines(text: str) -> str:
     return "\n".join(cleaned).strip()
 
 
+# Sobrenome do apresentador original do ANCAPSU — nunca vai para roteiro/TTS.
+# "Peter Turguniev" / "Turguniev" → Albuquerque (persona Vale).
+_TURGUNIEV_RE = re.compile(
+    r"(?i)\b(?:(?:peter|piter)\s+)?turgun(?:ie|ee|e|i[eé])v\b"
+)
+
+
+def scrub_turguniev(text: str) -> str:
+    """Troca turguniev (qualquer capitalização) por Albuquerque. Nunca deixa o nome no texto falado."""
+    if not text or "turgun" not in text.lower():
+        return text
+
+    def _repl(match: re.Match[str]) -> str:
+        raw = match.group(0)
+        if re.match(r"(?i)^(peter|piter)\s+", raw):
+            return "Peter Albuquerque"
+        return "Albuquerque"
+
+    return _TURGUNIEV_RE.sub(_repl, text)
+
+
+def scrub_turguniev_tree(obj):
+    """Aplica scrub_turguniev em strings de dict/list (JSON do episódio)."""
+    if isinstance(obj, str):
+        return scrub_turguniev(obj)
+    if isinstance(obj, list):
+        return [scrub_turguniev_tree(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: scrub_turguniev_tree(v) for k, v in obj.items()}
+    return obj
+
+
 def _fix_peter_pronunciation(text: str) -> str:
     """Peter (nome) → Piter na fala; mantém rótulo 'Peter:' para o multi/turns."""
     # Proteger rótulos de locutor no início da linha
@@ -609,6 +641,9 @@ def preprocess_for_tts(markdown_text: str) -> str:
         de pausa inseridos.
     """
     text = markdown_text
+
+    # 0. Nunca sintetizar o sobrenome original do ANCAPSU
+    text = scrub_turguniev(text)
 
     # 1. Remover formatação markdown
     text = _strip_markdown(text)

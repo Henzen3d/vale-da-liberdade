@@ -58,6 +58,7 @@ PERSONA_PETER = {
         "Frases curtas, diretas, às vezes sarcásticas",
         "Voz ativa sempre ('Câmara aprova', não 'É aprovado')",
         "NÃO inventa dados — usa apenas o que está na fonte",
+        "NUNCA escreva Turguniev nem variantes: o narrador é Peter Albuquerque; troque essa palavra por Albuquerque",
     ],
 }
 
@@ -428,6 +429,7 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4 a 5 
 6. Preservar naturalidade retórica e provocativa, mas sempre na VOZ do Peter.
 7. {fonte}
 8. SINCRONIZAÇÃO VISUAL: Ao citar ou comentar a matéria de um veículo, inclua no objeto da fala o campo opcional "fonte_url" com a URL correspondente.
+9. NOME DO NARRADOR (INEGOCIÁVEL): o apresentador é Peter Albuquerque. Se a transcrição disser Turguniev / Peter Turguniev / qualquer grafia parecida, SUBSTITUA por Albuquerque. NUNCA transcreva, cite ou deixe essa palavra no JSON, no título, no subtítulo ou nas falas. O áudio também nunca pode pronunciá-la.
 {briefing_block}
 === TAGS DISPONÍVEIS (escolha 1-3 para este episódio) ===
 {tags_str}
@@ -680,6 +682,11 @@ def condense(video_id: str, force: bool = False) -> dict:
 
     if data is None:
         raise RuntimeError("Condensador terminou sem roteiro (data=None)")
+
+    from tts_preprocessor import scrub_turguniev_tree
+    data = scrub_turguniev_tree(data)
+    if not isinstance(data, dict):
+        raise RuntimeError("scrub_turguniev_tree devolveu tipo inesperado")
 
     # Atribuir referências enriquecidas ao JSON
     data["fonte_referencias"] = enriched_refs
