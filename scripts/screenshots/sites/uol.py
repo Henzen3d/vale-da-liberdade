@@ -170,7 +170,7 @@ _CLEANUP_UOL_JS = """() => {
 # Scraper
 # ---------------------------------------------------------------------------
 
-@register("uol.com.br", "noticias.uol.com.br", "economia.uol.com.br", "congressoemfoco.uol.com.br", "splash.uol.com.br", "educacao.uol.com.br")
+@register("uol.com.br", "noticias.uol.com.br", "economia.uol.com.br", "splash.uol.com.br", "educacao.uol.com.br")
 class UolScraper(BaseScraper):
     """Handler cirúrgico para o Portal UOL."""
 
@@ -179,7 +179,6 @@ class UolScraper(BaseScraper):
         "uol.com.br",
         "noticias.uol.com.br",
         "economia.uol.com.br",
-        "congressoemfoco.uol.com.br",
         "splash.uol.com.br",
         "educacao.uol.com.br",
     )
