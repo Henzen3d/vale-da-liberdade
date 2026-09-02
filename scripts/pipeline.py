@@ -132,6 +132,23 @@ def format_raw_markdown(date, sources_used, selected_news):
             lines.append(f"  - **URL**: [{item.get('url')}]({item.get('url')})")
             lines.append(f"  - **Score**: {score_stars} ({item.get('quality_score')}/5)")
             lines.append(f"  - **Resumo**: {item.get('summary')}")
+            # Proveniência do conteúdo (paywall fallback). Adiciona
+            # nota visual pro roteiro e auditoria sem alterar o prompt do LLM.
+            provenance = item.get("provenance")
+            if provenance and ("snapshot" in provenance.lower() or "arquivado" in provenance.lower() or item.get("snapshot_date")):
+                snap_date = item.get("snapshot_date") or "data recente"
+                route = item.get("recovery_method") or item.get("snapshot_route") or "archive"
+                lines.append(
+                    f"  - **Proveniência**: Arquivado em {snap_date} "
+                    f"(via {route}; recuperado com skill `blocked-page-recovery`). Citar data no roteiro."
+                )
+                if item.get("snapshot_url"):
+                    lines.append(f"  - **Snapshot**: {item.get('snapshot_url')}")
+            elif provenance == "skip:blocked":
+                lines.append(
+                    "  - **Proveniência**: ⚠️ skip:blocked — paywall ativo, "
+                    "sem snapshot disponível. Usar apenas o headline do RSS."
+                )
             if item.get("key_points"):
                 lines.append(f"  - **Pontos Chave**:")
                 for pt in item.get("key_points"):

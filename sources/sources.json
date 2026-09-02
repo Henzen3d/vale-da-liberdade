@@ -380,6 +380,28 @@
       "scope": "nacional",
       "enabled": true,
       "_note": "20 itens em validação."
+    },
+    {
+      "id": "folha_mercado",
+      "name": "Folha de S.Paulo — Mercado",
+      "url": "https://feeds.folha.uol.com.br/mercado/rss091.xml",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "paywall_aware": true,
+      "_note": "Feed RSS com suporte a blocked-page-recovery para artigos em paywall."
+    },
+    {
+      "id": "bloomberg_brasil",
+      "name": "Bloomberg Línea Brasil",
+      "url": "https://www.bloomberglinea.com.br/arc/outboundfeeds/rss/",
+      "method": "rss",
+      "tier": 1,
+      "scope": "nacional",
+      "enabled": true,
+      "paywall_aware": true,
+      "_note": "Feed RSS com suporte a blocked-page-recovery para artigos em paywall."
     }
   ]
 }

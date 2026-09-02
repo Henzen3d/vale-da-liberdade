@@ -174,7 +174,17 @@ def validate_feed(candidate):
                 result["error"] = f"HTTP {result['http_status']} mas feedparser não encontrou entries"
             else:
                 result["status"] = "REPROVADO"
-                result["error"] = f"HTTP {result['http_status'] or '?'}"
+                err_msg = f"HTTP {result['http_status'] or '?'}"
+                # Verificar se a URL é recuperável via blocked-page-recovery
+                if result.get("http_status") in (401, 403, 429) or not result.get("http_status"):
+                    try:
+                        from recover_page import recover_page
+                        rec = recover_page(url, timeout=6.0, try_direct_first=False)
+                        if rec.success:
+                            err_msg += f" (Bloqueio WAF/403 detectado - Recuperável via {rec.method_used})"
+                    except Exception:
+                        pass
+                result["error"] = err_msg
 
     result["duration_s"] = round(time.time() - start, 2)
     return result

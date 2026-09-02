@@ -21,6 +21,11 @@ import time
 import unicodedata
 import urllib3
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 import requests
 import feedparser
 from bs4 import BeautifulSoup
@@ -243,6 +248,28 @@ def try_wordpress_api(base_url):
     return None
 
 
+def _maybe_recover_paywalled(link: str, title: str, content: str, source: dict) -> tuple[str, str | None, str | None, str | None, str | None, str | None]:
+    """Se a fonte for paywall_aware ou o conteúdo vier truncado com paywall, tenta recuperar via blocked-page-recovery."""
+    is_paywall_source = source.get("paywall_aware", False)
+    content_clean = clean_html(content)
+    has_paywall_marker = any(m in content_clean.lower() for m in (
+        "assine para continuar", "exclusivo para assinantes", "conteúdo restrito", "faça login", "paywall"
+    ))
+    
+    if (is_paywall_source or has_paywall_marker) and link:
+        try:
+            from recover_page import recover_page
+            rec = recover_page(link, timeout=6.0, try_direct_first=False)
+            if rec.success and len(rec.content) > len(content_clean):
+                log.info(f"[{source.get('id', 'paywall')}] Artigo '{title[:40]}' enriquecido via {rec.method_used} ({rec.provenance})")
+                return rec.content, rec.provenance, rec.snapshot_date, rec.snapshot_url, rec.snapshot_route, rec.method_used
+            elif not rec.success:
+                return content_clean, "skip:blocked", None, None, None, None
+        except Exception:
+            pass
+    return content_clean, None, None, None, None, None
+
+
 def fetch_rss_source(source, hours=48):
     """Busca notícias via RSS feed parser com retry e pre-fetching."""
     url = source["url"]
@@ -306,12 +333,24 @@ def fetch_rss_source(source, hours=48):
             
             # Filtrar por recência
             if is_recent(pub_date, hours):
-                articles.append({
+                art_content, art_prov, art_snap_date, art_snap_url, art_snap_route, art_rec_method = _maybe_recover_paywalled(link, title, content, source)
+                art_dict = {
                     "title": clean_html(title),
                     "link": link,
                     "published": pub_date,
-                    "content": clean_html(content)
-                })
+                    "content": art_content,
+                }
+                if art_prov:
+                    art_dict["provenance"] = art_prov
+                if art_snap_date:
+                    art_dict["snapshot_date"] = art_snap_date
+                if art_snap_url:
+                    art_dict["snapshot_url"] = art_snap_url
+                if art_snap_route:
+                    art_dict["snapshot_route"] = art_snap_route
+                if art_rec_method:
+                    art_dict["recovery_method"] = art_rec_method
+                articles.append(art_dict)
         
         return articles, True
     except Exception as e:
@@ -467,6 +506,106 @@ def fetch_browser_source(source, hours=48):
         return fetch_scraping_source(source, hours)
 
 
+def _recover_source_articles(source: dict, hours: int = 48) -> tuple[list[dict], bool]:
+    """Fallback via blocked-page-recovery quando RSS/Scraping/Browser falham ou são bloqueados."""
+    try:
+        from recover_page import recover_page
+    except ImportError:
+        try:
+            from scripts.recover_page import recover_page
+        except ImportError:
+            return [], False
+
+    url = source.get("url", "")
+    log.info(f"[{source['id']}] Tentando blocked-page-recovery fallback ladder para {url}...")
+    rec = recover_page(url, try_direct_first=False)
+    if not rec.success:
+        return [], False
+
+    articles = []
+    # 1. Se tiver raw_html, tentar extrair links com seletores comuns
+    if rec.raw_html:
+        try:
+            soup = BeautifulSoup(rec.raw_html, "html.parser")
+            selectors = [
+                "article a", "h2 a", "h1 a", "h3 a", ".post-title a",
+                ".entry-title a", ".card-title a", ".noticia a"
+            ]
+            candidates = []
+            for sel in selectors:
+                candidates.extend(soup.select(sel))
+            seen = set()
+            for a in candidates:
+                title = a.get_text().strip()
+                href = a.get("href")
+                if not title or not href or len(title) < 15:
+                    continue
+                if href.startswith("/"):
+                    parsed_url = requests.utils.urlparse(url)
+                    href = f"{parsed_url.scheme}://{parsed_url.netloc}{href}"
+                elif not href.startswith("http"):
+                    continue
+                if href in seen or href == url:
+                    continue
+                seen.add(href)
+                articles.append({
+                    "title": clean_html(title),
+                    "link": href,
+                    "published": datetime.datetime.now(datetime.timezone.utc),
+                    "content": title,
+                    "provenance": rec.provenance,
+                    "snapshot_date": rec.snapshot_date,
+                    "snapshot_url": rec.snapshot_url or url,
+                    "snapshot_route": rec.snapshot_route or rec.method_used,
+                    "recovery_method": rec.method_used,
+                })
+                if len(articles) >= 10:
+                    break
+        except Exception:
+            pass
+
+    # 2. Se o conteúdo for markdown (ex: Jina Reader), extrair links markdown [Title](url)
+    if not articles and rec.content:
+        md_links = re.findall(r"\[([^\]]{15,})\]\((https?://[^\)]+)\)", rec.content)
+        seen = set()
+        for title, link in md_links:
+            if link in seen or link == url:
+                continue
+            seen.add(link)
+            articles.append({
+                "title": clean_html(title),
+                "link": link,
+                "published": datetime.datetime.now(datetime.timezone.utc),
+                "content": title,
+                "provenance": rec.provenance,
+                "snapshot_date": rec.snapshot_date,
+                "snapshot_url": rec.snapshot_url or url,
+                "snapshot_route": rec.snapshot_route or rec.method_used,
+                "recovery_method": rec.method_used,
+            })
+            if len(articles) >= 10:
+                break
+
+    # 3. Se for uma página de artigo individual (título + conteúdo longo)
+    if not articles and rec.title and len(rec.content) >= 180:
+        articles.append({
+            "title": clean_html(rec.title),
+            "link": url,
+            "published": datetime.datetime.now(datetime.timezone.utc),
+            "content": clean_html(rec.content[:1000]),
+            "provenance": rec.provenance,
+            "snapshot_date": rec.snapshot_date,
+            "snapshot_url": rec.snapshot_url or url,
+            "snapshot_route": rec.snapshot_route or rec.method_used,
+            "recovery_method": rec.method_used,
+        })
+
+    if articles:
+        log.info(f"[{source['id']}] Recuperados {len(articles)} artigos via {rec.method_used} ({rec.provenance})")
+        return articles, True
+    return [], False
+
+
 def fetch_source_wrapper(source, hours=48):
     """Wrapper para despachar a coleta com base no método da fonte."""
     # Delay/jitter humano (2-6s) entre fontes para evitar padrão robótico
@@ -484,6 +623,14 @@ def fetch_source_wrapper(source, hours=48):
             items, success = fetch_browser_source(source, hours)
         else:  # scraping
             items, success = fetch_scraping_source(source, hours)
+
+        # Se falhou ou veio vazio, tentar a escada blocked-page-recovery
+        if not success or not items:
+            log.info(f"[{source['id']}] Coleta inicial sem itens (sucesso={success}). Tentando blocked-page-recovery...")
+            recovered_items, rec_success = _recover_source_articles(source, hours)
+            if rec_success and recovered_items:
+                items = recovered_items
+                success = True
             
         # Garantir que todos os itens tenham a referência correta do source_id
         for item in items:
@@ -499,6 +646,7 @@ def fetch_source_wrapper(source, hours=48):
         "items": items,
         "duration": duration
     }
+
 
 
 
