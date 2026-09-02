@@ -257,10 +257,66 @@ def smart_fetch(url: str, **kw) -> tuple[str | None, int | None]:
                                        "timeout", "proxy")})
 
 
+def fetch_with_recovery(
+    url: str,
+    *,
+    allow_recovery: bool = True,
+    **kw,
+) -> tuple[str | None, int | None, dict]:
+    """Busca HTML com fallback inteligente para blocked-page-recovery.
+
+    Retorna tupla (html_ou_texto, status_code, metadata_dict)
+    onde metadata_dict contém chaves como:
+      - method: "direct" | "browser" | "wayback" | "archive_today" | "jina_reader" | "api_pivot"
+      - provenance: str
+      - snapshot_date: str | None
+      - title: str
+    """
+    html, status = smart_fetch(url, **kw)
+    if html and not _looks_like_block(status, html[:2000]):
+        return html, status or 200, {
+            "method": "browser" if is_bot_sensitive(url) else "direct",
+            "provenance": "Ao vivo (acesso direto)",
+            "snapshot_date": None,
+            "title": "",
+        }
+
+    if not allow_recovery:
+        return html, status, {
+            "method": "direct",
+            "provenance": "Falha sem recuperação",
+            "snapshot_date": None,
+            "title": "",
+        }
+
+    # Ativar escada blocked-page-recovery
+    try:
+        from recover_page import recover_page
+        rec = recover_page(url, try_direct_first=False)
+        if rec.success:
+            log.info("fetch_with_recovery: Recuperado com sucesso via %s para %s", rec.method_used, url)
+            return rec.content, rec.status_code or 200, {
+                "method": rec.method_used,
+                "provenance": rec.provenance,
+                "snapshot_date": rec.snapshot_date,
+                "title": rec.title,
+            }
+    except Exception as exc:
+        log.warning("fetch_with_recovery falhou na escada para %s: %s", url, exc)
+
+    return None, status, {
+        "method": "none",
+        "provenance": "Falha total",
+        "snapshot_date": None,
+        "title": "",
+    }
+
+
 if __name__ == "__main__":
     import sys
     target = sys.argv[1] if len(sys.argv) > 1 else \
         "https://economia.uol.com.br/noticias/redacao/2026/08/21/jf-dos-irmaos-batista-compra-100-da-avibras.ghtm"
     logging.basicConfig(level=logging.INFO)
-    h, s = smart_fetch(target)
-    print("status:", s, "| bytes:", len(h) if h else 0)
+    h, s, meta = fetch_with_recovery(target)
+    print("status:", s, "| bytes:", len(h) if h else 0, "| method:", meta.get("method"))
+
