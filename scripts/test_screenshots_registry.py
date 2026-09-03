@@ -123,6 +123,16 @@ class RegistryTests(unittest.TestCase):
     def test_unknown_domain_has_no_handler(self):
         self.assertIsNone(get_scraper("example.com"))
 
+    def test_base_scraper_waits_for_styles_and_never_aborts_css(self):
+        from scripts.screenshots.base import BaseScraper, _should_block
+        import inspect
+
+        self.assertTrue(callable(getattr(BaseScraper, "_wait_for_styles")))
+        src = inspect.getsource(BaseScraper._launch_context)
+        self.assertIn("stylesheet", src)
+        self.assertIn("font", src)
+        self.assertTrue(_should_block("https://pagead2.googlesyndication.com/pagead.js"))
+
 
 if __name__ == "__main__":
     unittest.main()

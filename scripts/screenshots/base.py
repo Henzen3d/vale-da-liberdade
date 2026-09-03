@@ -347,10 +347,19 @@ class BaseScraper:
             locale="pt-BR",
             user_agent=USER_AGENT,
         )
-        # Bloqueia ads/trackers na camada de rede
-        ctx.route("**/*", lambda route: (
-            route.abort() if _should_block(route.request.url) else route.continue_()
-        ))
+        # Bloqueia ads/trackers na camada de rede, mas NUNCA CSS ou fontes
+        def _route_filter(route):
+            try:
+                req = route.request
+                if req.resource_type in ("stylesheet", "font"):
+                    return route.continue_()
+                if _should_block(req.url):
+                    return route.abort()
+            except Exception:
+                pass
+            return route.continue_()
+
+        ctx.route("**/*", _route_filter)
         return browser, ctx
 
     def _apply_stealth(self, page: Any) -> None:
@@ -417,6 +426,34 @@ class BaseScraper:
         except Exception:
             pass
 
+    def _wait_for_styles(self, page: Any, timeout_ms: int = 15000) -> bool:
+        """Espera stylesheets e fontes antes de capturar (não rejeita no timeout)."""
+        wait_css_js = """() => {
+          if (document.readyState !== 'complete') return false;
+          const sheets = document.styleSheets;
+          if (!sheets || sheets.length === 0) return false;
+          let ok = false;
+          for (const s of sheets) {
+            try {
+              if (s.cssRules && s.cssRules.length > 0) { ok = true; break; }
+            } catch (e) {
+              ok = true; // CSS cross-origin já aplicado no layout
+              break;
+            }
+          }
+          return ok;
+        }"""
+        try:
+            page.wait_for_function(wait_css_js, timeout=timeout_ms)
+        except Exception:
+            pass
+        try:
+            page.evaluate("() => (document.fonts && document.fonts.ready) || true")
+        except Exception:
+            pass
+        page.wait_for_timeout(400)
+        return True
+
     def _take_screenshot(self, page: Any, dest: Path) -> Path:
         """Tira o PNG e retorna o caminho."""
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -469,6 +506,9 @@ class BaseScraper:
                 )
                 result["http_status"] = resp.status if resp else None
 
+                # 1.1 CSS/fontes antes de inspecionar conteúdo
+                self._wait_for_styles(page)
+
                 # 2. Esperar conteúdo renderizar (site-specific)
                 content_ok = self.wait_for_content(page)
                 result["meta"]["content_found"] = content_ok
@@ -508,7 +548,9 @@ class BaseScraper:
                 browser.close()
 
                 # 12. Validar
-                if not dest.exists() or dest.stat().st_size < MIN_SHOT_BYTES:
+                if result.get("http_status") in (403, 500, 502, 503, 520, 521):
+                    result["error"] = f"HTTP {result['http_status']} (bloqueio ou erro de servidor)"
+                elif not dest.exists() or dest.stat().st_size < MIN_SHOT_BYTES:
                     result["error"] = "screenshot muito pequeno ou inexistente"
                 elif _is_blank(dest):
                     result["error"] = "screenshot em branco (luminância uniforme)"

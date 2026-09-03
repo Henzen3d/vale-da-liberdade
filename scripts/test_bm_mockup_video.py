@@ -315,6 +315,24 @@ class HandlerCaptureOrderTests(unittest.TestCase):
             self.assertEqual(out[0]["shot"], "src-00.png")
             self.assertTrue((shot_dir / "src-00.png").exists())
 
+    def test_handler_shot_ok_rejects_http_errors(self):
+        import bm_mockup_video as m
+
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "x.png"
+            dest.write_bytes(b"P" * 25_000)
+            with patch.object(m, "_shot_looks_blank", return_value=False):
+                self.assertFalse(
+                    m._handler_shot_ok(
+                        {"ok": True, "http_status": 403, "handler": "g1"}, dest
+                    )
+                )
+                self.assertTrue(
+                    m._handler_shot_ok(
+                        {"ok": True, "http_status": 200, "handler": "g1"}, dest
+                    )
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

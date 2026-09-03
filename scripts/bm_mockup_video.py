@@ -147,6 +147,7 @@ def _handler_shot_ok(result: dict | None, dest: Path) -> bool:
     return bool(
         result
         and result.get("ok")
+        and result.get("http_status") not in (403, 500, 502, 503, 520, 521)
         and dest.exists()
         and dest.stat().st_size > MIN_SHOT_BYTES
         and not _shot_looks_blank(dest)
@@ -1185,6 +1186,12 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 prep = prepare_capture(page, url)
                 print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
                 wait_for_styled_capture(page, timeout_ms=12000)
+                try:
+                    from scripts.screenshots.base import CLEANUP_CSS
+
+                    page.add_style_tag(content=CLEANUP_CSS)
+                except Exception:
+                    pass
                 if prep.get("kind") == "instagram" and instagram_is_login_wall(page):
                     print(f"  ⚠️  Instagram ainda em login-wall — cena sem screenshot")
                     item = dict(scene)
