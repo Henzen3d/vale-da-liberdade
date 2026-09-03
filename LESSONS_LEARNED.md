@@ -310,5 +310,15 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 
 ---
 
-*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-09-02*
+## [2026-09-03] Prints sem CSS no BM `vhm4xPVjxFk` — nested Playwright, não `blocked-page-recovery`
+
+- **Contexto:** Prints de O Globo/G1/Poder360/Metrópoles/CNN saíram como HTML cru (Times New Roman, imagens quebradas). Hipótese recorrente: skill `blocked-page-recovery`.
+- **O que aconteceu:** Cron `web-jornal-brasil-mundo-hourly` (`aefe99598bbe`) é `no_agent` com `skills=[]`. Recovery **não carregou**. Log: todos os handlers falharam com `Playwright Sync API inside the asyncio loop` e o fallback genérico gravou a página sem CSS.
+- **Causa raiz:** `capture_sources` abria `sync_playwright()` e, *dentro* desse loop, chamava `try_handler_screenshot` → `BaseScraper.capture` → outro `sync_playwright()`. Playwright Sync não aninha. Handler nunca rodou; o fallback genérico passou no gate de tamanho/luminância mesmo sem stylesheet.
+- **Solução aplicada:** Handlers rodam **antes** do Playwright genérico (`_open_sync_playwright`). Cache `CAPTURE_CACHE_VERSION = "handler-v3"` para não reusar prints sem CSS. Testes em `HandlerCaptureOrderTests`.
+- **Como evitar/repetir no futuro:** Não desligar `blocked-page-recovery` para “consertar print”. No log, procurar `handler=… falhou (Playwright Sync API`. Suíte: `python3 -m unittest scripts.test_bm_mockup_video`.
+
+---
+
+*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-09-03*
 

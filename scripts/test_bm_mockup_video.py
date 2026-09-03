@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -247,6 +249,71 @@ class XVideoFitTests(unittest.TestCase):
         self.assertIn("pageVideo.videoHeight > pageVideo.videoWidth", html)
         self.assertIn("is-portrait", html)
         self.assertIn("classList.toggle", html)
+
+
+class HandlerCaptureOrderTests(unittest.TestCase):
+    """Handlers must not nest sync_playwright inside capture_sources.
+
+    Repro vhm4xPVjxFk (2026-09-03): every portal handler failed with
+    'Playwright Sync API inside the asyncio loop' and the generic
+    fallback saved CSS-less prints.
+    """
+
+    def test_handler_call_is_before_sync_playwright_in_capture_sources(self):
+        import inspect
+
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.capture_sources)
+        handler_pos = src.find("try_handler_screenshot")
+        pw_pos = src.find("_open_sync_playwright")
+        self.assertGreater(handler_pos, -1, "capture_sources must call try_handler_screenshot")
+        self.assertGreater(pw_pos, -1, "capture_sources still has a generic Playwright fallback")
+        self.assertLess(
+            handler_pos,
+            pw_pos,
+            "handlers must run before opening sync_playwright; nested Sync API "
+            "inside the Playwright asyncio loop is what broke vhm4xPVjxFk",
+        )
+
+    def test_successful_handler_skips_generic_playwright(self):
+        import bm_mockup_video as m
+
+        order: list[str] = []
+
+        def fake_handler(url, dest, viewport=None):
+            order.append("handler")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(b"P" * 25_000)
+            return {"ok": True, "handler": "g1"}
+
+        def fake_blank(_path):
+            return False
+
+        def boom(*_a, **_k):
+            order.append("sync_playwright")
+            raise AssertionError("generic Playwright must not run when handler succeeded")
+
+        scenes = [
+            {
+                "veiculo": "O Globo",
+                "url": "https://oglobo.globo.com/economia/foo.ghtml",
+            }
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            shot_dir = Path(td)
+            with (
+                patch.object(m, "try_handler_screenshot", fake_handler),
+                patch.object(m, "get_cached_screenshot", return_value=None),
+                patch.object(m, "save_cached_screenshot", return_value=None),
+                patch.object(m, "_shot_looks_blank", fake_blank),
+                patch.object(m, "_open_sync_playwright", boom),
+            ):
+                out = m.capture_sources(scenes, shot_dir)
+
+            self.assertEqual(order, ["handler"])
+            self.assertEqual(out[0]["shot"], "src-00.png")
+            self.assertTrue((shot_dir / "src-00.png").exists())
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ MAX_SCENES = 8
 MAX_PER_HOST = 2
 CACHE_MAX_AGE_HOURS = 36.0
 # Invalida prints antigos (HTML sem CSS). Subir quando a captura mudar de novo.
-CAPTURE_CACHE_VERSION = "handler-v2"
+CAPTURE_CACHE_VERSION = "handler-v3"
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -133,6 +133,23 @@ def try_handler_screenshot(url: str, dest: Path, viewport: dict[str, int] | None
         dest=dest,
         viewport=viewport,
         timeout_ms=45_000,
+    )
+
+
+def _open_sync_playwright():
+    """Seam for tests. Never call from inside an already-open sync_playwright()."""
+    from playwright.sync_api import sync_playwright
+
+    return sync_playwright()
+
+
+def _handler_shot_ok(result: dict | None, dest: Path) -> bool:
+    return bool(
+        result
+        and result.get("ok")
+        and dest.exists()
+        and dest.stat().st_size > MIN_SHOT_BYTES
+        and not _shot_looks_blank(dest)
     )
 
 
@@ -997,11 +1014,21 @@ def wait_for_styled_capture(page, timeout_ms: int = 20000) -> None:
     page.wait_for_timeout(600)
 
 
-def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
-    from playwright.sync_api import sync_playwright
-
-    shot_dir.mkdir(parents=True, exist_ok=True)
+def _assemble_captured_scenes(scenes: list[dict], by_index: dict[int, dict]) -> list[dict]:
     out: list[dict] = []
+    for i, scene in enumerate(scenes):
+        if i in by_index:
+            out.append(by_index[i])
+            continue
+        item = dict(scene)
+        item.setdefault("shot", None)
+        out.append(item)
+    return out
+
+
+def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
+    shot_dir.mkdir(parents=True, exist_ok=True)
+    by_index: dict[int, dict] = {}
 
     # 1. Checar cache em disco primeiro
     to_fetch: list[tuple[int, dict, Path]] = []
@@ -1024,18 +1051,62 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 item = dict(scene)
                 item["shot"] = dest.name
                 item["video"] = None
-                out.append(item)
+                by_index[i] = item
                 print(f"  ⚡ [cache] {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
                 continue
             except Exception:
                 pass
         to_fetch.append((i, scene, dest))
 
-    if not to_fetch:
-        return out
+    # 2. Handlers em Playwright próprio — ANTES do sync_playwright genérico.
+    #    Aninhar os dois abre um loop asyncio e o Sync API dos handlers
+    #    quebra (vhm4xPVjxFk: prints sem CSS no fallback).
+    remaining: list[tuple[int, dict, Path]] = []
+    last_domain = ""
+    for i, scene, dest in to_fetch:
+        url = scene.get("url") or ""
+        if host_kind(url) in ("x", "instagram"):
+            remaining.append((i, scene, dest))
+            continue
+        current_domain = domain_of(url)
+        if last_domain:
+            if current_domain and current_domain == last_domain:
+                delay = random.uniform(8.0, 15.0)
+            else:
+                delay = random.uniform(3.5, 8.0)
+            print(f"  ⏳ Delay educado anti-bot: {delay:.1f}s...")
+            time.sleep(delay)
+        last_domain = current_domain
+        handler_result = try_handler_screenshot(
+            url, dest, viewport={"width": 1400, "height": 900}
+        )
+        if handler_result is not None:
+            handler_name = handler_result.get("handler") or "?"
+            if _handler_shot_ok(handler_result, dest):
+                save_cached_screenshot(url, dest)
+                item = dict(scene)
+                item["shot"] = dest.name
+                item["video"] = None
+                by_index[i] = item
+                print(
+                    f"  📸 {scene['veiculo']}: {dest.name} "
+                    f"({dest.stat().st_size // 1024} KB, handler={handler_name})"
+                )
+                continue
+            print(
+                f"  ↪️  {scene['veiculo']}: handler={handler_name} falhou "
+                f"({handler_result.get('error') or handler_result.get('http_status')}) "
+                f"— fallback genérico"
+            )
+            dest.unlink(missing_ok=True)
+        remaining.append((i, scene, dest))
 
-    # 2. Capturar itens restantes com Playwright e delays educados
-    with sync_playwright() as p:
+    to_fetch = remaining
+    if not to_fetch:
+        return _assemble_captured_scenes(scenes, by_index) or scenes
+
+    # 3. Fallback genérico (X/Instagram e handlers que falharam)
+    with _open_sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True, args=["--disable-blink-features=AutomationControlled"]
         )
@@ -1088,48 +1159,20 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         item = dict(scene)
                         item["shot"] = None
                         item["video"] = vid_rel
-                        out.append(item)
+                        by_index[i] = item
                         continue
                     # sem vídeo: x.com dá 403 em headless, então usa o embed público
                     if capture_x_embed(page, url, dest):
                         save_cached_screenshot(url, dest)
                         item = dict(scene)
                         item["shot"] = dest.name
-                        out.append(item)
+                        by_index[i] = item
                         print(f"  🐦 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB, embed)")
                         continue
                     item = dict(scene)
                     item["shot"] = None
-                    out.append(item)
+                    by_index[i] = item
                     continue
-                if host_kind(url) not in ("x", "instagram"):
-                    handler_result = try_handler_screenshot(
-                        url, dest, viewport={"width": 1400, "height": 900}
-                    )
-                    if handler_result is not None:
-                        handler_name = handler_result.get("handler") or "?"
-                        if (
-                            handler_result.get("ok")
-                            and dest.exists()
-                            and dest.stat().st_size > MIN_SHOT_BYTES
-                            and not _shot_looks_blank(dest)
-                        ):
-                            save_cached_screenshot(url, dest)
-                            item = dict(scene)
-                            item["shot"] = dest.name
-                            item["video"] = None
-                            out.append(item)
-                            print(
-                                f"  📸 {scene['veiculo']}: {dest.name} "
-                                f"({dest.stat().st_size // 1024} KB, handler={handler_name})"
-                            )
-                            continue
-                        print(
-                            f"  ↪️  {scene['veiculo']}: handler={handler_name} falhou "
-                            f"({handler_result.get('error') or handler_result.get('http_status')}) "
-                            f"— fallback genérico"
-                        )
-                        dest.unlink(missing_ok=True)
                 resp = page.goto(url, wait_until="load", timeout=45000)
                 wait_for_styled_capture(page)
                 blocked = page_looks_blocked(page, resp.status if resp else None)
@@ -1137,7 +1180,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     print(f"  🚫 {scene['veiculo']}: bloqueio antibot ({blocked}) — cena descartada")
                     item = dict(scene)
                     item["shot"] = None
-                    out.append(item)
+                    by_index[i] = item
                     continue
                 prep = prepare_capture(page, url)
                 print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
@@ -1146,7 +1189,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     print(f"  ⚠️  Instagram ainda em login-wall — cena sem screenshot")
                     item = dict(scene)
                     item["shot"] = None
-                    out.append(item)
+                    by_index[i] = item
                     continue
                 # paywall / adblock / interstitial: rola além do bloqueio
                 try:
@@ -1164,7 +1207,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     save_cached_screenshot(url, dest)
                     item = dict(scene)
                     item["shot"] = dest.name
-                    out.append(item)
+                    by_index[i] = item
                     print(f"  📸 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
                     continue
                 print(f"  🚫 {scene['veiculo']}: screenshot em branco/pequena — cena descartada")
@@ -1173,10 +1216,10 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 print(f"  ⚠️  captura falhou / skip:blocked {url}: {exc}")
             item = dict(scene)
             item["shot"] = None
-            out.append(item)
+            by_index[i] = item
         ctx.close()
         browser.close()
-    return out or scenes
+    return _assemble_captured_scenes(scenes, by_index) or scenes
 
 
 def record_mockup(

@@ -52,7 +52,7 @@ Quando o vídeo de origem do YouTube for curto ou superficial:
 
 ## 5. Política Anti-bloqueio (Captura Educada)
 
-1. **Cache em disco:** Screenshots em `output/brasil_e_mundo/capture-cache/`. A chave inclui `CAPTURE_CACHE_VERSION` (`handler-v2` desde 2026-09-02) + URL — bump da versão invalida prints corrompidos sem precisar apagar o diretório. Se o arquivo existir, tiver menos de 36 horas e tamanho > 8 KB, não revisitar o site.
+1. **Cache em disco:** Screenshots em `output/brasil_e_mundo/capture-cache/`. A chave inclui `CAPTURE_CACHE_VERSION` (`handler-v3` desde 2026-09-03) + URL — bump da versão invalida prints corrompidos sem precisar apagar o diretório. Se o arquivo existir, tiver menos de 36 horas e tamanho > 8 KB, não revisitar o site.
 2. **Delays aleatórios com jitter:**
    - Entre 3,5s e 8,0s de espera entre requisições para domínios diferentes.
    - Entre 8,0s e 15,0s de espera se duas URLs consecutivas forem do mesmo domínio.
