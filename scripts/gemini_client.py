@@ -18,10 +18,12 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from zoneinfo import ZoneInfo
-
-# RPD do AI Studio zera à meia-noite do Pacífico, não numa janela rolante de 24h.
-PACIFIC = ZoneInfo("America/Los_Angeles")
+try:
+    from zoneinfo import ZoneInfo
+    PACIFIC = ZoneInfo("America/Los_Angeles")
+except Exception:
+    from datetime import timezone
+    PACIFIC = timezone(timedelta(hours=-7))
 
 # Logger dedicado do cliente Gemini
 log = logging.getLogger("gemini-client")

@@ -1,0 +1,31 @@
+{
+  "_nota": "Limites MAXIMOS da chave AI Studio do web-jornal (usuario, 2026-07-25). RPM=requisicoes/min, TPM=tokens/min, RPD=requisicoes/dia. K=milhar (250K=250.000). O formato 'usado / limite' da primeira tabela foi zerado — usamos so o LIMITE (maximo). A chave so aceita modelos gemini-3.x (2.x dao 404).",
+  "_estrategia_tts": "Cotas TTS são por modelo (10 RPD cada). Diário multi-locutor = gemini-2.5-flash-preview-tts (PACKED, chunks). Brasil e Mundo Peter solo = gemini-3.1-flash-tts-preview (halves). Se um chunk falhar, fallback edge-tts POR FALA. 1 chamada só com episódio inteiro COLAPSA em voz única — por isso usa-se chunking no Diário.",
+  "modelos": {
+    "gemini-3.8-flash":      {"rpm": 5,   "tpm": 250000, "rpd": 20},
+    "gemini-3.6-flash":      {"rpm": 5,   "tpm": 250000, "rpd": 20},
+    "gemini-2.5-flash":      {"rpm": 5,   "tpm": 250000, "rpd": 20},
+    "gemini-2.5-flash-lite": {"rpm": 10,  "tpm": 250000, "rpd": 20},
+    "gemini-3.5-flash-lite": {"rpm": 15,  "tpm": 250000, "rpd": 500},
+    "antigravity":           {"rpm": 60,  "tpm": 100000, "rpd": 100},
+    "gemini-2.5-flash-tts":  {"rpm": 3,   "tpm": 10000,  "rpd": 10},
+    "gemini-3-flash":        {"rpm": 5,   "tpm": 250000, "rpd": 20},
+    "gemini-3.1-flash-lite": {"rpm": 15,  "tpm": 250000, "rpd": 500},
+    "gemini-3.1-flash-tts":  {"rpm": 3,   "tpm": 10000,  "rpd": 10},
+    "gemini-3.5-flash":      {"rpm": 5,   "tpm": 250000, "rpd": 20},
+    "gemini-embedding-1":    {"rpm": 100, "tpm": 30000,  "rpd": 1000},
+    "gemini-embedding-2":    {"rpm": 100, "tpm": 30000,  "rpd": 1000},
+    "gemini-robotics-er-1.5":{"rpm": 10,  "tpm": 250000, "rpd": 20},
+    "gemini-robotics-er-1.6":{"rpm": 5,   "tpm": 250000, "rpd": 20},
+    "gemma-4-26b":           {"rpm": 30,  "tpm": 16000,  "rpd": 14400},
+    "gemma-4-31b":           {"rpm": 30,  "tpm": 16000,  "rpd": 14400},
+    "imagen-4-fast":         {"rpm": null,"tpm": null,    "rpd": 25},
+    "imagen-4":              {"rpm": null,"tpm": null,    "rpd": 25},
+    "imagen-4-ultra":        {"rpm": null,"tpm": null,    "rpd": 25}
+  },
+  "aceitos_pela_chave": [
+    "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite", "gemma-4-31b-it"
+  ],
+  "rejeitados_404": ["gemini-3-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+}
