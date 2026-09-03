@@ -114,6 +114,9 @@ def veiculo_from_url(url: str) -> str:
         "bloomberg.com": "Bloomberg",
         "infomoney.com.br": "InfoMoney",
         "revistaoeste.com": "Revista Oeste",
+        "instagram.com": "Instagram",
+        "x.com": "X",
+        "twitter.com": "X",
     }
     for k, v in name_map.items():
         if dom == k or dom.endswith("." + k):

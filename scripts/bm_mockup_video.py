@@ -275,6 +275,28 @@ def capture_x_embed(page, url: str, dest: Path) -> bool:
     return True
 
 
+def _find_ytdlp() -> str:
+    """Localiza o binário do yt-dlp no ambiente atual, PATH ou diretórios padrões de instalação."""
+    # 1. No mesmo diretório do Python em execução (venv)
+    venv_bin = Path(sys.executable).parent
+    for name in ("yt-dlp.exe", "yt-dlp"):
+        cand = venv_bin / name
+        if cand.exists():
+            return str(cand)
+
+    # 2. No PATH do sistema
+    cand = shutil.which("yt-dlp")
+    if cand:
+        return cand
+
+    # 3. Locais comuns no Linux/Servidor
+    for p in ("/home/osmar/.local/bin/yt-dlp", "/usr/local/bin/yt-dlp", "/usr/bin/yt-dlp"):
+        if Path(p).exists():
+            return p
+
+    return "yt-dlp"
+
+
 def extract_x_video(url: str, work: Path, video_id: str, idx: int) -> str | None:
     """Baixa o vídeo de um post do X (sem áudio é suficiente: mockup é mudo).
     Retorna caminho relativo ao server root ('/shots/...') ou None."""
@@ -282,7 +304,7 @@ def extract_x_video(url: str, work: Path, video_id: str, idx: int) -> str | None
     if dest.exists() and dest.stat().st_size > 50000:
         return f"/shots/{dest.name}"
     cmd = [
-        "/home/osmar/.local/bin/yt-dlp", "-f", "bv*[height<=720]/b[height<=720]/b",
+        _find_ytdlp(), "-f", "bv*[height<=720]/b[height<=720]/b",
         "--no-playlist", "--no-warnings", "--quiet",
         "-o", str(dest), url,
     ]
@@ -297,6 +319,68 @@ def extract_x_video(url: str, work: Path, video_id: str, idx: int) -> str | None
         return None
     print(f"  🎞️  x-video: {dest.name} ({dest.stat().st_size // 1024} KB)")
     return f"/shots/{dest.name}"
+
+
+_INSTAGRAM_POST_RE = re.compile(r"instagram\.com/(?:p|reel|reels|tv)/([^/?#&]+)")
+
+
+def instagram_shortcode(url: str | None) -> str | None:
+    """Extrai o shortcode (ID do post ou reel) de uma URL do Instagram."""
+    m = _INSTAGRAM_POST_RE.search(url or "")
+    return m.group(1) if m else None
+
+
+def extract_instagram_video(url: str, work: Path, video_id: str, idx: int) -> str | None:
+    """Baixa o vídeo de um post/reel do Instagram via yt-dlp.
+    Retorna caminho relativo ao server root ('/shots/...') ou None se não for vídeo ou falhar."""
+    dest = work / "shots" / f"igvid-{video_id}-{idx:02d}.mp4"
+    if dest.exists() and dest.stat().st_size > 50000:
+        return f"/shots/{dest.name}"
+    cmd = [
+        _find_ytdlp(), "-f", "bv*[height<=720]/b[height<=720]/b",
+        "--no-playlist", "--no-warnings", "--quiet",
+        "-o", str(dest), url,
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    except Exception as exc:
+        print(f"  ⚠️  instagram-video: erro ao executar yt-dlp: {exc}")
+        return None
+
+    if not dest.exists():
+        cands = list((work / "shots").glob(f"igvid-{video_id}-{idx:02d}.*"))
+        if cands:
+            return f"/shots/{cands[0].name}"
+    if r.returncode != 0 or not dest.exists() or dest.stat().st_size < 50000:
+        print(f"  ⚠️  instagram-video: sem vídeo ou falha em {url}: {(r.stderr or '')[-160:]}")
+        return None
+    print(f"  📸🎞️  instagram-video: {dest.name} ({dest.stat().st_size // 1024} KB)")
+    return f"/shots/{dest.name}"
+
+
+def capture_instagram_embed(page, url: str, dest: Path) -> bool:
+    """Captura post/reel do Instagram via embed público oficial (/embed/).
+
+    Evita o login-wall do Instagram renderizando a versão pública de embed.
+    Retorna True se a captura passou os filtros.
+    """
+    code = instagram_shortcode(url)
+    if not code:
+        return False
+    embed_url = f"https://www.instagram.com/p/{code}/embed/"
+    try:
+        page.goto(embed_url, wait_until="domcontentloaded", timeout=15000)
+        page.wait_for_timeout(2500)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(dest), full_page=False)
+        if not dest.exists() or dest.stat().st_size <= MIN_SHOT_BYTES or _shot_looks_blank(dest):
+            dest.unlink(missing_ok=True)
+            return False
+        return True
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  instagram-embed falhou ({code}): {exc}")
+        dest.unlink(missing_ok=True)
+        return False
 
 
 _PAYWALL_HINTS_JS = """() => {
@@ -1167,8 +1251,33 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         save_cached_screenshot(url, dest)
                         item = dict(scene)
                         item["shot"] = dest.name
+                        item["video"] = None
                         by_index[i] = item
                         print(f"  🐦 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB, embed)")
+                        continue
+                    item = dict(scene)
+                    item["shot"] = None
+                    by_index[i] = item
+                    continue
+
+                # Instagram com vídeo/reel embutido: baixa o clipe com yt-dlp
+                if host_kind(url) == "instagram":
+                    vid_rel = extract_instagram_video(url, shot_dir.parent, shot_dir.parent.name, i)
+                    if vid_rel:
+                        item = dict(scene)
+                        item["shot"] = None
+                        item["video"] = vid_rel
+                        by_index[i] = item
+                        print(f"  📸🎞️ {scene['veiculo']}: vídeo baixado ({vid_rel})")
+                        continue
+                    # Sem vídeo ou falhou: tenta embed público oficial para evitar login-wall
+                    if capture_instagram_embed(page, url, dest):
+                        save_cached_screenshot(url, dest)
+                        item = dict(scene)
+                        item["shot"] = dest.name
+                        item["video"] = None
+                        by_index[i] = item
+                        print(f"  📸 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB, embed)")
                         continue
                     item = dict(scene)
                     item["shot"] = None
@@ -1186,9 +1295,9 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 prep = prepare_capture(page, url)
                 print(f"  🔧 {scene['veiculo']}: kind={prep.get('kind')} scroll={prep.get('scrolledTo')} click={prep.get('clicked')}")
                 wait_for_styled_capture(page, timeout_ms=12000)
+                # Injeta limpeza genérica de modais, overlays e banners no fallback
                 try:
                     from scripts.screenshots.base import CLEANUP_CSS
-
                     page.add_style_tag(content=CLEANUP_CSS)
                 except Exception:
                     pass
@@ -1361,18 +1470,20 @@ RENDER_NODE = "/dev/dri/renderD128"
 
 
 def _run_ffmpeg(cmd: list[str]) -> subprocess.CompletedProcess:
-    """Roda ffmpeg; se a sessão ainda não tem grupo render, usa sg."""
+    """Roda ffmpeg; se a sessão ainda não tem grupo render, usa sg se disponível."""
     env = os.environ.copy()
     env.setdefault("LIBVA_DRIVER_NAME", "iHD")
     if os.access(RENDER_NODE, os.R_OK | os.W_OK):
         return subprocess.run(cmd, capture_output=True, text=True, env=env)
-    inner = " ".join(shlex.quote(c) for c in cmd)
-    return subprocess.run(
-        ["sg", "render", "-c", inner],
-        capture_output=True,
-        text=True,
-        env=env,
-    )
+    if shutil.which("sg") and os.path.exists(RENDER_NODE):
+        inner = " ".join(shlex.quote(c) for c in cmd)
+        return subprocess.run(
+            ["sg", "render", "-c", inner],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+    return subprocess.run(cmd, capture_output=True, text=True, env=env)
 
 
 def mux_video(raw: Path, audio: Path, dest: Path) -> Path:

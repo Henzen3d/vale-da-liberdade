@@ -19,8 +19,10 @@ from bm_mockup_video import (
     cache_path_for_url,
     domain_of,
     episode_summary,
+    extract_instagram_video,
     find_episode_thumbnail,
     host_kind,
+    instagram_shortcode,
     is_blocked_source_url,
     one_line_subhead,
     pick_wallpaper,
@@ -51,6 +53,72 @@ class XEmbedTests(unittest.TestCase):
         self.assertIsNone(x_tweet_id("https://www.cnnbrasil.com.br/economia/"))
         self.assertIsNone(x_tweet_id(""))
         self.assertIsNone(x_tweet_id(None))
+
+
+class InstagramMediaTests(unittest.TestCase):
+    def test_extracts_shortcode_from_various_instagram_urls(self):
+        self.assertEqual(
+            instagram_shortcode("https://www.instagram.com/reel/DczgElQso4z/"),
+            "DczgElQso4z",
+        )
+        self.assertEqual(
+            instagram_shortcode("https://instagram.com/p/ABC123xyz/?igsh=123"),
+            "ABC123xyz",
+        )
+        self.assertEqual(
+            instagram_shortcode("https://www.instagram.com/tv/XYZ987/"),
+            "XYZ987",
+        )
+
+    def test_returns_none_for_non_post_instagram_urls(self):
+        self.assertIsNone(instagram_shortcode("https://www.instagram.com/nikolasferreiradm/"))
+        self.assertIsNone(instagram_shortcode("https://www.cnnbrasil.com.br/"))
+        self.assertIsNone(instagram_shortcode(""))
+        self.assertIsNone(instagram_shortcode(None))
+
+    def test_extract_instagram_video_reuses_existing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            shots = work / "shots"
+            shots.mkdir(parents=True)
+            fake_vid = shots / "igvid-test123-00.mp4"
+            fake_vid.write_bytes(b"x" * 60000)
+
+            rel = extract_instagram_video(
+                "https://www.instagram.com/reel/DczgElQso4z/",
+                work,
+                "test123",
+                0,
+            )
+            self.assertEqual(rel, "/shots/igvid-test123-00.mp4")
+
+    @patch("subprocess.run")
+    def test_extract_instagram_video_calls_ytdlp(self, mock_run):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            shots = work / "shots"
+            shots.mkdir(parents=True)
+            fake_vid = shots / "igvid-test123-01.mp4"
+
+            def fake_subprocess_side_effect(cmd, **kwargs):
+                fake_vid.write_bytes(b"x" * 60000)
+                from unittest.mock import MagicMock
+                r = MagicMock()
+                r.returncode = 0
+                return r
+
+            mock_run.side_effect = fake_subprocess_side_effect
+
+            rel = extract_instagram_video(
+                "https://www.instagram.com/reel/DczgElQso4z/",
+                work,
+                "test123",
+                1,
+            )
+            self.assertEqual(rel, "/shots/igvid-test123-01.mp4")
+            self.assertTrue(mock_run.called)
+            cmd = mock_run.call_args[0][0]
+            self.assertIn("https://www.instagram.com/reel/DczgElQso4z/", cmd)
 
 
 class SourceFilterTests(unittest.TestCase):
