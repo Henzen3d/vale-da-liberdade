@@ -21,6 +21,7 @@ import json
 import os
 import random
 import re
+import shlex
 import shutil
 import socket
 import subprocess
@@ -1306,9 +1307,47 @@ def record_mockup(
     return raw_webm
 
 
+RENDER_NODE = "/dev/dri/renderD128"
+
+
+def _run_ffmpeg(cmd: list[str]) -> subprocess.CompletedProcess:
+    """Roda ffmpeg; se a sessão ainda não tem grupo render, usa sg."""
+    env = os.environ.copy()
+    env.setdefault("LIBVA_DRIVER_NAME", "iHD")
+    if os.access(RENDER_NODE, os.R_OK | os.W_OK):
+        return subprocess.run(cmd, capture_output=True, text=True, env=env)
+    inner = " ".join(shlex.quote(c) for c in cmd)
+    return subprocess.run(
+        ["sg", "render", "-c", inner],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+
 def mux_video(raw: Path, audio: Path, dest: Path) -> Path:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [
+    # HD 630: h264_qsv (libvpl) falha com MFX -9 neste ffmpeg.
+    # Encode real é VA-API (iHD EncSliceLP) + fallback CPU.
+    cmd_hw = [
+        "ffmpeg", "-y",
+        "-vaapi_device", RENDER_NODE,
+        "-i", str(raw),
+        "-i", str(audio),
+        "-vf", "format=nv12,hwupload",
+        "-c:v", "h264_vaapi", "-qp", "20",
+        "-c:a", "aac", "-b:a", "192k", "-ac", "2",
+        "-shortest",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    r = _run_ffmpeg(cmd_hw)
+    if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0:
+        print("  ⚡ muxing acelerado por hardware Intel VA-API (h264_vaapi)")
+        return dest
+
+    print(f"  ℹ️  h264_vaapi indisponível; fallback libx264: {(r.stderr or '')[-180:].strip()}")
+    cmd_cpu = [
         "ffmpeg", "-y",
         "-i", str(raw),
         "-i", str(audio),
@@ -1318,7 +1357,7 @@ def mux_video(raw: Path, audio: Path, dest: Path) -> Path:
         "-movflags", "+faststart",
         str(dest),
     ]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd_cpu, capture_output=True, text=True)
     if r.returncode != 0 or not dest.exists():
         raise RuntimeError(r.stderr[-800:] if r.stderr else "ffmpeg falhou")
     return dest
@@ -1373,7 +1412,24 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
     else:
         filter_complex = vf_avatar + ",format=yuv420p[v]"
 
-    cmd = [
+    hw_fc = filter_complex.replace("format=yuv420p[v]", "format=nv12,hwupload[v]")
+    cmd_hw = [
+        "ffmpeg", "-y",
+        "-vaapi_device", RENDER_NODE,
+        *inputs,
+        "-filter_complex", hw_fc,
+        "-map", "[v]", "-map", "0:a",
+        "-c:v", "h264_vaapi", "-qp", "20",
+        "-c:a", "copy",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    r = _run_ffmpeg(cmd_hw)
+    if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0:
+        print(f"  ⚡ apresentador acelerado por hardware Intel VA-API ({dest.stat().st_size // 1024} KB)")
+        return dest
+
+    cmd_cpu = [
         "ffmpeg", "-y",
         *inputs,
         "-filter_complex", filter_complex,
@@ -1384,7 +1440,7 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
         "-movflags", "+faststart",
         str(dest),
     ]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd_cpu, capture_output=True, text=True)
     if r.returncode != 0 or not dest.exists():
         print(f"  ⚠️  compose apresentador falhou; usa mockup puro: {(r.stderr or '')[-300:]}")
         return base_mp4
