@@ -295,14 +295,16 @@ def next_publication_slot(
     slots: list[str] | None = None,
     min_lead_minutes: int | None = None,
     window_minutes: int | None = None,
+    force: bool = False,
 ) -> str | None:
     """Calcula o próximo slot ideal de publicação (America/Sao_Paulo).
 
+    - Se agendamento estiver desativado na config e force=False -> retorna None (publicação imediata).
     - Se dentro da janela nobre de algum slot (ex: slot ± 30min) -> retorna None (publicação imediata).
     - Se fora -> retorna ISO string do próximo slot (hoje ou amanhã) com folga mínima de min_lead_minutes.
     """
     cfg = _load_schedule_config()
-    if cfg.get("enabled") is False:
+    if not force and not cfg.get("enabled", False):
         return None
 
     slot_list = slots or cfg.get("slots_brt") or PUBLISH_SLOTS_BRT

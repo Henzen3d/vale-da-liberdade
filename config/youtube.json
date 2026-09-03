@@ -1,6 +1,6 @@
 {
   "youtube_schedule": {
-    "enabled": true,
+    "enabled": false,
     "slots_brt": [
       "07:00",
       "11:30",

@@ -1616,7 +1616,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         except Exception as exc:  # noqa: BLE001
             print(f"  ⚠️  geração de localizações pré-insert falhou: {exc}")
 
-        # 2. Agendamento inteligente no próximo slot se privacy == public
+        # 2. Agendamento inteligente no próximo slot se privacy == public (desativado: envio imediato)
         publish_at: str | None = None
         if privacy == "public":
             try:
@@ -1624,6 +1624,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
                 publish_at = next_publication_slot()
                 if publish_at:
                     print(f"  📅 agendado para o próximo slot: {publish_at}")
+                else:
+                    print(f"  🚀 publicação imediata (status={privacy})")
             except Exception as exc:  # noqa: BLE001
                 print(f"  ⚠️  cálculo de slot falhou: {exc}")
 

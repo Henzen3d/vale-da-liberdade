@@ -139,25 +139,33 @@ class CategoryAndBodyTests(unittest.TestCase):
 
 
 class PublicationSlotTests(unittest.TestCase):
+    def test_disabled_by_default_returns_none(self):
+        from youtube_channel_policy import next_publication_slot
+        # Com enabled=false na config, chamadas normais (sem force) sempre retornam None (envio imediato)
+        now = datetime(2026, 9, 1, 2, 0, tzinfo=TZ)
+        self.assertIsNone(next_publication_slot(now))
+        now_prime = datetime(2026, 9, 1, 7, 15, tzinfo=TZ)
+        self.assertIsNone(next_publication_slot(now_prime))
+
     def test_prime_window_returns_none(self):
         from youtube_channel_policy import next_publication_slot
         # 07:15 BRT está dentro da janela de 07:00 (±30min)
         now = datetime(2026, 9, 1, 7, 15, tzinfo=TZ)
-        self.assertIsNone(next_publication_slot(now))
+        self.assertIsNone(next_publication_slot(now, force=True))
 
         # 11:45 BRT está dentro da janela de 11:30 (±30min)
         now = datetime(2026, 9, 1, 11, 45, tzinfo=TZ)
-        self.assertIsNone(next_publication_slot(now))
+        self.assertIsNone(next_publication_slot(now, force=True))
 
         # 17:40 BRT está dentro da janela de 18:00 (±30min)
         now = datetime(2026, 9, 1, 17, 40, tzinfo=TZ)
-        self.assertIsNone(next_publication_slot(now))
+        self.assertIsNone(next_publication_slot(now, force=True))
 
     def test_early_morning_slot(self):
         from youtube_channel_policy import next_publication_slot
         # 02:00 BRT -> próximo slot é 07:00 hoje
         now = datetime(2026, 9, 1, 2, 0, tzinfo=TZ)
-        slot = next_publication_slot(now)
+        slot = next_publication_slot(now, force=True)
         self.assertIsNotNone(slot)
         self.assertTrue(slot.startswith("2026-09-01T07:00:00"))
 
@@ -165,7 +173,7 @@ class PublicationSlotTests(unittest.TestCase):
         from youtube_channel_policy import next_publication_slot
         # 09:30 BRT -> próximo slot é 11:30 hoje
         now = datetime(2026, 9, 1, 9, 30, tzinfo=TZ)
-        slot = next_publication_slot(now)
+        slot = next_publication_slot(now, force=True)
         self.assertIsNotNone(slot)
         self.assertTrue(slot.startswith("2026-09-01T11:30:00"))
 
@@ -173,7 +181,7 @@ class PublicationSlotTests(unittest.TestCase):
         from youtube_channel_policy import next_publication_slot
         # 14:00 BRT -> próximo slot é 18:00 hoje
         now = datetime(2026, 9, 1, 14, 0, tzinfo=TZ)
-        slot = next_publication_slot(now)
+        slot = next_publication_slot(now, force=True)
         self.assertIsNotNone(slot)
         self.assertTrue(slot.startswith("2026-09-01T18:00:00"))
 
@@ -181,7 +189,7 @@ class PublicationSlotTests(unittest.TestCase):
         from youtube_channel_policy import next_publication_slot
         # 21:00 BRT -> todos os slots de hoje passaram, próximo é 07:00 amanhã
         now = datetime(2026, 9, 1, 21, 0, tzinfo=TZ)
-        slot = next_publication_slot(now)
+        slot = next_publication_slot(now, force=True)
         self.assertIsNotNone(slot)
         self.assertTrue(slot.startswith("2026-09-02T07:00:00"))
 
