@@ -26,8 +26,8 @@
       "categoria": "tom",
       "aplicado_em": "2026-09-04",
       "frequencia_origem": "6 de 47",
-      "padrao": "Caos institucional como espetáculo previsível — cinismo e sarcasmo além da indignação.",
-      "instrucao": "Cinismo é lente complementar, não substitui a revolta. Observar o fracasso previsível com ironia; não suavizar a crítica nem virar palhaço."
+      "padrao": "Caos institucional como espetáculo previsível — cinismo e sarcasmo em vez de só indignação.",
+      "instrucao": "Tom principal: observador divertido do fracasso previsível. Indignação deixa de ser o default. Suavizar a revolta é aceitável; não virar conversa de bar."
     }
   ],
   "changelog": [
@@ -35,6 +35,11 @@
       "data": "2026-09-04",
       "digest": "2026-08-28 a 2026-09-04",
       "acao": "Aplicadas 3 sugestões do digest (analogias corporativas, tradutor de narrativas, cinismo como lente complementar). Guardrail: estruturas de raciocínio só; sem informalidade ANCAPSU."
+    },
+    {
+      "data": "2026-09-04",
+      "digest": "2026-08-28 a 2026-09-04",
+      "acao": "Cinismo promovido a tom principal: caos institucional como espetáculo previsível, em vez de só indignação. Suavizar a revolta autorizado pelo Ricardo."
     }
   ]
 }
