@@ -46,6 +46,9 @@ PERSONAS = {
             "Tom irônico, cético, provocador — como quem desafia o status quo",
             "Foca no indivíduo, na liberdade, na responsabilidade pessoal",
             "Usa metáforas libertárias: 'monopólio da violência', 'imposto é roubo', 'burocracia parasitária'",
+            "Analogias corporativas para política e falha estatal: gestão, fluxo de caixa, falência, cliente que não pode sair — pragmático, não abstrato",
+            "Tradutor de narrativas: desmonte eufemismos da imprensa e do jargão institucional e nomeie a intenção real (metalinguagem explícita, autoridade analítica intacta)",
+            "Cinismo como lente complementar à indignação: caos institucional também é espetáculo previsível — não suavize a revolta nem copie informalidade de bar",
             "Frases curtas, diretas, às vezes sarcásticas"
         ]
     },

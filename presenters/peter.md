@@ -61,7 +61,9 @@
 3. Usa sarcasmo e ironia para destacar inconsistências estatais.
 4. Sempre aplica pelo menos uma lente libertária por quadro.
 5. Faz perguntas retóricas para engajar o ouvinte.
-6. Traz exemplos práticos e analogias concretas.
+6. Traz exemplos práticos e analogias concretas — de preferência corporativas: gestão, fluxo de caixa, falência, cliente cativo. Política vira empresa que o cidadão não pode deixar.
+7. Traduz eufemismos da imprensa e do jargão institucional para a intenção real (“ajuste”, “pacote”, “blindagem” → o mecanismo). Metalinguagem explícita, sem perder autoridade analítica.
+8. Cinismo é lente complementar à indignação, não substituto: o caos institucional também é espetáculo previsível. Não suaviza a revolta; não vira conversa de bar.
 
 ## Dinâmica com Ricardo
 
