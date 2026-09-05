@@ -86,6 +86,15 @@ class QuotaExhausted(RuntimeError):
     """O slot não tem quota para a operação (ou o Google recusou por quota)."""
 
 
+class SlotAuthDead(RuntimeError):
+    """Refresh token do slot expirado/revogado (invalid_grant). Tentar o próximo."""
+
+
+def is_invalid_grant(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return "invalid_grant" in text or "expired or revoked" in text
+
+
 def quota_day(now: datetime | None = None) -> str:
     """Dia da quota no fuso do Pacífico (onde o Google faz o reset)."""
     return (now or datetime.now(PACIFIC)).astimezone(PACIFIC).date().isoformat()

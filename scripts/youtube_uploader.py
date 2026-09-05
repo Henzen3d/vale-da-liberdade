@@ -27,7 +27,7 @@ from youtube_channel_policy import (
     video_resource_body,
 )
 import youtube_quota as yq
-from youtube_quota import QuotaExhausted
+from youtube_quota import QuotaExhausted, SlotAuthDead, is_invalid_grant
 
 ROOT = Path(__file__).resolve().parent.parent
 CRED_DIR = ROOT / "credentials"
@@ -118,8 +118,16 @@ def _creds(slot: dict | None = None):
         raise SystemExit(f"❌ sem {token_file.name} — rode auth --slot {slot['name']} primeiro")
     creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
     if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        token_file.write_text(creds.to_json(), encoding="utf-8")
+        try:
+            creds.refresh(Request())
+            token_file.write_text(creds.to_json(), encoding="utf-8")
+        except Exception as exc:  # noqa: BLE001
+            if is_invalid_grant(exc):
+                raise SlotAuthDead(
+                    f"{slot['name']}: token expirado/revogado — "
+                    f"rode auth --slot {slot['name']}"
+                ) from exc
+            raise
     return creds
 
 
@@ -156,6 +164,17 @@ def run_with_slots(op: str, fn):
             last = exc
             print(f"[quota] {exc} — tentando próximo slot", file=sys.stderr)
             continue
+        except Exception as exc:  # noqa: BLE001
+            if isinstance(exc, SlotAuthDead) or is_invalid_grant(exc):
+                last = exc
+                print(
+                    f"[auth] {slot['name']} morto ({exc}) — tentando próximo slot",
+                    file=sys.stderr,
+                )
+                continue
+            raise
+    if last and (isinstance(last, SlotAuthDead) or is_invalid_grant(last)):
+        raise SystemExit(f"❌ nenhum slot com OAuth válido: {last}")
     raise SystemExit(f"❌ quota esgotada em todos os slots: {last}")
 
 
