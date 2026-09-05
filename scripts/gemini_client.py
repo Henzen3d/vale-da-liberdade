@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import random
+import re
 import sys
 import time
 from datetime import datetime, timedelta
@@ -164,25 +165,68 @@ def _is_local_rpd_block(msg: str) -> bool:
     return "limite diário atingido" in m
 
 
-def _is_google_daily_quota_error(msg: str) -> bool:
-    """True só quando o Google confirma cota do DIA (não 429 de RPM)."""
+_RETRY_IN_RE = re.compile(r"retry in\s+([0-9]+(?:\.[0-9]+)?)\s*s", re.I)
+_LIMIT_RE = re.compile(r"limit:\s*(\d+)", re.I)
+_MODEL_IN_MSG_RE = re.compile(r"model:\s*([a-z0-9._-]+)", re.I)
+_DAILY_NEEDLES = (
+    "per-day",
+    "per day",
+    "requests per day",
+    "daily request",
+    "daily quota",
+    "daily limit",
+    "generaterequestsperday",
+)
+_MINUTE_NEEDLES = (
+    "per-minute",
+    "per minute",
+    "requests per minute",
+    "generaterequestsperminute",
+    "per_minute",
+)
+
+
+def _is_google_daily_quota_error(msg: str, model: str = "") -> bool:
+    """True só quando o Google confirma cota do DIA (não 429 de RPM).
+
+    'Quota exceeded for metric' sozinho NÃO basta: o free tier usa a mesma
+    métrica generate_content_free_tier_requests para RPM e RPD. Retry em
+    segundos = janela de taxa, não fim do dia. Travava as 6 chaves TTS
+    com 0 requests reais (2026-09-01 e 2026-09-05).
+    """
     m = (msg or "").lower()
-    needles = (
-        "per-day",
-        "per day",
-        "requests per day",
-        "daily request",
-        "daily quota",
-        "daily limit",
-        "quota exceeded for metric",
-        "generaterequestsperday",
-    )
-    return any(n in m for n in needles)
+    if not m:
+        return False
+    if any(n in m for n in _MINUTE_NEEDLES):
+        return False
+    retry = _RETRY_IN_RE.search(m)
+    if retry and float(retry.group(1)) <= 180:
+        return False
+    if any(n in m for n in _DAILY_NEEDLES):
+        return True
+    limit_m = _LIMIT_RE.search(m)
+    if not limit_m:
+        return False
+    limit = int(limit_m.group(1))
+    model_m = _MODEL_IN_MSG_RE.search(m)
+    model_name = model or (model_m.group(1) if model_m else "")
+    if model_name:
+        category = _get_model_category(model_name)
+    elif "tts" in m:
+        category = "tts"
+    elif "lite" in m:
+        category = "lite"
+    else:
+        category = "flash"
+    limits = DEFAULT_LIMITS[category]
+    if limit == limits["rpm"]:
+        return False
+    return limit == limits["rpd"]
 
 
-def _is_daily_quota_error(msg: str) -> bool:
+def _is_daily_quota_error(msg: str, model: str = "") -> bool:
     """Failover de chave: trava local de RPD ou cota diária confirmada pelo Google."""
-    return _is_local_rpd_block(msg) or _is_google_daily_quota_error(msg)
+    return _is_local_rpd_block(msg) or _is_google_daily_quota_error(msg, model=model)
 
 
 def _is_rate_error(msg: str) -> bool:
@@ -263,11 +307,20 @@ class GeminiClient:
                 model_data["exhausted_until"] = 0
                 exhausted_until = 0
 
-            if exhausted_until > now or len(requests_day) >= rpd:
+            if len(requests_day) >= rpd:
                 raise RuntimeError(
                     f"Limite diário atingido (RPD de {rpd}) para o modelo {model}. "
                     f"Reset à meia-noite do Pacífico (AI Studio) ou alterne a chave."
                 )
+            if exhausted_until > now:
+                # Trava Google só é confiável se o dia local também saturado.
+                # exhausted_until com 0 requests reais = 429 de RPM classificado
+                # como RPD (incidente 2026-09-05: 6 chaves TTS mortas o dia todo).
+                log.warning(
+                    f"{key_id} {model}: ignorando exhausted_until "
+                    f"({len(requests_day)}/{rpd} requests reais hoje)"
+                )
+                model_data["exhausted_until"] = 0
 
             # Timer por chave: não disparar mais cedo que 60/RPM (TTS 3.1 = 20s).
             if requests_day:
@@ -405,7 +458,7 @@ class GeminiClient:
                     )
                     if not is_transient:
                         raise
-                    if _is_google_daily_quota_error(error_msg):
+                    if _is_google_daily_quota_error(error_msg, model=model):
                         self._mark_daily_quota_exhausted(model)
                         raise
                     if attempt == max_retries:
@@ -501,14 +554,14 @@ class GeminiMultiClient:
                 return client.generate_content(model, contents, config=config, **kwargs)
             except RuntimeError as exc:
                 msg = str(exc).lower()
-                if _is_daily_quota_error(msg):
+                if _is_daily_quota_error(msg, model=model):
                     log.warning(f"Chave {key_hint} esgotou RPD: {exc} — rotacionando...")
                     last_exc = exc
                     continue
                 raise
             except Exception as exc:
                 msg = str(exc).lower()
-                if _is_google_daily_quota_error(msg):
+                if _is_google_daily_quota_error(msg, model=model):
                     try:
                         client._mark_daily_quota_exhausted(model)
                     except Exception:
