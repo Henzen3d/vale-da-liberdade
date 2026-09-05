@@ -98,6 +98,10 @@ COOKIE_SELECTORS: tuple[str, ...] = (
     "button:has-text('Agree')",
     "button:has-text('Accept all')",
     "button:has-text('Aceitar todos')",
+    "button:has-text('Prosseguir')",
+    "a:has-text('Prosseguir')",
+    ".cc-btn.cc-allow",
+    "a.cc-btn",
     "[data-testid='cookie-policy-dialog-accept-button']",
 )
 
@@ -109,6 +113,9 @@ CLEANUP_CSS = """\
 .c-subscribe-wall,
 #onetrust-banner-sdk,
 #onetrust-consent-sdk,
+.cc-window,
+.cc-banner,
+.cc-revoke,
 .fc-consent-root,
 [id*="cookie-banner"],
 [class*="cookie-banner"],
@@ -347,7 +354,7 @@ class BaseScraper:
             locale="pt-BR",
             user_agent=USER_AGENT,
         )
-        # Bloqueia ads/trackers na camada de rede, mas NUNCA CSS ou fontes
+        # Bloqueia ads/trackers na camada de rede, mas NUNCA bloqueia CSS ou fontes
         def _route_filter(route):
             try:
                 req = route.request
@@ -427,8 +434,8 @@ class BaseScraper:
             pass
 
     def _wait_for_styles(self, page: Any, timeout_ms: int = 15000) -> bool:
-        """Espera stylesheets e fontes antes de capturar (não rejeita no timeout)."""
-        wait_css_js = """() => {
+        """Garante que stylesheets e fontes foram carregadas antes de capturar."""
+        _WAIT_CSS_JS = """() => {
           if (document.readyState !== 'complete') return false;
           const sheets = document.styleSheets;
           if (!sheets || sheets.length === 0) return false;
@@ -437,14 +444,14 @@ class BaseScraper:
             try {
               if (s.cssRules && s.cssRules.length > 0) { ok = true; break; }
             } catch (e) {
-              ok = true; // CSS cross-origin já aplicado no layout
+              ok = true; // Cross-origin stylesheet link carregada
               break;
             }
           }
           return ok;
         }"""
         try:
-            page.wait_for_function(wait_css_js, timeout=timeout_ms)
+            page.wait_for_function(_WAIT_CSS_JS, timeout=timeout_ms)
         except Exception:
             pass
         try:
@@ -506,7 +513,7 @@ class BaseScraper:
                 )
                 result["http_status"] = resp.status if resp else None
 
-                # 1.1 CSS/fontes antes de inspecionar conteúdo
+                # 1.1 Garantir que CSS/fontes foram carregados antes de inspecionar conteúdo
                 self._wait_for_styles(page)
 
                 # 2. Esperar conteúdo renderizar (site-specific)

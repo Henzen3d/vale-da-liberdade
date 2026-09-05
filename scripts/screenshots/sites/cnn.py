@@ -51,6 +51,12 @@ _CLEANUP_CNN_JS = """() => {
 
   // 1. Remover banners de topo, anúncios in-content e widgets de publicidade
   const adSelectors = [
+    '#header_ads',
+    '[id*="header_ads"]',
+    '[id^="ads-banner"]',
+    '[id*="ads-banner"]',
+    '[class*="ad__area"]',
+    '[class*="ad-bg"]',
     '.banner-ad',
     '.header-ad',
     '[class*="leaderboard"]',
@@ -74,6 +80,16 @@ _CLEANUP_CNN_JS = """() => {
       el.remove();
       removed.push(sel);
     });
+  });
+
+  // Remover wrappers de anúncio com imagem de fundo ad-bg.png (barra cinza texturizada)
+  document.querySelectorAll('div, section, aside').forEach(el => {
+    if (el.querySelector('article, h1, .single-content, .post__content, .content__body')) return;
+    const bg = window.getComputedStyle(el).backgroundImage || '';
+    if (bg.includes('ad-bg.png')) {
+      el.remove();
+      removed.push('ad-bg-image');
+    }
   });
 
   // 2. Remover players de vídeo flutuantes/sticky, modais e banners LGPD

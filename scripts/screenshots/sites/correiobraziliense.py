@@ -64,6 +64,10 @@ _CLEANUP_CB_JS = """() => {
     '#onetrust-banner-sdk',
     '#onetrust-consent-sdk',
     '.banner-lgpd',
+    '.cc-window',
+    '.cc-banner',
+    '.cc-revoke',
+    '#modal.modal',
   ];
 
   paywallSelectors.forEach(sel => {
@@ -76,10 +80,20 @@ _CLEANUP_CB_JS = """() => {
 
   // 2. Remover anúncios, leaderboards e sidebars
   const adSelectors = [
+    '.rasgado-materia',
+    '[class*="rasgado"]',
+    '[id*="rasgado"]',
     '[id*="google_ads"]',
     '[id*="ad_"]',
+    '[id*="dfp-"]',
+    '[id*="retangulo"]',
+    '[id*="halfpage"]',
+    '[id*="native-ads"]',
     '[class*="publicidade"]',
     '[class*="advertising"]',
+    '[class*="pub-"]',
+    '[class*="ancorads"]',
+    '[class*="in-image"]',
     '.cb-ad',
     '.ad-container',
     '.ads-container',
@@ -87,6 +101,8 @@ _CLEANUP_CB_JS = """() => {
     '.taboola-container',
     '.outbrain-container',
     '.ad-slot',
+    'iframe[id*="google_ads"]',
+    'ins[id*="gpt_unit"]',
   ];
 
   adSelectors.forEach(sel => {
@@ -99,6 +115,8 @@ _CLEANUP_CB_JS = """() => {
 
   // 3. Remover barras flutuantes e rodapés fixos
   const floatingSelectors = [
+    '#socialBar',
+    '.socialBar',
     '.sticky-footer',
     '.floating-bar',
     '.c-share-bar--floating',
@@ -119,16 +137,30 @@ _CLEANUP_CB_JS = """() => {
     el.style.setProperty('visibility', 'visible', 'important');
   });
 
-  // 5. Destravar scroll, alturas e overflow no html e body
+  // 5. Destravar scroll, alturas e overflow no html e body, e blindar largura contra distorção
   const force = (el, prop, val) => el && el.style.setProperty(prop, val, 'important');
   force(document.documentElement, 'overflow', 'auto');
   force(document.documentElement, 'position', 'static');
   force(document.documentElement, 'height', 'auto');
+  force(document.documentElement, 'width', '100%');
+  force(document.documentElement, 'max-width', '100vw');
   if (document.body) {
     force(document.body, 'overflow', 'auto');
     force(document.body, 'position', 'static');
     force(document.body, 'height', 'auto');
+    force(document.body, 'width', '100%');
+    force(document.body, 'max-width', '100vw');
   }
+
+  // 6. Centralizar conteúdo removendo deslocamento deixado por torres laterais de publicidade
+  document.querySelectorAll('.content-title').forEach(el => {
+    el.style.setProperty('margin-left', 'auto', 'important');
+    el.style.setProperty('margin-right', 'auto', 'important');
+  });
+  document.querySelectorAll('.wrapper').forEach(el => {
+    el.style.setProperty('margin-left', 'auto', 'important');
+    el.style.setProperty('margin-right', 'auto', 'important');
+  });
 
   // 6. Remover filtros de blur, restrições de max-height ou opacidade nos textos
   document.querySelectorAll('article *, .cb-texto *, .cb-materia__texto *, .entry-content *').forEach(el => {
