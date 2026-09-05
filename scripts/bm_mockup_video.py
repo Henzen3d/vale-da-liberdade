@@ -2091,6 +2091,12 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         }
         save_state(state)
         print(f"  ✅ YouTube {result['url']}")
+        try:
+            from media_offload import after_youtube
+
+            after_youtube(video_id)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  offload HD após YouTube falhou: {exc}")
     return result
 
 

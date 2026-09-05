@@ -214,6 +214,12 @@ def upload_episode_audio(date_str: str, file_path: Path | None = None) -> str:
                 "source": str(src),
             },
         )
+        try:
+            from media_offload import after_r2
+
+            after_r2(date_str)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[AVISO] offload HD após R2 falhou: {exc}")
         return url
     except Exception as e:
         print(f"[ERRO R2] Falha no upload: {e}")
