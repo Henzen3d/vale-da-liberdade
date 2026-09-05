@@ -22,6 +22,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +39,35 @@ sys.path.insert(0, str(SCRIPT_DIR))
 SOURCES_JSON_PATH = PROJECT_ROOT / "sources" / "sources.json"
 SITE_URL = os.environ.get("SITE_URL", "https://news.mob.tec.br").rstrip("/")
 
+# Idade máxima de item de RSS aceito como fonte de uma pauta atual.
+RSS_MAX_AGE_DAYS = int(os.environ.get("BM_RSS_MAX_AGE_DAYS", "7"))
+# Mínimo de palavras-chave discriminantes em comum para casar uma matéria preliminarmente.
+RSS_MIN_KEYWORD_HITS = int(os.environ.get("BM_RSS_MIN_KEYWORD_HITS", "2"))
+
+# Verbos/termos jornalísticos genéricos: aparecem em QUALQUER manchete e não
+# identificam pauta. Casar por eles produzia fontes totalmente fora do tema.
+GENERIC_TITLE_WORDS = {
+    "mostra", "mostram", "aguarda", "aguardam", "aponta", "apontam", "revela",
+    "revelam", "afirma", "afirmam", "declara", "diz", "dizem", "confira",
+    "veja", "saiba", "entenda", "assista", "anuncia", "anunciam", "promete",
+    "prometem", "temem", "teme", "quer", "querem", "pode", "podem", "deve", "devem",
+    "após", "apos", "ainda", "assim", "outro", "outra", "outros", "outras",
+    "primeiro", "primeira", "última", "ultima", "último", "ultimo", "grande",
+    "melhor", "pior", "hoje", "ontem", "amanhã", "amanha", "ano", "anos",
+    "dias", "meses", "vezes", "caso", "casos", "gente", "coisa", "coisas",
+    "tudo", "nada", "pessoa", "pessoas", "parte", "forma", "fazer", "faz",
+    "vídeo", "video", "fotos", "foto", "veja", "alerta", "urgente",
+}
+
+# Stopwords estruturais (preposições, dêiticos, termos do próprio canal).
+_STRUCTURAL_STOPS = {
+    "para", "com", "por", "que", "como", "mais", "sobre", "este", "esta",
+    "canal", "vídeo", "video", "especial", "brasil", "mundo", "pelo", "pela",
+    "entre", "depois", "antes", "contra", "agora", "quando", "muito", "novo",
+    "nova", "todos", "todas", "qual", "quais", "onde", "quem", "isso", "aquilo",
+    "esse", "essa", "esses", "essas", "daquele", "daquela", "nestes", "nestas",
+}
+
 BLOCKED_DOMAINS = (
     "youtube.com",
     "youtu.be",
@@ -45,6 +76,7 @@ BLOCKED_DOMAINS = (
     "instagram.com/accounts/login",
     "twitter.com/login",
     "x.com/login",
+    "nytimes.com",
 )
 
 UA = (
@@ -147,18 +179,111 @@ def site_referencias(video_id: str) -> list[dict]:
 
 def extract_keywords_from_title(title: str) -> list[str]:
     """Extrai palavras-chave relevantes (>3 caracteres, sem stopwords)."""
-    stops = {
-        "para", "com", "por", "que", "como", "mais", "sobre", "este", "esta",
-        "canal", "vídeo", "video", "especial", "brasil", "mundo", "pelo", "pela",
-        "entre", "depois", "antes", "contra", "agora", "quando", "muito", "novo",
-        "nova", "todos", "todas", "qual", "quais", "onde", "quem", "isso", "aquilo",
-    }
-    words = re.findall(r"\b[a-zA-ZáéíóúÁÉÍÓÚâêîôûÂÊÎÔÛãõÃÕçÇ0-9]{4,}\b", title.lower())
-    return [w for w in words if w not in stops]
+    words = re.findall(r"\b[a-zA-ZáéíóúÁÉÍÓÚâêîôûÂÊÎÔÛãõÃÕçÇ0-9]{4,}\b", (title or "").lower())
+    return [w for w in words if w not in _STRUCTURAL_STOPS]
+
+
+def strong_keywords_from_title(title: str) -> list[str]:
+    """Só palavras-chave discriminantes: fora stopwords E verbos genéricos.
+
+    São essas que caracterizam a pauta (nomes próprios, siglas, termos discriminantes).
+    """
+    return [w for w in extract_keywords_from_title(title) if w not in GENERIC_TITLE_WORDS]
+
+
+def _rss_item_is_recent(item: ET.Element, max_age_days: int = RSS_MAX_AGE_DAYS) -> bool:
+    """Rejeita item de RSS sem data ou publicado há mais de `max_age_days`."""
+    raw_date = ""
+    for tag in ("pubDate", "{http://www.w3.org/2005/Atom}updated",
+                "{http://www.w3.org/2005/Atom}published",
+                "{http://purl.org/dc/elements/1.1/}date"):
+        el = item.find(tag)
+        if el is not None and (el.text or "").strip():
+            raw_date = el.text.strip()
+            break
+    if not raw_date:
+        return False
+
+    dt = None
+    try:
+        dt = parsedate_to_datetime(raw_date)
+    except Exception:
+        try:
+            dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+        except Exception:
+            return False
+    if dt is None:
+        return False
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    age = datetime.now(timezone.utc) - dt
+    return age <= timedelta(days=max_age_days)
+
+
+# Palavras temáticas comuns que sozinhas não identificam uma pauta única
+COMMON_TOPIC_WORDS = {
+    "governo", "brasil", "presidente", "política", "politica", "nacional",
+    "país", "pais", "estado", "ministro", "tribunal", "justiça", "justica",
+    "câmara", "camara", "senado", "congresso", "dia", "dias", "semana",
+    "mês", "ano", "anos", "tempo", "água", "agua", "lama", "novo", "nova",
+    "plano", "projeto", "lei", "reforma", "eleições", "eleicoes", "campanha",
+}
+
+
+def judge_source_relevance(pauta_title: str, candidate_title: str, candidate_summary: str = "") -> bool:
+    """Juiz Semântico: valida se a matéria candidata trata especificamente do mesmo fato da pauta."""
+    pauta_kws = strong_keywords_from_title(pauta_title)
+    if len(pauta_kws) < RSS_MIN_KEYWORD_HITS:
+        return False
+
+    cand_low = (candidate_title or "").lower()
+    hits = [kw for kw in pauta_kws if kw in cand_low]
+    if len(hits) < RSS_MIN_KEYWORD_HITS:
+        return False
+
+    # Se há 4 ou mais termos discriminantes em comum, é o mesmo fato
+    if len(hits) >= 4:
+        return True
+
+    # Entidades nomeadas (pessoa, órgão) ligam o tema. Não deixar o LLM vetar isso.
+    high_value_hits = [kw for kw in hits if kw not in COMMON_TOPIC_WORDS]
+    if len(high_value_hits) >= 2:
+        return True
+
+    # Checagem semântica com LLM leve para homônimos / 1 entidade + termo genérico
+    try:
+        from bm_condensador import _candidate_keys
+        keys = _candidate_keys("GEMINI_API_KEY")
+        if keys:
+            from gemini_client import GeminiClient
+            client = GeminiClient(api_key=keys[0])
+            prompt = (
+                "Você é um editor sênior de checagem jornalística.\n"
+                f"Pauta em produção: \"{pauta_title}\"\n"
+                f"Matéria encontrada: \"{candidate_title}\" {candidate_summary[:150]}\n\n"
+                "Pergunta: A matéria encontrada cobre estritamente o mesmo acontecimento/fato da pauta?\n"
+                "(Responda NÃO se for apenas um assunto diferente que compartilha palavras soltas como governo, polícia, lama, imposto).\n"
+                "Responda ESTRITAMENTE 'SIM' ou 'NAO'."
+            )
+            resp = client.generate_content(
+                model="gemini-3.5-flash-lite",
+                contents=prompt,
+                config={"temperature": 0.0, "max_output_tokens": 5},
+            )
+            ans = (getattr(resp, "text", "") or "").strip().upper()
+            return "SIM" in ans
+    except Exception:
+        pass
+
+    # Fallback: 2 hits no total e ao menos 1 entidade específica
+    if len(hits) >= 2 and len(high_value_hits) >= 1:
+        return True
+
+    return False
 
 
 def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
-    """Busca itens relevantes em feeds RSS nacionais/gerais cadastrados em sources.json."""
+    """Busca itens relevantes em feeds RSS nacionais/gerais cadastrados em sources.json com validação estrita."""
     if not SOURCES_JSON_PATH.exists():
         return []
     try:
@@ -166,8 +291,8 @@ def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
     except Exception:
         return []
 
-    keywords = extract_keywords_from_title(title)
-    if not keywords:
+    keywords = strong_keywords_from_title(title)
+    if len(keywords) < RSS_MIN_KEYWORD_HITS:
         return []
 
     results: list[dict] = []
@@ -187,10 +312,9 @@ def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
                 feed_url,
                 headers={"User-Agent": UA, "Accept": "application/rss+xml, application/xml, text/xml"},
             )
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with urllib.request.urlopen(req, timeout=7) as resp:
                 content = resp.read()
             root = ET.fromstring(content)
-            # RSS 2.0 channel/item ou Atom feed/entry
             items = root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
             for item in items:
                 t_el = item.find("title")
@@ -207,80 +331,92 @@ def search_local_rss_sources(title: str, max_items: int = 3) -> list[dict]:
                 if not item_url or item_url in seen_urls or is_blocked_source(item_url):
                     continue
 
-                # Match de pelo menos uma keyword forte no título da notícia
-                title_low = item_title.lower()
-                if any(kw in title_low for kw in keywords):
-                    seen_urls.add(item_url)
-                    results.append({
-                        "veiculo": src.get("name") or veiculo_from_url(item_url),
-                        "url": item_url,
-                        "title": item_title,
-                        "role": "supporting",
-                        "origin": "rss",
-                        "self": False,
-                    })
-                    if len(results) >= max_items:
-                        return results
+                # 1. Filtro de Idade: descarta notícias com mais de 7 dias
+                if not _rss_item_is_recent(item):
+                    continue
+
+                # 2. Juiz de Relevância: descarta coincidências acidentais de palavras isoladas
+                if not judge_source_relevance(title, item_title):
+                    continue
+
+                seen_urls.add(item_url)
+                results.append({
+                    "veiculo": src.get("name") or veiculo_from_url(item_url),
+                    "url": item_url,
+                    "title": item_title,
+                    "role": "supporting",
+                    "origin": "rss",
+                    "self": False,
+                })
+                if len(results) >= max_items:
+                    return results
         except Exception:
             continue
 
     return results
 
 
-def search_gemini_lite_sources(title: str, existing_urls: set[str], max_items: int = 4) -> list[dict]:
-    """Usa gemini-3.5-flash-lite para sugerir 3–5 URLs de reportagens de veículos conhecidos."""
+def search_web_sources(title: str, existing_urls: set[str], max_items: int = 3) -> list[dict]:
+    """Busca fontes web reais via Tavily API (sem alucinar URLs) com validação semântica."""
+    tavily_key = os.environ.get("TAVILY_API_KEY")
+    if not tavily_key:
+        return []
+
     try:
-        from bm_condensador import _candidate_keys
-        keys = _candidate_keys("GEMINI_API_KEY")
-        if not keys:
-            return []
-        from gemini_client import GeminiClient, GeminiMultiClient
-        client = GeminiMultiClient(keys) if len(keys) > 1 else GeminiClient(api_key=keys[0])
+        body = json.dumps({
+            "api_key": tavily_key,
+            "query": f"{title} noticia",
+            "topic": "news",
+            "search_depth": "basic",
+            "max_results": max(4, max_items * 2),
+            "include_domains": [
+                "g1.globo.com", "folha.uol.com.br", "cnnbrasil.com.br",
+                "estadao.com.br", "metropoles.com", "poder360.com.br",
+                "oglobo.globo.com", "veja.abril.com.br", "gazetadopovo.com.br",
+                "infomoney.com.br", "valor.globo.com", "bbc.com", "ndmais.com.br",
+            ],
+        }).encode("utf-8")
 
-        prompt = f"""Você é um pesquisador de imprensa para o jornal Vale da Liberdade.
-Para o fato jornalístico abaixo, indique de 3 a 5 URLs reais ou típicas de reportagens dos principais portais de notícias (Folha, G1, CNN Brasil, Estadão, Metrópoles, Poder360, BBC Brasil, UOL) que cobrem esse acontecimento.
-
-Tema/Título: {title}
-
-Retorne ESTRITAMENTE um JSON no seguinte formato:
-{{
-  "fontes": [
-    {{"veiculo": "Folha de S.Paulo", "url": "https://www1.folha.uol.com.br/...", "resumo": "Uma linha sobre o fato"}},
-    {{"veiculo": "CNN Brasil", "url": "https://www.cnnbrasil.com.br/...", "resumo": "Uma linha sobre o fato"}}
-  ]
-}}
-NÃO invente domínios inexistentes. Use apenas veículos conhecidos."""
-
-        resp = client.generate_content(
-            model="gemini-3.5-flash-lite",
-            contents=prompt,
-            config={"temperature": 0.3, "max_output_tokens": 1024, "response_mime_type": "application/json"},
+        req = urllib.request.Request(
+            "https://api.tavily.com/search",
+            data=body,
+            headers={"Content-Type": "application/json", "User-Agent": UA},
         )
-        text = getattr(resp, "text", "") or ""
-        if not text:
-            return []
-        data = json.loads(text)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
         out: list[dict] = []
-        for item in data.get("fontes", []):
-            url = clean_url(item.get("url", ""))
+        for r in data.get("results", []):
+            url = clean_url(r.get("url") or "")
             if not url or url in existing_urls or is_blocked_source(url):
                 continue
-            veic = item.get("veiculo") or veiculo_from_url(url)
+            item_title = (r.get("title") or "").strip()
+            item_snippet = (r.get("content") or "").strip()
+
+            # Valida pertinência com a pauta antes de incluir
+            if not judge_source_relevance(title, item_title, item_snippet):
+                continue
+
+            existing_urls.add(url)
             out.append({
-                "veiculo": veic,
+                "veiculo": veiculo_from_url(url),
                 "url": url,
-                "title": item.get("resumo", ""),
+                "title": item_title,
                 "role": "supporting",
-                "origin": "search",
+                "origin": "web_search",
                 "self": False,
             })
-            existing_urls.add(url)
             if len(out) >= max_items:
                 break
         return out
     except Exception as exc:
-        print(f"  ⚠️  Busca gemini-lite de fontes falhou: {exc}")
+        print(f"  ⚠️  Busca web Tavily falhou: {exc}")
         return []
+
+
+def search_gemini_lite_sources(title: str, existing_urls: set[str], max_items: int = 4) -> list[dict]:
+    """Fallback mantido para compatibilidade com assinaturas anteriores."""
+    return search_web_sources(title, existing_urls, max_items)
 
 
 def enrich_episode_sources(raw: dict, video_id: str, max_external: int = 8) -> tuple[list[dict], str]:
@@ -330,19 +466,28 @@ def enrich_episode_sources(raw: dict, video_id: str, max_external: int = 8) -> t
 
     title = raw.get("title") or ""
 
-    # 2. RSS Local se ainda temos poucas fontes externas (< 6)
-    if len(refs) < 6 and title:
-        rss_hits = search_local_rss_sources(title, max_items=max(0, 6 - len(refs)))
+    # REGRA DE SUFICIÊNCIA:
+    # Se a descrição do YouTube já trouxe >= 2 fontes externas legítimas,
+    # NÃO forçar busca aleatória em RSS ou web. Essas fontes originais são a base autêntica.
+    # Só buscamos se tivermos menos de 2 fontes externas legítimas.
+    MIN_SUFFICIENT_SOURCES = int(os.environ.get("BM_MIN_SUFFICIENT_SOURCES", "2"))
+    TARGET_EXTERNAL_SOURCES = int(os.environ.get("BM_TARGET_EXTERNAL_SOURCES", "4"))
+
+    # 2. RSS Local se ainda temos menos que o mínimo de fontes confiáveis
+    if len(refs) < MIN_SUFFICIENT_SOURCES and title:
+        needed = TARGET_EXTERNAL_SOURCES - len(refs)
+        rss_hits = search_local_rss_sources(title, max_items=needed)
         for hit in rss_hits:
             u = hit["url"]
             if u not in seen_urls:
                 seen_urls.add(u)
                 refs.append(hit)
 
-    # 3. Gemini Lite se ainda < 6 fontes externas
-    if len(refs) < 6 and title:
-        lite_hits = search_gemini_lite_sources(title, seen_urls, max_items=max(0, 6 - len(refs)))
-        for hit in lite_hits:
+    # 3. Busca Web real se ainda faltarem fontes para o mínimo
+    if len(refs) < MIN_SUFFICIENT_SOURCES and title:
+        needed = TARGET_EXTERNAL_SOURCES - len(refs)
+        web_hits = search_web_sources(title, seen_urls, max_items=needed)
+        for hit in web_hits:
             refs.append(hit)
 
     # Limitar fontes externas ao teto configurado

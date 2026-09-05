@@ -58,6 +58,37 @@ Agendamento: `0 6 * * *` (06:00 UTC)
 Comando: `/home/osmar/web-jornal-vale-da-liberdade/scripts/cron-wrapper.sh`
 O wrapper chama: `python scripts/pipeline.py full --date <data atual>`
 
+## Pipeline Especial Brasil & Mundo (Vídeos de 5 Minutos)
+
+Vídeos verticais/horizontais opinativos focados em um tema quente do dia, apresentados por Peter Albuquerque (~830 palavras, 5 minutos de áudio).
+
+### Comandos Principais:
+- Processar vídeo específico do YouTube (sob demanda):
+  ```bash
+  python scripts/bm_pipeline.py full --youtube-url "https://www.youtube.com/watch?v=XXXXX"
+  ```
+- Processar fila pendente do monitor:
+  ```bash
+  python scripts/bm_pipeline.py process-queue
+  ```
+- Baixar B-rolls de apoio visual (Pexels/Pixabay):
+  ```bash
+  python scripts/bm_broll_fetcher.py --query "politica brasilia congresso" --count 2
+  ```
+
+### Motor Visual & Retenção do Telespectador:
+- **Gancho Inicial (Primeiros 15s):** 3 cortes rápidos de abertura (0-5s, 5-9s, 9-15s) combinando manchete, close de parágrafo e B-roll para prender a atenção e evitar abandono precoce do vídeo.
+- **Mínimo de 10 Telas por Episódio:** Timeline dinâmica que impede telas estáticas por mais de 22s.
+- **Multi-Shot por Matéria:** Captura dupla em Playwright (Hero da manchete + Detail rolado no parágrafo/gráfico), dobrando as telas reais sem precisar recorrer a links irrelevantes.
+- **B-Roll Footage:** Vídeos gratuitos em 1080p (Pexels / Pixabay) e tweets do X inseridos contextualmente.
+- **Relevância de Fontes (Qualidade > Quantidade):** Se a descrição do YouTube já contém fontes verificadas (>= 2), elas são suficientes. Fontes externas de RSS passam por filtro estrito de entidades (vetando termos genéricos e matérias com mais de 7 dias).
+
+### Roadmap de Crescimento Orgânico:
+- **Fase 1 (Atual):** Monitoramento automático do canal @ancapsu → transcrição → resumo analítico de 5 min → vídeo dinâmico.
+- **Fase 2 (Sob Demanda):** Geração por URL avulsa do YouTube (`--youtube-url`).
+- **Fase 3 (Agente Hermes Autônomo):** Criação de episódios a partir de comandos em linguagem natural (ex.: *"Faça um roteiro sobre a queda na bolsa de valores hoje"*), buscando fontes diretamente via Tavily/RSS e sintetizando o episódio completo.
+
+
 ## Problemas comuns
 
 - **Roteiro JSON ausente:** `pipeline.py process` agora falha alto (exit 3) se `roteiro-YYYY-MM-DD.json` não existir. Gere o JSON via Hermes Agent antes de rodar `process`.

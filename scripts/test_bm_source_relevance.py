@@ -157,5 +157,42 @@ class TestDescarteDeCenaEmBranco:
         assert all(u["veiculo"] != "X" for u in usable)
 
 
+class TestJuizSemantico:
+    def test_rejeita_falso_positivo_lama_sc(self):
+        from bm_enrich_sources import judge_source_relevance
+        pauta = "GOVERNO LULA promete BANHO de LAMA após CASO MARCOLA no PLANALTO"
+        adutora = "VÍDEO: 'onda' de água e lama invade loja e assusta funcionários após adutora romper em SC"
+        assert judge_source_relevance(pauta, adutora) is False
+
+    def test_aceita_materia_do_mesmo_fato(self):
+        from bm_enrich_sources import judge_source_relevance
+        pauta = "GOVERNO LULA promete BANHO de LAMA após CASO MARCOLA no PLANALTO"
+        marcola_planalto = "Planalto tenta mapear relações com lobistas e cobra assessor após caso Marcola"
+        assert judge_source_relevance(pauta, marcola_planalto) is True
+
+    def test_rejeita_materia_sem_keywords_fortes(self):
+        from bm_enrich_sources import judge_source_relevance
+        pauta = "GOVERNO LULA promete BANHO de LAMA após CASO MARCOLA no PLANALTO"
+        geral = "Previsão do tempo para o fim de semana em todo o Brasil"
+        assert judge_source_relevance(pauta, geral) is False
+
+
+class TestRegraSuficiencia:
+    def test_fontes_nativas_suficientes_bloqueiam_busca_externa(self):
+        from bm_enrich_sources import enrich_episode_sources
+        raw = {
+            "title": "GOVERNO LULA promete BANHO de LAMA após CASO MARCOLA no PLANALTO",
+            "sources": [
+                {"veiculo": "VEJA", "url": "https://veja.abril.com.br/politica/caso-marcola", "title": "Banho de lama eleitoral"},
+                {"veiculo": "Folha", "url": "https://www1.folha.uol.com.br/poder/caso-marcola", "title": "Escândalo no Planalto"},
+            ]
+        }
+        refs, briefing = enrich_episode_sources(raw, "teste-sufic", max_external=8)
+        # Deve conter as 2 fontes nativas + 2 links self do site, sem adicionar fontes extras desconexas
+        externas = [r for r in refs if not r.get("self")]
+        assert len(externas) == 2
+        assert all(r["origin"] == "youtube_description" for r in externas)
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))

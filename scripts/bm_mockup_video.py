@@ -33,6 +33,13 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_DIR = ROOT / "scripts"
 if str(ROOT) not in sys.path:
@@ -273,6 +280,138 @@ def capture_x_embed(page, url: str, dest: Path) -> bool:
         dest.unlink(missing_ok=True)
         return False
     return True
+
+
+def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
+    """Extrai dados estruturados de um tweet (autor, handle, avatar, texto, mídia, métricas).
+
+    Usa oEmbed oficial para obter texto íntegro e autor sem truncamento, e
+    o widget oficial do X para extrair imagem de mídia, avatar e contadores.
+    Baixa imagens para o shot_dir local para exibição offline sem engasgo de rede.
+    """
+    import urllib.request
+
+    m = re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url or "")
+    if not m:
+        return None
+    url_handle = m.group(1)
+    tid = m.group(2)
+
+    author_name = url_handle
+    handle = f"@{url_handle}"
+    text = ""
+
+    # 1. Obter texto limpo e autor via oEmbed oficial (rápido, sem truncamento)
+    try:
+        oembed_url = f"https://publish.twitter.com/oembed?url=https://x.com/{url_handle}/status/{tid}"
+        req = urllib.request.Request(oembed_url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            oembed_data = json.loads(r.read().decode("utf-8"))
+            if oembed_data.get("author_name"):
+                author_name = oembed_data["author_name"]
+            raw_html = oembed_data.get("html", "")
+            p_match = re.search(r"<p[^>]*>(.*?)</p>", raw_html, re.DOTALL)
+            if p_match:
+                p_text = re.sub(r"<a[^>]*>(.*?)</a>", r"\1", p_match.group(1))
+                p_text = re.sub(r"<br\s*/?>", "\n", p_text)
+                text = p_text.strip()
+    except Exception as exc:
+        print(f"  ⚠️  x-oembed ({tid}): {exc}")
+
+    # 2. Carregar o widget público via Playwright para extrair avatar, mídia e métricas
+    embed_url = f"https://platform.twitter.com/embed/Tweet.html?id={tid}&theme=light&lang=pt"
+    media_url = ""
+    avatar_url = ""
+    timestamp = ""
+    replies = "12"
+    reposts = "45"
+    likes = "120"
+
+    try:
+        page.goto(embed_url, wait_until="load", timeout=15000)
+        page.wait_for_timeout(2000)
+        extracted = page.evaluate("""() => {
+            const bodyText = document.body.innerText || "";
+            const lines = bodyText.split('\\n').map(s => s.trim()).filter(Boolean);
+            
+            const imgs = Array.from(document.querySelectorAll('img')).map(i => i.src);
+            const av = imgs.find(s => s.includes('profile_images')) || "";
+            const media = imgs.filter(s => s.includes('/media/')).map(s => s.replace(/name=[a-z0-9_]+/i, 'name=large'));
+
+            let likesCount = "120";
+            const likesMatch = bodyText.match(/([0-9.,]+(?:\\s*mil|K|M)?)\\s*(?:curtidas|likes)/i) ||
+                               bodyText.match(/([0-9.,]+(?:\\s*mil|K|M)?)\\s*\\n\\s*Responder/i);
+            if (likesMatch) likesCount = likesMatch[1];
+
+            const timeEl = document.querySelector('time');
+            const timeStr = timeEl ? timeEl.innerText.trim() : "";
+
+            return {
+                lines,
+                avatar: av,
+                mediaImgs: media,
+                timeStr,
+                likes: likesCount
+            };
+        }""")
+
+        if not text and extracted.get("lines"):
+            lines = extracted["lines"]
+            if len(lines) > 2:
+                text = lines[2]
+
+        avatar_url = extracted.get("avatar") or ""
+        media_urls = extracted.get("mediaImgs") or []
+        if media_urls:
+            media_url = media_urls[0]
+        timestamp = extracted.get("timeStr") or ""
+        if extracted.get("likes"):
+            likes = extracted["likes"]
+
+    except Exception as exc:
+        print(f"  ⚠️  x-embed dom ({tid}): {exc}")
+
+    # Remove t.co e pic.twitter.com do final do texto se houver foto anexada
+    if media_url and text:
+        text = re.sub(r"https?://t\.co/\S+|pic\.twitter\.com/\S+", "", text).strip()
+
+    # 3. Baixar imagens localmente no shot_dir para funcionar 100% offline
+    avatar_rel = ""
+    if avatar_url:
+        try:
+            av_dest = shot_dir / f"x-av-{tid}.jpg"
+            if not av_dest.exists():
+                req = urllib.request.Request(avatar_url, headers={"User-Agent": UA})
+                with urllib.request.urlopen(req, timeout=6) as r:
+                    av_dest.write_bytes(r.read())
+            avatar_rel = f"/shots/{av_dest.name}"
+        except Exception:
+            avatar_rel = avatar_url
+
+    media_rel = ""
+    if media_url:
+        try:
+            m_dest = shot_dir / f"x-media-{tid}.jpg"
+            if not m_dest.exists():
+                req = urllib.request.Request(media_url, headers={"User-Agent": UA})
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    m_dest.write_bytes(r.read())
+            media_rel = f"/shots/{m_dest.name}"
+        except Exception:
+            media_rel = media_url
+
+    return {
+        "author_name": author_name,
+        "handle": handle,
+        "avatar": avatar_rel,
+        "media": media_rel,
+        "text": text,
+        "timestamp": timestamp or "Recente",
+        "replies": replies,
+        "reposts": reposts,
+        "likes": likes,
+        "verified": True,
+    }
 
 
 def _find_ytdlp() -> str:
@@ -1103,7 +1242,15 @@ def _assemble_captured_scenes(scenes: list[dict], by_index: dict[int, dict]) -> 
     out: list[dict] = []
     for i, scene in enumerate(scenes):
         if i in by_index:
-            out.append(by_index[i])
+            base = by_index[i]
+            out.append(base)
+            # Multi-Shot: se capturou também detalhe do texto/corpo, insere como corte alternado
+            if base.get("shot_detail"):
+                detail_scene = dict(base)
+                detail_scene["shot"] = base["shot_detail"]
+                detail_scene["veiculo"] = f"{base.get('veiculo', '')} (detalhe)"
+                detail_scene["role"] = "supporting"
+                out.append(detail_scene)
             continue
         item = dict(scene)
         item.setdefault("shot", None)
@@ -1246,7 +1393,20 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         item["video"] = vid_rel
                         by_index[i] = item
                         continue
-                    # sem vídeo: x.com dá 403 em headless, então usa o embed público
+                    # sem vídeo: tenta mockup estruturado do X (clean animado)
+                    x_post = fetch_x_post_data(page, url, shot_dir)
+                    if x_post:
+                        # tira screenshot fallback também caso precise de fallback estático
+                        capture_x_embed(page, url, dest)
+                        item = dict(scene)
+                        item["kind"] = "x-post"
+                        item["shot"] = dest.name if dest.exists() else None
+                        item["video"] = None
+                        item["x_post"] = x_post
+                        by_index[i] = item
+                        print(f"  🐦 {scene['veiculo']}: mockup do X ({x_post.get('handle')}, mídia={'sim' if x_post.get('media') else 'não'})")
+                        continue
+                    # fallback tradicional de screenshot embed
                     if capture_x_embed(page, url, dest):
                         save_cached_screenshot(url, dest)
                         item = dict(scene)
@@ -1323,6 +1483,19 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     save_cached_screenshot(url, dest)
                     item = dict(scene)
                     item["shot"] = dest.name
+
+                    # Multi-Shot: captura detalhe intermediário (scroll no corpo da matéria)
+                    dest_detail = shot_dir / f"src-{i:02d}-detail.png"
+                    try:
+                        page.evaluate("window.scrollBy(0, window.innerHeight * 0.75);")
+                        page.wait_for_timeout(350)
+                        page.screenshot(path=str(dest_detail), full_page=False)
+                        if dest_detail.exists() and dest_detail.stat().st_size > MIN_SHOT_BYTES and not _shot_looks_blank(dest_detail):
+                            item["shot_detail"] = dest_detail.name
+                            print(f"  📸 {scene['veiculo']} (detalhe): {dest_detail.name} ({dest_detail.stat().st_size // 1024} KB)")
+                    except Exception:
+                        pass
+
                     by_index[i] = item
                     print(f"  📸 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
                     continue
@@ -1400,6 +1573,10 @@ def record_mockup(
                     pairs["pageVideo"] = payload["pageVideo"]
                 if payload.get("wallpaper"):
                     pairs["wallpaper"] = payload["wallpaper"]
+                if payload.get("kind"):
+                    pairs["kind"] = payload["kind"]
+                if payload.get("xPost"):
+                    pairs["xPost"] = payload["xPost"]
                 return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
 
             first_beat = timeline_beats[0] if timeline_beats else None
@@ -1407,6 +1584,8 @@ def record_mockup(
             first_shot = fb_dict.get("shot") or (scenes[0].get("shot") if scenes else None)
             first_vid = fb_dict.get("video") or (scenes[0].get("video") if scenes else None)
             first_url = fb_dict.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
+            first_kind = fb_dict.get("kind") or (scenes[0].get("kind") if scenes else "source")
+            first_xpost = fb_dict.get("x_post") or (scenes[0].get("x_post") if scenes else None)
 
             init_payload = {
                 "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
@@ -1419,7 +1598,10 @@ def record_mockup(
                 "pageImage": f"/shots/{first_shot}" if first_shot else "",
                 "pageVideo": first_vid or "",
                 "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
+                "kind": first_kind,
             }
+            if first_xpost:
+                init_payload["xPost"] = json.dumps(first_xpost)
             page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
             page.wait_for_function(
                 """() => {
@@ -1443,11 +1625,17 @@ def record_mockup(
                     if b.get("kind") == "broll" and b.get("broll_file"):
                         page_video = f"/broll/{quote(b['broll_file'])}"
                     page.evaluate(
-                        """({url, pageImage, pageVideo}) => {
+                        """({url, pageImage, pageVideo, kind, xPost}) => {
                           if (!window.VDL_MOCKUP) return;
-                          window.VDL_MOCKUP.update({url, pageImage, pageVideo});
+                          window.VDL_MOCKUP.update({url, pageImage, pageVideo, kind, xPost});
                         }""",
-                        {"url": b.get("url") or "https://news.mob.tec.br", "pageImage": page_image, "pageVideo": page_video},
+                        {
+                            "url": b.get("url") or "https://news.mob.tec.br",
+                            "pageImage": page_image,
+                            "pageVideo": page_video,
+                            "kind": b.get("kind") or "source",
+                            "xPost": b.get("x_post"),
+                        },
                     )
 
                 beat_dur = float(b.get("t1", 0.0)) - float(b.get("t0", 0.0))

@@ -96,6 +96,44 @@ class SceneTimelineTests(unittest.TestCase):
         # O primeiro beat deve respeitar o piso mínimo
         self.assertGreaterEqual(beats[0].t1 - beats[0].t0, MIN_SCENE_DURATION_S)
 
+    def test_5min_episode_generates_at_least_10_beats(self):
+        # Simula episódio real de 5 minutos (~830 palavras, 300 segundos)
+        episode = {
+            "titulo": "Escândalo no Planalto",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura com contexto inicial relevante. " * 15}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": f"Parágrafo {i} com detalhes do caso factual para preencher o tempo. " * 10}
+                for i in range(1, 8)
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fechamento provocador e sintético. " * 10}],
+        }
+        scenes = [
+            {"veiculo": "VEJA", "url": "https://veja.abril.com.br/1", "shot": "src-00.png"},
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/2", "shot": "src-01.png"},
+            {"veiculo": "G1", "url": "https://g1.globo.com/3", "shot": "src-02.png"},
+            {"veiculo": "Metrópoles", "url": "https://metropoles.com/4", "shot": "src-03.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        self.assertGreaterEqual(len(beats), 10, f"Deveria ter pelo menos 10 beats em 5 minutos, teve {len(beats)}")
+        self.assertEqual(beats[0].t0, 0.0)
+        self.assertEqual(beats[-1].t1, 300.0)
+
+    def test_opening_15s_hook_cuts(self):
+        episode = {
+            "titulo": "Pauta de Abertura Impactante",
+            "abertura": [{"speaker": "Peter", "texto": "Texto longo de abertura com mais de cinquenta palavras para ocupar os primeiros trinta segundos de vídeo de forma densa e contínua sem interrupções artificiais."}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Corpo longo. " * 50}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fim."}],
+        }
+        scenes = [
+            {"veiculo": "Fonte 1", "url": "https://1.com", "shot": "s1.png"},
+            {"veiculo": "Fonte 2", "url": "https://2.com", "shot": "s2.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=240.0, scenes=scenes)
+        # Nos primeiros 15s deve haver mais de 1 corte para prender a atenção do público
+        first_15s_beats = [b for b in beats if b.t0 < 15.0]
+        self.assertGreaterEqual(len(first_15s_beats), 2, "Deveria ter pelo menos 2 cortes nos primeiros 15s")
+
 
 if __name__ == "__main__":
     unittest.main()

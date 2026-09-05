@@ -629,7 +629,7 @@ Comandos:
         """,
     )
     parser.add_argument("command", choices=["full", "process-queue", "transcript", "roteiro", "audio", "assets", "review", "composicao"])
-    parser.add_argument("--url", help="URL do vídeo do YouTube (para: full, transcript)")
+    parser.add_argument("--url", "--youtube-url", dest="url", help="URL do vídeo do YouTube (para: full, transcript)")
     parser.add_argument("--video-id", help="ID do vídeo")
     parser.add_argument("--skip-audio", action="store_true", help="Pular geração de áudio")
     parser.add_argument("--force", action="store_true", help="Forçar regeneração de arquivos existentes")

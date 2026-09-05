@@ -63,6 +63,27 @@
 - **NÃO** creditar o canal ANCAPSU (conteúdo livre, sem necessidade editorial)
 - Se o veículo original não for capturado, seguir com o tema sem citar fonte nominal
 
+## Regra de Fontes e Relevância Temática (Qualidade > Quantidade)
+- **Regra de Suficiência:** Se a descrição do vídeo original trouxer `>= 2` URLs verificadas de notícias/artigos, **essas fontes são suficientes** para embasar a matéria. Nenhuma busca externa (RSS/Web) deve ser forçada.
+- **Anti-Contaminação Temática:** Jamais forçar preenchimento de cotas de fontes com notícias irrelevantes. Uma notícia externa só pode ser anexada se compartilhar entidades nomeadas específicas (pessoas, órgãos, leis) com o tema central.
+- **Proibição de Termos Genéricos:** Termos guarda-chuva como "economia", "governo", "stf", "política", "brasil" NÃO contam como elo de ligação entre notícias.
+- **Janela Temporal:** Fontes complementares de RSS só são aceitas se publicadas nos últimos 7 dias.
+
+## Dinâmica Visual e Retenção do Telespectador (~5 Minutos)
+- **Gancho Visual Crítico (Primeiros 15 Segundos):** Os primeiros 15 segundos definem se o telespectador fica ou sai. A abertura deve ter pelo menos 3 trocas de quadro/cortes rápidos (ex.: 0-5s, 5-9s, 9-15s) entre manchete, close de parágrafo e B-roll.
+- **Mínimo de 10 Telas por Vídeo (Pacing):** Ao longo dos ~300 segundos, a tela de fundo deve alternar no mínimo 10 vezes (média de ~15 a 22s por tela). Nenhuma tela fica estática por mais de 22 segundos.
+- **Multi-Shot por Matéria:** Cada notícia capturada fornece múltiplos ângulos:
+  1. *Hero Shot:* Cabeçalho com manchete, imagem de capa e veículo.
+  2. *Detail/Body Shot:* Rolagem para parágrafo-chave, dados estatísticos ou gráficos.
+  Isso dobra o repertório visual sem precisar caçar fontes irrelevantes na internet.
+- **B-Rolls & Vídeos do X:** Inserções de clipes dinâmicos e B-rolls contextuais de alta resolução (Pexels / Pixabay / Twitter) quebrando a monotonia de capturas estáticas.
+- **Looping/Alternância:** Repetir matérias já mostradas com zoom ou recorte diferente na segunda metade do vídeo é perfeitamente válido e preferível a exibir matérias desconexas.
+
+## Fases de Evolução do Pipeline
+1. **Fase 1 (Atual):** Monitoramento automático do canal @ancapsu → transcrição → resumo analítico de 5 min (Peter) → vídeo dinâmico com multi-shot e B-roll.
+2. **Fase 2 (Sob Demanda):** O operador passa qualquer URL do YouTube (`python scripts/bm_pipeline.py full --youtube-url "URL"`) e o sistema gera o vídeo completo respeitando a mesma esteira.
+3. **Fase 3 (Agente Hermes Autônomo):** Geração a partir de prompts em linguagem natural (ex.: *"Hermes, faça um episódio sobre a queda na bolsa hoje"*), buscando pautas quentes, artigos via Tavily/RSS filtrados e compilando roteiro + vídeo sem depender de vídeo prévio do YouTube.
+
 ## Regras de Ouro (Anti-Contaminação)
 - Este SKILL **NUNCA** deve ser combinado com o SKILL.md do pipeline diário
 - **NUNCA** dividir o roteiro em quadros temáticos (Segurança, Saúde, etc.)
@@ -71,3 +92,4 @@
 - **NUNCA** reduzir `BM_TRANSCRIPT_CHARS` de volta para 6.000 — foi a causa raiz
   dos roteiros abaixo do piso (corrigido 2026-08-31)
 - **NUNCA** gerar manchetes separadas ou seções formatadas
+

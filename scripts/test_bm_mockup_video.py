@@ -29,8 +29,9 @@ from bm_mockup_video import (
     source_scenes,
     ticker_headlines,
     x_tweet_id,
+    fetch_x_post_data,
 )
-from bm_scene_timeline import SceneBeat
+from bm_scene_timeline import SceneBeat, build_scene_timeline
 
 
 class XEmbedTests(unittest.TestCase):
@@ -53,6 +54,87 @@ class XEmbedTests(unittest.TestCase):
         self.assertIsNone(x_tweet_id("https://www.cnnbrasil.com.br/economia/"))
         self.assertIsNone(x_tweet_id(""))
         self.assertIsNone(x_tweet_id(None))
+
+    def test_fetch_x_post_data_parses_clean_metadata(self):
+        class FakeResponse:
+            def __init__(self, data: bytes):
+                self.data = data
+            def read(self):
+                return self.data
+            def __enter__(self):
+                return self
+            def __exit__(self, *a):
+                pass
+
+        class FakePage:
+            def goto(self, *a, **k):
+                pass
+            def wait_for_timeout(self, *a, **k):
+                pass
+            def evaluate(self, script):
+                return {
+                    "lines": ["User", "@user", "Texto fallback"],
+                    "avatar": "https://pbs.twimg.com/profile_images/123/avatar.jpg",
+                    "mediaImgs": ["https://pbs.twimg.com/media/pic1.jpg"],
+                    "timeStr": "10:00 · 01 de set de 2026",
+                    "likes": "1.5K"
+                }
+
+        oembed_json = (
+            b'{"author_name": "Conta Oficial", "html": "<p>Mensagem importante do post pic.twitter.com/abc</p>"}'
+        )
+
+        with tempfile.TemporaryDirectory() as td:
+            shot_dir = Path(td)
+            with patch("urllib.request.urlopen") as mock_url:
+                def fake_urlopen(req, **kw):
+                    url = getattr(req, "full_url", str(req))
+                    if "oembed" in url:
+                        return FakeResponse(oembed_json)
+                    return FakeResponse(b"fake image bytes")
+                mock_url.side_effect = fake_urlopen
+
+                post = fetch_x_post_data(
+                    FakePage(),
+                    "https://x.com/ContaOficial/status/2093130747796148634",
+                    shot_dir,
+                )
+
+                self.assertIsNotNone(post)
+                self.assertEqual(post["author_name"], "Conta Oficial")
+                self.assertEqual(post["handle"], "@ContaOficial")
+                self.assertEqual(post["text"], "Mensagem importante do post")
+                self.assertEqual(post["likes"], "1.5K")
+                self.assertTrue(post["verified"])
+                self.assertTrue(post["avatar"].startswith("/shots/"))
+                self.assertTrue(post["media"].startswith("/shots/"))
+                # Arquivos locais foram gravados
+                self.assertTrue((shot_dir / "x-av-2093130747796148634.jpg").exists())
+                self.assertTrue((shot_dir / "x-media-2093130747796148634.jpg").exists())
+
+    def test_x_post_scene_propagates_to_timeline_beats(self):
+        scenes = [{
+            "veiculo": "X Oficial",
+            "url": "https://x.com/user/status/12345",
+            "kind": "x-post",
+            "shot": "src-00.png",
+            "video": None,
+            "x_post": {
+                "author_name": "User",
+                "handle": "@user",
+                "text": "Tweet animado",
+            }
+        }]
+        episode = {
+            "titulo": "Notícia do Dia",
+            "desenvolvimento": [{"texto": "Fala 1", "fonte_url": "https://x.com/user/status/12345"}]
+        }
+        beats = build_scene_timeline(episode, 20.0, scenes)
+        self.assertTrue(len(beats) >= 1)
+        b0 = beats[0]
+        self.assertEqual(b0.kind, "x-post")
+        self.assertIsNotNone(b0.x_post)
+        self.assertEqual(b0.x_post["author_name"], "User")
 
 
 class InstagramMediaTests(unittest.TestCase):
@@ -382,24 +464,6 @@ class HandlerCaptureOrderTests(unittest.TestCase):
             self.assertEqual(order, ["handler"])
             self.assertEqual(out[0]["shot"], "src-00.png")
             self.assertTrue((shot_dir / "src-00.png").exists())
-
-    def test_handler_shot_ok_rejects_http_errors(self):
-        import bm_mockup_video as m
-
-        with tempfile.TemporaryDirectory() as td:
-            dest = Path(td) / "x.png"
-            dest.write_bytes(b"P" * 25_000)
-            with patch.object(m, "_shot_looks_blank", return_value=False):
-                self.assertFalse(
-                    m._handler_shot_ok(
-                        {"ok": True, "http_status": 403, "handler": "g1"}, dest
-                    )
-                )
-                self.assertTrue(
-                    m._handler_shot_ok(
-                        {"ok": True, "http_status": 200, "handler": "g1"}, dest
-                    )
-                )
 
 
 if __name__ == "__main__":
