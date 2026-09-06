@@ -73,6 +73,7 @@ STATE_PATH = ROOT / "output" / "brasil_e_mundo" / "videos_published.json"
 WORK_ROOT = ROOT / "output" / "brasil_e_mundo" / "mockup_video"
 CAPTURE_CACHE_DIR = ROOT / "output" / "brasil_e_mundo" / "capture-cache"
 THUMB_DIRS = (ROOT / "thumbnails", ROOT / "public" / "thumbnails")
+LAST_VIDEOS_PATH = ROOT / "output" / "brasil_e_mundo" / "last_videos.json"
 
 MAX_DURATION_S = 330.0
 MAX_PER_RUN = 1
@@ -1511,6 +1512,161 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     return _assemble_captured_scenes(scenes, by_index) or scenes
 
 
+# ---------------------------------------------------------------------------
+# HELPERS V2: normalização e payload para window.VDL_MOCKUP.update
+# ---------------------------------------------------------------------------
+
+def _normalize_beat_v2(beat: Any) -> dict:
+    """Normaliza SceneBeat / SceneBeatV2 / dict para dict V2 no recorder."""
+    from bm_scene_timeline import SceneBeat, SceneBeatV2
+
+    _v2_kinds = frozenset({"source", "x-post", "quote", "document", "timeline", "chart", "comparison", "broll"})
+    _role_map = {
+        "quote": "declaracao_forte",
+        "document": "evidencia_documental",
+        "timeline": "contexto_cronologico",
+        "chart": "impacto_economico",
+        "comparison": "confronto_posicoes",
+    }
+
+    if beat is None:
+        return {
+            "t0": 0.0, "t1": 0.0,
+            "semantic_role": "apresentacao_fato",
+            "visual_component": "source",
+            "visual_variant": "",
+            "visual_payload": {},
+            "url": "", "veiculo": "",
+            "shot": None, "video": None, "broll_file": None,
+            "kind": "source",
+        }
+
+    if isinstance(beat, SceneBeatV2):
+        out = beat.to_dict()
+        out["kind"] = out.get("visual_component") or "source"
+        return out
+
+    if isinstance(beat, SceneBeat):
+        x_post = beat.x_post
+        kind_raw = (beat.kind or "source").strip() or "source"
+        # SceneBeat now carries visual_component directly
+        vis_comp = getattr(beat, "visual_component", None) or kind_raw
+        if vis_comp not in _v2_kinds:
+            vis_comp = "source"
+        overrides: dict = {}
+        if vis_comp not in {"source", "broll", "x-post"}:
+            overrides["visual_component"] = vis_comp
+            overrides["semantic_role"] = _role_map.get(vis_comp, "apresentacao_fato")
+            if getattr(beat, "visual_payload", None):
+                overrides["visual_payload"] = dict(beat.visual_payload)
+            if getattr(beat, "visual_variant", None):
+                overrides["visual_variant"] = beat.visual_variant
+        out = SceneBeatV2.from_legacy(beat, **overrides).to_dict()
+        out["kind"] = vis_comp if vis_comp in _v2_kinds else (out.get("visual_component") or "source")
+        out["visual_component"] = out.get("visual_component") or out["kind"]
+        if x_post:
+            out["x_post"] = x_post
+        return out
+
+    if hasattr(beat, "to_dict") and hasattr(beat, "visual_component"):
+        out = dict(beat.to_dict())
+        out.setdefault("visual_payload", {})
+        out.setdefault("visual_variant", "")
+        out["kind"] = out.get("visual_component") or out.get("kind") or "source"
+        return out
+
+    d = dict(beat) if not isinstance(beat, dict) else dict(beat)
+    if d.get("visual_component") is not None or d.get("visual_payload") is not None:
+        out = {
+            "t0": float(d.get("t0", 0.0) or 0.0),
+            "t1": float(d.get("t1", 0.0) or 0.0),
+            "semantic_role": d.get("semantic_role") or "apresentacao_fato",
+            "visual_component": d.get("visual_component") or d.get("kind") or "source",
+            "visual_variant": d.get("visual_variant") or "",
+            "visual_payload": dict(d.get("visual_payload") or {}),
+            "url": d.get("url") or "",
+            "veiculo": d.get("veiculo") or "",
+            "shot": d.get("shot"),
+            "video": d.get("video"),
+            "broll_file": d.get("broll_file"),
+        }
+        out["kind"] = out["visual_component"] or d.get("kind") or "source"
+        x_post = d.get("x_post") or d.get("xPost")
+        if x_post:
+            out["x_post"] = x_post
+        return out
+
+    from bm_scene_timeline import SceneBeat as _SB
+    kind_raw = (d.get("kind") or "source").strip() or "source"
+    legacy = _SB(
+        t0=float(d.get("t0", 0.0) or 0.0),
+        t1=float(d.get("t1", 0.0) or 0.0),
+        url=d.get("url") or "",
+        veiculo=d.get("veiculo") or "",
+        kind=kind_raw if kind_raw in {"source", "broll", "x-post"} else "source",
+        shot=d.get("shot"),
+        video=d.get("video"),
+        broll_file=d.get("broll_file"),
+        x_post=d.get("x_post") or d.get("xPost"),
+    )
+    overrides2: dict = {}
+    if kind_raw in _v2_kinds and kind_raw not in {"source", "broll", "x-post"}:
+        overrides2["visual_component"] = kind_raw
+        overrides2["semantic_role"] = _role_map.get(kind_raw, "apresentacao_fato")
+        if d.get("visual_payload"):
+            overrides2["visual_payload"] = dict(d.get("visual_payload") or {})
+        if d.get("visual_variant"):
+            overrides2["visual_variant"] = d.get("visual_variant") or ""
+    out2 = SceneBeatV2.from_legacy(legacy, **overrides2).to_dict()
+    out2["kind"] = kind_raw if kind_raw in _v2_kinds else (out2.get("visual_component") or "source")
+    out2["visual_component"] = out2.get("visual_component") or out2["kind"]
+    if legacy.x_post:
+        out2["x_post"] = legacy.x_post
+    return out2
+
+
+def _build_mockup_update_payload(beat_v2: dict) -> dict:
+    """Payload para window.VDL_MOCKUP.update — campos V2 + legado."""
+    from urllib.parse import quote as _q
+    kind = beat_v2.get("visual_component") or beat_v2.get("kind") or "source"
+    page_image = f"/shots/{beat_v2['shot']}" if beat_v2.get("shot") else ""
+    page_video = beat_v2.get("video") or ""
+    if kind == "broll" and beat_v2.get("broll_file"):
+        page_video = f"/broll/{_q(beat_v2['broll_file'])}"
+    payload: dict = {
+        "url": beat_v2.get("url") or "https://news.mob.tec.br",
+        "pageImage": page_image,
+        "pageVideo": page_video,
+        "kind": kind,
+        "visual_component": kind,
+        "visual_variant": beat_v2.get("visual_variant") or "",
+        "visual_payload": dict(beat_v2.get("visual_payload") or {}),
+    }
+    x_post = beat_v2.get("x_post") or beat_v2.get("xPost")
+    if x_post:
+        payload["xPost"] = x_post
+    return payload
+
+
+def _safe_mockup_update(page: Any, payload: dict, *, label: str = "") -> None:
+    """Chama VDL_MOCKUP.update sem abortar a gravação em caso de erro."""
+    try:
+        page.evaluate(
+            """(data) => {
+              if (!window.VDL_MOCKUP) return;
+              try {
+                window.VDL_MOCKUP.update(data);
+              } catch (err) {
+                console.warn('VDL_MOCKUP.update failed', err);
+              }
+            }""",
+            payload,
+        )
+    except Exception as exc:  # noqa: BLE001
+        tag = f" ({label})" if label else ""
+        print(f"  ⚠️  mockup update{tag} falhou — segue tela default: {exc}")
+
+
 def record_mockup(
     video_id: str,
     episode: dict,
@@ -1575,17 +1731,23 @@ def record_mockup(
                     pairs["wallpaper"] = payload["wallpaper"]
                 if payload.get("kind"):
                     pairs["kind"] = payload["kind"]
+                if payload.get("visual_component"):
+                    pairs["visual_component"] = payload["visual_component"]
+                if payload.get("visual_variant"):
+                    pairs["visual_variant"] = payload["visual_variant"]
+                if payload.get("visual_payload"):
+                    pairs["visual_payload"] = json.dumps(payload["visual_payload"])
                 if payload.get("xPost"):
-                    pairs["xPost"] = payload["xPost"]
+                    pairs["xPost"] = payload["xPost"] if isinstance(payload["xPost"], str) else json.dumps(payload["xPost"])
                 return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
 
             first_beat = timeline_beats[0] if timeline_beats else None
-            fb_dict = first_beat.to_dict() if hasattr(first_beat, "to_dict") else (dict(first_beat) if first_beat else {})
-            first_shot = fb_dict.get("shot") or (scenes[0].get("shot") if scenes else None)
-            first_vid = fb_dict.get("video") or (scenes[0].get("video") if scenes else None)
-            first_url = fb_dict.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
-            first_kind = fb_dict.get("kind") or (scenes[0].get("kind") if scenes else "source")
-            first_xpost = fb_dict.get("x_post") or (scenes[0].get("x_post") if scenes else None)
+            fb_v2 = _normalize_beat_v2(first_beat) if first_beat else {}
+            first_shot = fb_v2.get("shot") or (scenes[0].get("shot") if scenes else None)
+            first_vid = fb_v2.get("video") or (scenes[0].get("video") if scenes else None)
+            first_url = fb_v2.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
+            first_kind = fb_v2.get("visual_component") or fb_v2.get("kind") or (scenes[0].get("kind") if scenes else "source")
+            first_xpost = fb_v2.get("x_post") or (scenes[0].get("x_post") if scenes else None)
 
             init_payload = {
                 "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
@@ -1599,9 +1761,12 @@ def record_mockup(
                 "pageVideo": first_vid or "",
                 "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
                 "kind": first_kind,
+                "visual_component": first_kind,
+                "visual_variant": fb_v2.get("visual_variant") or "",
+                "visual_payload": fb_v2.get("visual_payload") or {},
             }
             if first_xpost:
-                init_payload["xPost"] = json.dumps(first_xpost)
+                init_payload["xPost"] = json.dumps(first_xpost) if not isinstance(first_xpost, str) else first_xpost
             page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
             page.wait_for_function(
                 """() => {
@@ -1612,31 +1777,18 @@ def record_mockup(
                 }""", timeout=10000,
             )
             page.wait_for_timeout(400)
+            if timeline_beats:
+                _safe_mockup_update(page, _build_mockup_update_payload(fb_v2), label="beat0_init")
             started = time.monotonic()
 
             for idx, beat in enumerate(timeline_beats):
                 elapsed = time.monotonic() - started
                 if elapsed >= dur:
                     break
-                b = beat.to_dict() if hasattr(beat, "to_dict") else dict(beat)
+                b = _normalize_beat_v2(beat)
                 if idx > 0:
-                    page_image = f"/shots/{b['shot']}" if b.get("shot") else ""
-                    page_video = b.get("video") or ""
-                    if b.get("kind") == "broll" and b.get("broll_file"):
-                        page_video = f"/broll/{quote(b['broll_file'])}"
-                    page.evaluate(
-                        """({url, pageImage, pageVideo, kind, xPost}) => {
-                          if (!window.VDL_MOCKUP) return;
-                          window.VDL_MOCKUP.update({url, pageImage, pageVideo, kind, xPost});
-                        }""",
-                        {
-                            "url": b.get("url") or "https://news.mob.tec.br",
-                            "pageImage": page_image,
-                            "pageVideo": page_video,
-                            "kind": b.get("kind") or "source",
-                            "xPost": b.get("x_post"),
-                        },
-                    )
+                    payload = _build_mockup_update_payload(b)
+                    _safe_mockup_update(page, payload, label=f"beat{idx}")
 
                 beat_dur = float(b.get("t1", 0.0)) - float(b.get("t0", 0.0))
                 remain = dur - (time.monotonic() - started)
@@ -1654,10 +1806,67 @@ def record_mockup(
     return raw_webm
 
 
+def _components_used_from_beats(beats: list | None) -> list:
+    comps: list = []
+    for beat in beats or []:
+        b = _normalize_beat_v2(beat)
+        comps.append(b.get("visual_component") or b.get("kind") or "source")
+    return comps
+
+
+def _dominant_style_from_components(components: list) -> str:
+    if not components:
+        return "standard_source"
+    counts: dict = {}
+    for c in components:
+        counts[c] = counts.get(c, 0) + 1
+    top = max(counts.items(), key=lambda kv: kv[1])[0]
+    return "standard_source" if top == "source" else top
+
+
+def append_last_video(
+    video_id: str,
+    date: str,
+    timeline_beats: list | None = None,
+    *,
+    dominant_style: str | None = None,
+    components_used: list | None = None,
+    max_history: int = 30,
+) -> None:
+    """Append/update anti-fadiga em last_videos.json."""
+    comps = list(components_used) if components_used is not None else _components_used_from_beats(timeline_beats)
+    style = dominant_style or _dominant_style_from_components(comps)
+    entry = {
+        "video_id": video_id,
+        "date": date,
+        "dominant_style": style,
+        "components_used": comps,
+    }
+    try:
+        LAST_VIDEOS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        if LAST_VIDEOS_PATH.exists():
+            data = json.loads(LAST_VIDEOS_PATH.read_text(encoding="utf-8"))
+        else:
+            data = {"history": []}
+        if not isinstance(data, dict):
+            data = {"history": []}
+        history = data.get("history")
+        if not isinstance(history, list):
+            history = []
+        history = [h for h in history if not (isinstance(h, dict) and h.get("video_id") == video_id)]
+        history.append(entry)
+        if max_history > 0 and len(history) > max_history:
+            history = history[-max_history:]
+        data["history"] = history
+        LAST_VIDEOS_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  append_last_video falhou: {exc}")
+
+
 RENDER_NODE = "/dev/dri/renderD128"
 
 
-def _run_ffmpeg(cmd: list[str]) -> subprocess.CompletedProcess:
+def _run_ffmpeg(cmd: list) -> subprocess.CompletedProcess:
     """Roda ffmpeg; se a sessão ainda não tem grupo render, usa sg se disponível."""
     env = os.environ.copy()
     env.setdefault("LIBVA_DRIVER_NAME", "iHD")
@@ -1998,6 +2207,10 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
     mp4 = compose_presenter(mp4, episode, audio, work)
+    try:
+        append_last_video(video_id, episode_date(audio), timeline_beats)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  last_videos append falhou: {exc}")
 
     result = {
         "video_id": video_id,
@@ -2090,6 +2303,10 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             "wallpaper": wallpaper.name if wallpaper else None,
         }
         save_state(state)
+        try:
+            append_last_video(video_id, episode_date(audio), timeline_beats)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  last_videos append falhou: {exc}")
         print(f"  ✅ YouTube {result['url']}")
         try:
             from media_offload import after_youtube

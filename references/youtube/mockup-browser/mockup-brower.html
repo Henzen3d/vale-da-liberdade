@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Roboto+Condensed:wght@700;800;900&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="gsap.min.js"></script>
+<script>window.gsap || document.write('<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>')</script>
 
 <style>
 /* ============================================================
@@ -866,17 +868,879 @@ html, body {
   z-index: 2;
 }
 
-/* Watermark Discreta */
-.vdl-watermark {
+/* ============================================================
+   VDL BROADCAST GRAPHICS SUITE (PADRÃO TELEJORNALISMO)
+   Inspirado nas referências SBT News, CNN, Fox News e Jovem Pan
+   ============================================================ */
+
+/* Palco de Gráficos Full HD (Posicionado acima do Lower Third) */
+.broadcast-stage {
   position: absolute;
-  right: 20px;
-  bottom: 8px;
-  z-index: 60;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 10px;
+  top: 36px;
+  left: 0;
+  right: 0;
+  bottom: 190px; /* Safe zone: 1080 - 190 = Y 890 (livre acima do LT) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Card Base de Broadcast */
+.vdl-bcard {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: auto;
+  user-select: none;
+  font-family: var(--font-body);
+}
+
+/* Tag / Categoria Padronizada */
+.bcard-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-gold);
+  color: #000000;
+  font-family: var(--font-headline);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 4px 14px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.bcard-pill.pill-red {
+  background: var(--accent-red);
+  color: #ffffff;
+}
+
+.bcard-pill.pill-dark {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bcard-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ------------------------------------------------------------
+   1. QUOTECARD / ASPAS EDITORIAIS (Inspiração Fox News Tim Kaine)
+   ------------------------------------------------------------ */
+.bcard-quote {
+  width: 1400px;
+  max-width: 94vw;
+  background: rgba(13, 17, 26, 0.96);
+  border: 1px solid rgba(212, 160, 23, 0.45);
+  border-radius: 20px;
+  box-shadow: 
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  display: flex;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+}
+
+.quote-speaker-panel {
+  width: 360px;
+  flex: none;
+  background: linear-gradient(180deg, rgba(20, 26, 40, 0.95) 0%, rgba(10, 14, 22, 0.98) 100%);
+  border-right: 1px solid rgba(212, 160, 23, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.quote-avatar-wrap {
+  width: 136px;
+  height: 136px;
+  border-radius: 50%;
+  border: 3px solid var(--accent-gold);
+  box-shadow: 0 8px 28px rgba(212, 160, 23, 0.35);
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: #1a2233;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.quote-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.quote-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-headline);
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--accent-gold);
+  background: linear-gradient(135deg, #1c2438, #0e1320);
+}
+
+.quote-author-name {
+  font-family: var(--font-headline);
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.quote-verified-badge {
+  color: #38bdf8;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.quote-author-role {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+.quote-body-panel {
+  flex: 1;
+  padding: 44px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  min-height: 480px;
+}
+
+.quote-watermark-svg {
+  position: absolute;
+  top: 24px;
+  left: 36px;
+  width: 110px;
+  height: 110px;
+  opacity: 0.08;
+  pointer-events: none;
+  fill: var(--accent-gold);
+}
+
+.quote-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.quote-main-statement {
+  font-family: var(--font-headline);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.22;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin: 28px 0;
+  z-index: 1;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+}
+
+.quote-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 1;
+}
+
+.quote-source-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quote-source-label span.highlight {
+  color: #f1f5f9;
+}
+
+/* ------------------------------------------------------------
+   2. DOCUMENTZOOM / DECISÃO JUDICIAL (Inspiração SBT News)
+   ------------------------------------------------------------ */
+.bcard-document {
+  width: 1420px;
+  max-width: 94vw;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 
+    0 36px 90px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-top-bar {
+  background: #0e121a;
+  border-bottom: 3px solid var(--accent-gold);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.doc-proc-code {
+  font-family: var(--font-mono);
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 1.2px;
+  color: #e2e8f0;
+}
+
+.doc-court-tag {
+  font-family: var(--font-headline);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #94a3b8;
   text-transform: uppercase;
+}
+
+.doc-sheet-canvas {
+  background: #fdfdfb;
+  padding: 40px 60px 48px;
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1a1a1a;
+  position: relative;
+}
+
+.doc-watermark-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  height: 320px;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+.doc-court-header {
+  text-align: center;
+  margin-bottom: 28px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 18px;
+}
+
+.doc-court-title {
+  font-family: var(--font-headline);
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #0f172a;
+}
+
+.doc-court-sub {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.doc-lead-p {
+  font-size: 22px;
+  line-height: 1.55;
+  color: #334155;
+  margin-bottom: 16px;
+}
+
+.doc-highlight-box {
+  position: relative;
+  background: rgba(255, 222, 89, 0.35);
+  border-left: 6px solid var(--accent-gold);
+  border-radius: 4px;
+  padding: 20px 28px;
+  margin: 22px 0;
+  overflow: hidden;
+}
+
+.doc-highlight-sweep {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 214, 0, 0.55);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.doc-highlight-statement {
+  position: relative;
+  z-index: 2;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #000000;
+}
+
+.doc-footer-notice {
+  font-size: 20px;
+  font-style: italic;
+  color: #475569;
+  margin-top: 14px;
+}
+
+/* ------------------------------------------------------------
+   3. TIMELINE / CRONOLOGIA (Inspiração Fox News Iran Conflict)
+   ------------------------------------------------------------ */
+.bcard-timeline {
+  width: 1540px;
+  max-width: 96vw;
+  background: rgba(13, 17, 26, 0.96);
+  border: 1px solid rgba(212, 160, 23, 0.45);
+  border-radius: 20px;
+  box-shadow: 0 36px 90px rgba(0, 0, 0, 0.75);
+  padding: 30px 42px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+}
+
+.timeline-top-banner {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.timeline-main-title {
+  font-family: var(--font-headline);
+  font-size: 32px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.4px;
+  color: #0a0c10;
+}
+
+.timeline-track-area {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timeline-axis-line {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  z-index: 1;
+}
+
+.timeline-axis-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #b8860b, #d4a017, #fef08a);
+  border-radius: 3px;
+  box-shadow: 0 0 16px rgba(212, 160, 23, 0.8);
+}
+
+.timeline-steps-grid {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 20px;
+}
+
+.timeline-step-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 280px;
+}
+
+.timeline-node-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0d111a;
+  border: 4px solid var(--accent-gold);
+  box-shadow: 0 0 14px rgba(212, 160, 23, 0.7);
+  z-index: 3;
+}
+
+.timeline-node-card {
+  width: 100%;
+  background: rgba(20, 26, 38, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-node-card.card-top {
+  position: absolute;
+  bottom: 30px;
+}
+
+.timeline-node-card.card-bottom {
+  position: absolute;
+  top: 30px;
+}
+
+.timeline-card-date {
+  background: #ffffff;
+  color: #0a0c10;
+  font-family: var(--font-headline);
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 6px 14px;
+  text-align: center;
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+.timeline-card-desc {
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #f1f5f9;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------
+   4. DATACHART & STATCARD (Inspiração Fox News Key Oil Deal)
+   ------------------------------------------------------------ */
+.bcard-chart {
+  width: 1420px;
+  max-width: 94vw;
+  background: rgba(13, 17, 26, 0.96);
+  border: 1px solid rgba(212, 160, 23, 0.45);
+  border-radius: 20px;
+  box-shadow: 0 36px 90px rgba(0, 0, 0, 0.75);
+  padding: 36px 48px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+}
+
+.chart-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.chart-title-lead {
+  font-family: var(--font-headline);
+  font-size: 34px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.4px;
+  color: #ffffff;
+}
+
+.chart-center-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.chart-hero-metric-box {
+  background: rgba(20, 27, 42, 0.85);
+  border: 1px solid rgba(212, 160, 23, 0.35);
+  border-radius: 16px;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.chart-number-display {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.chart-number-prefix {
+  font-family: var(--font-headline);
+  font-size: 46px;
+  font-weight: 800;
+  color: var(--accent-gold);
+}
+
+.chart-number-value {
+  font-family: var(--font-headline);
+  font-size: 92px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.chart-number-suffix {
+  font-family: var(--font-headline);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+}
+
+.chart-trend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.chart-trend-pill.up {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.chart-trend-pill.down {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.chart-metric-context {
+  font-size: 16px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-top: 14px;
+  line-height: 1.4;
+}
+
+.chart-procedural-bars-wrap {
+  background: rgba(20, 27, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 32px 36px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.chart-bars-label-row {
+  font-family: var(--font-headline);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.chart-bar-item {
+  margin-bottom: 20px;
+}
+
+.chart-bar-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.chart-bar-meta .bar-val {
+  color: var(--accent-gold);
+  font-family: var(--font-headline);
+  font-size: 18px;
+}
+
+.chart-bar-rail {
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #b8860b, #d4a017);
+  box-shadow: 0 0 12px rgba(212, 160, 23, 0.5);
+}
+
+.chart-bar-item.highlight .chart-bar-fill {
+  background: linear-gradient(90deg, #d4a017, #fde047);
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.75);
+}
+
+/* ------------------------------------------------------------
+   5. COMPARISON / ANTES x DEPOIS (Inspiração Debate Editorial)
+   ------------------------------------------------------------ */
+.bcard-comparison {
+  width: 1460px;
+  max-width: 95vw;
+  background: rgba(13, 17, 26, 0.96);
+  border: 1px solid rgba(212, 160, 23, 0.45);
+  border-radius: 20px;
+  box-shadow: 0 36px 90px rgba(0, 0, 0, 0.75);
+  padding: 32px 42px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+}
+
+.comp-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.comp-headline {
+  font-family: var(--font-headline);
+  font-size: 32px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.4px;
+  color: #ffffff;
+}
+
+.comp-split-container {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.comp-card-col {
+  border-radius: 16px;
+  padding: 32px 36px;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.comp-card-col.col-a {
+  background: linear-gradient(180deg, rgba(28, 36, 52, 0.9) 0%, rgba(16, 20, 30, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.comp-card-col.col-b {
+  background: linear-gradient(180deg, rgba(34, 30, 20, 0.9) 0%, rgba(20, 17, 10, 0.95) 100%);
+  border: 1px solid rgba(212, 160, 23, 0.45);
+}
+
+.comp-col-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: var(--font-headline);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.comp-card-col.col-a .comp-col-tag {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.comp-card-col.col-b .comp-col-tag {
+  background: rgba(212, 160, 23, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(212, 160, 23, 0.5);
+}
+
+.comp-col-number {
+  font-family: var(--font-headline);
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 18px 0;
+  text-transform: uppercase;
+}
+
+.comp-card-col.col-a .comp-col-number {
+  color: #ffffff;
+}
+
+.comp-card-col.col-b .comp-col-number {
+  color: #fef08a;
+  text-shadow: 0 0 20px rgba(250, 204, 21, 0.35);
+}
+
+.comp-col-text {
+  font-size: 18px;
+  line-height: 1.45;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.comp-vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+
+.comp-vs-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #0d111a;
+  border: 2px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(212, 160, 23, 0.6);
+  z-index: 2;
+}
+
+/* ------------------------------------------------------------
+   6. RECORTE JORNAL / TORN PAPER (Inspiração CNN Gallup / TIME)
+   ------------------------------------------------------------ */
+.bcard-recorte {
+  width: 1320px;
+  max-width: 92vw;
+  background: #ffffff;
+  box-shadow: 
+    0 36px 90px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  padding: 42px 56px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.recorte-torn-edge-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: repeating-linear-gradient(45deg, #0d111a, #0d111a 6px, transparent 6px, transparent 12px);
+  opacity: 0.15;
+}
+
+.recorte-torn-edge-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: repeating-linear-gradient(-45deg, #0d111a, #0d111a 6px, transparent 6px, transparent 12px);
+  opacity: 0.15;
+}
+
+.recorte-source-logo {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #0a0a0a;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #0a0a0a;
+  padding-bottom: 6px;
+  display: inline-block;
+}
+
+.recorte-source-logo.red-brand {
+  color: #ef2633;
+  border-bottom-color: #ef2633;
+}
+
+.recorte-headline {
+  font-family: var(--font-headline);
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1.15;
+  color: #0a0a0a;
+  letter-spacing: -0.5px;
+  margin-bottom: 18px;
+  max-width: 92%;
+}
+
+.recorte-sublead {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #475569;
+  max-width: 86%;
+}
+
+.recorte-date-tag {
+  font-size: 14px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-top: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 </style>
 </head>
@@ -995,6 +1859,198 @@ html, body {
 
   </div>
 
+  <!-- PALCO DE GRÁFICOS PROCEDURAIS E COMPONENTES BROADCAST -->
+  <div id="broadcastStage" class="broadcast-stage" style="display:none; visibility:hidden;">
+
+    <!-- 1. QUOTECARD / DECLARAÇÃO EDITORIAL (Inspiração Fox News Tim Kaine) -->
+    <div id="quoteCard" class="vdl-bcard bcard-quote">
+      <div class="quote-speaker-panel">
+        <div class="quote-avatar-wrap">
+          <img id="quoteAvatarImg" class="quote-avatar-img" src="" alt="" hidden>
+          <div id="quoteAvatarFallback" class="quote-avatar-fallback">VDL</div>
+        </div>
+        <div class="quote-author-name">
+          <span id="quoteAuthorName">Cláudio Dantas</span>
+          <span id="quoteVerifiedBadge" class="quote-verified-badge" title="Verificado">✓</span>
+        </div>
+        <div class="quote-author-role" id="quoteAuthorRole">Colunista / Análise Política</div>
+      </div>
+      <div class="quote-body-panel">
+        <svg class="quote-watermark-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+        </svg>
+        <div class="quote-header-row">
+          <div class="bcard-pill"><span class="bcard-dot"></span><span id="quoteCategoryTag">DECLARAÇÃO</span></div>
+          <div id="quoteSourceBadge" class="bcard-pill pill-dark">VALE DA LIBERDADE</div>
+        </div>
+        <div class="quote-main-statement" id="quoteMainStatement">
+          "Flávio age como estadista: busca Gilmar e isola Moraes, desarmando a narrativa no STF."
+        </div>
+        <div class="quote-footer-row">
+          <div class="quote-source-label">
+            Fonte: <span class="highlight" id="quoteSourceText">Entrevista Exclusiva</span>
+          </div>
+          <div class="quote-source-label" id="quoteDateText">06 de Setembro de 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. DOCUMENTZOOM / DECISÃO JUDICIAL (Inspiração SBT News) -->
+    <div id="documentCard" class="vdl-bcard bcard-document">
+      <div class="doc-top-bar">
+        <div class="bcard-pill" id="docTypeBadge"><span class="bcard-dot"></span>DECISÃO JUDICIAL</div>
+        <div class="doc-proc-code" id="docProcCode">PROCESSO Nº 500214-2026.8.24.0008</div>
+        <div class="doc-court-tag" id="docCourtTag">VARA DA FAZENDA PÚBLICA</div>
+      </div>
+      <div class="doc-sheet-canvas">
+        <svg class="doc-watermark-seal" viewBox="0 0 100 100" fill="currentColor">
+          <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2" fill="none"/>
+          <path d="M50 15 L58 35 L80 35 L62 48 L68 70 L50 56 L32 70 L38 48 L20 35 L42 35 Z" fill="currentColor"/>
+        </svg>
+        <div class="doc-court-header">
+          <div class="doc-court-title" id="docCourtTitle">PODER JUDICIÁRIO DE SANTA CATARINA</div>
+          <div class="doc-court-sub" id="docCourtSub">Comarca de Blumenau • Vara da Fazenda Pública e dos Registros Públicos</div>
+        </div>
+        <p class="doc-lead-p" id="docLeadP1">Vistos etc. Trata-se de tutela provisória de urgência formulada com o intuito de resguardar o erário e a continuidade dos serviços essenciais à população.</p>
+        <div class="doc-highlight-box">
+          <div class="doc-highlight-sweep" id="docHighlightSweep"></div>
+          <div class="doc-highlight-statement" id="docHighlightStatement">
+            DEFIRO A LIMINAR pleiteada para determinar a suspensão imediata dos efeitos do reajuste contratual sobre a tarifa municipal.
+          </div>
+        </div>
+        <p class="doc-footer-notice" id="docFooterNotice">Determino a imediata intimação dos interessados para cumprimento sob pena de multa diária. Cumpra-se com urgência.</p>
+      </div>
+    </div>
+
+    <!-- 3. TIMELINE / CRONOLOGIA (Inspiração Fox News Iran Conflict) -->
+    <div id="timelineCard" class="vdl-bcard bcard-timeline">
+      <div class="timeline-top-banner">
+        <div class="bcard-pill"><span class="bcard-dot"></span>CRONOLOGIA DOS FATOS</div>
+        <div class="timeline-main-title" id="timelineMainTitle">CRONOGRAMA DE DECISÕES DA TARIFA</div>
+        <div class="bcard-pill pill-dark" id="timelineYearBadge">2026</div>
+      </div>
+      <div class="timeline-track-area">
+        <div class="timeline-axis-line">
+          <div class="timeline-axis-progress" id="timelineAxisProgress"></div>
+        </div>
+        <div class="timeline-steps-grid" id="timelineStepsGrid">
+          <div class="timeline-step-node">
+            <div class="timeline-node-card card-top">
+              <div class="timeline-card-date">FEVEREIRO / 2026</div>
+              <div class="timeline-card-desc">Consórcio solicita reajuste extraordinário da tarifa em 14%</div>
+            </div>
+            <div class="timeline-node-dot"></div>
+          </div>
+          <div class="timeline-step-node">
+            <div class="timeline-node-dot"></div>
+            <div class="timeline-node-card card-bottom">
+              <div class="timeline-card-date">MAIO / 2026</div>
+              <div class="timeline-card-desc">Tribunal de Justiça suspende aumento liminarmente após recurso</div>
+            </div>
+          </div>
+          <div class="timeline-step-node">
+            <div class="timeline-node-card card-top">
+              <div class="timeline-card-date">HOJE</div>
+              <div class="timeline-card-desc">Decisão definitiva mantém congelamento do valor aos passageiros</div>
+            </div>
+            <div class="timeline-node-dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DATACHART & STATCARD (Inspiração Fox News Key Oil Deal) -->
+    <div id="dataChartCard" class="vdl-bcard bcard-chart">
+      <div class="chart-top-bar">
+        <div class="bcard-pill"><span class="bcard-dot"></span><span id="chartCategoryTag">INDICADOR ECONÔMICO</span></div>
+        <div class="chart-title-lead" id="chartTitleLead">INVESTIMENTOS LIBERADOS PARA INFRAESTRUTURA</div>
+        <div class="bcard-pill pill-dark">VDL METRICS</div>
+      </div>
+      <div class="chart-center-grid">
+        <div class="chart-hero-metric-box">
+          <div class="chart-number-display">
+            <span class="chart-number-prefix" id="chartPrefix">R$</span>
+            <span class="chart-number-value" id="chartValue">145,8</span>
+            <span class="chart-number-suffix" id="chartSuffix">MI</span>
+          </div>
+          <div class="chart-trend-pill up" id="chartTrendPill">
+            <span id="chartTrendArrow">▲</span>
+            <span id="chartTrendText">+18,4% em relação a 2025</span>
+          </div>
+          <div class="chart-metric-context" id="chartMetricContext">
+            Recursos liberados pelo Governo Federal e BNDES para pavimentação e mobilidade na região do Vale do Itajaí.
+          </div>
+        </div>
+        <div class="chart-procedural-bars-wrap">
+          <div class="chart-bars-label-row">
+            <span>Comparativo Histórico (Em Milhões de Reais)</span>
+          </div>
+          <div class="chart-bars-list" id="chartBarsList">
+            <div class="chart-bar-item">
+              <div class="chart-bar-meta"><span>2024 (Realizado)</span><span class="bar-val">R$ 88,2 mi</span></div>
+              <div class="chart-bar-rail"><div class="chart-bar-fill" style="width: 58%;"></div></div>
+            </div>
+            <div class="chart-bar-item">
+              <div class="chart-bar-meta"><span>2025 (Executado)</span><span class="bar-val">R$ 123,1 mi</span></div>
+              <div class="chart-bar-rail"><div class="chart-bar-fill" style="width: 79%;"></div></div>
+            </div>
+            <div class="chart-bar-item highlight">
+              <div class="chart-bar-meta"><span>2026 (Projetado)</span><span class="bar-val">R$ 145,8 mi</span></div>
+              <div class="chart-bar-rail"><div class="chart-bar-fill" style="width: 95%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. COMPARISON / ANTES x DEPOIS (Inspiração Debate Editorial) -->
+    <div id="comparisonCard" class="vdl-bcard bcard-comparison">
+      <div class="comp-top-row">
+        <div class="bcard-pill pill-red"><span class="bcard-dot"></span>ANÁLISE COMPARATIVA</div>
+        <div class="comp-headline" id="compMainHeadline">PROMESSA EM CAMPANHA × REALIDADE NO DIÁRIO OFICIAL</div>
+        <div class="bcard-pill pill-dark">VDL FACT CHECK</div>
+      </div>
+      <div class="comp-split-container">
+        <div class="comp-card-col col-a">
+          <div>
+            <span class="comp-col-tag" id="compTagA">PROMESSA (2024)</span>
+            <div class="comp-col-number" id="compValA">0% DE AUMENTO</div>
+          </div>
+          <div class="comp-col-text" id="compTextA">
+            Compromisso público firmado de não elevar impostos nem criar taxas durante o mandato vigente.
+          </div>
+        </div>
+        <div class="comp-vs-divider">
+          <div class="comp-vs-circle">VS</div>
+        </div>
+        <div class="comp-card-col col-b">
+          <div>
+            <span class="comp-col-tag" id="compTagB">REALIDADE (2026)</span>
+            <div class="comp-col-number" id="compValB">+12,4% NO CARNÊ</div>
+          </div>
+          <div class="comp-col-text" id="compTextB">
+            Decreto municipal aprovou atualização monetária da planta genérica com impacto imediato no IPTU.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. RECORTE JORNAL / TORN PAPER (Inspiração CNN Gallup / TIME) -->
+    <div id="recorteCard" class="vdl-bcard bcard-recorte">
+      <div class="recorte-torn-edge-top"></div>
+      <div class="recorte-source-logo" id="recorteSourceLogo">FOLHA DE S.PAULO</div>
+      <div class="recorte-headline" id="recorteHeadline">
+        "Quase 90% dos brasileiros veem corrupção disseminada no poder público"
+      </div>
+      <div class="recorte-sublead" id="recorteSublead">
+        Levantamento aponta que a ampla maioria da população, independente de espectro político, avalia com pessimismo a gestão pública.
+      </div>
+      <div class="recorte-date-tag" id="recorteDateTag">EDIÇÃO IMPRESSA • 06 DE SETEMBRO DE 2026</div>
+      <div class="recorte-torn-edge-bottom"></div>
+    </div>
+
+  </div>
+
   <!-- LOWER THIRD BROADCAST OFICIAL (REBAIXADO E ESPAÇADO) -->
   <div class="lower-third-overlay">
     <div class="lt-root" id="ltRoot">
@@ -1047,6 +2103,9 @@ html, body {
  * REATUALIZAÇÃO & CONTROLADOR DE MOCKUP BROWSER + LOWER THIRD
  */
 const VDL_MOCKUP_ENGINE = {
+  currentMode: 'browser',
+  activeTimeline: null,
+
   data: {
     // Portal / Artigo
     categoria: "DIÁRIO REGIONAL",
@@ -1076,23 +2135,637 @@ const VDL_MOCKUP_ENGINE = {
     ]
   },
 
+  isFreezeShot() {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      return p.get("freeze") === "1" || p.get("freeze") === "true";
+    } catch(e) {
+      return false;
+    }
+  },
+
+  _hideAllCards() {
+    const cardIds = [
+      "quoteCard", "documentCard", "timelineCard", 
+      "dataChartCard", "comparisonCard", "recorteCard"
+    ];
+    cardIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.display = "none";
+        el.style.visibility = "hidden";
+        el.style.opacity = "0";
+      }
+    });
+  },
+
   /**
-   * Atualiza todo o estado da página
+   * Transição: Volta para o Navegador do Site
+   */
+  transitionToBrowser() {
+    if (this.currentMode === "browser") return;
+    this.currentMode = "browser";
+
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    if (!browserEl) return;
+
+    browserEl.style.display = "flex";
+    browserEl.style.visibility = "visible";
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (stageEl) {
+        tl.to(stageEl, {
+          opacity: 0,
+          y: 40,
+          duration: 0.35,
+          ease: "power2.in",
+          onComplete: () => {
+            stageEl.style.display = "none";
+            stageEl.style.visibility = "hidden";
+            this._hideAllCards();
+          }
+        });
+      }
+
+      tl.to(browserEl, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: "power3.out"
+      }, "-=0.1");
+    } else {
+      if (stageEl) {
+        stageEl.style.display = "none";
+        stageEl.style.visibility = "hidden";
+      }
+      this._hideAllCards();
+      browserEl.style.opacity = "1";
+      browserEl.style.transform = "none";
+    }
+  },
+
+  /**
+   * Transição 1: QUOTECARD (Declaração Editorial / Aspas)
+   */
+  transitionToQuote(payload = {}) {
+    this.currentMode = "quote";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("quoteCard");
+    if (!cardEl || !stageEl) return;
+
+    // Popula dados com fallbacks seguros e acentuação correta
+    const speaker = payload.author_name || payload.author || "Cláudio Dantas";
+    const role = payload.author_role || payload.role || "Colunista / Análise Política";
+    let text = (payload.quote_text || payload.text || "Flávio age como estadista: busca Gilmar e isola Moraes, desarmando a narrativa no STF.").trim();
+    if (!text.startsWith('"') && !text.startsWith('“')) text = `"${text}"`;
+    const source = payload.source_name || payload.source || "Entrevista Exclusiva";
+    const date = payload.date || payload.dataExtenso || "06 de Setembro de 2026";
+    const category = payload.category || "DECLARAÇÃO";
+
+    document.getElementById("quoteAuthorName").textContent = speaker;
+    document.getElementById("quoteAuthorRole").textContent = role;
+    document.getElementById("quoteMainStatement").textContent = text;
+    document.getElementById("quoteSourceText").textContent = source;
+    document.getElementById("quoteDateText").textContent = date;
+    document.getElementById("quoteCategoryTag").textContent = category;
+
+    // Avatar com fallback gracioso para monograma
+    const imgEl = document.getElementById("quoteAvatarImg");
+    const fallbackEl = document.getElementById("quoteAvatarFallback");
+    const avatarUrl = payload.author_avatar || payload.avatar || "";
+
+    if (avatarUrl) {
+      imgEl.src = avatarUrl;
+      imgEl.hidden = false;
+      fallbackEl.style.display = "none";
+      imgEl.onerror = () => {
+        imgEl.hidden = true;
+        fallbackEl.style.display = "flex";
+      };
+    } else {
+      imgEl.hidden = true;
+      fallbackEl.style.display = "flex";
+      const parts = speaker.split(/\s+/).filter(Boolean);
+      fallbackEl.textContent = (parts.length > 1 ? (parts[0][0] + parts[1][0]) : (parts[0] ? parts[0].slice(0, 2) : "VDL")).toUpperCase();
+    }
+
+    const badge = document.getElementById("quoteVerifiedBadge");
+    if (badge) badge.style.display = payload.verified === false ? "none" : "inline";
+
+    this._hideAllCards();
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    stageEl.style.opacity = "1";
+    cardEl.style.display = "flex";
+    cardEl.style.visibility = "visible";
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          opacity: 0,
+          y: 60,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "power2.inOut",
+          onComplete: () => { browserEl.style.display = "none"; }
+        });
+      }
+
+      tl.fromTo(cardEl, 
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      tl.fromTo(".quote-speaker-panel",
+        { opacity: 0, x: -20 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        "-=0.3"
+      );
+    } else {
+      if (browserEl) browserEl.style.display = "none";
+      cardEl.style.opacity = "1";
+      cardEl.style.transform = "none";
+    }
+  },
+
+  /**
+   * Transição 2: DOCUMENTZOOM (Decisão Judicial / Documento Oficial)
+   */
+  transitionToDocument(payload = {}) {
+    this.currentMode = "document";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("documentCard");
+    if (!cardEl || !stageEl) return;
+
+    // Popula dados com suporte ao schema formal e variantes simplificadas
+    const rawType = payload.doc_type || payload.type || "DECISÃO JUDICIAL";
+    const typeMap = {
+      "sentenca": "SENTENÇA JUDICIAL",
+      "despacho": "DESPACHO JUDICIAL",
+      "diario_oficial": "DIÁRIO OFICIAL",
+      "contrato": "TERMO DE CONTRATO",
+      "relatorio": "RELATÓRIO DE AUDITORIA"
+    };
+    const docType = typeMap[rawType.toLowerCase()] || rawType.toUpperCase();
+    const proc = payload.case_number || payload.process_num || payload.ref || "PROCESSO Nº 500214-2026.8.24.0008";
+    const courtTag = payload.doc_institution || payload.institution || "VARA DA FAZENDA PÚBLICA";
+    const courtTitle = payload.doc_title || payload.court_title || "PODER JUDICIÁRIO DE SANTA CATARINA";
+    const courtSub = payload.court_sub || (payload.doc_institution ? `${payload.doc_institution} • Tribunal de Justiça` : "Comarca de Blumenau • Vara da Fazenda Pública e dos Registros Públicos");
+    const leadText = payload.lead_text || "Vistos etc. Trata-se de tutela provisória de urgência formulada com o intuito de resguardar o erário e a continuidade dos serviços essenciais à população.";
+    const highlightText = payload.highlight_text || payload.statement || "DEFIRO A LIMINAR pleiteada para determinar a suspensão imediata dos efeitos do reajuste contratual sobre a tarifa municipal.";
+    const notice = payload.notice || "Determino a imediata intimação dos interessados para cumprimento sob pena de multa diária. Cumpra-se com urgência.";
+
+    document.getElementById("docTypeBadge").innerHTML = `<span class="bcard-dot"></span>${docType}`;
+    document.getElementById("docProcCode").textContent = proc;
+    document.getElementById("docCourtTag").textContent = courtTag;
+    document.getElementById("docCourtTitle").textContent = courtTitle;
+    document.getElementById("docCourtSub").textContent = courtSub;
+    document.getElementById("docLeadP1").textContent = leadText;
+    document.getElementById("docHighlightStatement").textContent = highlightText;
+    document.getElementById("docFooterNotice").textContent = notice;
+
+    this._hideAllCards();
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    stageEl.style.opacity = "1";
+    cardEl.style.display = "flex";
+    cardEl.style.visibility = "visible";
+
+    const sweepEl = document.getElementById("docHighlightSweep");
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          opacity: 0,
+          y: 60,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "power2.inOut",
+          onComplete: () => { browserEl.style.display = "none"; }
+        });
+      }
+
+      tl.fromTo(cardEl,
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      // Marca-texto animado suave (sweep realista)
+      if (sweepEl) {
+        tl.fromTo(sweepEl,
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.85, ease: "power2.inOut" },
+          "+=0.1"
+        );
+      }
+    } else {
+      if (browserEl) browserEl.style.display = "none";
+      cardEl.style.opacity = "1";
+      cardEl.style.transform = "none";
+      if (sweepEl) sweepEl.style.transform = "scaleX(1)";
+    }
+  },
+
+  /**
+   * Transição 3: TIMELINE (Cronologia dos Fatos)
+   */
+  transitionToTimeline(payload = {}) {
+    this.currentMode = "timeline";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("timelineCard");
+    if (!cardEl || !stageEl) return;
+
+    const title = payload.timeline_title || payload.title || "CRONOGRAMA DE DECISÕES DA TARIFA";
+    const year = payload.year || "2026";
+    document.getElementById("timelineMainTitle").textContent = title;
+    document.getElementById("timelineYearBadge").textContent = year;
+
+    // Constrói nós dinâmicos a partir de 'events' ou 'steps'
+    const rawSteps = payload.events || payload.steps;
+    let steps = [];
+    if (Array.isArray(rawSteps) && rawSteps.length >= 2) {
+      steps = rawSteps.map(ev => ({
+        date: ev.date || ev.ano || "2026",
+        desc: ev.title && ev.description ? `<b>${ev.title}</b>: ${ev.description}` : (ev.desc || ev.description || ev.title || "")
+      }));
+    } else {
+      steps = [
+        { date: "FEVEREIRO / 2026", desc: "Consórcio solicita reajuste extraordinário da tarifa em 14%" },
+        { date: "MAIO / 2026", desc: "Tribunal de Justiça suspende aumento liminarmente após recurso" },
+        { date: "HOJE", desc: "Decisão definitiva mantém congelamento do valor aos passageiros" }
+      ];
+    }
+
+    const gridEl = document.getElementById("timelineStepsGrid");
+    gridEl.innerHTML = steps.map((s, idx) => {
+      const isTop = idx % 2 === 0;
+      return `
+        <div class="timeline-step-node">
+          ${isTop ? `<div class="timeline-node-card card-top"><div class="timeline-card-date">${s.date}</div><div class="timeline-card-desc">${s.desc}</div></div>` : ''}
+          <div class="timeline-node-dot"></div>
+          ${!isTop ? `<div class="timeline-node-card card-bottom"><div class="timeline-card-date">${s.date}</div><div class="timeline-card-desc">${s.desc}</div></div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    this._hideAllCards();
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    stageEl.style.opacity = "1";
+    cardEl.style.display = "flex";
+    cardEl.style.visibility = "visible";
+
+    const progLine = document.getElementById("timelineAxisProgress");
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          opacity: 0,
+          y: 60,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "power2.inOut",
+          onComplete: () => { browserEl.style.display = "none"; }
+        });
+      }
+
+      tl.fromTo(cardEl,
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      if (progLine) {
+        tl.fromTo(progLine,
+          { width: "0%" },
+          { width: "100%", duration: 0.9, ease: "power2.out" },
+          "-=0.2"
+        );
+      }
+
+      tl.fromTo(".timeline-node-card",
+        { opacity: 0, scale: 0.88 },
+        { opacity: 1, scale: 1, duration: 0.5, stagger: 0.15, ease: "back.out(1.4)" },
+        "-=0.7"
+      );
+    } else {
+      if (browserEl) browserEl.style.display = "none";
+      cardEl.style.opacity = "1";
+      cardEl.style.transform = "none";
+      if (progLine) progLine.style.width = "100%";
+    }
+  },
+
+  /**
+   * Transição 4: DATACHART / STATCARD (Indicador & Gráfico Procedural)
+   */
+  transitionToChart(payload = {}) {
+    this.currentMode = "chart";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("dataChartCard");
+    if (!cardEl || !stageEl) return;
+
+    const title = payload.metric_label || payload.title || "INVESTIMENTOS LIBERADOS PARA INFRAESTRUTURA";
+    const prefix = payload.metric_prefix !== undefined ? payload.metric_prefix : (payload.prefix || "R$");
+    const value = payload.metric_value !== undefined ? String(payload.metric_value) : (payload.value || "145,8");
+    const suffix = payload.metric_suffix !== undefined ? payload.metric_suffix : (payload.suffix || "MI");
+    const trendText = payload.delta_text || payload.trend_text || "+18,4% em relação a 2025";
+    const isDown = payload.trend === "down" || trendText.includes("-");
+    const context = payload.context || payload.metric_label || "Recursos liberados pelo Governo Federal e BNDES para pavimentação e mobilidade no Vale do Itajaí.";
+
+    document.getElementById("chartTitleLead").textContent = title;
+    document.getElementById("chartPrefix").textContent = prefix;
+    document.getElementById("chartValue").textContent = value;
+    document.getElementById("chartSuffix").textContent = suffix;
+    document.getElementById("chartTrendText").textContent = trendText;
+    document.getElementById("chartMetricContext").textContent = context;
+
+    const trendPill = document.getElementById("chartTrendPill");
+    const arrow = document.getElementById("chartTrendArrow");
+    if (trendPill) {
+      trendPill.className = `chart-trend-pill ${isDown ? 'down' : 'up'}`;
+      if (arrow) arrow.textContent = isDown ? "▼" : "▲";
+    }
+
+    // Barras comparativas procedurais (suporta sub_items ou bars)
+    let bars = [];
+    if (Array.isArray(payload.sub_items) && payload.sub_items.length >= 2) {
+      bars = payload.sub_items.map((it, idx) => ({
+        label: it.label || `Item ${idx+1}`,
+        val: it.value || it.val || "",
+        pct: it.pct || `${Math.min(100, Math.max(20, (idx + 1) * 35))}%`,
+        highlight: idx === payload.sub_items.length - 1
+      }));
+    } else if (Array.isArray(payload.bars) && payload.bars.length >= 2) {
+      bars = payload.bars;
+    } else {
+      bars = [
+        { label: "2024 (Realizado)", val: "R$ 88,2 mi", pct: "58%", highlight: false },
+        { label: "2025 (Executado)", val: "R$ 123,1 mi", pct: "79%", highlight: false },
+        { label: "2026 (Projetado)", val: `${prefix} ${value} ${suffix.toLowerCase()}`, pct: "95%", highlight: true }
+      ];
+    }
+
+    const barsList = document.getElementById("chartBarsList");
+    barsList.innerHTML = bars.map(b => `
+      <div class="chart-bar-item ${b.highlight ? 'highlight' : ''}">
+        <div class="chart-bar-meta"><span>${b.label}</span><span class="bar-val">${b.val}</span></div>
+        <div class="chart-bar-rail"><div class="chart-bar-fill" data-pct="${b.pct}"></div></div>
+      </div>
+    `).join('');
+
+    this._hideAllCards();
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    stageEl.style.opacity = "1";
+    cardEl.style.display = "flex";
+    cardEl.style.visibility = "visible";
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          opacity: 0,
+          y: 60,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "power2.inOut",
+          onComplete: () => { browserEl.style.display = "none"; }
+        });
+      }
+
+      tl.fromTo(cardEl,
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      // Animação das barras procedurais
+      document.querySelectorAll(".chart-bar-fill").forEach(fill => {
+        const targetW = fill.getAttribute("data-pct") || "80%";
+        tl.fromTo(fill,
+          { width: "0%" },
+          { width: targetW, duration: 0.75, ease: "power2.out" },
+          "-=0.4"
+        );
+      });
+    } else {
+      if (browserEl) browserEl.style.display = "none";
+      cardEl.style.opacity = "1";
+      cardEl.style.transform = "none";
+      document.querySelectorAll(".chart-bar-fill").forEach(fill => {
+        fill.style.width = fill.getAttribute("data-pct") || "80%";
+      });
+    }
+  },
+
+  /**
+   * Transição 5: COMPARISON (Análise Comparativa: Antes x Depois / Promessa x Fato)
+   */
+  transitionToComparison(payload = {}) {
+    this.currentMode = "comparison";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("comparisonCard");
+    if (!cardEl || !stageEl) return;
+
+    const title = payload.comparison_title || payload.title || "PROMESSA EM CAMPANHA × REALIDADE NO DIÁRIO OFICIAL";
+    const sideA = payload.side_a || {};
+    const sideB = payload.side_b || {};
+
+    document.getElementById("compMainHeadline").textContent = title;
+    document.getElementById("compTagA").textContent = sideA.header || sideA.tag || "PROMESSA (2024)";
+    document.getElementById("compValA").textContent = sideA.highlight || sideA.value || "0% DE AUMENTO";
+    document.getElementById("compTextA").textContent = sideA.details || sideA.text || "Compromisso público firmado de não elevar impostos nem criar taxas durante o mandato vigente.";
+
+    document.getElementById("compTagB").textContent = sideB.header || sideB.tag || "REALIDADE (2026)";
+    document.getElementById("compValB").textContent = sideB.highlight || sideB.value || "+12,4% NO CARNÊ";
+    document.getElementById("compTextB").textContent = sideB.details || sideB.text || "Decreto municipal aprovou atualização monetária da planta genérica com impacto imediato no IPTU.";
+
+    this._hideAllCards();
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    stageEl.style.opacity = "1";
+    cardEl.style.display = "flex";
+    cardEl.style.visibility = "visible";
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          opacity: 0,
+          y: 60,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "power2.inOut",
+          onComplete: () => { browserEl.style.display = "none"; }
+        });
+      }
+
+      tl.fromTo(cardEl,
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" },
+        "-=0.2"
+      );
+
+      tl.fromTo(".comp-card-col.col-a",
+        { opacity: 0, x: -30 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        "-=0.3"
+      );
+
+      tl.fromTo(".comp-vs-circle",
+        { opacity: 0, scale: 0 },
+        { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.7)" },
+        "-=0.3"
+      );
+
+      tl.fromTo(".comp-card-col.col-b",
+        { opacity: 0, x: 30 },
+        { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" },
+        "-=0.3"
+      );
+    } else {
+      if (browserEl) browserEl.style.display = "none";
+      cardEl.style.opacity = "1";
+      cardEl.style.transform = "none";
+    }
+  },
+
+  /**
+   * Transição 6: RECORTE JORNAL / TORN PAPER (Inspiração CNN Gallup / TIME)
+   */
+  transitionToRecorte(payload = {}) {
+    this.currentMode = "recorte";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("recorteCard");
+    if (!cardEl || !stageEl) return;
+
+    const source = payload.source_name || payload.source || "FOLHA DE S.PAULO";
+    let headline = payload.headline || payload.titulo || "Quase 90% dos brasileiros veem corrupção disseminada no poder público";
+    if (!headline.startsWith('"') && !headline.startsWith('“')) headline = `"${headline}"`;
+    const sublead = payload.sublead || payload.resumo || "Levantamento aponta que a ampla maioria da população avalia com pessimismo a gestão pública.";
+    const dateTag = payload.date || "EDIÇÃO IMPRESSA • 06 DE SETEMBRO DE 2026";
+
+    const logoEl = document.getElementById("recorteSourceLogo");
+    logoEl.textContent = source.toUpperCase();
+    logoEl.className = `recorte-source-logo ${source.toLowerCase().includes('cnn') ? 'red-brand' : ''}`;
+
+    document.getElementById("recorteHeadline").textContent = headline;
+    document.getElementById("recorteSublead").textContent = sublead;
+    document.getElementById("recorteDateTag").textContent = dateTag;
+
+    this._hideAllCards();
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    stageEl.style.opacity = "1";
+    cardEl.style.display = "flex";
+    cardEl.style.visibility = "visible";
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          opacity: 0,
+          y: 60,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "power2.inOut",
+          onComplete: () => { browserEl.style.display = "none"; }
+        });
+      }
+
+      tl.fromTo(cardEl,
+        { opacity: 0, y: 50, scale: 0.95, rotate: -0.5 },
+        { opacity: 1, y: 0, scale: 1, rotate: 0, duration: 0.6, ease: "power3.out" },
+        "-=0.2"
+      );
+    } else {
+      if (browserEl) browserEl.style.display = "none";
+      cardEl.style.opacity = "1";
+      cardEl.style.transform = "none";
+    }
+  },
+
+  /**
+   * Atualiza todo o estado da página e roteia componentes
    */
   update(newData = {}) {
     this.data = Object.assign({}, this.data, newData);
     const d = this.data;
 
-    // Portal
-    document.getElementById("articleCategory").textContent = d.categoria;
-    document.getElementById("articleHeadline").textContent = d.titulo;
-    document.getElementById("articleLead").textContent = d.resumo;
-    document.getElementById("articleMeta").innerHTML = `<span>Por ${d.autor}</span> • <span>${d.dataExtenso}</span> • <span>${d.leitura}</span>`;
+    // Roteamento inteligente de modos visuais
+    const kind = (newData.kind || newData.visual_component || "").toLowerCase();
+    const payload = Object.assign({}, newData.visual_payload || newData);
+    if (newData.visual_variant) {
+      this.data.visual_variant = newData.visual_variant;
+      payload.visual_variant = newData.visual_variant;
+    }
+
+    if (kind === "quote") {
+      this.transitionToQuote(payload);
+    } else if (kind === "document") {
+      this.transitionToDocument(payload);
+    } else if (kind === "timeline") {
+      this.transitionToTimeline(payload);
+    } else if (kind === "chart") {
+      this.transitionToChart(payload);
+    } else if (kind === "comparison") {
+      this.transitionToComparison(payload);
+    } else if (kind === "recorte") {
+      this.transitionToRecorte(payload);
+    } else if (kind === "source" || (!kind && this.currentMode !== "browser")) {
+      this.transitionToBrowser();
+    }
+
+    // Portal / Notícia
+    const catEl = document.getElementById("articleCategory");
+    if (catEl) catEl.textContent = d.categoria;
+    const headEl = document.getElementById("articleHeadline");
+    if (headEl) headEl.textContent = d.titulo;
+    const leadEl = document.getElementById("articleLead");
+    if (leadEl) leadEl.textContent = d.resumo;
+    const metaEl = document.getElementById("articleMeta");
+    if (metaEl) metaEl.innerHTML = `<span>Por ${d.autor}</span> • <span>${d.dataExtenso}</span> • <span>${d.leitura}</span>`;
     
     // Aba & URL
-    document.getElementById("tabTitle").textContent = d.titulo.length > 34 ? d.titulo.substring(0, 34) + "..." : d.titulo;
+    const tabEl = document.getElementById("tabTitle");
+    if (tabEl) tabEl.textContent = d.titulo.length > 34 ? d.titulo.substring(0, 34) + "..." : d.titulo;
     
-    // Tratamento de URL formatada
     let formattedUrl = d.url;
     try {
       const parsed = new URL(d.url.startsWith('http') ? d.url : `https://${d.url}`);
@@ -1100,11 +2773,12 @@ const VDL_MOCKUP_ENGINE = {
     } catch(e) {
       formattedUrl = d.url;
     }
-    document.getElementById("urlText").innerHTML = formattedUrl;
+    const urlEl = document.getElementById("urlText");
+    if (urlEl) urlEl.innerHTML = formattedUrl;
 
     // Imagem do Artigo
     const imgContainer = document.getElementById("articleImageBox");
-    if (d.imagem) {
+    if (imgContainer && d.imagem) {
       imgContainer.innerHTML = `<img class="article-cover-img" src="${d.imagem}" alt="${d.titulo}">`;
     }
 
@@ -1163,13 +2837,20 @@ const VDL_MOCKUP_ENGINE = {
     }
 
     // Lower Third
-    document.getElementById("ltEyebrow").textContent = d.eyebrow || d.categoria;
-    document.getElementById("ltTitle").textContent = d.lowerTitle || d.titulo;
-    document.getElementById("ltSubtitle").textContent = d.lowerSubtitle || d.resumo;
-    document.getElementById("ltLiveText").textContent = d.liveText || "DIÁRIO";
-    document.getElementById("ltDate").textContent = d.date || "2026-04-05";
-    document.getElementById("ltChannelTag").textContent = d.tag || "VALE DA LIBERDADE";
-    document.getElementById("ltBrandSub").textContent = d.brandSub || "DIÁRIO";
+    const ltEyebrow = document.getElementById("ltEyebrow");
+    if (ltEyebrow) ltEyebrow.textContent = d.eyebrow || d.categoria;
+    const ltTitle = document.getElementById("ltTitle");
+    if (ltTitle) ltTitle.textContent = d.lowerTitle || d.titulo;
+    const ltSub = document.getElementById("ltSubtitle");
+    if (ltSub) ltSub.textContent = d.lowerSubtitle || d.resumo;
+    const ltLive = document.getElementById("ltLiveText");
+    if (ltLive) ltLive.textContent = d.liveText || "DIÁRIO";
+    const ltDate = document.getElementById("ltDate");
+    if (ltDate) ltDate.textContent = d.date || "2026-04-05";
+    const ltTag = document.getElementById("ltChannelTag");
+    if (ltTag) ltTag.textContent = d.tag || "VALE DA LIBERDADE";
+    const ltBrand = document.getElementById("ltBrandSub");
+    if (ltBrand) ltBrand.textContent = d.brandSub || "DIÁRIO";
 
     // Ticker
     if (Array.isArray(newData.ticker)) {
@@ -1182,6 +2863,7 @@ const VDL_MOCKUP_ENGINE = {
    */
   renderTicker(items) {
     const scroll = document.getElementById("ltTickerScroll");
+    if (!scroll) return;
     const html = items.map(t => `<span class="lt-ticker-item">${t}</span>`).join('');
     scroll.innerHTML = html + html;
   },
@@ -1209,21 +2891,38 @@ const VDL_MOCKUP_ENGINE = {
     if (p.has('pageImage')) updates.pageImage = p.get('pageImage');
     if (p.has('pageVideo')) updates.pageVideo = p.get('pageVideo');
     if (p.has('wallpaper')) updates.wallpaper = p.get('wallpaper');
-    if (p.has('live')) updates.liveText = p.get('live');
     if (p.has('ticker')) updates.ticker = p.get('ticker').split('|');
     
+    // Parâmetros de componentes de broadcast
+    if (p.has('kind')) updates.kind = p.get('kind');
+    if (p.has('visual_component')) updates.visual_component = p.get('visual_component');
+    if (p.has('visual_variant')) updates.visual_variant = p.get('visual_variant');
+    if (p.has('visual_payload')) {
+      try { updates.visual_payload = JSON.parse(p.get('visual_payload')); } catch(e) {}
+    }
+    if (p.has('xPost')) {
+      try { updates.xPost = JSON.parse(p.get('xPost')); } catch(e) { updates.xPost = p.get('xPost'); }
+    }
+
     if (Object.keys(updates).length > 0) {
       this.update(updates);
     }
   }
 };
 
-// Inicialização automática
-document.addEventListener("DOMContentLoaded", () => {
-  VDL_MOCKUP_ENGINE.update();
+// Exposição global imediata
+window.VDL_MOCKUP = VDL_MOCKUP_ENGINE;
+
+function initVDL() {
   VDL_MOCKUP_ENGINE.loadFromURL();
-  window.VDL_MOCKUP = VDL_MOCKUP_ENGINE;
-});
+  VDL_MOCKUP_ENGINE.update();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initVDL);
+} else {
+  initVDL();
+}
 </script>
 
 </body>
