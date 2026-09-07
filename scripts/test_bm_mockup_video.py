@@ -487,6 +487,32 @@ class BrandingIntroOutroTests(unittest.TestCase):
         o2 = m.resolve_outro_video("vid_abc")
         self.assertEqual(o1, o2)
 
+    def test_resolve_outro_take_deterministic(self):
+        import bm_mockup_video as m
+        take1 = m.resolve_outro_take("ep123")
+        take2 = m.resolve_outro_take("ep123")
+        self.assertEqual(take1, take2)
+        if take1:
+            self.assertTrue(take1.is_file())
+
+    def test_resolve_outro_video_uses_dynamic_composition_with_wallpaper(self):
+        import bm_mockup_video as m
+        with tempfile.TemporaryDirectory() as td:
+            work = Path(td)
+            wp = work / "wall.jpg"
+            wp.write_bytes(b"image")
+            fake_composed = work / "outro_ep_custom.mp4"
+            fake_composed.write_bytes(b"x" * 60_000)
+
+            with patch.object(m, "compose_outro_for_episode", return_value=fake_composed) as mock_compose:
+                out = m.resolve_outro_video(video_id="ep_custom", wallpaper=wp, work=work)
+                self.assertEqual(out, fake_composed)
+                self.assertTrue(mock_compose.called)
+                args, kwargs = mock_compose.call_args
+                self.assertEqual(args[0], "ep_custom")
+                self.assertEqual(args[2], wp)
+                self.assertEqual(args[3], work)
+
     def test_prepare_audio_with_intro_fallback_on_missing(self):
         import bm_mockup_video as m
         with tempfile.TemporaryDirectory() as td:
@@ -499,4 +525,5 @@ class BrandingIntroOutroTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

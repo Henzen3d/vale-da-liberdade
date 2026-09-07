@@ -79,6 +79,8 @@ BRANDING_DIR = ROOT / "branding"
 INTRO_AUDIO_DIR = BRANDING_DIR / "audio" / "intro"
 OUTRO_CANONICAL = BRANDING_DIR / "outro.mp4"
 OUTRO_PRONTOS_DIR = BRANDING_DIR / "encerramento" / "prontos"
+GRAVACOES_DIR = BRANDING_DIR / "encerramento" / "gravacoes"
+AUDIO_OUTRO_DIR = BRANDING_DIR / "audio" / "outro"
 
 MAX_DURATION_S = 330.0
 MAX_PER_RUN = 1
@@ -2073,8 +2075,130 @@ def prepare_audio_with_intro(audio: Path, work_dir: Path) -> Path:
     return audio
 
 
-def resolve_outro_video(video_id: str | None = None) -> Path | None:
-    """Localiza o vídeo de encerramento, rotacionando entre os disponíveis em prontos/."""
+def find_music_outro() -> Path | None:
+    """Localiza a trilha musical de encerramento em branding/audio/outro/."""
+    candidates = [
+        AUDIO_OUTRO_DIR / "final-mix-25s.wav",
+        AUDIO_OUTRO_DIR / "outro_tema.wav",
+        AUDIO_OUTRO_DIR / "outro_tema.mp3",
+        AUDIO_OUTRO_DIR / "final.mp3",
+    ]
+    for c in candidates:
+        if c.is_file() and c.stat().st_size > 1000:
+            return c
+    if AUDIO_OUTRO_DIR.is_dir():
+        for p in sorted(AUDIO_OUTRO_DIR.iterdir()):
+            if p.is_file() and p.suffix.lower() in {".wav", ".mp3", ".m4a", ".aac"} and "readme" not in p.name.lower():
+                return p
+    return None
+
+
+def resolve_outro_take(video_id: str | None = None) -> Path | None:
+    """Sorteia um take bruto de gravação do apresentador (gravacoes/*.mp4)."""
+    if GRAVACOES_DIR.is_dir():
+        takes = sorted(
+            p for p in GRAVACOES_DIR.glob("*.mp4")
+            if p.is_file() and p.stat().st_size > 500_000 and not p.name.startswith(".")
+        )
+        if takes:
+            if video_id:
+                idx = int(hashlib.md5(video_id.encode("utf-8")).hexdigest(), 16) % len(takes)
+                return takes[idx]
+            return takes[0]
+    return None
+
+
+def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None, work: Path) -> Path | None:
+    """Monta o encerramento dinâmico usando o MESMO wallpaper do episódio e ducking suave."""
+    if not take or not take.is_file():
+        return None
+
+    dest = work / f"outro_{video_id}.mp4"
+    if dest.is_file() and dest.stat().st_size > 50_000:
+        return dest
+
+    dur = probe_duration_s(take)
+    if dur <= 0.0:
+        return None
+
+    music = find_music_outro()
+    wp = wallpaper if (wallpaper and wallpaper.is_file()) else pick_wallpaper(video_id)
+    if not wp or not wp.is_file():
+        return None
+
+    t1 = max(0.0, dur - 3.5)
+    t2 = max(t1 + 0.2, dur - 1.2)
+    ramp_dur = t2 - t1
+    fade_dur = max(0.2, dur - t2)
+
+    vf_pres = (
+        "[1:v]scale=854:480:force_original_aspect_ratio=decrease,"
+        "pad=854:480:(ow-iw)/2:(oh-ih)/2:color=black,"
+        "drawbox=x=0:y=0:w=iw:h=ih:color=white@0.8:t=3[pres]"
+    )
+    vf_bg = (
+        "[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,"
+        "drawbox=x=1200:y=100:w=608:h=342:color=black@0.4:t=fill,"
+        "drawbox=x=1200:y=100:w=608:h=342:color=white@0.2:t=2,"
+        "drawbox=x=1200:y=520:w=608:h=342:color=black@0.4:t=fill,"
+        "drawbox=x=1200:y=520:w=608:h=342:color=white@0.2:t=2,"
+        "drawbox=x=420:y=640:w=180:h=180:color=black@0.4:t=fill,"
+        "drawbox=x=420:y=640:w=180:h=180:color=white@0.2:t=2[bg]"
+    )
+    vf_overlay = "[bg][pres]overlay=80:100:shortest=1[v]"
+
+    inputs = ["-loop", "1", "-i", str(wp), "-i", str(take)]
+    if music and music.is_file():
+        inputs += ["-i", str(music)]
+        af_bgm = (
+            f"[2:a]volume='if(lt(t,{t1:.2f}),0.12,if(lt(t,{t2:.2f}),0.12+0.63*(t-{t1:.2f})/{ramp_dur:.2f},0.75))':eval=frame,"
+            f"afade=t=out:st={t2:.2f}:d={fade_dur:.2f},"
+            f"atrim=0:{dur:.2f}[bgm]"
+        )
+        af_voz = "[1:a]volume=1.0[voz]"
+        af_mix = "[voz][bgm]amix=inputs=2:duration=first:normalize=0[a]"
+        filter_complex = f"{vf_pres};{vf_bg};{vf_overlay};{af_bgm};{af_voz};{af_mix}"
+        map_args = ["-map", "[v]", "-map", "[a]"]
+    else:
+        filter_complex = f"{vf_pres};{vf_bg};{vf_overlay}"
+        map_args = ["-map", "[v]", "-map", "1:a"]
+
+    print(f"  🎬 Compondo encerramento contextual ({take.name} + wallpaper {wp.name})...")
+    cmd = [
+        "ffmpeg", "-y",
+        *inputs,
+        "-filter_complex", filter_complex,
+        *map_args,
+        "-t", f"{dur:.2f}",
+        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if r.returncode == 0 and dest.is_file() and dest.stat().st_size > 50_000:
+            print(f"  ✅ Encerramento contextual composto: {dest.name} ({dest.stat().st_size // 1024} KB)")
+            return dest
+        print(f"  ⚠️  Falha ao compor encerramento dinâmico: {(r.stderr or '')[-300:]}")
+    except Exception as exc:
+        print(f"  ⚠️  Exceção ao compor encerramento dinâmico: {exc}")
+
+    return None
+
+
+def resolve_outro_video(video_id: str | None = None, wallpaper: Path | None = None, work: Path | None = None) -> Path | None:
+    """Resolve o vídeo de encerramento: compõe dinamicamente com o wallpaper do episódio ou usa fallback."""
+    # 1. Tentar composição dinâmica contextual com o wallpaper do episódio
+    if video_id and work:
+        take = resolve_outro_take(video_id)
+        if take:
+            composed = compose_outro_for_episode(video_id, take, wallpaper, work)
+            if composed:
+                return composed
+
+    # 2. Fallback para vídeos pré-renderizados em prontos/
     if OUTRO_PRONTOS_DIR.is_dir():
         prontos = sorted(
             p for p in OUTRO_PRONTOS_DIR.glob("*.mp4")
@@ -2086,10 +2210,12 @@ def resolve_outro_video(video_id: str | None = None) -> Path | None:
                 return prontos[idx]
             return prontos[0]
 
+    # 3. Fallback canônico
     if OUTRO_CANONICAL.is_file() and OUTRO_CANONICAL.stat().st_size > 100_000:
         return OUTRO_CANONICAL
 
     return None
+
 
 
 def append_outro_video(base_mp4: Path, outro_mp4: Path, work: Path) -> Path:
@@ -2290,9 +2416,11 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     print(f"   fontes: {len(scenes)} (beats: {len(timeline_beats)}) · upload={upload} privacy={privacy}")
     if wallpaper:
         print(f"   wallpaper: {wallpaper.name}")
-    outro_video = resolve_outro_video(video_id)
-    if outro_video:
-        print(f"   outro:     {outro_video.name}")
+    take = resolve_outro_take(video_id)
+    if take and wallpaper:
+        print(f"   outro:     {take.name} (contextual wallpaper: {wallpaper.name})")
+    elif resolve_outro_video(video_id):
+        print(f"   outro:     {resolve_outro_video(video_id).name}")
     if dry_run:
         return {
             "video_id": video_id,
@@ -2300,7 +2428,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             "scenes": scenes,
             "beats": [b.to_dict() for b in timeline_beats],
             "wallpaper": wallpaper.name if wallpaper else None,
-            "outro": outro_video.name if outro_video else None,
+            "outro": f"{take.name} (wallpaper: {wallpaper.name})" if (take and wallpaper) else (resolve_outro_video(video_id).name if resolve_outro_video(video_id) else None),
             "thumb": str(find_episode_thumbnail(video_id, episode_date(audio)) or ""),
             "desc": desc,
             "dry_run": True,
@@ -2341,8 +2469,10 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
     mp4 = compose_presenter(mp4, episode, audio, work)
+    outro_video = resolve_outro_video(video_id, wallpaper=wallpaper, work=work)
     if outro_video:
         mp4 = append_outro_video(mp4, outro_video, work)
+
 
 
     try:

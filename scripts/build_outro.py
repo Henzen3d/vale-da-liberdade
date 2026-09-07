@@ -119,9 +119,10 @@ def compose_outro(
     template = find_template(template_path)
     music = music_path or find_music()
 
-    t_rise = max(0.0, dur - 2.5)
-    t_fade = max(0.0, dur - 0.8)
-    d_fade = min(0.8, dur - t_fade)
+    t1 = max(0.0, dur - 3.5)
+    t2 = max(t1 + 0.2, dur - 1.2)
+    ramp_dur = t2 - t1
+    fade_dur = max(0.2, dur - t2)
 
     print(f"🎬 Renderizando encerramento: {video_input.name} ({dur:.1f}s)")
     print(f"   Template: {template.name}")
@@ -158,15 +159,15 @@ def compose_outro(
     if music and music.is_file():
         inputs += ["-i", str(music)]
         af_bgm = (
-            f"[2:a]volume=enable='between(t,0,{t_rise:.2f})':volume=0.15,"
-            f"volume=enable='between(t,{t_rise:.2f},{t_fade:.2f})':volume=0.85,"
-            f"afade=t=out:st={t_fade:.2f}:d={d_fade:.2f},"
+            f"[2:a]volume='if(lt(t,{t1:.2f}),0.12,if(lt(t,{t2:.2f}),0.12+0.63*(t-{t1:.2f})/{ramp_dur:.2f},0.75))':eval=frame,"
+            f"afade=t=out:st={t2:.2f}:d={fade_dur:.2f},"
             f"atrim=0:{dur:.2f}[bgm]"
         )
         af_voz = "[1:a]volume=1.0[voz]"
         af_mix = "[voz][bgm]amix=inputs=2:duration=first:normalize=0[a]"
         filter_complex = f"{vf_pres};{vf_bg};{vf_overlay};{af_bgm};{af_voz};{af_mix}"
         map_args = ["-map", "[v]", "-map", "[a]"]
+
     else:
         filter_complex = f"{vf_pres};{vf_bg};{vf_overlay}"
         map_args = ["-map", "[v]", "-map", "1:a"]
