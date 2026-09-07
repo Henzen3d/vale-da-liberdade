@@ -75,6 +75,11 @@ CAPTURE_CACHE_DIR = ROOT / "output" / "brasil_e_mundo" / "capture-cache"
 THUMB_DIRS = (ROOT / "thumbnails", ROOT / "public" / "thumbnails")
 LAST_VIDEOS_PATH = ROOT / "output" / "brasil_e_mundo" / "last_videos.json"
 
+BRANDING_DIR = ROOT / "branding"
+INTRO_AUDIO_DIR = BRANDING_DIR / "audio" / "intro"
+OUTRO_CANONICAL = BRANDING_DIR / "outro.mp4"
+OUTRO_PRONTOS_DIR = BRANDING_DIR / "encerramento" / "prontos"
+
 MAX_DURATION_S = 330.0
 MAX_PER_RUN = 1
 WINDOW_DAYS = 2
@@ -223,14 +228,14 @@ _X_STATUS_RE = re.compile(r"(?:x|twitter)\.com/[^/]+/status/(\d+)")
 
 _X_EMBED_WRAP = """<!doctype html><html><head><meta charset="utf-8">
 <style>
- html,body{margin:0;height:100%;background:#15202b;
+ html,body{margin:0;height:100%;background:#ffffff;
    display:flex;align-items:center;justify-content:center;
    font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
  #box{width:640px;transform:scale(1.3);transform-origin:center center}
  iframe{width:100%;border:0;display:block}
 </style></head><body>
 <div id="box"><iframe id="tw"
- src="https://platform.twitter.com/embed/Tweet.html?id=__TWEET_ID__&theme=dark&dnt=true&lang=pt"
+ src="https://platform.twitter.com/embed/Tweet.html?id=__TWEET_ID__&theme=light&dnt=true&lang=pt"
  scrolling="no" allowtransparency="true"></iframe></div>
 <script>
  window.addEventListener('message', function(e){
@@ -1512,149 +1517,6 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     return _assemble_captured_scenes(scenes, by_index) or scenes
 
 
-def record_mockup(
-    video_id: str,
-    episode: dict,
-    audio: Path,
-    scenes: list[dict],
-    work: Path,
-    wallpaper: Path | None = None,
-    timeline_beats: list[Any] | None = None,
-) -> Path:
-    from playwright.sync_api import sync_playwright
-    from bm_scene_timeline import build_scene_timeline
-
-    rec_dir = work / "rec"
-    rec_dir.mkdir(parents=True, exist_ok=True)
-    server_dirs = [MOCKUP_DIR, work]
-    if BROLL_DIR.is_dir():
-        server_dirs.append(BROLL_DIR)
-    httpd, port = start_server(server_dirs)
-    try:
-        dur = min(probe_duration_s(audio) or 60.0, MAX_DURATION_S)
-        title = _unescape(episode.get("titulo") or "Brasil e Mundo")
-        veiculo = episode.get("fonte_veiculo") or "Brasil e Mundo"
-        ymd = episode_date(audio)
-        subhead = one_line_subhead(episode)
-        ticker_items = ticker_headlines(episode, video_id)
-        if not scenes:
-            scenes = [{"veiculo": veiculo, "url": "https://news.mob.tec.br", "shot": None}]
-
-        if not timeline_beats:
-            timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
-
-        url = f"http://127.0.0.1:{port}/{MOCKUP_HTML}"
-        raw_webm: Path | None = None
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            ctx = browser.new_context(
-                viewport={"width": 1920, "height": 1080},
-                record_video_dir=str(rec_dir),
-                record_video_size={"width": 1920, "height": 1080},
-                device_scale_factor=1,
-                locale="pt-BR",
-            )
-            page = ctx.new_page()
-
-            def _qs_payload(payload: dict) -> str:
-                from urllib.parse import quote as _q
-                ticker = "|".join(payload.get("ticker") or [])
-                pairs = {
-                    "categoria": payload["categoria"], "titulo": payload["titulo"],
-                    "resumo": payload["resumo"], "autor": payload["autor"],
-                    "data": payload["data"], "dataExtenso": payload["dataExtenso"],
-                    "url": payload["url"], "eyebrow": payload["eyebrow"],
-                    "lowerTitle": payload["lowerTitle"], "lowerSubtitle": payload["lowerSubtitle"],
-                    "live": payload["liveText"], "brandSub": payload["brandSub"],
-                    "tag": payload["tag"], "ticker": ticker,
-                }
-                if payload.get("pageImage"):
-                    pairs["pageImage"] = payload["pageImage"]
-                if payload.get("pageVideo"):
-                    pairs["pageVideo"] = payload["pageVideo"]
-                if payload.get("wallpaper"):
-                    pairs["wallpaper"] = payload["wallpaper"]
-                if payload.get("kind"):
-                    pairs["kind"] = payload["kind"]
-                if payload.get("xPost"):
-                    pairs["xPost"] = payload["xPost"]
-                return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
-
-            first_beat = timeline_beats[0] if timeline_beats else None
-            fb_dict = first_beat.to_dict() if hasattr(first_beat, "to_dict") else (dict(first_beat) if first_beat else {})
-            first_shot = fb_dict.get("shot") or (scenes[0].get("shot") if scenes else None)
-            first_vid = fb_dict.get("video") or (scenes[0].get("video") if scenes else None)
-            first_url = fb_dict.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
-            first_kind = fb_dict.get("kind") or (scenes[0].get("kind") if scenes else "source")
-            first_xpost = fb_dict.get("x_post") or (scenes[0].get("x_post") if scenes else None)
-
-            init_payload = {
-                "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
-                "autor": "Peter Albuquerque", "data": ymd, "dataExtenso": ymd,
-                "url": first_url or "https://news.mob.tec.br",
-                "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
-                "lowerTitle": title, "lowerSubtitle": subhead,
-                "liveText": "B&M", "brandSub": "B&M", "tag": "VALE DA LIBERDADE",
-                "ticker": ticker_items,
-                "pageImage": f"/shots/{first_shot}" if first_shot else "",
-                "pageVideo": first_vid or "",
-                "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
-                "kind": first_kind,
-            }
-            if first_xpost:
-                init_payload["xPost"] = json.dumps(first_xpost)
-            page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
-            page.wait_for_function(
-                """() => {
-                  const w = document.getElementById('sceneWallpaper');
-                  const s = document.getElementById('pageShot');
-                  const ok = el => !el || el.hidden || el.complete !== false;
-                  return ok(w) && ok(s);
-                }""", timeout=10000,
-            )
-            page.wait_for_timeout(400)
-            started = time.monotonic()
-
-            for idx, beat in enumerate(timeline_beats):
-                elapsed = time.monotonic() - started
-                if elapsed >= dur:
-                    break
-                b = beat.to_dict() if hasattr(beat, "to_dict") else dict(beat)
-                if idx > 0:
-                    page_image = f"/shots/{b['shot']}" if b.get("shot") else ""
-                    page_video = b.get("video") or ""
-                    if b.get("kind") == "broll" and b.get("broll_file"):
-                        page_video = f"/broll/{quote(b['broll_file'])}"
-                    page.evaluate(
-                        """({url, pageImage, pageVideo, kind, xPost}) => {
-                          if (!window.VDL_MOCKUP) return;
-                          window.VDL_MOCKUP.update({url, pageImage, pageVideo, kind, xPost});
-                        }""",
-                        {
-                            "url": b.get("url") or "https://news.mob.tec.br",
-                            "pageImage": page_image,
-                            "pageVideo": page_video,
-                            "kind": b.get("kind") or "source",
-                            "xPost": b.get("x_post"),
-                        },
-                    )
-
-                beat_dur = float(b.get("t1", 0.0)) - float(b.get("t0", 0.0))
-                remain = dur - (time.monotonic() - started)
-                wait_time = max(0.1, min(beat_dur, remain))
-                page.wait_for_timeout(int(wait_time * 1000))
-
-            raw_webm = Path(page.video.path())
-            ctx.close()
-            browser.close()
-    finally:
-        httpd.shutdown()
-
-    if not raw_webm or not raw_webm.exists():
-        raise RuntimeError("gravação do mockup não gerou webm")
-    return raw_webm
-
-
 # ---------------------------------------------------------------------------
 # HELPERS V2: normalização e payload para window.VDL_MOCKUP.update
 # ---------------------------------------------------------------------------
@@ -1808,6 +1670,145 @@ def _safe_mockup_update(page: Any, payload: dict, *, label: str = "") -> None:
     except Exception as exc:  # noqa: BLE001
         tag = f" ({label})" if label else ""
         print(f"  ⚠️  mockup update{tag} falhou — segue tela default: {exc}")
+
+
+def record_mockup(
+    video_id: str,
+    episode: dict,
+    audio: Path,
+    scenes: list[dict],
+    work: Path,
+    wallpaper: Path | None = None,
+    timeline_beats: list[Any] | None = None,
+) -> Path:
+    from playwright.sync_api import sync_playwright
+    from bm_scene_timeline import build_scene_timeline
+
+    rec_dir = work / "rec"
+    rec_dir.mkdir(parents=True, exist_ok=True)
+    server_dirs = [MOCKUP_DIR, work]
+    if BROLL_DIR.is_dir():
+        server_dirs.append(BROLL_DIR)
+    httpd, port = start_server(server_dirs)
+    try:
+        dur = min(probe_duration_s(audio) or 60.0, MAX_DURATION_S)
+        title = _unescape(episode.get("titulo") or "Brasil e Mundo")
+        veiculo = episode.get("fonte_veiculo") or "Brasil e Mundo"
+        ymd = episode_date(audio)
+        subhead = one_line_subhead(episode)
+        ticker_items = ticker_headlines(episode, video_id)
+        if not scenes:
+            scenes = [{"veiculo": veiculo, "url": "https://news.mob.tec.br", "shot": None}]
+
+        if not timeline_beats:
+            timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
+
+        url = f"http://127.0.0.1:{port}/{MOCKUP_HTML}"
+        raw_webm: Path | None = None
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            ctx = browser.new_context(
+                viewport={"width": 1920, "height": 1080},
+                record_video_dir=str(rec_dir),
+                record_video_size={"width": 1920, "height": 1080},
+                device_scale_factor=1,
+                locale="pt-BR",
+            )
+            page = ctx.new_page()
+
+            def _qs_payload(payload: dict) -> str:
+                from urllib.parse import quote as _q
+                ticker = "|".join(payload.get("ticker") or [])
+                pairs = {
+                    "categoria": payload["categoria"], "titulo": payload["titulo"],
+                    "resumo": payload["resumo"], "autor": payload["autor"],
+                    "data": payload["data"], "dataExtenso": payload["dataExtenso"],
+                    "url": payload["url"], "eyebrow": payload["eyebrow"],
+                    "lowerTitle": payload["lowerTitle"], "lowerSubtitle": payload["lowerSubtitle"],
+                    "live": payload["liveText"], "brandSub": payload["brandSub"],
+                    "tag": payload["tag"], "ticker": ticker,
+                }
+                if payload.get("pageImage"):
+                    pairs["pageImage"] = payload["pageImage"]
+                if payload.get("pageVideo"):
+                    pairs["pageVideo"] = payload["pageVideo"]
+                if payload.get("wallpaper"):
+                    pairs["wallpaper"] = payload["wallpaper"]
+                if payload.get("kind"):
+                    pairs["kind"] = payload["kind"]
+                if payload.get("visual_component"):
+                    pairs["visual_component"] = payload["visual_component"]
+                if payload.get("visual_variant"):
+                    pairs["visual_variant"] = payload["visual_variant"]
+                if payload.get("visual_payload"):
+                    pairs["visual_payload"] = json.dumps(payload["visual_payload"])
+                if payload.get("xPost"):
+                    pairs["xPost"] = payload["xPost"] if isinstance(payload["xPost"], str) else json.dumps(payload["xPost"])
+                return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
+
+            first_beat = timeline_beats[0] if timeline_beats else None
+            fb_v2 = _normalize_beat_v2(first_beat) if first_beat else {}
+            first_shot = fb_v2.get("shot") or (scenes[0].get("shot") if scenes else None)
+            first_vid = fb_v2.get("video") or (scenes[0].get("video") if scenes else None)
+            first_url = fb_v2.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
+            first_kind = fb_v2.get("visual_component") or fb_v2.get("kind") or (scenes[0].get("kind") if scenes else "source")
+            first_xpost = fb_v2.get("x_post") or (scenes[0].get("x_post") if scenes else None)
+
+            init_payload = {
+                "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
+                "autor": "Peter Albuquerque", "data": ymd, "dataExtenso": ymd,
+                "url": first_url or "https://news.mob.tec.br",
+                "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
+                "lowerTitle": title, "lowerSubtitle": subhead,
+                "liveText": "B&M", "brandSub": "B&M", "tag": "VALE DA LIBERDADE",
+                "ticker": ticker_items,
+                "pageImage": f"/shots/{first_shot}" if first_shot else "",
+                "pageVideo": first_vid or "",
+                "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
+                "kind": first_kind,
+                "visual_component": first_kind,
+                "visual_variant": fb_v2.get("visual_variant") or "",
+                "visual_payload": fb_v2.get("visual_payload") or {},
+            }
+            if first_xpost:
+                init_payload["xPost"] = json.dumps(first_xpost) if not isinstance(first_xpost, str) else first_xpost
+            page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
+            page.wait_for_function(
+                """() => {
+                  const w = document.getElementById('sceneWallpaper');
+                  const s = document.getElementById('pageShot');
+                  const ok = el => !el || el.hidden || el.complete !== false;
+                  return ok(w) && ok(s);
+                }""", timeout=10000,
+            )
+            page.wait_for_timeout(400)
+            if timeline_beats:
+                _safe_mockup_update(page, _build_mockup_update_payload(fb_v2), label="beat0_init")
+            started = time.monotonic()
+
+            for idx, beat in enumerate(timeline_beats):
+                elapsed = time.monotonic() - started
+                if elapsed >= dur:
+                    break
+                b = _normalize_beat_v2(beat)
+                if idx > 0:
+                    payload = _build_mockup_update_payload(b)
+                    _safe_mockup_update(page, payload, label=f"beat{idx}")
+
+                beat_dur = float(b.get("t1", 0.0)) - float(b.get("t0", 0.0))
+                remain = dur - (time.monotonic() - started)
+                wait_time = max(0.1, min(beat_dur, remain))
+                page.wait_for_timeout(int(wait_time * 1000))
+
+            raw_webm = Path(page.video.path())
+            ctx.close()
+            browser.close()
+    finally:
+        httpd.shutdown()
+
+    if not raw_webm or not raw_webm.exists():
+        raise RuntimeError("gravação do mockup não gerou webm")
+    return raw_webm
 
 
 def _components_used_from_beats(beats: list | None) -> list:
@@ -2010,6 +2011,127 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
     return dest
 
 
+def find_intro_audio() -> Path | None:
+    """Localiza o arquivo de áudio da música de abertura (intro)."""
+    candidates = [
+        INTRO_AUDIO_DIR / "Top-Intro.mp3",
+        INTRO_AUDIO_DIR / "intro_tema.wav",
+        INTRO_AUDIO_DIR / "intro_tema.mp3",
+    ]
+    for c in candidates:
+        if c.is_file() and c.stat().st_size > 1000:
+            return c
+    if INTRO_AUDIO_DIR.is_dir():
+        for p in sorted(INTRO_AUDIO_DIR.iterdir()):
+            if p.is_file() and p.suffix.lower() in {".mp3", ".wav", ".m4a", ".aac"} and "readme" not in p.name.lower():
+                return p
+    return None
+
+
+def prepare_audio_with_intro(audio: Path, work_dir: Path) -> Path:
+    """Aplica a vinheta musical no início do áudio com ducking elegante.
+
+    0.0s a 1.5s: Trilha em volume cheio (1.0).
+    1.5s: Locução inicia (atraso de 1500ms na voz) e música baixa para 18% (0.18).
+    6.0s a 7.0s: Fade-out suave da música até silêncio total.
+    """
+    intro = find_intro_audio()
+    if not intro:
+        return audio
+
+    out_audio = work_dir / f"{audio.stem}-with-intro.mp3"
+    if out_audio.is_file() and out_audio.stat().st_size > 50_000:
+        return out_audio
+
+    print(f"  🎵 Mixando trilha de abertura ({intro.name}) com auto-ducking...")
+    fc = (
+        "[0:a]aformat=channel_layouts=stereo:sample_rates=48000,atrim=0:7.0,"
+        "volume=enable='between(t,0,1.5)':volume=1.0,"
+        "volume=enable='between(t,1.5,6.0)':volume=0.18,"
+        "afade=t=out:st=6.0:d=1.0[bgm];"
+        "[1:a]aformat=channel_layouts=stereo:sample_rates=48000,adelay=1500|1500[voz];"
+        "[bgm][voz]amix=inputs=2:duration=longest:normalize=0[a]"
+    )
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(intro),
+        "-i", str(audio),
+        "-filter_complex", fc,
+        "-map", "[a]",
+        "-c:a", "libmp3lame", "-b:a", "192k",
+        str(out_audio),
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if r.returncode == 0 and out_audio.is_file() and out_audio.stat().st_size > 50_000:
+            print(f"  ✅ Trilha de abertura integrada ao episódio ({out_audio.name})")
+            return out_audio
+        print(f"  ⚠️  Falha ao mixar intro musical: {(r.stderr or '')[-200:]}; usando áudio original")
+    except Exception as exc:
+        print(f"  ⚠️  Exceção ao mixar intro musical: {exc}; usando áudio original")
+
+    return audio
+
+
+def resolve_outro_video(video_id: str | None = None) -> Path | None:
+    """Localiza o vídeo de encerramento, rotacionando entre os disponíveis em prontos/."""
+    if OUTRO_PRONTOS_DIR.is_dir():
+        prontos = sorted(
+            p for p in OUTRO_PRONTOS_DIR.glob("*.mp4")
+            if p.is_file() and p.stat().st_size > 100_000
+        )
+        if prontos:
+            if video_id:
+                idx = int(hashlib.md5(video_id.encode("utf-8")).hexdigest(), 16) % len(prontos)
+                return prontos[idx]
+            return prontos[0]
+
+    if OUTRO_CANONICAL.is_file() and OUTRO_CANONICAL.stat().st_size > 100_000:
+        return OUTRO_CANONICAL
+
+    return None
+
+
+def append_outro_video(base_mp4: Path, outro_mp4: Path, work: Path) -> Path:
+    """Concatena o vídeo de encerramento ao final do episódio de forma transparente."""
+    if not outro_mp4 or not outro_mp4.is_file():
+        return base_mp4
+
+    dest = base_mp4.with_name(base_mp4.stem + "-outro.mp4")
+    print(f"  🎬 Concatenando encerramento: {outro_mp4.name}...")
+
+    fc = (
+        "[0:v]scale=1920:1080,fps=25[v0];"
+        "[1:v]scale=1920:1080,fps=25[v1];"
+        "[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0];"
+        "[1:a]aformat=sample_rates=48000:channel_layouts=stereo[a1];"
+        "[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]"
+    )
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(base_mp4),
+        "-i", str(outro_mp4),
+        "-filter_complex", fc,
+        "-map", "[v]", "-map", "[a]",
+        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
+        "-c:a", "aac", "-b:a", "192k",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        if r.returncode == 0 and dest.is_file() and dest.stat().st_size > base_mp4.stat().st_size:
+            print(f"  ✅ Encerramento anexado: {dest.name} ({dest.stat().st_size // 1024} KB)")
+            return dest
+        print(f"  ⚠️  Falha ao concatenar encerramento: {(r.stderr or '')[-300:]}; segue sem encerramento")
+    except Exception as exc:
+        print(f"  ⚠️  Exceção ao concatenar encerramento: {exc}; segue sem encerramento")
+
+    return base_mp4
+
+
+
 def set_youtube_thumbnail(yt_id: str, image: Path) -> bool:
     cmd = [
         sys.executable,
@@ -2148,6 +2270,11 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     audio = resolve_audio(video_id)
     if not audio:
         raise FileNotFoundError(f"áudio BM não encontrado para {video_id}")
+
+    work = WORK_ROOT / video_id
+    work.mkdir(parents=True, exist_ok=True)
+    audio = prepare_audio_with_intro(audio, work)
+
     dur = probe_duration_s(audio)
     if dur > MAX_DURATION_S:
         raise RuntimeError(f"{video_id}: áudio {dur:.0f}s > {MAX_DURATION_S:.0f}s — pulado")
@@ -2175,7 +2302,6 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             "dry_run": True,
         }
 
-    work = WORK_ROOT / video_id
     shots = work / "shots"
     if work.exists():
         # recicla só o rec; screenshots podem ser reaproveitadas
@@ -2211,6 +2337,14 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
     mp4 = compose_presenter(mp4, episode, audio, work)
+    outro_video = resolve_outro_video(video_id)
+    if outro_video:
+        mp4 = append_outro_video(mp4, outro_video, work)
+
+    try:
+        append_last_video(video_id, episode_date(audio), timeline_beats)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  last_videos append falhou: {exc}")
 
     result = {
         "video_id": video_id,
@@ -2303,6 +2437,10 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             "wallpaper": wallpaper.name if wallpaper else None,
         }
         save_state(state)
+        try:
+            append_last_video(video_id, episode_date(audio), timeline_beats)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  last_videos append falhou: {exc}")
         print(f"  ✅ YouTube {result['url']}")
         try:
             from media_offload import after_youtube

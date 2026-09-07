@@ -466,5 +466,37 @@ class HandlerCaptureOrderTests(unittest.TestCase):
             self.assertTrue((shot_dir / "src-00.png").exists())
 
 
+class BrandingIntroOutroTests(unittest.TestCase):
+    def test_find_intro_audio_detects_file(self):
+        import bm_mockup_video as m
+        intro = m.find_intro_audio()
+        if m.INTRO_AUDIO_DIR.is_dir():
+            self.assertIsNotNone(intro)
+            self.assertTrue(intro.is_file())
+
+    def test_resolve_outro_video_returns_valid_mp4(self):
+        import bm_mockup_video as m
+        outro = m.resolve_outro_video("test-vid-123")
+        self.assertIsNotNone(outro)
+        self.assertTrue(outro.is_file())
+        self.assertEqual(outro.suffix.lower(), ".mp4")
+
+    def test_resolve_outro_video_deterministic_rotation(self):
+        import bm_mockup_video as m
+        o1 = m.resolve_outro_video("vid_abc")
+        o2 = m.resolve_outro_video("vid_abc")
+        self.assertEqual(o1, o2)
+
+    def test_prepare_audio_with_intro_fallback_on_missing(self):
+        import bm_mockup_video as m
+        with tempfile.TemporaryDirectory() as td:
+            fake_audio = Path(td) / "audio.mp3"
+            fake_audio.write_bytes(b"dummy")
+            with patch.object(m, "find_intro_audio", return_value=None):
+                res = m.prepare_audio_with_intro(fake_audio, Path(td))
+                self.assertEqual(res, fake_audio)
+
+
 if __name__ == "__main__":
     unittest.main()
+
