@@ -31,7 +31,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -105,8 +105,8 @@ def mark_seen(video_id: str, metadata: dict | None = None) -> None:
     save_seen(seen)
 
 
-def run_step(cmd: list[str], label: str, env: dict | None = None) -> bool:
-    """Roda um subprocesso e retorna True se bem-sucedido."""
+def run_step_code(cmd: list[str], label: str, env: dict | None = None) -> int:
+    """Roda um subprocesso e retorna o código de saída (returncode)."""
     env = {**os.environ, **(env or {})}
     print(f"\n  ▶ {label}")
     result = subprocess.run(cmd, env=env, cwd=str(PROJECT_ROOT), capture_output=True, text=True, encoding="utf-8")
@@ -116,21 +116,25 @@ def run_step(cmd: list[str], label: str, env: dict | None = None) -> bool:
         print(f"  ❌ FALHA ({label}): exit {result.returncode}")
         if result.stderr:
             print(result.stderr[-2000:])
-        return False
-    return True
+    return result.returncode
+
+
+def run_step(cmd: list[str], label: str, env: dict | None = None) -> bool:
+    """Roda um subprocesso e retorna True se bem-sucedido."""
+    return run_step_code(cmd, label, env) == 0
 
 
 # ── Etapas do pipeline ──────────────────────────────────────────────────────
 
-def step_transcript(url: str, video_id: str) -> bool:
-    """Fase 2: Extrair transcrição."""
+def step_transcript(url: str, video_id: str) -> int:
+    """Fase 2: Extrair transcrição. Retorna returncode (0 = ok, 3 = sem legendas no YT, 1/2 = erro)."""
     raw_path = RAW_DIR / f"{video_id}.json"
     if raw_path.exists():
         raw = json.loads(raw_path.read_text(encoding="utf-8"))
         if raw.get("transcript") and len(raw["transcript"].split()) > 50:
             print(f"  ℹ️  Transcrição já existe ({raw.get('transcript_words', '?')} palavras)")
-            return True
-    return run_step(
+            return 0
+    return run_step_code(
         _py("bm_transcript.py") + ["--url", url],
         "Extração de transcrição (yt-dlp)",
     )
@@ -404,7 +408,11 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
 
     # 1. Transcrição
     print("\n📥 Etapa 1/5 — Extração de transcrição")
-    if not step_transcript(url, video_id):
+    tr_rc = step_transcript(url, video_id)
+    if tr_rc != 0:
+        if tr_rc == 3:
+            print("⏳ FALHA: Legendas do YouTube ainda não geradas para este vídeo. Abortando com exit 3 (aguardando retry).")
+            sys.exit(3)
         print("❌ FALHA na extração. Abortando.")
         sys.exit(2)
 
@@ -562,18 +570,91 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         print(f"   R2 id:   especial-{video_id}")
 
 
-def cmd_process_queue(skip_audio: bool = False) -> None:
-    """Processa todos os vídeos com status 'pending' na fila."""
-    queue = load_queue()
-    pending = [item for item in queue if item.get("status") == "pending"]
+def is_interview_title(title: str) -> bool:
+    """Heurística para identificar entrevistas do ANCAPSU que não devem ser processadas no pipeline de notícias."""
+    low = title.lower()
+    if re.search(r"\bpeter\s+entrevista\b", low):
+        return True
+    if re.search(r"\bentrevista\s*:", low):
+        return True
+    if re.search(r"\bentrevista\s+com\b", low):
+        return True
+    return False
 
-    if not pending:
-        print("ℹ️  Nenhum vídeo pendente na fila")
+
+def sanitize_and_recover_queue(queue: list[dict], save: bool = False) -> list[dict]:
+    """Recupera itens presos em 'error' e descarta entrevistas legadas."""
+    modified = False
+    cleaned = []
+    for item in queue:
+        title = item.get("title", "")
+        # Descartar entrevistas que caíram na fila por engano
+        if is_interview_title(title):
+            modified = True
+            continue
+
+        # Recuperar itens com status "error" legado
+        if item.get("status") == "error":
+            item["status"] = "pending"
+            item.setdefault("attempts", 0)
+            item.setdefault("max_attempts", 4)
+            item.pop("retry_after", None)
+            modified = True
+
+        cleaned.append(item)
+
+    if modified and save:
+        save_queue(cleaned)
+    return cleaned
+
+
+def cmd_process_queue(skip_audio: bool = False, force_all: bool = False) -> None:
+    """Processa vídeos pendentes na fila, respeitando backoff e tentativas."""
+    queue = load_queue()
+    queue = sanitize_and_recover_queue(queue, save=True)
+
+    now = datetime.now(timezone.utc)
+    ready = []
+    waiting = []
+
+    for item in queue:
+        status = item.get("status")
+        if status != "pending":
+            continue
+
+        # Se force_all estiver ativo, ignora retry_after
+        if force_all:
+            ready.append(item)
+            continue
+
+        retry_after_str = item.get("retry_after")
+        if retry_after_str:
+            try:
+                retry_dt = datetime.fromisoformat(retry_after_str)
+                if retry_dt.tzinfo is None:
+                    retry_dt = retry_dt.replace(tzinfo=timezone.utc)
+                if now < retry_dt:
+                    waiting.append((item, retry_dt))
+                    continue
+            except (ValueError, TypeError):
+                pass
+        ready.append(item)
+
+    if waiting:
+        for item, retry_dt in waiting:
+            t_str = retry_dt.strftime("%H:%M:%S UTC")
+            print(f"⏳ Aguardando retry: {item.get('title', item['video_id'])[:50]}... (até {t_str}, tentativa {item.get('attempts', 0)}/{item.get('max_attempts', 4)})")
+
+    if not ready:
+        if waiting:
+            print(f"ℹ️  Nenhum vídeo pronto para processamento imediato ({len(waiting)} aguardando retry de legenda/processamento).")
+        else:
+            print("ℹ️  Nenhum vídeo pendente na fila")
         return
 
-    print(f"📋 {len(pending)} vídeo(s) pendente(s) na fila")
+    print(f"📋 {len(ready)} vídeo(s) pronto(s) para processar na fila ({len(waiting)} aguardando retry)")
 
-    for item in pending:
+    for item in ready:
         video_id = item["video_id"]
         url      = item["url"]
         title    = item.get("title", video_id)
@@ -588,28 +669,81 @@ def cmd_process_queue(skip_audio: bool = False) -> None:
         print(f"\n{'='*55}")
         print(f"🎬 Processando: {title[:60]}")
 
+        success = False
+        exit_code = 0
         try:
             cmd_full(url, skip_audio=skip_audio)
-            for q in queue:
-                if q["video_id"] == video_id:
+            success = True
+        except SystemExit as e:
+            exit_code = e.code if isinstance(e.code, int) else 1
+            print(f"  ❌ Falha ao processar {video_id} (exit code {exit_code})")
+        except Exception as exc:
+            exit_code = 1
+            print(f"  ❌ Exceção ao processar {video_id}: {exc}")
+
+        # Atualizar status na fila com retry / backoff
+        for q in queue:
+            if q["video_id"] == video_id:
+                attempts = q.get("attempts", 0) + 1
+                max_attempts = q.get("max_attempts", 4)
+                q["attempts"] = attempts
+                q["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
+
+                if success:
                     q["status"] = "done"
                     q["processed_at"] = datetime.now(timezone.utc).isoformat()
-                    break
-        except SystemExit:
-            for q in queue:
-                if q["video_id"] == video_id:
-                    q["status"] = "error"
-                    break
-            print(f"  ❌ Falha ao processar {video_id}")
+                    q.pop("retry_after", None)
+                    q.pop("last_error", None)
+                    print(f"  ✅ Concluído com sucesso: {video_id}")
+                else:
+                    if exit_code == 3:
+                        err_label = "Legendas do YouTube ainda não geradas (aguardando YouTube)"
+                        backoff_mins = 20 if attempts == 1 else (15 + 15 * attempts)
+                    else:
+                        err_label = f"Falha no pipeline (exit {exit_code})"
+                        backoff_mins = 15 * attempts
+
+                    q["last_error"] = err_label
+                    if attempts < max_attempts:
+                        retry_time = datetime.now(timezone.utc) + timedelta(minutes=backoff_mins)
+                        q["status"] = "pending"
+                        q["retry_after"] = retry_time.isoformat()
+                        print(f"  ⏳ {err_label}. Reagendado para {retry_time.strftime('%H:%M:%S UTC')} (tentativa {attempts}/{max_attempts})")
+                    else:
+                        q["status"] = "failed"
+                        q.pop("retry_after", None)
+                        print(f"  ❌ Limite de tentativas excedido ({attempts}/{max_attempts}). Vídeo marcado como 'failed'. Erro: {err_label}")
+                break
 
         save_queue(queue)
 
-    # Limpar done da fila (manter apenas pending/error)
+    # Limpar concluídos (done) da fila
     queue = [q for q in queue if q.get("status") not in ("done",)]
     save_queue(queue)
 
-    done = len(pending) - len([q for q in pending if q.get("status") == "error"])
-    print(f"\n✅ {done}/{len(pending)} vídeo(s) processado(s) com sucesso")
+    done_count = sum(1 for item in ready if not any(q["video_id"] == item["video_id"] and q.get("status") in ("pending", "processing", "failed") for q in queue))
+    print(f"\n✅ {done_count}/{len(ready)} vídeo(s) processado(s) com sucesso nesta rodada")
+
+
+def cmd_retry_queue(video_id: str | None = None, retry_all: bool = False) -> None:
+    """Reabilita itens da fila para 'pending', resetando tentativas e backoff."""
+    queue = load_queue()
+    count = 0
+    for q in queue:
+        vid = q.get("video_id")
+        status = q.get("status")
+        if video_id and vid != video_id:
+            continue
+        if retry_all or status in ("failed", "error") or q.get("attempts", 0) > 0 or q.get("retry_after"):
+            q["status"] = "pending"
+            q["attempts"] = 0
+            q.pop("retry_after", None)
+            q.pop("last_error", None)
+            count += 1
+            print(f"  🔄 Resetado para pending: {vid} — {q.get('title', '')[:50]}")
+
+    save_queue(queue)
+    print(f"✅ {count} vídeo(s) reabilitado(s) na fila para processamento.")
 
 
 def main():
@@ -619,7 +753,8 @@ def main():
         epilog="""
 Comandos:
   full            Pipeline completo a partir de URL
-  process-queue   Processa todos os vídeos pendentes na fila
+  process-queue   Processa vídeos pendentes na fila (respeita backoff/retry)
+  retry-queue     Reabilita itens da fila (reseta status de erro e backoff)
   transcript      Apenas extrai a transcrição
   roteiro         Apenas gera o roteiro (precisa de transcrição)
   audio           Apenas gera o áudio (precisa de roteiro)
@@ -628,11 +763,13 @@ Comandos:
   composicao      Gera HTML HyperFrames (destaques, sem karaoke)
         """,
     )
-    parser.add_argument("command", choices=["full", "process-queue", "transcript", "roteiro", "audio", "assets", "review", "composicao"])
+    parser.add_argument("command", choices=["full", "process-queue", "retry-queue", "transcript", "roteiro", "audio", "assets", "review", "composicao"])
     parser.add_argument("--url", "--youtube-url", dest="url", help="URL do vídeo do YouTube (para: full, transcript)")
     parser.add_argument("--video-id", help="ID do vídeo")
     parser.add_argument("--skip-audio", action="store_true", help="Pular geração de áudio")
     parser.add_argument("--force", action="store_true", help="Forçar regeneração de arquivos existentes")
+    parser.add_argument("--force-all", action="store_true", help="process-queue: processa vídeos ignorando tempo de retry")
+    parser.add_argument("--retry-all", action="store_true", help="retry-queue: reseta todos os vídeos da fila")
     parser.add_argument("--generate", action="store_true", help="assets: permite DashScope")
     parser.add_argument("--json", action="store_true", help="review: saída JSON")
     parser.add_argument("--approve", action="store_true", help="review: aprovar")
@@ -647,15 +784,19 @@ Comandos:
         cmd_full(args.url, skip_audio=args.skip_audio, force=args.force)
 
     elif args.command == "process-queue":
-        cmd_process_queue(skip_audio=args.skip_audio)
+        cmd_process_queue(skip_audio=args.skip_audio, force_all=args.force_all)
+
+    elif args.command == "retry-queue":
+        cmd_retry_queue(video_id=args.video_id, retry_all=args.retry_all)
 
     elif args.command == "transcript":
         if not args.url:
             print("❌ --url é obrigatório para 'transcript'")
             sys.exit(1)
         video_id = extract_video_id(args.url)
-        if not step_transcript(args.url, video_id):
-            sys.exit(2)
+        rc = step_transcript(args.url, video_id)
+        if rc != 0:
+            sys.exit(rc)
 
     elif args.command == "roteiro":
         if not args.video_id:

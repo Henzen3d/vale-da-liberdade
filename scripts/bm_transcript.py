@@ -437,6 +437,10 @@ def transcribe_audio_whisper(audio_path: str) -> str | None:
     return None
 
 
+EXIT_CODE_NO_SUBS = 3
+LAST_EXTRACTION_ERROR: str | None = None
+
+
 def extract_transcript(url: str, video_id: str) -> dict | None:
     """
     Pipeline completo de extração:
@@ -445,6 +449,8 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
     3. Fallback: áudio + Whisper STT
     4. Extração de fontes da descrição
     """
+    global LAST_EXTRACTION_ERROR
+    LAST_EXTRACTION_ERROR = None
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"{video_id}.json"
 
@@ -465,6 +471,7 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
 
     # 2. Legendas
     transcript_text = None
+    subs_missing = False
     with tempfile.TemporaryDirectory(prefix="bm_transcript_") as tmpdir:
         work_dir = Path(tmpdir)
         print("   📄 Baixando legendas...")
@@ -474,6 +481,7 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
             transcript_text = parse_srt(srt_path)
             print(f"   ✅ Legenda extraída ({len(transcript_text.split())} palavras)")
         else:
+            subs_missing = True
             # 3. Fallback STT
             print("   ⚠️  Sem legendas disponíveis, tentando fallback STT...")
             audio_path = download_audio_for_stt(url, work_dir)
@@ -485,7 +493,13 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
                     )
 
     if not transcript_text or len(transcript_text.split()) < 20:
-        print(f"   ❌ Falha: transcrição vazia ou muito curta")
+        if subs_missing:
+            LAST_EXTRACTION_ERROR = "NO_SUBTITLES"
+            print("   ⏳ Legendas ainda não disponíveis no YouTube para este vídeo (vídeo recente).")
+            print("   ⏳ Requer aguardar o processamento de áudio/legendas pelo YouTube.")
+        else:
+            LAST_EXTRACTION_ERROR = "TRANSCRIPT_TOO_SHORT"
+            print(f"   ❌ Falha: transcrição vazia ou muito curta")
         return None
 
     # 4. Fontes da descrição (seção "Referências:" tem prioridade)
@@ -557,6 +571,9 @@ def main():
         if result["source_names"]:
             print(f"   Fontes: {', '.join(result['source_names'])}")
     else:
+        if LAST_EXTRACTION_ERROR == "NO_SUBTITLES":
+            print("⏳ Aguardando legendas serem geradas pelo YouTube (exit 3).")
+            sys.exit(EXIT_CODE_NO_SUBS)
         print("❌ Falha na extração da transcrição")
         sys.exit(1)
 
