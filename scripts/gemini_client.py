@@ -160,6 +160,53 @@ def _collapse_fake_rpd_pad(requests: list) -> list:
     return out
 
 
+def _gc_usage_data(data: dict) -> dict:
+    """Garbage collection: limpa timestamps fora do dia Pacífico e colapsa fake pads.
+
+    Executada ao carregar o arquivo de uso para evitar acúmulo de dados antigos
+    (incidente 2026-09-01/05: 10 timestamps idênticos por chave travavam o RPD).
+    """
+    if not data:
+        return data
+    now = time.time()
+    day_start = _pacific_day_start(now)
+    changed = False
+    for key_id_k, key_data in list(data.items()):
+        if key_id_k == "_meta":
+            continue
+        if not isinstance(key_data, dict):
+            continue
+        for model_k, model_data in list(key_data.items()):
+            if not isinstance(model_data, dict) or "requests" not in model_data:
+                continue
+            raw_reqs = model_data.get("requests") or []
+            # 1. Colapsa fake pads (timestamps idênticos)
+            cleaned = _collapse_fake_rpd_pad(raw_reqs)
+            # 2. Descarta requests anteriores ao dia Pacífico atual
+            today_reqs = [t for t in cleaned if t >= day_start]
+            if len(today_reqs) != len(raw_reqs):
+                model_data["requests"] = today_reqs
+                changed = True
+            # 3. Descarta tokens fora da janela de 1 minuto
+            old_tokens = model_data.get("tokens") or []
+            fresh_tokens = [e for e in old_tokens if now - e.get("timestamp", 0) < 60]
+            if len(fresh_tokens) != len(old_tokens):
+                model_data["tokens"] = fresh_tokens
+                changed = True
+            # 4. Limpa exhausted_until expirado
+            eu = float(model_data.get("exhausted_until") or 0)
+            if eu and eu <= now:
+                model_data["exhausted_until"] = 0
+                changed = True
+    return data
+
+
+def _is_server_overload(msg: str) -> bool:
+    """Detecta erros 503/UNAVAILABLE do servidor Google (overload, não quota)."""
+    m = (msg or "").lower()
+    return "503" in m or "unavailable" in m or "service unavailable" in m
+
+
 def _is_local_rpd_block(msg: str) -> bool:
     m = (msg or "").lower()
     return "limite diário atingido" in m
@@ -292,10 +339,13 @@ class GeminiClient:
             now = time.time()
             usage = _load_usage(self.usage_file)
 
+            # GC global no load: limpa timestamps antigos e fake pads de TODAS as chaves
+            _gc_usage_data(usage)
+
             key_data = usage.setdefault(key_id, {})
             model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
 
-            real_requests = _collapse_fake_rpd_pad(model_data.get("requests") or [])
+            real_requests = model_data.get("requests") or []  # já limpo pelo GC
             requests_minute = [t for t in real_requests if now - t < 60]
             requests_day = _requests_in_rpd_window(real_requests, now)
             tokens_minute = [entry for entry in model_data["tokens"] if now - entry["timestamp"] < 60]
@@ -425,15 +475,20 @@ class GeminiClient:
 
         max_retries=2: a 2ª tentativa em 429 espera a janela de RPM (~20s no TTS),
         não metralha 5× com backoff de 2s.
+        Erros 503 (server overload) recebem até 3 retries com delay mais longo (15-30s).
         """
         estimated_tokens = _estimate_tokens(contents)
         reserved_at = self._enforce_rate_limit(model, estimated_tokens)
         last_exception = None
         call_succeeded = False
         base_delay = 2.0
+        # 503 = server overload → mais retries e delay mais longo que 429 RPM
+        effective_retries = max_retries
 
         try:
-            for attempt in range(1, max_retries + 1):
+            attempt = 0
+            while attempt < effective_retries:
+                attempt += 1
                 try:
                     response = self.client.models.generate_content(
                         model=model,
@@ -451,27 +506,35 @@ class GeminiClient:
                 except Exception as exc:
                     last_exception = exc
                     error_msg = str(exc).lower()
+                    is_503 = _is_server_overload(error_msg)
                     is_transient = (
                         _is_rate_error(error_msg)
-                        or "503" in error_msg
-                        or "service unavailable" in error_msg
+                        or is_503
                     )
                     if not is_transient:
                         raise
                     if _is_google_daily_quota_error(error_msg, model=model):
                         self._mark_daily_quota_exhausted(model)
                         raise
-                    if attempt == max_retries:
-                        log.error(f"Todas as {max_retries} tentativas falharam para {model}.")
+                    # 503: bump retries para 3 (server pode se recuperar)
+                    if is_503 and effective_retries < 3:
+                        effective_retries = 3
+                    if attempt >= effective_retries:
+                        log.error(f"Todas as {effective_retries} tentativas falharam para {model}.")
                         raise
-                    if "429" in error_msg or "rate limit" in error_msg or "resource_exhausted" in error_msg:
+                    if is_503:
+                        # Server overload: esperar 15-30s (não adianta metralhá-lo)
+                        delay = random.uniform(15.0, 30.0)
+                    elif "429" in error_msg or "rate limit" in error_msg or "resource_exhausted" in error_msg:
+                        # 429 RPM: esperar a janela de RPM (60/RPM)
                         rpm_limit = self._get_limits(model)["rpm"]
                         delay = max(20.0, 60.0 / max(1, rpm_limit)) + random.uniform(0.5, 2.0)
                     else:
                         jitter = random.uniform(-0.5, 0.5)
                         delay = max(0.5, (base_delay * (2 ** (attempt - 1))) + jitter)
                     log.warning(
-                        f"Erro de taxa (429/transiente) na tentativa {attempt}/{max_retries} "
+                        f"Erro {'503 server overload' if is_503 else '429/transiente'} "
+                        f"na tentativa {attempt}/{effective_retries} "
                         f"para {model}: {exc}. Aguardando {delay:.2f}s..."
                     )
                     time.sleep(delay)
@@ -487,12 +550,13 @@ class GeminiMultiClient:
 
     Cada chave tem sua própria quota (3 RPM / 10 RPD na AI Studio).
 
-    Estratégia (2026-08-03):
+    Estratégia (2026-09-07, v2):
       1. ROUND-ROBIN por chamada — chunk 1 → key1, chunk 2 → key2, …
          Isso espalha RPM (3/min) e RPD (10/dia) entre as chaves, em vez
          de esgotar a primeira e só então cair na segunda.
-      2. RPD / cota diária → failover na próxima chave.
-         429 de RPM NÃO varre o anel: a chave da vez dorme no timer (60/RPM).
+      2. QUALQUER erro transiente (429 RPM/RPD, 503, etc.) → failover na
+         próxima chave. A chave já esgotou seus retries internos; tentar
+         outra chave é sempre melhor que morrer.
 
     Usado pelo TTS e pelo roteiro para multiplicar a capacidade.
     """
@@ -558,6 +622,13 @@ class GeminiMultiClient:
                     log.warning(f"Chave {key_hint} esgotou RPD: {exc} — rotacionando...")
                     last_exc = exc
                     continue
+                # RuntimeError transiente (429 RPM, 503, etc.) → tenta próxima chave
+                if _is_rate_error(msg) or _is_server_overload(msg):
+                    log.warning(
+                        f"Chave {key_hint} erro transiente (retries esgotados) — rotacionando: {exc}"
+                    )
+                    last_exc = exc
+                    continue
                 raise
             except Exception as exc:
                 msg = str(exc).lower()
@@ -569,11 +640,14 @@ class GeminiMultiClient:
                     log.warning(f"Chave {key_hint} quota diária Google — rotacionando...")
                     last_exc = exc
                     continue
-                if _is_rate_error(msg):
+                # QUALQUER erro transiente (429 RPM, 503 overload) → próxima chave
+                # A chave já gastou seus retries internos; é melhor tentar outra.
+                if _is_rate_error(msg) or _is_server_overload(msg):
                     log.warning(
-                        f"Chave {key_hint} 429 de taxa (não RPD) — sem varrer o anel: {exc}"
+                        f"Chave {key_hint} erro transiente (retries esgotados) — rotacionando: {exc}"
                     )
-                    raise
+                    last_exc = exc
+                    continue
                 last_exc = exc
                 log.warning(f"Chave {key_hint} erro: {exc} — tentando próxima...")
                 continue
