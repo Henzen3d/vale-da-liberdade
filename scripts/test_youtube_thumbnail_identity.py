@@ -213,6 +213,14 @@ class LegacyHeuristicBanTests(unittest.TestCase):
         src = (PROJECT_ROOT / "scripts" / "bm-hourly-pipeline.sh").read_text(encoding="utf-8")
         self.assertIn("bm_pipeline.py process-queue", src)
         self.assertIn("bm_mockup_video.py", src)
+        # Hermes mata no_agent em 3600s. TTS+mockup no mesmo tick estoura e
+        # conta 3 falhas seguidas. Orçamento: timeout + pular mockup se
+        # restar < MOCKUP_MIN_S.
+        self.assertIn("process-queue --max 1", src)
+        self.assertIn("BUDGET_S=3300", src)
+        self.assertIn("MOCKUP_MIN_S=900", src)
+        self.assertIn("timeout --kill-after=30s", src)
+        self.assertIn("pulando mockup nesta rodada", src)
 
 
 class YoutubeGenerateIdempotencyTests(unittest.TestCase):
