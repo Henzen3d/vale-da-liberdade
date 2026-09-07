@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preview Interativo — Mockup X Clean (Vale da Liberdade)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Roboto+Condensed:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080a0f;
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* BARRA DE CONTROLES FIXA NO TOPO (SEMPRE VISÍVEL INDEPENDENTE DA RESOLUÇÃO) */
+    .top-controls {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      padding: 8px 16px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .status-pill {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(56, 189, 248, 0.12);
+      border-radius: 20px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #38bdf8;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .top-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .top-btn:hover {
+      background: #d4a017;
+      color: #000;
+      border-color: #d4a017;
+      transform: translateY(-1px);
+    }
+
+    .top-btn.active {
+      background: #d4a017;
+      color: #000;
+      border-color: #d4a017;
+    }
+
+    /* PALCO 1920x1080 AUTO-FIT ESCALADO AUTOMATICAMENTE */
+    #viewport-container {
+      width: 1920px;
+      height: 1080px;
+      transform-origin: center center;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Cena Broadcast idêntica ao mockup do canal */
+    .scene {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: 
+        radial-gradient(circle at 18% 22%, rgba(212, 160, 23, 0.28), transparent 45%),
+        radial-gradient(circle at 82% 28%, rgba(20, 60, 140, 0.35), transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(184, 134, 11, 0.18), transparent 50%),
+        linear-gradient(135deg, #0d1017 0%, #151a24 50%, #0a0c10 100%);
+    }
+
+    .bg-mesh-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bg-ambient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      left: -100px;
+      top: -100px;
+      background: radial-gradient(circle, rgba(212, 160, 23, 0.25), transparent 70%);
+    }
+
+    .orb-2 {
+      width: 600px;
+      height: 600px;
+      right: -100px;
+      bottom: -100px;
+      background: radial-gradient(circle, rgba(20, 60, 140, 0.25), transparent 70%);
+    }
+
+    /* Container Central para o Navegador e o Card do X */
+    .stage-wrapper {
+      position: relative;
+      width: 1540px;
+      height: 840px;
+      margin-bottom: 75px; /* Folga do Lower Third */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    /* 1. NAVEGADOR MOCKUP */
+    .browser-box {
+      position: absolute;
+      width: 1480px;
+      height: 820px;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .browser-topbar {
+      height: 76px;
+      background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+      border-bottom: 1px solid #cbd5e1;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .traffic-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .traffic-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .url-bar {
+      height: 30px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      font-size: 13px;
+      color: #475569;
+    }
+    .url-bar b { color: #0f172a; }
+
+    .browser-content {
+      flex: 1;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      position: relative;
+    }
+    .browser-demo-title {
+      color: #0f172a;
+      font-size: 32px;
+      font-weight: 800;
+      text-align: center;
+      max-width: 900px;
+    }
+    .browser-demo-subtitle {
+      color: #64748b;
+      font-size: 18px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    /* 2. CARD CLEAN DO X / TWITTER */
+    .x-card {
+      position: absolute;
+      width: 960px;
+      max-width: 90vw;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 34px 38px 28px;
+      box-shadow: 
+        0 28px 70px rgba(0, 0, 0, 0.45),
+        0 8px 22px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(0, 0, 0, 0.06);
+      color: #0f1419;
+      display: flex;
+      flex-direction: column;
+      visibility: hidden;
+      z-index: 20;
+    }
+
+    .x-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .x-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #e2e8f0;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .x-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .x-user-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      line-height: 1.25;
+    }
+
+    .x-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .x-display-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f1419;
+      letter-spacing: -0.2px;
+    }
+
+    .x-badge svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    .x-handle {
+      font-size: 17px;
+      font-weight: 500;
+      color: #536471;
+    }
+
+    .x-logo {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+    }
+
+    .x-logo svg {
+      width: 28px;
+      height: 28px;
+      fill: #0f1419;
+    }
+
+    .x-body {
+      font-size: 24px;
+      font-weight: 400;
+      color: #0f1419;
+      line-height: 1.48;
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+
+    .x-body a, .x-body .highlight {
+      color: #1d9bf0;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* Mídia / Foto */
+    .x-media-box {
+      width: 100%;
+      max-height: 380px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #cfd9de;
+      margin-bottom: 18px;
+      background: #f7f9f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .x-media-img {
+      width: 100%;
+      height: 100%;
+      max-height: 380px;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Timestamp */
+    .x-timestamp {
+      font-size: 16px;
+      font-weight: 500;
+      color: #536471;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #eff3f4;
+      margin-bottom: 14px;
+    }
+
+    /* Métricas */
+    .x-metrics-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .x-metric {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #536471;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .x-metric-icon svg {
+      width: 26px;
+      height: 26px;
+      fill: #536471;
+      display: block;
+    }
+
+    /* LOWER THIRD SIMULADO NA BASE */
+    .lower-third-preview {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1320px;
+      height: 100px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      border-top: 4px solid #d4a017;
+      z-index: 30;
+    }
+    .lt-info-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.2px;
+    }
+    .lt-info-sub {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .lt-badge-vdl {
+      background: #d4a017;
+      color: #000;
+      font-weight: 900;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- BARRA DE CONTROLES NO TOPO -->
+  <div class="top-controls">
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      <span id="loopStatusText">Auto-Play Ativo</span>
+    </div>
+    <button id="toggleLoopBtn" class="top-btn active" onclick="toggleAutoLoop()">⏸️ Pausar Loop</button>
+    <button class="top-btn" onclick="triggerXManual()">🐦 Forçar Card do X</button>
+    <button class="top-btn" onclick="triggerBrowserManual()">🌐 Forçar Navegador</button>
+    <button class="top-btn" onclick="toggleMedia()">🖼️ Alternar Foto</button>
+  </div>
+
+  <!-- CONTAINER COM REDIMENSIONAMENTO INTELIGENTE (AUTO-FIT) -->
+  <div id="viewport-container">
+    <div class="scene">
+      <div class="bg-mesh-grid"></div>
+      <div class="bg-ambient-orb orb-1"></div>
+      <div class="bg-ambient-orb orb-2"></div>
+
+      <div class="stage-wrapper">
+        <!-- 1. NAVEGADOR MOCKUP -->
+        <div id="browserMockup" class="browser-box">
+          <div class="browser-topbar">
+            <div class="traffic-row">
+              <span class="traffic-dot dot-red"></span>
+              <span class="traffic-dot dot-yellow"></span>
+              <span class="traffic-dot dot-green"></span>
+            </div>
+            <div class="url-bar">
+              <span>🔒</span>
+              <span>https://<b>valedaliberdade.com.br</b>/brasil-e-mundo/moraes-stf-crise</span>
+            </div>
+          </div>
+          <div class="browser-content">
+            <div class="browser-demo-title">STF INICIA JULGAMENTO SOBRE REGULAÇÃO DE REDES</div>
+            <div class="browser-demo-subtitle">Navegador convencional com screenshot e URL da matéria</div>
+          </div>
+        </div>
+
+        <!-- 2. CARD DO X CLEAN -->
+        <div id="xCard" class="x-card">
+          <!-- Header -->
+          <div class="x-header">
+            <div class="x-avatar">
+              <svg viewBox="0 0 56 56" fill="none">
+                <circle cx="28" cy="28" r="28" fill="#e2e8f0" />
+                <circle cx="28" cy="22" r="11" fill="#94a3b8" />
+                <ellipse cx="28" cy="45" rx="18" ry="13" fill="#94a3b8" />
+              </svg>
+            </div>
+            <div class="x-user-info">
+              <div class="x-name-row">
+                <span class="x-display-name">Alexandre de Moraes</span>
+                <span class="x-badge">
+                  <svg viewBox="0 0 22 22" fill="none">
+                    <circle cx="11" cy="11" r="11" fill="#1d9bf0" />
+                    <path d="M9.5 14.25L6.25 11l1.06-1.06 2.19 2.19 4.69-4.69L15.25 8.5 9.5 14.25z" fill="#fff" />
+                  </svg>
+                </span>
+              </div>
+              <span class="x-handle">@alexandre</span>
+            </div>
+            <div class="x-logo">
+              <svg viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Texto do Tweet -->
+          <div class="x-body">
+            O Supremo Tribunal Federal reafirma seu compromisso inegociável com a democracia, a soberania nacional e a estrita observância da Constituição. <span class="highlight">#STF</span>
+          </div>
+
+          <!-- Mídia do Tweet (Foto/Gráfico) -->
+          <div id="xMediaBox" class="x-media-box">
+            <img class="x-media-img" src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&auto=format&fit=crop&q=80" alt="Mídia do Post" />
+          </div>
+
+          <!-- Timestamp -->
+          <div class="x-timestamp">14:32 · 03 de set de 2026 · <b>45,1 mil</b> visualizações</div>
+
+          <!-- Barra de Métricas -->
+          <div class="x-metrics-bar">
+            <!-- Respostas -->
+            <div class="x-metric">
+              <div class="x-metric-icon">
+                <svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/></svg>
+              </div>
+              <span>4.2K</span>
+            </div>
+
+            <!-- Reposts -->
+            <div class="x-metric">
+              <div class="x-metric-icon">
+                <svg viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"/></svg>
+              </div>
+              <span>12.8K</span>
+            </div>
+
+            <!-- Curtidas (Com Animação de Coração Rosa) -->
+            <div id="xLikeBtn" class="x-metric">
+              <div class="x-metric-icon">
+                <svg viewBox="0 0 24 24" style="position:relative;">
+                  <path id="heartOutline" d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z" fill="#536471" />
+                  <path id="heartFilled" d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z" fill="#f91880" opacity="0" />
+                </svg>
+              </div>
+              <span id="xLikeCount">45.1K</span>
+            </div>
+
+            <!-- Salvar / Bookmark -->
+            <div class="x-metric">
+              <div class="x-metric-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"/></svg>
+              </div>
+            </div>
+
+            <!-- Compartilhar -->
+            <div class="x-metric">
+              <div class="x-metric-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOWER THIRD FIXO NA BASE -->
+      <div class="lower-third-preview">
+        <div>
+          <div class="lt-info-title">BLUMENAU AMPLIA INVESTIMENTOS EM INFRAESTRUTURA E TECNOLOGIA</div>
+          <div class="lt-info-sub">VALE DA LIBERDADE • DIÁRIO REGIONAL</div>
+        </div>
+        <div class="lt-badge-vdl">VDL DIÁRIO</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. AJUSTE DE ESCALA AUTOMÁTICA (FIT TO WINDOW)
+    function autoFit() {
+      const container = document.getElementById("viewport-container");
+      const scaleX = window.innerWidth / 1920;
+      const scaleY = window.innerHeight / 1080;
+      const scale = Math.min(scaleX, scaleY, 1);
+      container.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener("resize", autoFit);
+    window.addEventListener("DOMContentLoaded", autoFit);
+    autoFit();
+
+    // 2. ELEMENTOS E ESTADO
+    const browserEl = document.getElementById("browserMockup");
+    const xCardEl = document.getElementById("xCard");
+    const likeBtn = document.getElementById("xLikeBtn");
+    const heartOutline = document.getElementById("heartOutline");
+    const heartFilled = document.getElementById("heartFilled");
+    const likeCount = document.getElementById("xLikeCount");
+    const mediaBox = document.getElementById("xMediaBox");
+    const statusText = document.getElementById("loopStatusText");
+    const toggleLoopBtn = document.getElementById("toggleLoopBtn");
+
+    let isXVisible = false;
+    let autoLoopActive = true;
+    let loopTimer = null;
+
+    // 3. TRANSIÇÃO: BROWSER SAI ➔ X CARD ENTRA
+    function transitionToX() {
+      if (isXVisible) return;
+      isXVisible = true;
+
+      const tl = gsap.timeline();
+
+      // Browser desce e desvanece
+      tl.to(browserEl, {
+        y: 90,
+        opacity: 0,
+        scale: 0.96,
+        duration: 0.55,
+        ease: "power2.inOut",
+        onComplete: () => { browserEl.style.visibility = "hidden"; }
+      });
+
+      // Card do X sobe com amortecimento elástico
+      tl.set(xCardEl, {
+        visibility: "visible",
+        y: 160,
+        opacity: 0,
+        scale: 0.95
+      });
+
+      tl.to(xCardEl, {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.7,
+        ease: "power3.out"
+      }, "-=0.2");
+
+      // Like pop aos +0.6s
+      tl.to(likeBtn, { scale: 0.82, duration: 0.12, ease: "power2.out" }, "+=0.6");
+      tl.to(likeBtn, { scale: 1, duration: 0.35, ease: "elastic.out(1, 0.4)" });
+      tl.set(heartOutline, { opacity: 0 }, "<");
+      tl.set(heartFilled, { opacity: 1 }, "<");
+      tl.to(likeCount, {
+        color: "#f91880",
+        duration: 0.1,
+        onStart: () => { likeCount.textContent = "45.2K"; }
+      }, "<");
+    }
+
+    // 4. TRANSIÇÃO: X CARD SAI ➔ BROWSER RETORNA
+    function transitionToBrowser() {
+      if (!isXVisible) return;
+      isXVisible = false;
+
+      const tl = gsap.timeline();
+
+      // Reset like
+      gsap.set(heartOutline, { opacity: 1 });
+      gsap.set(heartFilled, { opacity: 0 });
+      gsap.set(likeCount, { color: "#536471" });
+      likeCount.textContent = "45.1K";
+
+      browserEl.style.visibility = "visible";
+
+      // Card do X desce
+      tl.to(xCardEl, {
+        y: 120,
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.45,
+        ease: "power2.in",
+        onComplete: () => { xCardEl.style.visibility = "hidden"; }
+      });
+
+      // Browser retorna
+      tl.to(browserEl, {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.6,
+        ease: "power3.out"
+      }, "-=0.15");
+    }
+
+    // 5. MOTOR DE LOOP AUTOMÁTICO (AUTOPLAY DEMO)
+    function runAutoCycle() {
+      if (!autoLoopActive) return;
+
+      // Fase 1: Mostra o browser por 2.5 segundos, depois transita para o X
+      loopTimer = setTimeout(() => {
+        if (!autoLoopActive) return;
+        transitionToX();
+
+        // Fase 2: Mantém o card do X por 4 segundos, depois volta para o browser
+        loopTimer = setTimeout(() => {
+          if (!autoLoopActive) return;
+          transitionToBrowser();
+
+          // Fase 3: Reinicia o ciclo após 2.5 segundos
+          loopTimer = setTimeout(() => {
+            if (autoLoopActive) runAutoCycle();
+          }, 2500);
+        }, 4000);
+      }, 2500);
+    }
+
+    function toggleAutoLoop() {
+      autoLoopActive = !autoLoopActive;
+      if (autoLoopActive) {
+        toggleLoopBtn.textContent = "⏸️ Pausar Loop";
+        toggleLoopBtn.classList.add("active");
+        statusText.textContent = "Auto-Play Ativo";
+        runAutoCycle();
+      } else {
+        clearTimeout(loopTimer);
+        toggleLoopBtn.textContent = "▶️ Iniciar Loop";
+        toggleLoopBtn.classList.remove("active");
+        statusText.textContent = "Pausado (Manual)";
+      }
+    }
+
+    function triggerXManual() {
+      if (autoLoopActive) toggleAutoLoop();
+      transitionToX();
+    }
+
+    function triggerBrowserManual() {
+      if (autoLoopActive) toggleAutoLoop();
+      transitionToBrowser();
+    }
+
+    function toggleMedia() {
+      mediaBox.style.display = mediaBox.style.display === "none" ? "flex" : "none";
+    }
+
+    // Inicia o auto-play assim que a página carrega!
+    setTimeout(() => {
+      runAutoCycle();
+    }, 1200);
+  </script>
+</body>
+</html>
