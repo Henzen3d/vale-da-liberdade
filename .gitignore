@@ -124,6 +124,7 @@ credentials/
 output/brasil_e_mundo/capture-cache/
 references/youtube/broll/*.mp4
 references/youtube/end-bumper/*.mp4
+scripts/x-twitter/*.mp4
 
 # ---- Conteúdo gerado pelo publish/pipeline (2026-08-31) ----
 # Fonte de verdade = scripts/ + output/. Estes são regenerados a cada run
