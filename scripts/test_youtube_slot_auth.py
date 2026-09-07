@@ -10,6 +10,7 @@ from unittest.mock import patch
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
+import youtube_quota as yq
 from youtube_quota import SlotAuthDead, is_invalid_grant
 import youtube_uploader as yu
 
@@ -37,6 +38,57 @@ class InvalidGrantFailoverTests(unittest.TestCase):
             out = yu.run_with_slots("upload", fn)
         self.assertEqual(out, 42)
         self.assertEqual(calls, ["slot1", "slot2"])
+
+    def test_run_with_slots_falls_back_to_tight_primary_when_backup_auth_dead(self) -> None:
+        """bb-6ADnqB8Y: slot1 vivo mas folga < 1900; slot2 morto. Tem que voltar no slot1."""
+        s1 = {"name": "slot1", "token": "token.json"}
+        s2 = {"name": "slot2", "token": "token.slot2.json"}
+        calls: list[str] = []
+
+        def fn():
+            calls.append(yu._ACTIVE_SLOT["name"])
+            if yu._ACTIVE_SLOT["name"] == "slot2":
+                raise SlotAuthDead("slot2: token expirado/revogado")
+            return 7
+
+        with patch.object(yu.yq, "pick_slots", return_value=[s2, s1]), \
+             patch.object(yu.yq, "token_path", return_value=Path("/tmp")), \
+             patch.object(yu.yq, "used", return_value=0):
+            out = yu.run_with_slots("upload", fn)
+        self.assertEqual(out, 7)
+        self.assertEqual(calls, ["slot2", "slot1"])
+
+
+class PickSlotsFallbackTests(unittest.TestCase):
+    def test_tight_primary_stays_as_fallback_when_backup_has_headroom(self) -> None:
+        s1 = {"name": "slot1"}
+        s2 = {"name": "slot2"}
+        ledger = {
+            "date": "2026-09-07",
+            "slots": {
+                "slot1": {"used": 8074, "calls": 50},
+                "slot2": {"used": 0, "calls": 0},
+            },
+        }
+        with patch.object(yq, "load_slots", return_value=[s1, s2]), \
+             patch.object(yq, "_load_ledger", return_value=ledger):
+            names = [s["name"] for s in yq.pick_slots(1900)]
+        self.assertEqual(names, ["slot2", "slot1"])
+
+    def test_exhausted_primary_is_not_resurrected(self) -> None:
+        s1 = {"name": "slot1"}
+        s2 = {"name": "slot2"}
+        ledger = {
+            "date": "2026-09-07",
+            "slots": {
+                "slot1": {"used": 10000, "exhausted": "quotaExceeded"},
+                "slot2": {"used": 0},
+            },
+        }
+        with patch.object(yq, "load_slots", return_value=[s1, s2]), \
+             patch.object(yq, "_load_ledger", return_value=ledger):
+            names = [s["name"] for s in yq.pick_slots(1900)]
+        self.assertEqual(names, ["slot2"])
 
 
 if __name__ == "__main__":

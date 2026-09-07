@@ -182,17 +182,21 @@ def headroom(slot_name: str) -> int:
 
 
 def pick_slots(need: int) -> list[dict]:
-    """Slots com folga para `need`, em ordem de prioridade.
+    """Slots em ordem de prioridade: folga estimada primeiro, depois os apertados.
 
-    Sem candidato com folga, devolve todos os slots não esgotados pelo Google —
-    melhor tentar e receber 403 do que travar por estimativa conservadora.
+    A estimativa OP_COST é conservadora (upload=1900 vs insert real=1600). Se o
+    único slot com folga tem OAuth morto, o primário apertado mas vivo ainda
+    precisa estar na lista — senão o upload morre (bb-6ADnqB8Y, slot1 8074/10000).
+    Slot marcado exhausted pelo Google não volta.
     """
     slots = load_slots()
-    ok = [s for s in slots if headroom(s["name"]) >= need]
-    if ok:
-        return ok
     ledger = _load_ledger()["slots"]
-    return [s for s in slots if not (ledger.get(s["name"], {}).get("exhausted"))]
+    ok = [s for s in slots if headroom(s["name"]) >= need]
+    tight = [
+        s for s in slots
+        if s not in ok and not (ledger.get(s["name"], {}) or {}).get("exhausted")
+    ]
+    return ok + tight
 
 
 def status_lines() -> list[str]:
