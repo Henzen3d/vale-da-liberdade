@@ -58,9 +58,14 @@ _CLEANUP_AGENCIA_JS = """() => {
     '[vw]',
     '[vw-access-button]',
     '#vlibras-widget',
+    '#vlibras-access-wrapper',
+    '[id*="vlibras"]',
+    '[class*="vlibras"]',
     '.access-button',
     '.banner-lgpd',
     '.banner-lgpd-consent',
+    '#sliding-popup',
+    '.sliding-popup-bottom',
     '#onetrust-banner-sdk',
     '#onetrust-consent-sdk',
     '.c-share-bar--floating',
@@ -99,6 +104,17 @@ _CLEANUP_AGENCIA_JS = """() => {
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
   });
+
+  // 3.1 Eliminar o espaçamento morto escuro: zerar margin-top compensatório de main e painel
+  document.querySelectorAll('main, .main-site, #panel').forEach(el => {
+    el.style.setProperty('margin-top', '0px', 'important');
+    el.style.setProperty('padding-top', '0px', 'important');
+  });
+
+  const noticiaPanel = document.querySelector('.container-noticia, #panel');
+  if (noticiaPanel) {
+    noticiaPanel.style.setProperty('margin-top', '16px', 'important');
+  }
 
   // 4. Destravar scroll, alturas e overflow no html e body
   const force = (el, prop, val) => el && el.style.setProperty(prop, val, 'important');
@@ -162,6 +178,17 @@ class AgenciaBrasilScraper(BaseScraper):
 
     def cleanup(self, page: Any) -> dict:
         """Remoção cirúrgica de barras de governo, modais e acessibilidade."""
+        try:
+            page.add_style_tag(content="""
+                [vw], [vw-access-button], [vw-plugin-wrapper], .vlibras, #vlibras-widget, #vlibras-access-wrapper, [id*="vlibras"], [class*="vlibras"], .access-button, #sliding-popup, .sliding-popup-bottom {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                }
+            """)
+        except Exception:
+            pass
         try:
             result = page.evaluate(_CLEANUP_AGENCIA_JS)
             return {"handler": "agenciabrasil", **result}

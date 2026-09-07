@@ -57,16 +57,54 @@ _CLEANUP_FOLHA_JS = """() => {
     removed.push('class:j-paywall');
   });
 
-  // 3. Remover barras de assinatura/ofertas e login-bars (topo e rodapé)
-  document.querySelectorAll('.c-subscribe-wall, #paywall-banner, .c-news-login-wall, .banner-lgpd-consent, #lgpd-banner, .c-push-notification, .c-top-bar, .c-bottom-fixed, [class*="login-bar"], [class*="bottom-bar"]').forEach(el => {
-    if (el.querySelector('.c-news__body, .c-signature, h1')) return;
+  // 3. Remover o espaçador elástico (responsável por 206px de espaço morto vazio no topo)
+  document.querySelectorAll('.js-c-elastic-header').forEach(el => {
+    el.remove();
+    removed.push('elastic-header-spacer');
+  });
+
+  // 4. Remover barras de assinatura/ofertas, popups e login-bars (topo e rodapé)
+  const bannerSelectors = [
+    '.c-subscribe-wall',
+    '#paywall-banner',
+    '.c-news-login-wall',
+    '.banner-lgpd-consent',
+    '#lgpd-banner',
+    '.c-push-notification',
+    '.c-top-bar',
+    '.c-bottom-fixed',
+    '.c-top-signup',
+    '[class*="top-signup"]',
+    '[class*="login-bar"]',
+    '[class*="bottom-bar"]',
+    '.c-accessibility',
+    '[class*="skip-link"]',
+    'a[href^="#conteudo"]',
+    'a[href^="#menu"]',
+    'a[href^="#rodape"]',
+  ];
+  document.querySelectorAll(bannerSelectors.join(', ')).forEach(el => {
+    if (el.closest('header, .l-header') || el.querySelector('.c-news__body, .c-signature, h1')) return;
     el.remove();
     removed.push(el.className || 'subscription-banner');
   });
 
-  // Remover faixas de texto de assinatura / oferta
-  document.querySelectorAll('div, section, aside, header').forEach(el => {
-    if (el.querySelector('article, h1, .c-news__body')) return;
+  // 5. Limpar faixas de oferta secundárias DENTRO do header sem remover o logo/menu
+  document.querySelectorAll('.l-header > div').forEach(div => {
+    if (div.classList.contains('l-header__wrapper') && !div.classList.contains('u-no-print')) {
+      return; // Preserva a barra principal da logo e do menu
+    }
+    const t = (div.innerText || '').toLowerCase();
+    if (t.includes('oferta especial') || t.includes('benefício do assinante') || div.classList.contains('u-no-print')) {
+      div.remove();
+      removed.push('header-offer-subbar');
+    }
+  });
+
+  // 6. Remover faixas de texto de assinatura / oferta (NUNCA remover o cabeçalho)
+  document.querySelectorAll('div, section, aside').forEach(el => {
+    if (el.closest('header, .l-header')) return;
+    if (el.querySelector('article, h1, .c-news__body, [itemprop="articleBody"]')) return;
     const t = (el.innerText || '').trim().toLowerCase();
     if ((t.includes('oferta especial') && t.includes('assine')) || t.includes('já é assinante?')) {
       el.remove();
@@ -74,7 +112,17 @@ _CLEANUP_FOLHA_JS = """() => {
     }
   });
 
-  // 4. Remover publicidades conhecidas e blocos vazios acima/dentro da matéria
+  // 7. Garantir que o cabeçalho oficial com a logo da Folha fique estático e visível
+  const header = document.querySelector('header, .l-header');
+  if (header) {
+    header.style.setProperty('position', 'static', 'important');
+    header.style.setProperty('display', 'block', 'important');
+    header.style.setProperty('visibility', 'visible', 'important');
+    header.style.setProperty('opacity', '1', 'important');
+    header.style.setProperty('height', 'auto', 'important');
+  }
+
+  // 8. Remover publicidades conhecidas e blocos vazios acima/dentro da matéria
   document.querySelectorAll('.c-top-banner, .banner--leaderboard, .banner--super, .banner--halfpage, .c-advertising-placeholder, .c-advertising, [id*="google_ads"], .taboola-container').forEach(e => {
     const parentBlock = e.closest('.block') || e;
     if (!parentBlock.querySelector('.c-news__body, .c-signature, h1')) {
@@ -83,7 +131,7 @@ _CLEANUP_FOLHA_JS = """() => {
     }
   });
 
-  // 5. Remover barras flutuantes de download/share
+  // 9. Remover barras flutuantes de download/share
   document.querySelectorAll('.c-share-bar--floating, .c-more-options--sticky, .c-app-download-banner, .c-floating-video').forEach(el => {
     el.remove();
     removed.push('floating-bar');
