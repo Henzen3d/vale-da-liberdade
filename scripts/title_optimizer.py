@@ -234,10 +234,11 @@ def _candidate_keys(env_name: str) -> list[str]:
 
 
 GEMINI_MODELS = [
-    "gemini-3.5-flash-lite",   # primário: 500 RPD / 15 RPM, rápido e ideal para títulos curtos
-    "gemini-3.1-flash-lite",   # secundário: 500 RPD
+    "gemini-3.1-flash-lite",   # primário estável: 500 RPD / 15 RPM, rápido e ideal para títulos curtos
+    "gemini-3.8-flash",        # alta precisão / qualidade editorial
     "gemini-3.6-flash",        # fallback alta capacidade
-    "gemini-3-flash-preview",  # fallback alternativo
+    "gemini-3.5-flash-lite",   # fallback alternativo
+    "gemini-3-flash-preview",  # fallback secundário
     "gemma-4-31b-it",          # backup aberto
 ]
 OPENROUTER_MODELS = [

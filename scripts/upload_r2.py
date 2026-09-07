@@ -63,10 +63,25 @@ def get_r2_client():
     )
 
 
+_LIFECYCLE_CHECKED = False
+
+
 def setup_r2_lifecycle_policy(s3_client, bucket_name: str, expiration_days: int = 90) -> bool:
-    """Best-effort: token sem permissão de lifecycle não deve quebrar o upload."""
-    if not s3_client:
+    """Best-effort: token sem permissão de lifecycle não deve quebrar o upload.
+
+    Regras de ciclo de vida no Cloudflare R2 são configurações a nível de bucket
+    (configuráveis de forma definitiva no painel Cloudflare em R2 > Bucket > Settings > Lifecycle Rules).
+    Tokens com escopo padrão 'Object Read & Write' não possuem permissão de PutBucketLifecycleConfiguration.
+    """
+    global _LIFECYCLE_CHECKED
+    if not s3_client or _LIFECYCLE_CHECKED:
         return False
+    _LIFECYCLE_CHECKED = True
+
+    # Só tenta aplicar via API se explicitamente solicitado via R2_MANAGE_LIFECYCLE=1
+    if os.environ.get("R2_MANAGE_LIFECYCLE", "0").lower() not in ("1", "true", "yes"):
+        return False
+
     try:
         s3_client.put_bucket_lifecycle_configuration(
             Bucket=bucket_name,
@@ -84,7 +99,8 @@ def setup_r2_lifecycle_policy(s3_client, bucket_name: str, expiration_days: int 
         print(f"[R2] Lifecycle {expiration_days}d aplicada em '{bucket_name}' (prefix audio/).")
         return True
     except Exception as e:
-        print(f"[AVISO] Lifecycle R2 ignorada (sem permissão ou API): {e}")
+        if "AccessDenied" not in str(e):
+            print(f"[AVISO] Lifecycle R2 ignorada: {e}")
         return False
 
 
@@ -161,9 +177,8 @@ def upload_episode_audio(date_str: str, file_path: Path | None = None) -> str:
         print(f"[ERRO] Arquivo de áudio não encontrado para {date_str}")
         return ""
 
-    # chave canônica no bucket = nome que o player usa
+    # chave canônica no bucket = nome que o player e catálogo usam
     r2_key = f"audio/{date_str}.mp3"
-    r2_key_alt = f"audio/{date_str}-vale-da-liberdade.mp3"
     size_mb = src.stat().st_size / (1024 * 1024)
 
     # sempre espelha local (nginx)
@@ -193,12 +208,6 @@ def upload_episode_audio(date_str: str, file_path: Path | None = None) -> str:
     }
     try:
         s3.upload_file(str(src), R2_BUCKET_NAME, r2_key, ExtraArgs=extra)
-        # alias legado (opcional)
-        try:
-            s3.upload_file(str(src), R2_BUCKET_NAME, r2_key_alt, ExtraArgs=extra)
-        except Exception as e:
-            print(f"[AVISO] Alias legado R2 não enviado: {e}")
-
         url = public_url_for(date_str, r2_key)
         print(f"[R2 SUCCESS] {url}")
         save_sidecar(

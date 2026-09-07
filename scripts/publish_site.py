@@ -924,17 +924,69 @@ def deploy_noticias_pages() -> None:
     if not wrangler:
         print("  ⚠️ wrangler não encontrado — espelho Pages não atualizado")
         return
+
+    # 1. Recuperar credenciais Cloudflare do .env ou ambiente
+    account_id = (
+        os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+        or os.environ.get("CF_ACCOUNT_ID", "").strip()
+        or os.environ.get("R2_ACCOUNT_ID", "").strip()
+    )
+    api_token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+
+    env = dict(os.environ)
+    if account_id:
+        env["CLOUDFLARE_ACCOUNT_ID"] = account_id
+    if api_token:
+        env["CLOUDFLARE_API_TOKEN"] = api_token
+
+    # 2. Sincronizar account_id no arquivo de configuração do Wrangler (~/.config/.wrangler/config/default.toml)
+    # Garante que o Wrangler pule a checagem interativa de contas mesmo em execuções manuais
+    wrangler_configs = (
+        Path.home() / ".config/.wrangler/config/default.toml",
+        Path.home() / ".wrangler/config/default.toml",
+    )
+    for cfg in wrangler_configs:
+        if cfg.exists():
+            try:
+                cfg_text = cfg.read_text(encoding="utf-8")
+                if account_id and "account_id" not in cfg_text:
+                    cfg.write_text(cfg_text.rstrip() + f'\naccount_id = "{account_id}"\n', encoding="utf-8")
+            except Exception:
+                pass
+
+    # 3. Se houver OAuth do Wrangler expirado, renovar preventivamente
+    try:
+        from thumbnail_generator import _parse_wrangler_kv, _refresh_wrangler_oauth, _wrangler_oauth_expired
+        for cfg in wrangler_configs:
+            if cfg.exists():
+                text = cfg.read_text(encoding="utf-8")
+                vals = _parse_wrangler_kv(text)
+                exp = vals.get("expiration_time") or ""
+                if vals.get("oauth_token") and _wrangler_oauth_expired(exp):
+                    try:
+                        _refresh_wrangler_oauth()
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    cmd = [
+        wrangler, "pages", "deploy", str(PUBLIC / "noticias"),
+        "--project-name", "vale-liberdade-noticias",
+        "--branch", "main", "--commit-dirty=true",
+    ]
+
     try:
         r = subprocess.run(
-            [wrangler, "pages", "deploy", str(PUBLIC / "noticias"),
-             "--project-name", "vale-liberdade-noticias",
-             "--branch", "main", "--commit-dirty=true"],
+            cmd,
             capture_output=True, text=True, timeout=300,
+            env=env,
         )
         if r.returncode == 0:
             print("  ✅ Espelho Cloudflare Pages atualizado (/noticias)")
         else:
-            print(f"  ⚠️ Deploy Pages falhou: {(r.stderr or r.stdout)[-300:]}")
+            err = (r.stderr or r.stdout or "").strip()
+            print(f"  ⚠️ Deploy Pages falhou: {err[-300:] if len(err) > 300 else err}")
     except Exception as e:
         print(f"  ⚠️ Deploy Pages falhou: {e}")
 

@@ -516,15 +516,18 @@ class GeminiClient:
                     if _is_google_daily_quota_error(error_msg, model=model):
                         self._mark_daily_quota_exhausted(model)
                         raise
-                    # 503: bump retries para 3 (server pode se recuperar)
-                    if is_503 and effective_retries < 3:
-                        effective_retries = 3
+                    # 503: permitir no máximo 2 tentativas com backoff curto (2-5s) para não travar
+                    if is_503 and effective_retries > 2:
+                        effective_retries = 2
                     if attempt >= effective_retries:
-                        log.error(f"Todas as {effective_retries} tentativas falharam para {model}.")
+                        if is_503:
+                            log.warning(f"Modelo {model} com sobrecarga no Google (503). Encerrando tentativas locais para permitir fallback de modelo.")
+                        else:
+                            log.error(f"Todas as {effective_retries} tentativas falharam para {model}.")
                         raise
                     if is_503:
-                        # Server overload: esperar 15-30s (não adianta metralhá-lo)
-                        delay = random.uniform(15.0, 30.0)
+                        # Server overload: espera curta (2-5s) para absorver picos rápidos sem prender o pipeline
+                        delay = random.uniform(2.0, 5.0)
                     elif "429" in error_msg or "rate limit" in error_msg or "resource_exhausted" in error_msg:
                         # 429 RPM: esperar a janela de RPM (60/RPM)
                         rpm_limit = self._get_limits(model)["rpm"]
@@ -554,9 +557,11 @@ class GeminiMultiClient:
       1. ROUND-ROBIN por chamada — chunk 1 → key1, chunk 2 → key2, …
          Isso espalha RPM (3/min) e RPD (10/dia) entre as chaves, em vez
          de esgotar a primeira e só então cair na segunda.
-      2. QUALQUER erro transiente (429 RPM/RPD, 503, etc.) → failover na
-         próxima chave. A chave já esgotou seus retries internos; tentar
-         outra chave é sempre melhor que morrer.
+      2. QUALQUER erro transiente de cota (429 RPM/RPD) → failover na
+         próxima chave. A chave já esgotou seus retries internos.
+      3. Erro 503 (Server Overload do Google) → NÃO rotacionar chaves.
+         O erro é no servidor/modelo da Google, não na chave. Falha
+         imediatamente para acionar o fallback de MODELO no chamador.
 
     Usado pelo TTS e pelo roteiro para multiplicar a capacidade.
     """
@@ -614,16 +619,23 @@ class GeminiMultiClient:
                 if offset == 0:
                     log.info(f"RR key[{idx}] {key_hint} para {model}")
                 else:
-                    log.warning(f"Failover RPD → key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
+                    log.warning(f"Failover RPD -> key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
                 return client.generate_content(model, contents, config=config, **kwargs)
             except RuntimeError as exc:
                 msg = str(exc).lower()
+                # 503 é sobrecarga do modelo no Google; trocar a chave não resolve.
+                # Falha imediatamente para acionar o fallback de MODELO no caller.
+                if _is_server_overload(msg):
+                    log.warning(
+                        f"Servidor Google sobrecarregado (503) para o modelo {model} — acionando fallback de modelo: {exc}"
+                    )
+                    raise exc
                 if _is_daily_quota_error(msg, model=model):
                     log.warning(f"Chave {key_hint} esgotou RPD: {exc} — rotacionando...")
                     last_exc = exc
                     continue
-                # RuntimeError transiente (429 RPM, 503, etc.) → tenta próxima chave
-                if _is_rate_error(msg) or _is_server_overload(msg):
+                # RuntimeError transiente (429 RPM, etc.) → tenta próxima chave
+                if _is_rate_error(msg):
                     log.warning(
                         f"Chave {key_hint} erro transiente (retries esgotados) — rotacionando: {exc}"
                     )
@@ -632,6 +644,12 @@ class GeminiMultiClient:
                 raise
             except Exception as exc:
                 msg = str(exc).lower()
+                # 503 é sobrecarga do modelo no Google; trocar a chave não resolve.
+                if _is_server_overload(msg):
+                    log.warning(
+                        f"Servidor Google sobrecarregado (503) para o modelo {model} — acionando fallback de modelo: {exc}"
+                    )
+                    raise exc
                 if _is_google_daily_quota_error(msg, model=model):
                     try:
                         client._mark_daily_quota_exhausted(model)
@@ -640,9 +658,8 @@ class GeminiMultiClient:
                     log.warning(f"Chave {key_hint} quota diária Google — rotacionando...")
                     last_exc = exc
                     continue
-                # QUALQUER erro transiente (429 RPM, 503 overload) → próxima chave
-                # A chave já gastou seus retries internos; é melhor tentar outra.
-                if _is_rate_error(msg) or _is_server_overload(msg):
+                # 429 RPM/cota transiente → tenta próxima chave
+                if _is_rate_error(msg):
                     log.warning(
                         f"Chave {key_hint} erro transiente (retries esgotados) — rotacionando: {exc}"
                     )
