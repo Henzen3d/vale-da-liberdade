@@ -2290,6 +2290,9 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     print(f"   fontes: {len(scenes)} (beats: {len(timeline_beats)}) · upload={upload} privacy={privacy}")
     if wallpaper:
         print(f"   wallpaper: {wallpaper.name}")
+    outro_video = resolve_outro_video(video_id)
+    if outro_video:
+        print(f"   outro:     {outro_video.name}")
     if dry_run:
         return {
             "video_id": video_id,
@@ -2297,6 +2300,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
             "scenes": scenes,
             "beats": [b.to_dict() for b in timeline_beats],
             "wallpaper": wallpaper.name if wallpaper else None,
+            "outro": outro_video.name if outro_video else None,
             "thumb": str(find_episode_thumbnail(video_id, episode_date(audio)) or ""),
             "desc": desc,
             "dry_run": True,
@@ -2337,9 +2341,9 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
     mp4 = compose_presenter(mp4, episode, audio, work)
-    outro_video = resolve_outro_video(video_id)
     if outro_video:
         mp4 = append_outro_video(mp4, outro_video, work)
+
 
     try:
         append_last_video(video_id, episode_date(audio), timeline_beats)

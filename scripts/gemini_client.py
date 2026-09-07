@@ -619,7 +619,7 @@ class GeminiMultiClient:
                 if offset == 0:
                     log.info(f"RR key[{idx}] {key_hint} para {model}")
                 else:
-                    log.warning(f"Failover RPD → key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
+                    log.warning(f"Failover RPD -> key[{idx}] {key_hint} (tentativa {offset+1}/{n})")
                 return client.generate_content(model, contents, config=config, **kwargs)
             except RuntimeError as exc:
                 msg = str(exc).lower()
