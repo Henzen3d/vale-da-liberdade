@@ -466,5 +466,54 @@ class HandlerCaptureOrderTests(unittest.TestCase):
             self.assertTrue((shot_dir / "src-00.png").exists())
 
 
+class RecordMockupGotoTests(unittest.TestCase):
+    """FNTK1AJegxI (2026-09-07): page.goto(networkidle) estoura 45s.
+
+    A primeira cena injeta pageVideo (MP4 autoplay+loop, dezenas de MB) e o
+    HTML puxa Google Fonts / GSAP no CDN. networkidle nunca chega.
+    """
+
+    def test_initial_goto_does_not_wait_for_networkidle(self):
+        import inspect
+
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.record_mockup)
+        self.assertNotIn(
+            'wait_until="networkidle"',
+            src,
+            "record_mockup goto must not wait for networkidle — looping "
+            "pageVideo + CDN fonts keep the network busy forever",
+        )
+        self.assertIn(
+            'wait_until="domcontentloaded"',
+            src,
+            "record_mockup goto should settle on DOMContentLoaded like the "
+            "screenshot handlers (clean_screenshot / screenshots/base)",
+        )
+
+
+class MockupPendingMaxTests(unittest.TestCase):
+    """--max conta tentativas, não só sucessos.
+
+    FNTK1AJegxI falhava no goto e o loop seguia para o próximo candidato
+    (w7koNRIpO-4 / I0x_F25dwWc), estourando o teto de 3600s do cron Hermes.
+    """
+
+    def test_pending_loop_stops_after_max_attempts(self):
+        import inspect
+
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.main)
+        self.assertIn("n_tried", src)
+        self.assertIn("if n_tried >= args.max:", src)
+        self.assertNotRegex(
+            src,
+            r"if n_ok >= args.max:",
+            "--max must cap attempts, not only successful uploads",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -53,6 +53,8 @@ EPS_DIR      = PROJECT_ROOT / "output" / "brasil_e_mundo" / "episodes"
 AUDIO_DIR    = PROJECT_ROOT / "output" / "brasil_e_mundo" / "audio"
 QUEUE_PATH   = PIPELINE_DIR / "queue.json"
 SEEN_PATH    = PIPELINE_DIR / "seen_videos.json"
+# Hermes mata no_agent em 3600s. Um TTS+condensador por tick cabe; a fila inteira não.
+QUEUE_MAX_PER_RUN = 1
 
 # Hermes python (servidor Linux) ou python local
 HERMES_PY = Path("/home/osmar/.hermes/hermes-agent/venv/bin/python3")
@@ -601,6 +603,12 @@ def sanitize_and_recover_queue(queue: list[dict], save: bool = False) -> list[di
             item.pop("retry_after", None)
             modified = True
 
+        # Cron timeout 3600s mata o script no meio do TTS e deixa status=processing.
+        # Sem isso o próximo tick ignora o item (só pega pending).
+        if item.get("status") == "processing":
+            item["status"] = "pending"
+            modified = True
+
         cleaned.append(item)
 
     if modified and save:
@@ -608,7 +616,14 @@ def sanitize_and_recover_queue(queue: list[dict], save: bool = False) -> list[di
     return cleaned
 
 
-def cmd_process_queue(skip_audio: bool = False, force_all: bool = False) -> None:
+def cap_ready_queue(ready: list[dict], max_n: int) -> list[dict]:
+    """Corta a fila pronta no teto do tick (0 = sem teto)."""
+    if max_n <= 0:
+        return ready
+    return ready[:max_n]
+
+
+def cmd_process_queue(skip_audio: bool = False, force_all: bool = False, max_n: int = QUEUE_MAX_PER_RUN) -> None:
     """Processa vídeos pendentes na fila, respeitando backoff e tentativas."""
     queue = load_queue()
     queue = sanitize_and_recover_queue(queue, save=True)
@@ -652,7 +667,11 @@ def cmd_process_queue(skip_audio: bool = False, force_all: bool = False) -> None
             print("ℹ️  Nenhum vídeo pendente na fila")
         return
 
-    print(f"📋 {len(ready)} vídeo(s) pronto(s) para processar na fila ({len(waiting)} aguardando retry)")
+    deferred = 0
+    if max_n > 0 and len(ready) > max_n:
+        deferred = len(ready) - max_n
+        ready = cap_ready_queue(ready, max_n)
+    print(f"📋 {len(ready)} vídeo(s) nesta rodada ({len(waiting)} aguardando retry, {deferred} deixado(s) para o próximo tick)")
 
     for item in ready:
         video_id = item["video_id"]
@@ -769,6 +788,7 @@ Comandos:
     parser.add_argument("--skip-audio", action="store_true", help="Pular geração de áudio")
     parser.add_argument("--force", action="store_true", help="Forçar regeneração de arquivos existentes")
     parser.add_argument("--force-all", action="store_true", help="process-queue: processa vídeos ignorando tempo de retry")
+    parser.add_argument("--max", type=int, default=QUEUE_MAX_PER_RUN, help="process-queue: teto de vídeos por tick (0 = sem teto)")
     parser.add_argument("--retry-all", action="store_true", help="retry-queue: reseta todos os vídeos da fila")
     parser.add_argument("--generate", action="store_true", help="assets: permite DashScope")
     parser.add_argument("--json", action="store_true", help="review: saída JSON")
@@ -784,7 +804,7 @@ Comandos:
         cmd_full(args.url, skip_audio=args.skip_audio, force=args.force)
 
     elif args.command == "process-queue":
-        cmd_process_queue(skip_audio=args.skip_audio, force_all=args.force_all)
+        cmd_process_queue(skip_audio=args.skip_audio, force_all=args.force_all, max_n=args.max)
 
     elif args.command == "retry-queue":
         cmd_retry_queue(video_id=args.video_id, retry_all=args.retry_all)
