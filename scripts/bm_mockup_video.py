@@ -223,14 +223,14 @@ _X_STATUS_RE = re.compile(r"(?:x|twitter)\.com/[^/]+/status/(\d+)")
 
 _X_EMBED_WRAP = """<!doctype html><html><head><meta charset="utf-8">
 <style>
- html,body{margin:0;height:100%;background:#15202b;
+ html,body{margin:0;height:100%;background:#ffffff;
    display:flex;align-items:center;justify-content:center;
    font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
  #box{width:640px;transform:scale(1.3);transform-origin:center center}
  iframe{width:100%;border:0;display:block}
 </style></head><body>
 <div id="box"><iframe id="tw"
- src="https://platform.twitter.com/embed/Tweet.html?id=__TWEET_ID__&theme=dark&dnt=true&lang=pt"
+ src="https://platform.twitter.com/embed/Tweet.html?id=__TWEET_ID__&theme=light&dnt=true&lang=pt"
  scrolling="no" allowtransparency="true"></iframe></div>
 <script>
  window.addEventListener('message', function(e){

@@ -6,7 +6,10 @@ válido é o gravado neste manifesto. Placeholder e hash divergente falham.
 """
 from __future__ import annotations
 
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import hashlib
 import json
 import os
@@ -60,7 +63,8 @@ def _lock_write(path: Path, payload: dict) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     data = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     with tmp.open("w", encoding="utf-8") as fh:
-        fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+        if fcntl is not None:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
         fh.write(data)
         fh.flush()
         os.fsync(fh.fileno())
