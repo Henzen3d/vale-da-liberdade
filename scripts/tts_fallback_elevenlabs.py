@@ -203,7 +203,7 @@ def split_long_text(text: str, max_chars: int) -> list[str]:
     return parts or [text[:max_chars]]
 
 
-def concat_mp3s(paths: list[Path], out_mp3: Path) -> None:
+def concat_mp3s(paths: list[Path], out_mp3: Path, cleanup_chunks: bool = True) -> None:
     lst = out_mp3.with_suffix(".filelist.txt")
     lst.write_text("\n".join(f"file '{p.resolve()}'" for p in paths) + "\n", encoding="utf-8")
     tmp = out_mp3.with_suffix(".concat.mp3")
@@ -222,8 +222,17 @@ def concat_mp3s(paths: list[Path], out_mp3: Path) -> None:
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     tmp.unlink(missing_ok=True)
+    lst.unlink(missing_ok=True)
     if proc2.returncode != 0 or not out_mp3.exists():
         raise RuntimeError(f"ffmpeg loudnorm: {proc2.stderr.decode()[:250]}")
+
+    if cleanup_chunks:
+        for p in paths:
+            try:
+                p.unlink(missing_ok=True)
+            except Exception:
+                pass
+
 
 
 def run_episode(date: str, cfg: dict, limit: int | None = None) -> Path:
@@ -301,13 +310,13 @@ def run_episode(date: str, cfg: dict, limit: int | None = None) -> Path:
 
     named = audio_dir / f"{date}-vale-da-liberdade.mp3"
     final = audio_dir / f"{date}.mp3"
-    print(f"[eleven] Concat {len(kept)} → {named}")
-    concat_mp3s(kept, named)
-    nbytes = named.stat().st_size
+    print(f"[eleven] Concat {len(kept)} → {final}")
+    concat_mp3s(kept, final, cleanup_chunks=True)
+    nbytes = final.stat().st_size
     if nbytes < int(cfg.get("min_final_bytes", 1_000_000)) and not limit:
         raise RuntimeError(f"MP3 final pequeno: {nbytes}B")
-    final.write_bytes(named.read_bytes())
-    print(f"✅ ElevenLabs OK: {final} ({nbytes} bytes)")
+    named.unlink(missing_ok=True)
+    print(f"✅ ElevenLabs OK: {final} ({nbytes} bytes, {len(kept)} chunks limpos)")
     return final
 
 

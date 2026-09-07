@@ -948,19 +948,25 @@ def _ffprobe_duration(path: Path) -> float | None:
 
 def publish_final_mp3(mp3_path: Path, date_stem: str | None = None) -> Path:
     """
-    Garante audio/YYYY-MM-DD.mp3 (alias de entrega) a partir do MP3 processado.
+    Garante audio/YYYY-MM-DD.mp3 (entrega canônica) a partir do MP3 processado.
     date_stem: '2026-07-22' extraído do nome quando possível.
     """
     audio_dir = mp3_path.parent
     stem = date_stem
     if not stem:
-        # tenta 2026-07-22-vale-da-liberdade ou 2026-07-22-completo
         m = re.match(r"(\d{4}-\d{2}-\d{2})", mp3_path.name)
         stem = m.group(1) if m else mp3_path.stem.split("-vale")[0].split("-completo")[0]
     delivery = audio_dir / f"{stem}.mp3"
     if mp3_path.resolve() != delivery.resolve():
         delivery.write_bytes(mp3_path.read_bytes())
-        log.info(f"Alias de entrega: {delivery}")
+        log.info(f"Entrega canônica: {delivery}")
+    # Remove cópia redundante antiga com -vale-da-liberdade.mp3 se existir
+    named = audio_dir / f"{stem}-vale-da-liberdade.mp3"
+    if named.exists() and named.resolve() != delivery.resolve():
+        try:
+            named.unlink()
+        except OSError:
+            pass
     return delivery
 
 
@@ -1338,7 +1344,7 @@ def main():
     else:
         date_m = re.search(r"(\d{4}-\d{2}-\d{2})", out_path.name + " " + episode_path.name)
         date_stem = date_m.group(1) if date_m else out_path.stem.replace("-completo", "")
-        mp3_path = default_audio_dir / f"{date_stem}-vale-da-liberdade.mp3"
+        mp3_path = default_audio_dir / f"{date_stem}.mp3"
         make_daily_alias = True
         min_duration_s = MIN_FINAL_DURATION_S
         min_bytes = MIN_FINAL_MP3_BYTES

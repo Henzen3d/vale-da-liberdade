@@ -43,7 +43,9 @@ def load_episodes():
             date_str = match.group(1)
             meta_path = EPISODES_DIR / f"{date_str}-metadata.json"
             script_path = EPISODES_DIR / f"{date_str}.md"
-            audio_local = AUDIO_DIR / f"{date_str}-vale-da-liberdade.mp3"
+            audio_local = AUDIO_DIR / f"{date_str}.mp3"
+            if not audio_local.exists():
+                audio_local = AUDIO_DIR / f"{date_str}-vale-da-liberdade.mp3"
 
             metadata = {}
             if meta_path.exists():
@@ -58,10 +60,10 @@ def load_episodes():
                 with open(script_path, 'r', encoding='utf-8') as sf:
                     script_text = sf.read()
 
-            audio_url = f"/audio/{date_str}-vale-da-liberdade.mp3"
+            audio_url = f"/audio/{date_str}.mp3"
             if not audio_local.exists():
                 # Tentar fallback ou URL pública
-                audio_url = f"https://audio.mob.tec.br/audio/{date_str}-vale-da-liberdade.mp3"
+                audio_url = f"https://audio.mob.tec.br/audio/{date_str}.mp3"
 
             # Verificar sidecar R2 e usar URL pública se disponível
             r2_path = EPISODES_DIR / f"{date_str}-r2.json"

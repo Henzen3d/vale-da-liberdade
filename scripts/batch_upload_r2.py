@@ -5,6 +5,7 @@
 """
 import os
 import sys
+import re
 from pathlib import Path
 import json
 from dotenv import load_dotenv
@@ -22,6 +23,31 @@ R2_PUBLIC_DOMAIN = (os.getenv("R2_PUBLIC_DOMAIN") or "").rstrip("/")
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PUBLIC_AUDIO = PROJECT_ROOT / "public" / "audio"
 EPISODES_DIR = PROJECT_ROOT / "episodes"
+
+
+def is_canonical_episode_file(path: Path) -> bool:
+    """Verifica se o arquivo é um episódio canônico final.
+
+    Ignora chunks intermediários (ex: *-ricardo-*.mp3, *-edge-*.mp3)
+    e duplicatas de nomes alternativos (ex: *-vale-da-liberdade.mp3).
+    """
+    name = path.name
+    # Ignora chunks intermediários de síntese
+    if re.search(r"-(peter|ricardo|edge|moss|el)-\d+", name, re.I):
+        return False
+    if name.endswith("-concat.mp3") or name.endswith("-fx.mp3"):
+        return False
+    # Ignora cópias duplicadas com nome longo (apenas o canônico YYYY-MM-DD.mp3 vai para o R2)
+    if name.endswith("-vale-da-liberdade.mp3") or name.endswith("-completo.mp3"):
+        return False
+
+    # Episódio diário canônico: YYYY-MM-DD.mp3
+    if re.match(r"^\d{4}-\d{2}-\d{2}\.mp3$", name):
+        return True
+    # Especiais: especial-*.mp3
+    if name.startswith("especial-") and name.endswith(".mp3"):
+        return True
+    return False
 
 def get_r2_client():
     import boto3
@@ -95,8 +121,10 @@ def main():
     existing = list_r2_objects(s3)
     print(f"📦 R2 中已有 {len(existing)} 个对象\n")
     
-    mp3_files = list(PUBLIC_AUDIO.glob("*.mp3"))
-    print(f"🎵 找到 {len(mp3_files)} 个 MP3 文件\n")
+    all_mp3_files = list(PUBLIC_AUDIO.glob("*.mp3"))
+    mp3_files = [f for f in all_mp3_files if is_canonical_episode_file(f)]
+    ignored_count = len(all_mp3_files) - len(mp3_files)
+    print(f"🎵 Encontrados {len(all_mp3_files)} MP3s ({len(mp3_files)} canônicos, {ignored_count} chunks/duplicatas ignorados)\n")
     
     # 过滤出已存在的
     to_upload = []

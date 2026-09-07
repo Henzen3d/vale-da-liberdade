@@ -177,9 +177,8 @@ def upload_episode_audio(date_str: str, file_path: Path | None = None) -> str:
         print(f"[ERRO] Arquivo de áudio não encontrado para {date_str}")
         return ""
 
-    # chave canônica no bucket = nome que o player usa
+    # chave canônica no bucket = nome que o player e catálogo usam
     r2_key = f"audio/{date_str}.mp3"
-    r2_key_alt = f"audio/{date_str}-vale-da-liberdade.mp3"
     size_mb = src.stat().st_size / (1024 * 1024)
 
     # sempre espelha local (nginx)
@@ -209,12 +208,6 @@ def upload_episode_audio(date_str: str, file_path: Path | None = None) -> str:
     }
     try:
         s3.upload_file(str(src), R2_BUCKET_NAME, r2_key, ExtraArgs=extra)
-        # alias legado (opcional)
-        try:
-            s3.upload_file(str(src), R2_BUCKET_NAME, r2_key_alt, ExtraArgs=extra)
-        except Exception as e:
-            print(f"[AVISO] Alias legado R2 não enviado: {e}")
-
         url = public_url_for(date_str, r2_key)
         print(f"[R2 SUCCESS] {url}")
         save_sidecar(

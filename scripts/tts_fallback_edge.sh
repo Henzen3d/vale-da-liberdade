@@ -153,9 +153,8 @@ ffmpeg -y -f concat -safe 0 -i "$FILELIST" -c copy "$FINAL_TMP" >/dev/null 2>&1
 ffmpeg -y -i "$FINAL_TMP" \
   -af "highpass=f=80,loudnorm=I=-16:TP=-1.5:LRA=11" \
   -ar 44100 -ac 1 -b:a 192k \
-  "$FINAL_NAMED" >/dev/null 2>&1
+  "$FINAL" >/dev/null 2>&1
 
-cp -f "$FINAL_NAMED" "$FINAL"
 rm -f "$FINAL_TMP"
 
 final_size=$(stat -c%s "$FINAL")
@@ -164,6 +163,21 @@ if [[ "$final_size" -lt "$MIN_FINAL_BYTES" ]]; then
   exit 3
 fi
 
+# Limpeza automática de chunks intermediários após validação do áudio final
+if [[ -f "$FILELIST" ]]; then
+  while IFS= read -r fline || [[ -n "$fline" ]]; do
+    chunk_path=$(echo "$fline" | sed -E "s/^file '(.*)'$/\1/")
+    if [[ -f "$chunk_path" && "$chunk_path" != "$FINAL" ]]; then
+      rm -f "$chunk_path"
+    fi
+  done < "$FILELIST"
+  rm -f "$FILELIST"
+fi
+# Limpeza residual de chunks da data
+rm -f "$AUDIO/${DATE}-edge-raw-"*.mp3 "$AUDIO/${DATE}-edge-ricardo-"*.mp3 "$AUDIO/${DATE}-edge-peter-"*.mp3 "$AUDIO/${DATE}-edge-"*.mp3 2>/dev/null || true
+# Evita redundância local de nome duplo (-vale-da-liberdade.mp3)
+rm -f "$FINAL_NAMED" 2>/dev/null || true
+
 dur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$FINAL" 2>/dev/null || echo 0)
 echo "✅ Fallback Edge OK: $FINAL (${final_size} bytes, ${dur}s)"
-echo "   named: $FINAL_NAMED | kept=$kept skipped=$skipped | FX Ricardo=$fx_ok"
+echo "   🧹 Chunks temporários apagados com sucesso | FX Ricardo=$fx_ok"

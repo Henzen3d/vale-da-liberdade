@@ -236,7 +236,7 @@ def wav_to_mp3(wav: Path, mp3: Path) -> None:
         raise RuntimeError(f"ffmpeg wav→mp3: {proc.stderr.decode()[:250]}")
 
 
-def concat_mp3s(paths: list[Path], out_mp3: Path) -> None:
+def concat_mp3s(paths: list[Path], out_mp3: Path, cleanup_chunks: bool = True) -> None:
     lst = out_mp3.with_suffix(".filelist.txt")
     lst.write_text("\n".join(f"file '{p.resolve()}'" for p in paths) + "\n", encoding="utf-8")
     tmp = out_mp3.with_suffix(".concat.mp3")
@@ -255,8 +255,20 @@ def concat_mp3s(paths: list[Path], out_mp3: Path) -> None:
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     tmp.unlink(missing_ok=True)
+    lst.unlink(missing_ok=True)
     if proc2.returncode != 0 or not out_mp3.exists():
         raise RuntimeError(f"ffmpeg loudnorm: {proc2.stderr.decode()[:250]}")
+
+    if cleanup_chunks:
+        for p in paths:
+            try:
+                p.unlink(missing_ok=True)
+                p.with_suffix(".wav").unlink(missing_ok=True)
+                # se era chunk -fx, apaga o chunk raw sem fx também
+                if p.name.endswith("-fx.mp3"):
+                    p.with_name(p.name.replace("-fx.mp3", ".mp3")).unlink(missing_ok=True)
+            except Exception:
+                pass
 
 
 def run_episode(date: str, cfg: dict, limit: int | None = None) -> Path:
@@ -337,13 +349,13 @@ def run_episode(date: str, cfg: dict, limit: int | None = None) -> Path:
 
     final = audio_dir / f"{date}.mp3"
     named = audio_dir / f"{date}-vale-da-liberdade.mp3"
-    print(f"[moss] Concat {len(kept)} chunks → {named}")
-    concat_mp3s(kept, named)
-    nbytes = named.stat().st_size
+    print(f"[moss] Concat {len(kept)} chunks → {final}")
+    concat_mp3s(kept, final, cleanup_chunks=True)
+    nbytes = final.stat().st_size
     if nbytes < int(cfg.get("min_final_bytes", 1_000_000)) and not limit:
         raise RuntimeError(f"MP3 final pequeno: {nbytes}B")
-    final.write_bytes(named.read_bytes())
-    print(f"✅ MOSS fallback OK: {final} ({nbytes} bytes, {len(kept)} chunks)")
+    named.unlink(missing_ok=True)
+    print(f"✅ MOSS fallback OK: {final} ({nbytes} bytes, {len(kept)} chunks limpos)")
     return final
 
 
