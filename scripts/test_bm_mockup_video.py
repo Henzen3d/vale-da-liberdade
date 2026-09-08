@@ -465,6 +465,39 @@ class HandlerCaptureOrderTests(unittest.TestCase):
             self.assertEqual(out[0]["shot"], "src-00.png")
             self.assertTrue((shot_dir / "src-00.png").exists())
 
+    def test_unregistered_spa_still_goes_through_runner(self):
+        """6lZdp_xTADA / polymarket: sem handler dedicado o mockup ia no
+        Playwright cru (goto load) e o PNG saía sem CSS. Tem que usar o
+        runner/BaseScraper mesmo para domínio desconhecido.
+        """
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.try_handler_screenshot)
+        self.assertNotIn("get_scraper(domain_of(url)) is None", src)
+        self.assertIn("clean_capture", src)
+
+        called: list[str] = []
+
+        def fake_capture(url, dest=None, viewport=None, timeout_ms=None, **_k):
+            called.append(url)
+            dest = Path(dest)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(b"P" * 25_000)
+            return {"ok": True, "handler": "genérico", "http_status": 200}
+
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "src-00.png"
+            with patch("scripts.screenshots.runner.capture", fake_capture):
+                result = m.try_handler_screenshot(
+                    "https://polymarket.com/event/brazil-presidential-election",
+                    dest,
+                    viewport={"width": 1400, "height": 900},
+                )
+            self.assertIsNotNone(result)
+            self.assertTrue(called)
+            self.assertTrue(result.get("ok"))
+
 
 class BrandingIntroOutroTests(unittest.TestCase):
     def test_find_intro_audio_detects_file(self):

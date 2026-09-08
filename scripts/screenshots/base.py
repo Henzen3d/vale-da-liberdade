@@ -336,13 +336,29 @@ class BaseScraper:
         pass
 
     def wait_for_content(self, page: Any) -> bool:
-        """Espera o conteúdo principal renderizar.
+        """Espera o conteúdo principal renderizar (HTML estático ou SPA).
 
-        Retorna True se o conteúdo foi encontrado. A implementação base
-        aguarda 2s após DOMContentLoaded (suficiente para sites estáticos).
+        2s cego após DOMContentLoaded imprime Polymarket/Kalshi sem CSS:
+        o shell carrega, o app hidrata depois. Espera texto + raiz com filhos.
         """
-        page.wait_for_timeout(2000)
-        return True
+        _WAIT_APP_JS = """() => {
+          const body = document.body;
+          if (!body) return false;
+          const text = (body.innerText || '').replace(/\\s+/g, ' ').trim();
+          if (text.length < 40) return false;
+          const root = document.querySelector(
+            '#__next, #root, #app, main, [data-rk], article'
+          ) || body;
+          if (!root || (root.children || []).length === 0) return false;
+          return true;
+        }"""
+        try:
+            page.wait_for_function(_WAIT_APP_JS, timeout=15000)
+            page.wait_for_timeout(600)
+            return True
+        except Exception:
+            page.wait_for_timeout(2000)
+            return False
 
     # -- Infra compartilhada (não sobrescrever normalmente) -----------------
 
@@ -434,21 +450,30 @@ class BaseScraper:
             pass
 
     def _wait_for_styles(self, page: Any, timeout_ms: int = 15000) -> bool:
-        """Garante que stylesheets e fontes foram carregadas antes de capturar."""
+        """Garante que stylesheets e fontes foram carregadas antes de capturar.
+
+        SPA (Polymarket) injeta CSS via JS depois do load: styleSheets vazio
+        no HTML cru não basta — também olha getComputedStyle(body).
+        """
         _WAIT_CSS_JS = """() => {
-          if (document.readyState !== 'complete') return false;
+          const body = document.body;
+          if (!body) return false;
+          const cs = getComputedStyle(body);
+          const font = (cs.fontFamily || '').toLowerCase();
           const sheets = document.styleSheets;
-          if (!sheets || sheets.length === 0) return false;
-          let ok = false;
-          for (const s of sheets) {
-            try {
-              if (s.cssRules && s.cssRules.length > 0) { ok = true; break; }
-            } catch (e) {
-              ok = true; // Cross-origin stylesheet link carregada
-              break;
+          let sheetOk = false;
+          if (sheets && sheets.length > 0) {
+            for (const s of sheets) {
+              try {
+                if (s.cssRules && s.cssRules.length > 0) { sheetOk = true; break; }
+              } catch (e) {
+                sheetOk = true;
+                break;
+              }
             }
           }
-          return ok;
+          const notBrowserDefault = !font.includes('times') && cs.marginTop === '0px';
+          return sheetOk || notBrowserDefault;
         }"""
         try:
             page.wait_for_function(_WAIT_CSS_JS, timeout=timeout_ms)

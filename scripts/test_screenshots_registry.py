@@ -69,6 +69,8 @@ REQUIRED_DOMAINS = (
     "veja.abril.com.br",
     "vejasp.abril.com.br",
     "www1.folha.uol.com.br",
+    "polymarket.com",
+    "kalshi.com",
 )
 
 
@@ -123,6 +125,16 @@ class RegistryTests(unittest.TestCase):
     def test_unknown_domain_has_no_handler(self):
         self.assertIsNone(get_scraper("example.com"))
 
+    def test_polymarket_and_kalshi_have_handlers(self):
+        poly = get_scraper("polymarket.com")
+        self.assertIsNotNone(poly)
+        assert poly is not None
+        self.assertEqual(poly.name, "polymarket")
+        kalshi = get_scraper("kalshi.com")
+        self.assertIsNotNone(kalshi)
+        assert kalshi is not None
+        self.assertEqual(kalshi.name, "kalshi")
+
     def test_base_scraper_waits_for_styles_and_never_aborts_css(self):
         from scripts.screenshots.base import BaseScraper, _should_block
         import inspect
@@ -132,6 +144,18 @@ class RegistryTests(unittest.TestCase):
         self.assertIn("stylesheet", src)
         self.assertIn("font", src)
         self.assertTrue(_should_block("https://pagead2.googlesyndication.com/pagead.js"))
+        wait_src = inspect.getsource(BaseScraper.wait_for_content)
+        self.assertIn("wait_for_function", wait_src)
+        styles_src = inspect.getsource(BaseScraper._wait_for_styles)
+        self.assertIn("getComputedStyle", styles_src)
+
+    def test_runner_uses_base_scraper_when_unregistered(self):
+        import inspect
+        from scripts.screenshots import runner
+
+        src = inspect.getsource(runner.capture)
+        self.assertIn("BaseScraper", src)
+        self.assertIn("get_scraper", src)
 
 
 if __name__ == "__main__":

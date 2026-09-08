@@ -89,7 +89,7 @@ MAX_SCENES = 8
 MAX_PER_HOST = 2
 CACHE_MAX_AGE_HOURS = 36.0
 # Invalida prints antigos (HTML sem CSS). Subir quando a captura mudar de novo.
-CAPTURE_CACHE_VERSION = "handler-v3"
+CAPTURE_CACHE_VERSION = "handler-v4"
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -135,13 +135,15 @@ def domain_of(url: str) -> str:
 
 
 def try_handler_screenshot(url: str, dest: Path, viewport: dict[str, int] | None = None) -> dict | None:
-    """Captura via handler dedicado (ads/paywall). None = sem handler, usar Playwright genérico."""
+    """Captura via runner: handler dedicado ou BaseScraper (CSS/SPA).
+
+    None só se o módulo de screenshots falhar ao importar. Sem handler
+    exclusivo NÃO cai no Playwright cru — isso imprimia SPA (Polymarket)
+    antes do CSS (6lZdp_xTADA).
+    """
     try:
-        from scripts.screenshots.sites import get_scraper
         from scripts.screenshots.runner import capture as clean_capture
     except Exception:
-        return None
-    if get_scraper(domain_of(url)) is None:
         return None
     return clean_capture(
         url,
