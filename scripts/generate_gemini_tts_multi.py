@@ -747,6 +747,7 @@ def split_text_halves(text: str) -> list[str]:
     """Divide texto em 2 blocos ~equilibrados (por palavras), cortando em fim de sentença.
 
     Retorna 1 bloco se o texto for curto demais para valer a pena dividir.
+    Não aplica CHUNK_TARGET_WORDS — use split_text_capped no BM.
     """
     words = text.split()
     if len(words) < 2 * MIN_CHUNK_WORDS:
@@ -760,18 +761,47 @@ def split_text_halves(text: str) -> list[str]:
     return [" ".join(words[:mid]), " ".join(words[mid:])]
 
 
+def split_text_capped(text: str, max_words: int | None = None) -> list[str]:
+    """Corta o texto em blocos de no máximo max_words (default CHUNK_TARGET_WORDS).
+
+    Preferência: fim de sentença. Sem isso o Gemini degrada no fim do bloco
+    (NJbcFf4f8cs: halves 444+494, teto 300 ignorado).
+    """
+    max_words = max_words or CHUNK_TARGET_WORDS
+    words = text.split()
+    if not words:
+        return []
+    if len(words) <= max_words:
+        return [text.strip()]
+    chunks: list[str] = []
+    start = 0
+    n = len(words)
+    while start < n:
+        end = min(start + max_words, n)
+        if end < n:
+            cut = end
+            floor = max(start + MIN_CHUNK_WORDS, end - 60)
+            for i in range(end, floor, -1):
+                if words[i - 1][-1:] in ".!?;:":
+                    cut = i
+                    break
+            end = cut
+        chunks.append(" ".join(words[start:end]))
+        start = end
+    return chunks
+
+
 def generate_halves_pcm(
     client,
     episode_text: str,
     voice_name: str,
     model: str | None = None,
 ) -> bytes:
-    """Gera PCM 24kHz em 2 chamadas single-speaker com a MESMA voz.
+    """Gera PCM 24kHz em N chamadas single-speaker com a MESMA voz.
 
-    Uso: BM solo Peter. Junta todos os turnos em um texto único, divide em 2
-    metades (~equilibradas em palavras) e faz 1 chamada por metade com a mesma
-    voz (Charon). Evita a variação de voz do modo TURNS (1 chamada por fala
-    com fallback Edge por fala) e custa só 2 chamadas Gemini por episódio.
+    Uso: BM solo Peter. Junta os turnos, corta em blocos de no máximo
+    CHUNK_TARGET_WORDS (300) e chama Charon em cada um. Antes eram 2
+    metades livres (NJbcFf4f8cs: 444+494) e o Gemini degradava no fim.
     """
     turns = parse_speaker_turns(episode_text)
     if not turns:
@@ -779,10 +809,12 @@ def generate_halves_pcm(
 
     joined = " ".join(body for _, body in turns)
     joined = sanitize_tts_text(joined)  # 2026-08-09: %→"por cento", $→"dólares", sem links/emojis
-    halves = split_text_halves(joined)
+    halves = split_text_capped(joined)
     log.info(
-        "Modo HALVES — 2 chamadas single-speaker (%s): %s",
+        "Modo HALVES — %s chamadas single-speaker (%s, teto %s): %s",
+        len(halves),
         voice_name,
+        CHUNK_TARGET_WORDS,
         " + ".join(f"{len(h.split())} palavras" for h in halves),
     )
 
@@ -1147,7 +1179,7 @@ def main():
         default="packed",
         help=(
             "packed=multi-speaker por CHUNKS (padrão diário, evita colapso de voz); "
-            "halves=2 chamadas single-speaker com a MESMA voz (padrão BM, solo Peter); "
+            "halves=N chamadas single-speaker, mesma voz, teto CHUNK_TARGET_WORDS=300 (padrão BM); "
             "multi= API multi-speaker legado (pode colapsar em 1 voz)"
         ),
     )
@@ -1303,11 +1335,9 @@ def main():
         wave_file(str(out_path), all_pcm)
         log.info(f"OK {out_path}")
     elif args.mode == "halves":
-        # PADRÃO BM (2026-08-09): 2 chamadas single-speaker com a MESMA voz.
-        # Junta todos os turnos, divide em 2 metades e chama a voz fixa
-        # (Charon=Peter). Substitui o antigo TURNS (1 chamada por fala), que
-        # variava de voz entre falas (fallback Edge por fala).
-        log.info("Modo HALVES — 2 chamadas single-speaker (mesma voz)")
+        # PADRÃO BM: N chamadas single-speaker, mesma voz, teto 300 palavras.
+        # Antes: 2 metades livres (NJbcFf4f8cs 444+494) e o Gemini degradava no fim.
+        log.info("Modo HALVES — N chamadas single-speaker (mesma voz, teto %s)", CHUNK_TARGET_WORDS)
         voice_name = SPEAKERS.get(speakers[0], "Charon") if speakers else "Charon"
         try:
             data_24k = generate_halves_pcm(client, episode_text, voice_name, model=TTS_MODEL)
