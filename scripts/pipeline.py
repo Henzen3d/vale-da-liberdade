@@ -1043,15 +1043,24 @@ def cmd_publish_site(date: str | None = None):
         cmd += ["--date", date]
     print("\n🌐 Atualizando catálogo/RSS (publish_site.py)...")
     print(f"  → {' '.join(cmd)}")
-    r = subprocess.run(cmd, cwd=str(PROJECT_ROOT), text=True, capture_output=True)
-    if r.stdout:
-        print(r.stdout[-2000:])
-    if r.returncode != 0:
-        print(f"⚠️  publish_site falhou (exit {r.returncode})")
-        if r.stderr:
-            print(r.stderr[-1000:])
-    else:
-        print("  ✅ Site atualizado em public/ (UX PWA preservada)")
+    try:
+        r = subprocess.run(
+            cmd,
+            cwd=str(PROJECT_ROOT),
+            text=True,
+            capture_output=True,
+            timeout=600,
+        )
+        if r.stdout:
+            print(r.stdout[-2000:])
+        if r.returncode != 0:
+            print(f"⚠️  publish_site falhou (exit {r.returncode})")
+            if r.stderr:
+                print(r.stderr[-1000:])
+        else:
+            print("  ✅ Site atualizado em public/ (UX PWA preservada)")
+    except subprocess.TimeoutExpired:
+        print("⚠️  publish_site excedeu o timeout de 600s — abortado para o cron fechar o log")
 
 
 if __name__ == "__main__":

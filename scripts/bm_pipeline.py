@@ -608,8 +608,8 @@ def sanitize_and_recover_queue(queue: list[dict], save: bool = False) -> list[di
     return cleaned
 
 
-def cmd_process_queue(skip_audio: bool = False, force_all: bool = False) -> None:
-    """Processa vídeos pendentes na fila, respeitando backoff e tentativas."""
+def cmd_process_queue(skip_audio: bool = False, force_all: bool = False, max_items: int | None = None) -> None:
+    """Processa vídeos pendentes na fila, respeitando backoff, tentativas e limite opcional."""
     queue = load_queue()
     queue = sanitize_and_recover_queue(queue, save=True)
 
@@ -651,6 +651,10 @@ def cmd_process_queue(skip_audio: bool = False, force_all: bool = False) -> None
         else:
             print("ℹ️  Nenhum vídeo pendente na fila")
         return
+
+    if max_items and max_items > 0 and len(ready) > max_items:
+        print(f"⚡ Limitando execução a {max_items} vídeo(s) (--max {max_items}) de um total de {len(ready)} pronto(s)")
+        ready = ready[:max_items]
 
     print(f"📋 {len(ready)} vídeo(s) pronto(s) para processar na fila ({len(waiting)} aguardando retry)")
 
@@ -747,6 +751,9 @@ def cmd_retry_queue(video_id: str | None = None, retry_all: bool = False) -> Non
 
 
 def main():
+    # Diagnóstico: logar argv recebido para depuração de falhas argparse (2026-09-08)
+    print(f"[bm_pipeline] argv={sys.argv}", file=sys.stderr, flush=True)
+
     parser = argparse.ArgumentParser(
         description="Pipeline Brasil e Mundo — Orquestrador",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -769,6 +776,7 @@ Comandos:
     parser.add_argument("--skip-audio", action="store_true", help="Pular geração de áudio")
     parser.add_argument("--force", action="store_true", help="Forçar regeneração de arquivos existentes")
     parser.add_argument("--force-all", action="store_true", help="process-queue: processa vídeos ignorando tempo de retry")
+    parser.add_argument("--max", type=int, default=None, help="process-queue: limite máximo de vídeos a processar nesta rodada")
     parser.add_argument("--retry-all", action="store_true", help="retry-queue: reseta todos os vídeos da fila")
     parser.add_argument("--generate", action="store_true", help="assets: permite DashScope")
     parser.add_argument("--json", action="store_true", help="review: saída JSON")
@@ -784,7 +792,7 @@ Comandos:
         cmd_full(args.url, skip_audio=args.skip_audio, force=args.force)
 
     elif args.command == "process-queue":
-        cmd_process_queue(skip_audio=args.skip_audio, force_all=args.force_all)
+        cmd_process_queue(skip_audio=args.skip_audio, force_all=args.force_all, max_items=args.max)
 
     elif args.command == "retry-queue":
         cmd_retry_queue(video_id=args.video_id, retry_all=args.retry_all)
