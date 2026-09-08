@@ -20,10 +20,12 @@ from bm_mockup_video import (
     domain_of,
     episode_summary,
     extract_instagram_video,
+    extract_uol_flash_video,
     find_episode_thumbnail,
     host_kind,
     instagram_shortcode,
     is_blocked_source_url,
+    is_uol_flash_url,
     one_line_subhead,
     pick_wallpaper,
     source_scenes,
@@ -203,6 +205,61 @@ class InstagramMediaTests(unittest.TestCase):
             self.assertIn("https://www.instagram.com/reel/DczgElQso4z/", cmd)
 
 
+class UolFlashVideoTests(unittest.TestCase):
+    """loUBwNIVsfk: uol.com.br/flash saiu print do player. Deve baixar MP4."""
+
+    FLASH_A = "https://www.uol.com.br/flash/?c=6a9ef5a71c70f2cd1adbb667"
+    FLASH_B = "https://www.uol.com.br/flash/?c=6a9ef09a149f556f3efe46c7"
+
+    def test_detects_flash_not_regular_uol(self) -> None:
+        self.assertTrue(is_uol_flash_url(self.FLASH_A))
+        self.assertTrue(is_uol_flash_url(self.FLASH_B))
+        self.assertEqual(host_kind(self.FLASH_A), "uol-flash")
+        self.assertEqual(host_kind("https://noticias.uol.com.br/colunas/natalia-portinari/x.htm"), "generic")
+        self.assertFalse(is_uol_flash_url("https://www.uol.com.br/esporte/"))
+        self.assertFalse(is_uol_flash_url(""))
+
+    def test_extract_uol_flash_video_reuses_existing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            shots = work / "shots"
+            shots.mkdir(parents=True)
+            fake_vid = shots / "uolvid-test123-02.mp4"
+            fake_vid.write_bytes(b"x" * 60000)
+            rel = extract_uol_flash_video(self.FLASH_A, work, "test123", 2)
+            self.assertEqual(rel, "/shots/uolvid-test123-02.mp4")
+
+    @patch("subprocess.run")
+    def test_extract_uol_flash_video_calls_ytdlp(self, mock_run) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            shots = work / "shots"
+            shots.mkdir(parents=True)
+            fake_vid = shots / "uolvid-test123-03.mp4"
+
+            def fake_subprocess_side_effect(cmd, **kwargs):
+                fake_vid.write_bytes(b"x" * 60000)
+                from unittest.mock import MagicMock
+                r = MagicMock()
+                r.returncode = 0
+                return r
+
+            mock_run.side_effect = fake_subprocess_side_effect
+            rel = extract_uol_flash_video(self.FLASH_B, work, "test123", 3)
+            self.assertEqual(rel, "/shots/uolvid-test123-03.mp4")
+            self.assertTrue(mock_run.called)
+            cmd = mock_run.call_args[0][0]
+            self.assertIn(self.FLASH_B, cmd)
+
+    def test_capture_sources_skips_handler_for_uol_flash(self) -> None:
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.capture_sources)
+        self.assertIn("uol-flash", src)
+        self.assertIn("extract_uol_flash_video", src)
+
+
 class SourceFilterTests(unittest.TestCase):
     def test_blocks_youtube_and_self_pages(self):
         self.assertTrue(is_blocked_source_url("https://www.youtube.com/watch?v=abc"))
@@ -308,6 +365,8 @@ class HostPrepareTests(unittest.TestCase):
         self.assertEqual(host_kind("https://www.bbc.co.uk/news"), "bbc")
         self.assertEqual(host_kind("https://g1.globo.com/politica/noticia/x.ghtml"), "g1")
         self.assertEqual(host_kind("https://www.cnnbrasil.com.br/x"), "generic")
+        self.assertEqual(host_kind("https://www.uol.com.br/flash/?c=abc"), "uol-flash")
+        self.assertEqual(host_kind("https://noticias.uol.com.br/politica/x.htm"), "generic")
 
 
 class CacheTests(unittest.TestCase):

@@ -215,6 +215,18 @@ def is_blocked_source_url(url: str) -> bool:
     )
 
 
+def is_uol_flash_url(url: str | None) -> bool:
+    """UOL Flash (feed de clipes). Matéria uol.com.br/noticias NÃO entra."""
+    if not url:
+        return False
+    parts = urlsplit(url)
+    host = (parts.netloc or "").lower()
+    path = (parts.path or "").lower().rstrip("/")
+    if "uol.com.br" not in host:
+        return False
+    return path == "/flash" or path.startswith("/flash/")
+
+
 def host_kind(url: str) -> str:
     host = (urlsplit(url or "").netloc or "").lower()
     if "instagram.com" in host:
@@ -225,6 +237,8 @@ def host_kind(url: str) -> str:
         return "g1"
     if "x.com" in host or "twitter.com" in host:
         return "x"
+    if is_uol_flash_url(url):
+        return "uol-flash"
     return "generic"
 
 
@@ -504,6 +518,36 @@ def extract_instagram_video(url: str, work: Path, video_id: str, idx: int) -> st
         print(f"  ⚠️  instagram-video: sem vídeo ou falha em {url}: {(r.stderr or '')[-160:]}")
         return None
     print(f"  📸🎞️  instagram-video: {dest.name} ({dest.stat().st_size // 1024} KB)")
+    return f"/shots/{dest.name}"
+
+
+def extract_uol_flash_video(url: str, work: Path, video_id: str, idx: int) -> str | None:
+    """Baixa o clipe de uol.com.br/flash via yt-dlp (teste: loUBwNIVsfk).
+
+    Matéria comum do UOL continua print. Sem vídeo ou falha → None (print fallback).
+    """
+    dest = work / "shots" / f"uolvid-{video_id}-{idx:02d}.mp4"
+    if dest.exists() and dest.stat().st_size > 50000:
+        return f"/shots/{dest.name}"
+    cmd = [
+        _find_ytdlp(), "-f", "bv*[height<=720]/b[height<=720]/b",
+        "--no-playlist", "--no-warnings", "--quiet",
+        "-o", str(dest), url,
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    except Exception as exc:
+        print(f"  ⚠️  uol-flash-video: erro ao executar yt-dlp: {exc}")
+        return None
+
+    if not dest.exists():
+        cands = list((work / "shots").glob(f"uolvid-{video_id}-{idx:02d}.*"))
+        if cands:
+            return f"/shots/{cands[0].name}"
+    if r.returncode != 0 or not dest.exists() or dest.stat().st_size < 50000:
+        print(f"  ⚠️  uol-flash-video: sem vídeo ou falha em {url}: {(r.stderr or '')[-160:]}")
+        return None
+    print(f"  🎞️  uol-flash-video: {dest.name} ({dest.stat().st_size // 1024} KB)")
     return f"/shots/{dest.name}"
 
 
@@ -1307,7 +1351,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
     last_domain = ""
     for i, scene, dest in to_fetch:
         url = scene.get("url") or ""
-        if host_kind(url) in ("x", "instagram"):
+        if host_kind(url) in ("x", "instagram", "uol-flash"):
             remaining.append((i, scene, dest))
             continue
         current_domain = domain_of(url)
@@ -1429,6 +1473,18 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     item["shot"] = None
                     by_index[i] = item
                     continue
+
+                # UOL Flash: clipe no feed (loUBwNIVsfk saiu print do player).
+                if host_kind(url) == "uol-flash":
+                    vid_rel = extract_uol_flash_video(url, shot_dir.parent, shot_dir.parent.name, i)
+                    if vid_rel:
+                        item = dict(scene)
+                        item["shot"] = None
+                        item["video"] = vid_rel
+                        by_index[i] = item
+                        print(f"  🎞️  {scene['veiculo']}: vídeo baixado ({vid_rel})")
+                        continue
+                    # Sem MP4: cai no print genérico abaixo.
 
                 # Instagram com vídeo/reel embutido: baixa o clipe com yt-dlp
                 if host_kind(url) == "instagram":
