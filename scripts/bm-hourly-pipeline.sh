@@ -49,6 +49,24 @@ remain() {
 }
 
 # ------------------------------------------------------------------------------
+# BLINDAGEM: Validar interpretadores Python antes de usar (adicionado 2026-09-08)
+# Se HERMES_PY sumiu (update do Hermes Agent, venv recriado), faz fallback para
+# PROJECT_PY. Sem Python válido, aborta com mensagem clara em vez de erro críptico.
+# ------------------------------------------------------------------------------
+if [[ ! -x "$HERMES_PY" ]]; then
+  echo "WARN: HERMES_PY não encontrado ou não-executável: $HERMES_PY" >&2
+  if [[ -x "$PROJECT_PY" ]]; then
+    echo "WARN: Usando fallback PROJECT_PY=$PROJECT_PY para monitor+pipeline" >&2
+    HERMES_PY="$PROJECT_PY"
+  else
+    echo "FATAL: Nenhum Python válido encontrado (HERMES_PY=$HERMES_PY, PROJECT_PY=$PROJECT_PY)" >&2
+    exit 1
+  fi
+fi
+
+echo "[bm-hourly] $(date '+%F %T') HERMES_PY=$HERMES_PY PROJECT_PY=$PROJECT_PY" >&2
+
+# ------------------------------------------------------------------------------
 # ETAPA 1: Monitor RSS ANCAPSU -> Fila de episódios (Ambiente Hermes)
 # ------------------------------------------------------------------------------
 set +e

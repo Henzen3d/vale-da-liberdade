@@ -159,9 +159,8 @@ SPEAKER_PERSONAS = {
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 5  # segundos
 CHUNK_TARGET_WORDS = 300  # ~5 chunks p/ 1500 palavras → cabe nos 10 RPD/chave; 3 keys × RR ≈ 30 RPD efetivos
-DEFAULT_TTS_MODEL = "gemini-2.5-flash-preview-tts"
-# Default = Diário multi-locutor. BM (Peter solo) sobrescreve com
-# --model gemini-3.1-flash-tts-preview em bm_pipeline.step_audio.
+DEFAULT_TTS_MODEL = "gemini-3.1-flash-tts-preview"
+# Default = gemini-3.1-flash-tts-preview (Diário multi-locutor e BM Peter solo).
 TTS_MODEL = DEFAULT_TTS_MODEL
 
 # Duração dos silêncios (em segundos)
@@ -514,25 +513,80 @@ def build_system_instruction(speakers: list[str] | None = None) -> str:
     )
 
 
+def _model_supports_system_instruction(model_name: str) -> bool:
+    """Verifica se o modelo suporta o campo system_instruction.
+
+    Modelos Gemini 3.1+ TTS (ex.: gemini-3.1-flash-tts-preview) rejeitam
+    system_instruction com:
+    400 INVALID_ARGUMENT: 'Developer instruction is not enabled for this model'.
+    Nesses modelos, as diretrizes de personas e sotaque são inseridas diretamente
+    no início do corpo do prompt.
+    """
+    m = (model_name or "").lower()
+    if "3.1" in m or "3-" in m or "3." in m:
+        return False
+    return True
+
+
 def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None = None, temperature: float | None = None):
     """Gera áudio multi-locutor através do GeminiClient (que gerencia retries e rate limiting)."""
     model = model or TTS_MODEL
     temperature = TTS_TEMPERATURE if temperature is None else float(temperature)
     speakers = [cfg.speaker for cfg in speaker_voice_configs]
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
+    sys_instruction = build_system_instruction(speakers)
+    use_sys_instruction = _model_supports_system_instruction(model)
+
+    if not use_sys_instruction:
+        final_prompt = f"{sys_instruction}\n\n---\n\n{prompt}"
+        gen_config = types.GenerateContentConfig(
             response_modalities=["AUDIO"],
             temperature=temperature,
-            system_instruction=build_system_instruction(speakers),
             speech_config=types.SpeechConfig(
                 multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
                     speaker_voice_configs=speaker_voice_configs
                 )
             ),
-        ),
-    )
+        )
+    else:
+        final_prompt = prompt
+        gen_config = types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            temperature=temperature,
+            system_instruction=sys_instruction,
+            speech_config=types.SpeechConfig(
+                multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+                    speaker_voice_configs=speaker_voice_configs
+                )
+            ),
+        )
+
+    try:
+        response = client.models.generate_content(
+            model=model,
+            contents=final_prompt,
+            config=gen_config,
+        )
+    except Exception as exc:
+        if "developer instruction is not enabled" in str(exc).lower() and use_sys_instruction:
+            log.warning("Modelo rejeitou system_instruction; reenviando com diretrizes no prompt principal...")
+            fallback_prompt = f"{sys_instruction}\n\n---\n\n{prompt}"
+            fallback_config = types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                temperature=temperature,
+                speech_config=types.SpeechConfig(
+                    multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+                        speaker_voice_configs=speaker_voice_configs
+                    )
+                ),
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=fallback_prompt,
+                config=fallback_config,
+            )
+        else:
+            raise
+
     data = response.candidates[0].content.parts[0].inline_data.data
     log.info(f"Áudio multi recebido ({model}): {len(data)} bytes ({len(data) / (24000 * 2):.1f}s @ 24kHz estimados)")
     return data
@@ -549,21 +603,20 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
         return b""
     model = model or TTS_MODEL
     # Instrução mínima de idioma + sotaque; o voice_name carrega o timbre.
-    # system_instruction com Audio Profile garante consistência de timbre
-    # ENTRE chamadas (chunks/halves) — sem isso a voz varia a cada chamada.
-    prompt = (
+    base_prompt = (
         "Leia em português do Brasil, de forma natural, apenas o texto a seguir, "
         "sem adicionar palavras. "
         f"{ACCENT_GUIDANCE} "
         "Texto:\n\n" + text
     )
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
+    sys_instruction = build_system_instruction([_speaker_for_voice(voice_name)])
+    use_sys_instruction = _model_supports_system_instruction(model)
+
+    if not use_sys_instruction:
+        final_prompt = f"{sys_instruction}\n\n---\n\n{base_prompt}"
+        gen_config = types.GenerateContentConfig(
             response_modalities=["AUDIO"],
-            temperature=TTS_TEMPERATURE,  # default; pode ser ajustado por chunk no modo PACKED
-            system_instruction=build_system_instruction([_speaker_for_voice(voice_name)]),
+            temperature=TTS_TEMPERATURE,
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
@@ -571,8 +624,51 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
                     )
                 )
             ),
-        ),
-    )
+        )
+    else:
+        final_prompt = base_prompt
+        gen_config = types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            temperature=TTS_TEMPERATURE,
+            system_instruction=sys_instruction,
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=voice_name
+                    )
+                )
+            ),
+        )
+
+    try:
+        response = client.models.generate_content(
+            model=model,
+            contents=final_prompt,
+            config=gen_config,
+        )
+    except Exception as exc:
+        if "developer instruction is not enabled" in str(exc).lower() and use_sys_instruction:
+            log.warning("Modelo rejeitou system_instruction (single); reenviando com diretrizes no prompt...")
+            fallback_prompt = f"{sys_instruction}\n\n---\n\n{base_prompt}"
+            fallback_config = types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                temperature=TTS_TEMPERATURE,
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                            voice_name=voice_name
+                        )
+                    )
+                ),
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=fallback_prompt,
+                config=fallback_config,
+            )
+        else:
+            raise
+
     data = response.candidates[0].content.parts[0].inline_data.data
     return data
 
@@ -1214,16 +1310,19 @@ def main():
         log.info("Modo HALVES — 2 chamadas single-speaker (mesma voz)")
         voice_name = SPEAKERS.get(speakers[0], "Charon") if speakers else "Charon"
         try:
-            data_24k = generate_halves_pcm(client, episode_text, voice_name)
+            data_24k = generate_halves_pcm(client, episode_text, voice_name, model=TTS_MODEL)
         except Exception as exc:
-            log.warning(f"Modo halves falhou: {exc} — tentando multi/edge")
+            log.warning(f"Modo halves falhou: {exc} — tentando fallback Gemini/edge")
             try:
                 clean_text = re.sub(r"\[PAUSA(?:_CURTA)?\]", "", episode_text)
                 clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
-                prompt = build_prompt(clean_text, speakers)
-                data_24k = generate_with_retry(client, prompt, speaker_voice_configs)
+                if len(speakers) == 1:
+                    data_24k = generate_single_speaker_pcm(client, clean_text, voice_name, model=TTS_MODEL)
+                else:
+                    prompt = build_prompt(clean_text, speakers)
+                    data_24k = generate_with_retry(client, prompt, speaker_voice_configs, model=TTS_MODEL)
             except Exception as exc2:
-                log.warning(f"Multi também falhou: {exc2}")
+                log.warning(f"Fallback Gemini também falhou: {exc2} — acionando edge-tts")
                 data_24k = generate_fallback_edge_tts(episode_text)
         if not _pcm_is_usable(data_24k):
             raise RuntimeError("Nenhum áudio utilizável gerado (vazio/quase silêncio).")

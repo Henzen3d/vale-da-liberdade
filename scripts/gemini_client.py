@@ -223,6 +223,7 @@ _DAILY_NEEDLES = (
     "daily quota",
     "daily limit",
     "generaterequestsperday",
+    "generaterequestsperdayperprojectpermodel-freetier",
 )
 _MINUTE_NEEDLES = (
     "per-minute",
@@ -237,20 +238,23 @@ def _is_google_daily_quota_error(msg: str, model: str = "") -> bool:
     """True só quando o Google confirma cota do DIA (não 429 de RPM).
 
     'Quota exceeded for metric' sozinho NÃO basta: o free tier usa a mesma
-    métrica generate_content_free_tier_requests para RPM e RPD. Retry em
-    segundos = janela de taxa, não fim do dia. Travava as 6 chaves TTS
-    com 0 requests reais (2026-09-01 e 2026-09-05).
+    métrica generate_content_free_tier_requests para RPM e RPD.
+    Se o Google inclui GenerateRequestsPerDay no quotaId, é RPD mesmo que inclua
+    um retry delay sugerido de segundos.
     """
     m = (msg or "").lower()
     if not m:
         return False
+    # 1. Se explicitamente cita cota diária (ex: generaterequestsperday), é RPD
+    if any(n in m for n in _DAILY_NEEDLES):
+        return True
+    # 2. Se explicitamente cita por minuto, é RPM
     if any(n in m for n in _MINUTE_NEEDLES):
         return False
+    # 3. Retry curto sem menção diária indica RPM (janela de minuto)
     retry = _RETRY_IN_RE.search(m)
     if retry and float(retry.group(1)) <= 180:
         return False
-    if any(n in m for n in _DAILY_NEEDLES):
-        return True
     limit_m = _LIMIT_RE.search(m)
     if not limit_m:
         return False
