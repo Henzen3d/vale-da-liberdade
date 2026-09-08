@@ -556,6 +556,27 @@ class BrandingIntroOutroTests(unittest.TestCase):
                 self.assertEqual(res, fake_audio)
 
 
+class RecordMockupGotoTests(unittest.TestCase):
+    """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""
+
+    def test_record_mockup_goto_is_not_networkidle(self) -> None:
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.record_mockup)
+        self.assertIn('wait_until="domcontentloaded"', src)
+        self.assertNotIn('wait_until="networkidle"', src)
+
+    def test_pending_max_counts_attempts_not_successes(self) -> None:
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.main)
+        self.assertIn("n_tried", src)
+        self.assertIn("if n_tried >= args.max", src)
+        self.assertNotIn("if n_ok >= args.max", src)
+
+
 if __name__ == "__main__":
     unittest.main()
 

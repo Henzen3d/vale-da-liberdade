@@ -1776,7 +1776,9 @@ def record_mockup(
             }
             if first_xpost:
                 init_payload["xPost"] = json.dumps(first_xpost) if not isinstance(first_xpost, str) else first_xpost
-            page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="networkidle", timeout=45000)
+            # pageVideo em autoplay+loop (dezenas de MB) + Google Fonts/GSAP no CDN
+            # nunca deixam a rede ociosa — networkidle estoura 45s (FNTK1AJegxI).
+            page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="domcontentloaded", timeout=45000)
             page.wait_for_function(
                 """() => {
                   const w = document.getElementById('sceneWallpaper');
@@ -2630,15 +2632,17 @@ def main() -> int:
         return 0
     print(f"📋 {len(ids)} candidato(s): {', '.join(ids[:8])}")
     n_ok = 0
+    n_tried = 0
     last_err = None
     for vid in ids:
+        n_tried += 1
         try:
             process_one(vid, upload=args.upload, privacy=args.privacy, dry_run=args.dry_run, force=args.force)
             n_ok += 1
         except Exception as exc:
             last_err = exc
             print(f"  ❌ {vid}: {exc}")
-        if n_ok >= args.max:
+        if n_tried >= args.max:
             break
     if n_ok == 0 and last_err:
         return 1
