@@ -1779,6 +1779,15 @@ def record_mockup(
             # pageVideo em autoplay+loop (dezenas de MB) + Google Fonts/GSAP no CDN
             # nunca deixam a rede ociosa — networkidle estoura 45s (FNTK1AJegxI).
             page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="domcontentloaded", timeout=45000)
+            # LT do HTML some na gravação. Overlay oficial (1576px, left 300)
+            # entra no compose_presenter NA FRENTE do Peter. Sem isso o avatar
+            # cobre o LT do mockup (L6BdCfuMVpQ).
+            page.evaluate(
+                """() => {
+                  const el = document.querySelector('.lower-third-overlay');
+                  if (el) el.style.setProperty('display', 'none', 'important');
+                }"""
+            )
             page.wait_for_function(
                 """() => {
                   const w = document.getElementById('sceneWallpaper');

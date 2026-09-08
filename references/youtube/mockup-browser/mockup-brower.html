@@ -27,14 +27,14 @@
   --text-muted: #64748b;
   --border-light: #e2e8f0;
 
-  /* Lower Third Tokens */
-  --lt-width: 1320px;
-  --lt-top-strip-h: 34px;
-  --lt-ticker-h: 38px;
-  --lt-left-inset: 18px;
-  --lt-radius-top: 12px;
-  --lt-card-radius: 12px;
-  --lt-layer-gap: 7px;
+  /* Lower Third Tokens — iguais ao engine (obs-overlay.html / lower-third.css) */
+  --lt-width: 1576px;
+  --lt-top-strip-h: 40px;
+  --lt-ticker-h: 45px;
+  --lt-left-inset: 22px;
+  --lt-radius-top: 14px;
+  --lt-card-radius: 14px;
+  --lt-layer-gap: 8px;
   --lt-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 
   --lt-red-top: #d4a017;
@@ -587,13 +587,14 @@ html, body {
    ============================================================ */
 .lower-third-overlay {
   position: absolute;
-  bottom: 28px;
-  left: 0;
-  right: 0;
+  left: 300px;
+  bottom: 30px;
+  width: 1576px;
+  right: auto;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   z-index: 50;
-  padding: 0 40px;
+  padding: 0;
 }
 
 .lt-root {
@@ -634,7 +635,7 @@ html, body {
 
 .lt-eyebrow-text {
   font-family: var(--font-headline);
-  font-size: 19px;
+  font-size: 23px;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
@@ -668,7 +669,7 @@ html, body {
 
 .lt-live-label {
   font-family: var(--font-headline);
-  font-size: 19px;
+  font-size: 23px;
   font-weight: 900;
   color: #ffffff;
   text-transform: uppercase;
@@ -706,7 +707,7 @@ html, body {
 
 .lt-headline-title {
   font-family: var(--font-headline);
-  font-size: clamp(19px, 2.05vw, 28px);
+  font-size: clamp(25px, 2.75vw, 38px);
   font-weight: 900;
   color: var(--lt-title-color);
   text-transform: uppercase;
@@ -721,7 +722,7 @@ html, body {
 
 .lt-headline-subtitle {
   font-family: var(--font-body);
-  font-size: clamp(13px, 1.15vw, 16px);
+  font-size: clamp(15px, 1.38vw, 19px);
   font-weight: 700;
   color: var(--lt-subtitle-color);
   line-height: 1.1;
@@ -745,7 +746,7 @@ html, body {
 .lt-brand-vdl-text {
   font-family: var(--font-headline);
   font-weight: 900;
-  font-size: 23px;
+  font-size: 28px;
   color: var(--lt-brand-accent);
   letter-spacing: -0.5px;
   line-height: 0.9;

@@ -577,6 +577,35 @@ class RecordMockupGotoTests(unittest.TestCase):
         self.assertNotIn("if n_ok >= args.max", src)
 
 
+class PresenterLayerOrderTests(unittest.TestCase):
+    """L6BdCfuMVpQ: Peter cobriu o LT. Camadas: mockup < avatar < lower third."""
+
+    def test_record_mockup_hides_html_lower_third(self) -> None:
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.record_mockup)
+        self.assertIn("lower-third-overlay", src)
+        self.assertIn("display", src)
+        self.assertIn("none", src)
+
+    def test_compose_presenter_puts_lower_third_in_front_of_avatar(self) -> None:
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.compose_presenter)
+        av = src.find("[0:v][av]overlay")
+        l3 = src.find("[base][l3]overlay")
+        self.assertGreater(av, -1)
+        self.assertGreater(l3, av)
+
+    def test_mockup_html_lt_matches_engine_scale(self) -> None:
+        html = (Path(__file__).resolve().parent.parent
+                / "references/youtube/mockup-browser/mockup-brower.html").read_text(encoding="utf-8")
+        self.assertIn("--lt-width: 1576px", html)
+        self.assertIn("left: 300px", html)
+
+
 if __name__ == "__main__":
     unittest.main()
 
