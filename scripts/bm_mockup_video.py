@@ -2099,28 +2099,51 @@ def find_intro_audio() -> Path | None:
     return None
 
 
+# Intro: música cheia → duck 0.18 na fala → fade 8s→15s até zero.
+INTRO_VOICE_DELAY_S = 1.5
+INTRO_DUCK_UNTIL_S = 8.0
+INTRO_FADE_END_S = 15.0
+INTRO_DUCK_VOL = 0.18
+INTRO_MIX_TAG = "v2"
+
+# Outro: após a voz, swell longo + 20s de cauda musical.
+OUTRO_TAIL_S = 20.0
+OUTRO_DUCK_VOL = 0.12
+OUTRO_PEAK_VOL = 0.75
+OUTRO_SWELL_S = 12.0
+OUTRO_FADEOUT_S = 4.0
+OUTRO_MIX_TAG = "v2"
+
+
 def prepare_audio_with_intro(audio: Path, work_dir: Path) -> Path:
     """Aplica a vinheta musical no início do áudio com ducking elegante.
 
-    0.0s a 1.5s: Trilha em volume cheio (1.0).
-    1.5s: Locução inicia (atraso de 1500ms na voz) e música baixa para 18% (0.18).
-    6.0s a 7.0s: Fade-out suave da música até silêncio total.
+    0.0s–1.5s: trilha em volume cheio (1.0), sem voz.
+    1.5s: locução entra (adelay 1500ms) e música cai para 0.18.
+    1.5s–8.0s: hold em 0.18.
+    8.0s–15.0s: fade linear 0.18 → 0.00.
     """
     intro = find_intro_audio()
     if not intro:
         return audio
 
-    out_audio = work_dir / f"{audio.stem}-with-intro.mp3"
+    out_audio = work_dir / f"{audio.stem}-with-intro-{INTRO_MIX_TAG}.mp3"
     if out_audio.is_file() and out_audio.stat().st_size > 50_000:
         return out_audio
 
     print(f"  🎵 Mixando trilha de abertura ({intro.name}) com auto-ducking...")
+    fade_span = INTRO_FADE_END_S - INTRO_DUCK_UNTIL_S
+    delay_ms = int(INTRO_VOICE_DELAY_S * 1000)
+    vol_expr = (
+        f"if(lt(t,{INTRO_VOICE_DELAY_S}),1,"
+        f"if(lt(t,{INTRO_DUCK_UNTIL_S}),{INTRO_DUCK_VOL},"
+        f"if(lt(t,{INTRO_FADE_END_S}),{INTRO_DUCK_VOL}*({INTRO_FADE_END_S}-t)/{fade_span},0)))"
+    )
     fc = (
-        "[0:a]aformat=channel_layouts=stereo:sample_rates=48000,atrim=0:7.0,"
-        "volume=enable='between(t,0,1.5)':volume=1.0,"
-        "volume=enable='between(t,1.5,6.0)':volume=0.18,"
-        "afade=t=out:st=6.0:d=1.0[bgm];"
-        "[1:a]aformat=channel_layouts=stereo:sample_rates=48000,adelay=1500|1500[voz];"
+        f"[0:a]aformat=channel_layouts=stereo:sample_rates=48000,"
+        f"apad=whole_dur={INTRO_FADE_END_S},atrim=0:{INTRO_FADE_END_S},"
+        f"volume='{vol_expr}':eval=frame[bgm];"
+        f"[1:a]aformat=channel_layouts=stereo:sample_rates=48000,adelay={delay_ms}|{delay_ms}[voz];"
         "[bgm][voz]amix=inputs=2:duration=longest:normalize=0[a]"
     )
     cmd = [
@@ -2178,11 +2201,16 @@ def resolve_outro_take(video_id: str | None = None) -> Path | None:
 
 
 def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None, work: Path) -> Path | None:
-    """Monta o encerramento dinâmico usando o MESMO wallpaper do episódio e ducking suave."""
+    """Monta o encerramento dinâmico usando o MESMO wallpaper do episódio e ducking suave.
+
+    Durante a fala: trilha em OUTRO_DUCK_VOL.
+    Depois da voz: swell linear OUTRO_SWELL_S até OUTRO_PEAK_VOL, hold, fade OUTRO_FADEOUT_S.
+    Duração total = take + OUTRO_TAIL_S (último frame do Peter congelado).
+    """
     if not take or not take.is_file():
         return None
 
-    dest = work / f"outro_{video_id}.mp4"
+    dest = work / f"outro_{video_id}_{OUTRO_MIX_TAG}.mp4"
     if dest.is_file() and dest.stat().st_size > 50_000:
         return dest
 
@@ -2195,15 +2223,18 @@ def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None,
     if not wp or not wp.is_file():
         return None
 
-    t1 = max(0.0, dur - 3.5)
-    t2 = max(t1 + 0.2, dur - 1.2)
-    ramp_dur = t2 - t1
-    fade_dur = max(0.2, dur - t2)
+    total = dur + OUTRO_TAIL_S
+    swell_start = dur
+    swell_end = dur + OUTRO_SWELL_S
+    fade_start = max(swell_end, total - OUTRO_FADEOUT_S)
+    fade_dur = max(0.2, total - fade_start)
+    peak_span = OUTRO_PEAK_VOL - OUTRO_DUCK_VOL
 
     vf_pres = (
         "[1:v]scale=854:480:force_original_aspect_ratio=decrease,"
         "pad=854:480:(ow-iw)/2:(oh-ih)/2:color=black,"
-        "drawbox=x=0:y=0:w=iw:h=ih:color=white@0.8:t=3[pres]"
+        "drawbox=x=0:y=0:w=iw:h=ih:color=white@0.8:t=3,"
+        f"tpad=stop_mode=clone:stop_duration={OUTRO_TAIL_S:.2f}[pres]"
     )
     vf_bg = (
         "[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,"
@@ -2218,13 +2249,18 @@ def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None,
 
     inputs = ["-loop", "1", "-i", str(wp), "-i", str(take)]
     if music and music.is_file():
-        inputs += ["-i", str(music)]
-        af_bgm = (
-            f"[2:a]volume='if(lt(t,{t1:.2f}),0.12,if(lt(t,{t2:.2f}),0.12+0.63*(t-{t1:.2f})/{ramp_dur:.2f},0.75))':eval=frame,"
-            f"afade=t=out:st={t2:.2f}:d={fade_dur:.2f},"
-            f"atrim=0:{dur:.2f}[bgm]"
+        inputs += ["-stream_loop", "-1", "-i", str(music)]
+        vol_expr = (
+            f"if(lt(t,{swell_start:.2f}),{OUTRO_DUCK_VOL},"
+            f"if(lt(t,{swell_end:.2f}),{OUTRO_DUCK_VOL}+{peak_span:.2f}*(t-{swell_start:.2f})/{OUTRO_SWELL_S:.2f},"
+            f"if(lt(t,{fade_start:.2f}),{OUTRO_PEAK_VOL},"
+            f"{OUTRO_PEAK_VOL}*({total:.2f}-t)/{fade_dur:.2f})))"
         )
-        af_voz = "[1:a]volume=1.0[voz]"
+        af_bgm = (
+            f"[2:a]atrim=0:{total:.2f},asetpts=PTS-STARTPTS,"
+            f"volume='{vol_expr}':eval=frame[bgm]"
+        )
+        af_voz = f"[1:a]volume=1.0,apad=pad_dur={OUTRO_TAIL_S:.2f}[voz]"
         af_mix = "[voz][bgm]amix=inputs=2:duration=first:normalize=0[a]"
         filter_complex = f"{vf_pres};{vf_bg};{vf_overlay};{af_bgm};{af_voz};{af_mix}"
         map_args = ["-map", "[v]", "-map", "[a]"]
@@ -2232,13 +2268,13 @@ def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None,
         filter_complex = f"{vf_pres};{vf_bg};{vf_overlay}"
         map_args = ["-map", "[v]", "-map", "1:a"]
 
-    print(f"  🎬 Compondo encerramento contextual ({take.name} + wallpaper {wp.name})...")
+    print(f"  🎬 Compondo encerramento contextual ({take.name} + wallpaper {wp.name}, {total:.1f}s)...")
     cmd = [
         "ffmpeg", "-y",
         *inputs,
         "-filter_complex", filter_complex,
         *map_args,
-        "-t", f"{dur:.2f}",
+        "-t", f"{total:.2f}",
         "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
         "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
         "-pix_fmt", "yuv420p",
@@ -2246,7 +2282,7 @@ def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None,
         str(dest),
     ]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
         if r.returncode == 0 and dest.is_file() and dest.stat().st_size > 50_000:
             print(f"  ✅ Encerramento contextual composto: {dest.name} ({dest.stat().st_size // 1024} KB)")
             return dest

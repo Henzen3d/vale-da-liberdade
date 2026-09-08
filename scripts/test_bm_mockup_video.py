@@ -614,6 +614,33 @@ class BrandingIntroOutroTests(unittest.TestCase):
                 res = m.prepare_audio_with_intro(fake_audio, Path(td))
                 self.assertEqual(res, fake_audio)
 
+    def test_intro_envelope_holds_duck_then_fades_to_15s(self):
+        import inspect
+        import bm_mockup_video as m
+
+        self.assertEqual(m.INTRO_VOICE_DELAY_S, 1.5)
+        self.assertEqual(m.INTRO_DUCK_UNTIL_S, 8.0)
+        self.assertEqual(m.INTRO_FADE_END_S, 15.0)
+        self.assertEqual(m.INTRO_DUCK_VOL, 0.18)
+        src = inspect.getsource(m.prepare_audio_with_intro)
+        self.assertIn("eval=frame", src)
+        self.assertNotIn("atrim=0:7.0", src)
+        self.assertIn("-with-intro-", src)
+
+    def test_outro_swell_starts_after_voice_with_tail(self):
+        import inspect
+        import bm_mockup_video as m
+
+        self.assertEqual(m.OUTRO_TAIL_S, 20.0)
+        self.assertEqual(m.OUTRO_SWELL_S, 12.0)
+        self.assertEqual(m.OUTRO_DUCK_VOL, 0.12)
+        self.assertEqual(m.OUTRO_PEAK_VOL, 0.75)
+        src = inspect.getsource(m.compose_outro_for_episode)
+        self.assertIn("tpad=stop_mode=clone", src)
+        self.assertIn("stream_loop", src)
+        self.assertIn("swell_start = dur", src)
+        self.assertNotIn("dur - 3.5", src)
+
 
 class RecordMockupGotoTests(unittest.TestCase):
     """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""
