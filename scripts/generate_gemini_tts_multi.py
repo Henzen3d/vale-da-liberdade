@@ -172,6 +172,9 @@ PAUSA_CURTA_S = 0.5    # [PAUSA_CURTA] — entre falas longas
 TTS_TEMPERATURE = 0.90
 # Cadência BM (Peter solo): 1.15× no ffmpeg. Diário (dois locutores) fica em 1.0.
 BM_TTS_ATEMPO = 1.15
+# Cadeia FFmpeg versionada. v2 = default (mede loudnorm DEPOIS do EQ).
+# Rollback: VALE_TTS_FFMPEG_CHAIN=v1
+FFMPEG_CHAIN_DEFAULT = "v2"
 
 SAMPLE_RATE = 44100    # Hz — qualidade podcast (Fase 0.5)
 SAMPLE_WIDTH = 2       # bytes (16-bit PCM)
@@ -413,92 +416,139 @@ def resample_pcm(pcm_data: bytes, from_rate: int, to_rate: int) -> bytes:
                 pass
 
 
+def ffmpeg_chain_version() -> str:
+    raw = (os.environ.get("VALE_TTS_FFMPEG_CHAIN") or FFMPEG_CHAIN_DEFAULT).strip().lower()
+    return raw if raw in {"v1", "v2"} else FFMPEG_CHAIN_DEFAULT
+
+
+def voice_filter_graph(
+    tempo: float = 1.0,
+    peter_eq: bool = False,
+    version: str | None = None,
+) -> str:
+    """Filtros de voz ANTES do loudnorm (sem o próprio loudnorm).
+
+    v1: cadeia histórica (highpass + compressor + presença 3.5 kHz [+ lowshelf/air]).
+    v2: highpass 90, de-esser leve, compressor mais lento, presença, alimiter.
+    """
+    version = version or ffmpeg_chain_version()
+    parts: list[str] = []
+    if tempo and abs(float(tempo) - 1.0) > 0.001:
+        t = max(0.5, min(2.0, float(tempo)))
+        parts.append(f"atempo={t}")
+    if version == "v1":
+        parts.append("highpass=f=80")
+        if peter_eq:
+            parts.append("lowshelf=f=180:width_type=h:width=100:g=1.8")
+            parts.append("equalizer=f=8000:width_type=h:width=2000:g=1.2")
+        parts.append("acompressor=threshold=-22dB:ratio=2.2:attack=25:release=150")
+        parts.append("equalizer=f=3500:width_type=h:width=1200:g=2.5")
+        return ",".join(parts)
+    # v2 — incremental, só FFmpeg. Sem dynaudnorm (bombeia LRA).
+    parts.append("highpass=f=90")
+    parts.append("deesser=i=0.18:m=0.4:f=0.5:s=o")
+    if peter_eq:
+        parts.append("lowshelf=f=160:width_type=h:width=120:g=1.2")
+        parts.append("equalizer=f=6500:width_type=h:width=1800:g=1.0")
+    parts.append("acompressor=threshold=-20dB:ratio=2.0:attack=12:release=220:makeup=1")
+    parts.append("equalizer=f=3200:width_type=h:width=1400:g=2.0")
+    parts.append("alimiter=limit=0.89:attack=5:release=50")
+    return ",".join(parts)
+
+
+def _parse_loudnorm_json(stderr_text: str) -> dict[str, str]:
+    measured = {
+        "input_i": "-23.0",
+        "input_lra": "7.0",
+        "input_tp": "-2.0",
+        "input_thresh": "-33.0",
+        "target_offset": "0.0",
+    }
+    try:
+        json_match = re.search(r"\{[^{}]+\}", stderr_text or "", re.S)
+        if json_match:
+            data = json.loads(json_match.group(0))
+            for k in measured:
+                if data.get(k) is not None:
+                    measured[k] = str(data[k])
+    except Exception as e:
+        log.warning(f"Não foi possível parsear dados de loudnorm: {e}. Usando valores padrão.")
+    return measured
+
+
 def run_ffmpeg_chain_2pass(
     input_wav: Path,
     output_mp3: Path,
     tempo: float = 1.0,
     peter_eq: bool = False,
+    version: str | None = None,
 ) -> None:
-    """
-    Pós-processamento profissional com loudnorm EBU R128 de 2 passos.
-    
-    Passo 1: Medir LUFS/LRA/true-peak do arquivo.
-    Passo 2: Aplicar loudnorm linear com os valores medidos (mais preciso que passo único).
-    Também: highpass, compressor, EQ, 44.1kHz, 192kbps MP3.
-    tempo>1.0 (BM Gemini): atempo no passo 2 — cadência mais rápida sem pedir ao Gemini
-    para "soar acelerado" (o que degradava a persona).
-    peter_eq (BM solo): lowshelf + presença extra — Edge/Gemini saem um pouco magros.
-    """
-    log.info("Aplicando pós-processamento EBU R128 (2 passos) e gerando MP3 final...")
+    """Pós-processamento EBU R128 2-pass + filtros de voz versionados.
 
-    # ── Passo 1: medir loudness ──────────────────────────────────────────────
+    v2 (default): aplica EQ/compressor/de-esser, MEDE o WAV já processado,
+    depois loudnorm linear. v1 media o cru (EQ depois distorcia o alvo).
+    Rollback: VALE_TTS_FFMPEG_CHAIN=v1.
+    """
+    version = version or ffmpeg_chain_version()
+    log.info(
+        f"Aplicando pós-processamento EBU R128 (cadeia {version}) e gerando MP3 final..."
+    )
+    voice = voice_filter_graph(tempo=tempo, peter_eq=peter_eq, version=version)
+    if tempo and abs(float(tempo) - 1.0) > 0.001:
+        log.info(f"Cadência atempo={max(0.5, min(2.0, float(tempo)))} (BM Peter solo)")
+    if peter_eq:
+        log.info(f"EQ Peter solo ativo (cadeia {version})")
+
+    measure_input = input_wav
+    tmp_shaped: Path | None = None
+    if version == "v2":
+        tmp_shaped = Path(tempfile.mkstemp(suffix="-shaped.wav")[1])
+        cmd_shape = [
+            "ffmpeg", "-y",
+            "-i", str(input_wav),
+            "-af", voice,
+            "-ar", str(SAMPLE_RATE),
+            "-ac", str(CHANNELS),
+            "-c:a", "pcm_s16le",
+            str(tmp_shaped),
+        ]
+        proc_s = subprocess.run(cmd_shape, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if proc_s.returncode != 0 or not tmp_shaped.exists() or tmp_shaped.stat().st_size < 1000:
+            if tmp_shaped:
+                tmp_shaped.unlink(missing_ok=True)
+            raise RuntimeError(f"ffmpeg (shape v2) falhou:\n{proc_s.stderr}")
+        measure_input = tmp_shaped
+        log.info("Cadeia v2: loudnorm medido APÓS EQ/compressor (não no WAV cru)")
+
     cmd_measure = [
         "ffmpeg", "-y",
-        "-i", str(input_wav),
+        "-i", str(measure_input),
         "-af", "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json",
-        "-f", "null", "-"
+        "-f", "null", "-",
     ]
-    proc1 = subprocess.run(
-        cmd_measure, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    proc1 = subprocess.run(cmd_measure, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    m = _parse_loudnorm_json(proc1.stderr)
+    log.info(
+        f"Loudnorm medido: I={m['input_i']} LUFS, LRA={m['input_lra']}, "
+        f"TP={m['input_tp']}, offset={m['target_offset']}"
     )
-    
-    # Extrair JSON do stderr do ffmpeg (loudnorm imprime para stderr)
-    measured_il = "-23.0"
-    measured_lra = "7.0"
-    measured_tp = "-2.0"
-    measured_thresh = "-33.0"
-    measured_offset = "0.0"
-    
-    try:
-        stderr_text = proc1.stderr
-        json_match = re.search(r"\{[^{}]+\}", stderr_text, re.S)
-        if json_match:
-            loudnorm_data = json.loads(json_match.group(0))
-            measured_il = loudnorm_data.get("input_i", measured_il)
-            measured_lra = loudnorm_data.get("input_lra", measured_lra)
-            measured_tp = loudnorm_data.get("input_tp", measured_tp)
-            measured_thresh = loudnorm_data.get("input_thresh", measured_thresh)
-            measured_offset = loudnorm_data.get("target_offset", measured_offset)
-            log.info(
-                f"Loudnorm medido: I={measured_il} LUFS, LRA={measured_lra}, "
-                f"TP={measured_tp}, offset={measured_offset}"
-            )
-    except Exception as e:
-        log.warning(f"Não foi possível parsear dados de loudnorm: {e}. Usando valores padrão.")
-
-    # ── Passo 2: aplicar loudnorm linear + filtros ───────────────────────────
     loudnorm_filter = (
         f"loudnorm=I=-16:TP=-1.5:LRA=11:"
-        f"measured_I={measured_il}:measured_LRA={measured_lra}:"
-        f"measured_TP={measured_tp}:measured_thresh={measured_thresh}:"
-        f"offset={measured_offset}:linear=true:print_format=summary"
+        f"measured_I={m['input_i']}:measured_LRA={m['input_lra']}:"
+        f"measured_TP={m['input_tp']}:measured_thresh={m['input_thresh']}:"
+        f"offset={m['target_offset']}:linear=true:print_format=summary"
     )
-    tempo_filter = ""
-    if tempo and abs(float(tempo) - 1.0) > 0.001:
-        t = max(0.5, min(2.0, float(tempo)))
-        tempo_filter = f"atempo={t},"
-        log.info(f"Cadência atempo={t} (BM Peter solo)")
-    warmth = ""
-    if peter_eq:
-        # Corpo ~180 Hz (Edge Antonio costuma sair fino) + ar em 8 kHz.
-        warmth = (
-            "lowshelf=f=180:width_type=h:width=100:g=1.8,"
-            "equalizer=f=8000:width_type=h:width=2000:g=1.2,"
-        )
-        log.info("EQ Peter solo: lowshelf 180Hz +1.8 dB, air 8 kHz +1.2 dB")
-    audio_filter = (
-        f"{tempo_filter}"
-        f"highpass=f=80,"
-        f"{warmth}"
-        f"acompressor=threshold=-22dB:ratio=2.2:attack=25:release=150,"
-        f"equalizer=f=3500:width_type=h:width=1200:g=2.5,"
-        f"{loudnorm_filter}"
-    )
+    if version == "v2":
+        apply_filter = loudnorm_filter
+        apply_input = measure_input
+    else:
+        apply_filter = f"{voice},{loudnorm_filter}"
+        apply_input = input_wav
 
     cmd_apply = [
         "ffmpeg", "-y",
-        "-i", str(input_wav),
-        "-af", audio_filter,
+        "-i", str(apply_input),
+        "-af", apply_filter,
         "-ar", str(SAMPLE_RATE),
         "-ac", str(CHANNELS),
         "-acodec", "libmp3lame",
@@ -506,10 +556,13 @@ def run_ffmpeg_chain_2pass(
         str(output_mp3),
     ]
     proc2 = subprocess.run(cmd_apply, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if tmp_shaped is not None:
+        tmp_shaped.unlink(missing_ok=True)
     if proc2.returncode != 0:
         raise RuntimeError(f"ffmpeg (passo 2) falhou:\n{proc2.stderr}")
-    
+
     log.info(f"✅ Loudnorm EBU R128 2-pass aplicado → {output_mp3}")
+    return
 
 
 def build_system_instruction(speakers: list[str] | None = None) -> str:
@@ -767,6 +820,27 @@ def parse_speaker_turns(text: str) -> list[tuple[str, str]]:
     return turns
 
 
+def iter_voice_segments(episode_text: str, voice_name: str) -> list[tuple[str, float]]:
+    """Blocos de fala + pausa após cada um, honrando [PAUSA]/[PAUSA_CURTA].
+
+    BM halves antigamente juntava tudo e descartava os marcadores — o
+    preprocessor inseria 1.5s/0.5s que nunca iam para o PCM.
+    """
+    solo = _speaker_for_voice(voice_name)
+    chunks = split_into_chunks(episode_text)
+    segs: list[tuple[str, float]] = []
+    for chunk_text, pause_after_s in chunks:
+        turns = parse_speaker_turns(chunk_text)
+        turns = [(sp, body) for sp, body in turns if sp == solo] or turns
+        if not turns:
+            continue
+        body = sanitize_tts_text(" ".join(b for _, b in turns))
+        if len(body.split()) < MIN_CHUNK_WORDS:
+            continue
+        segs.append((body, float(pause_after_s or 0.0)))
+    return segs
+
+
 def generate_episode_multi(client, episode_text: str, speaker_voice_configs: list) -> bytes:
     """Gera o EPISÓDIO INTEIRO numa ÚNICA chamada multi-speaker (Gemini TTS).
 
@@ -842,40 +916,36 @@ def generate_halves_pcm(
 ) -> bytes:
     """Gera PCM 24kHz em N chamadas single-speaker com a MESMA voz.
 
-    Uso: BM solo Peter. Junta os turnos, corta em blocos de no máximo
-    CHUNK_TARGET_WORDS (300). Padrão histórico: Charon (Gemini). Com
-    prefer_edge=True o Edge (AntonioNeural) é o principal e o Gemini
-    só entra na metade que o Edge não entregar.
+    Uso: BM solo Peter. Honra [PAUSA]/[PAUSA_CURTA] do preprocessor e
+    ainda corta blocos acima de CHUNK_TARGET_WORDS. Com prefer_edge=True
+    o Edge (AntonioNeural) é o principal; Gemini só na metade que falhar.
     """
-    turns = parse_speaker_turns(episode_text)
-    if not turns:
+    segs = iter_voice_segments(episode_text, voice_name)
+    if not segs:
         raise RuntimeError("Nenhum turno Peter/Ricardo encontrado no texto TTS")
-    # BM / single-voice: só o locutor da voz pedida. Ricardo no texto não vira 2ª voz.
-    solo = _speaker_for_voice(voice_name)
-    turns = [(sp, body) for sp, body in turns if sp == solo] or turns
-
-    joined = " ".join(body for _, body in turns)
-    joined = sanitize_tts_text(joined)  # 2026-08-09: %→"por cento", $→"dólares", sem links/emojis
-    halves = split_text_capped(joined)
+    work: list[tuple[str, float]] = []
+    for body, pause_s in segs:
+        pieces = split_text_capped(body)
+        for j, piece in enumerate(pieces):
+            work.append((piece, pause_s if j == len(pieces) - 1 else 0.35))
     log.info(
         "Modo HALVES — %s chamadas single-speaker (%s, teto %s): %s",
-        len(halves),
+        len(work),
         voice_name,
         CHUNK_TARGET_WORDS,
-        " + ".join(f"{len(h.split())} palavras" for h in halves),
+        " + ".join(f"{len(h.split())}p/{p:.1f}s" for h, p in work),
     )
 
     def silence_24k(seconds: float) -> bytes:
-        n = int(GEMINI_PCM_RATE * seconds) * SAMPLE_WIDTH
+        n = int(GEMINI_PCM_RATE * max(0.0, seconds)) * SAMPLE_WIDTH
         return b"\x00" * n
 
-    gap = silence_24k(0.45)
     all_pcm = b""
     missing_halves: list[int] = []
-    for i, half in enumerate(halves, start=1):
+    for i, (half, pause_s) in enumerate(work, start=1):
         if len(half.split()) < MIN_CHUNK_WORDS:
             continue
-        log.info(f"  Metade {i}/{len(halves)}: {len(half.split())} palavras")
+        log.info(f"  Metade {i}/{len(work)}: {len(half.split())} palavras")
         pcm = b""
         style = EDGE_SPEAKER_STYLE.get("Peter") or {
             "voice": _FALLBACK_EDGE_TTS_VOICE,
@@ -937,6 +1007,7 @@ def generate_halves_pcm(
             log.error(f"  halves {i}: NENHUM áudio utilizável — metade faltando no episódio")
             missing_halves.append(i)
             continue
+        gap = silence_24k(pause_s) if pause_s > 0.02 else b""
         all_pcm += pcm + gap
 
     # 2026-08-10: episódio incompleto NÃO vai ao ar (era o caso do LULINHA 13:07
@@ -944,7 +1015,7 @@ def generate_halves_pcm(
     if missing_halves:
         raise RuntimeError(
             f"PCM halves incompleto: metades {missing_halves} sem áudio utilizável "
-            f"(geradas: {len(halves) - len(missing_halves)}/{len(halves)}). "
+            f"(geradas: {len(work) - len(missing_halves)}/{len(work)}). "
             f"Episódio não publicado para evitar ruído/silêncio no ar."
         )
     if len(all_pcm) < MIN_CHUNK_PCM_BYTES_24K * 10:

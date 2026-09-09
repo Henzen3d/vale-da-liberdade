@@ -62,13 +62,11 @@ class SoloVsDailyInstructionTests(unittest.TestCase):
         )
 
     def test_bm_peter_eq_has_warmth_and_presence(self) -> None:
-        import inspect
-
-        src = inspect.getsource(tts.run_ffmpeg_chain_2pass)
-        self.assertIn("lowshelf", src)
-        self.assertIn("equalizer=f=3500", src)
-        self.assertIn("highpass=f=80", src)
-        self.assertIn("acompressor", src)
+        v1 = tts.voice_filter_graph(tempo=1.0, peter_eq=True, version="v1")
+        self.assertIn("lowshelf", v1)
+        self.assertIn("equalizer=f=3500", v1)
+        self.assertIn("highpass=f=80", v1)
+        self.assertIn("acompressor", v1)
 
     def test_bm_pipeline_step_audio_prefers_edge(self) -> None:
         import inspect
@@ -78,6 +76,34 @@ class SoloVsDailyInstructionTests(unittest.TestCase):
         self.assertIn("--prefer-edge", src)
         self.assertIn("--single-speaker", src)
         self.assertLess(src.find("--prefer-edge"), src.find("gemini-3.1-flash-tts-preview"))
+
+    def test_ffmpeg_chain_default_is_v2(self) -> None:
+        self.assertEqual(tts.FFMPEG_CHAIN_DEFAULT, "v2")
+        v1 = tts.voice_filter_graph(tempo=1.15, peter_eq=True, version="v1")
+        v2 = tts.voice_filter_graph(tempo=1.15, peter_eq=True, version="v2")
+        self.assertIn("highpass=f=80", v1)
+        self.assertNotIn("deesser", v1)
+        self.assertNotIn("alimiter", v1)
+        self.assertNotIn("loudnorm", v1)  # loudnorm é passo separado nas duas versões
+        self.assertIn("deesser", v2)
+        self.assertIn("alimiter", v2)
+        self.assertIn("highpass", v2)
+        self.assertNotIn("loudnorm", v2)  # v2 mede loudnorm DEPOIS do EQ
+
+    def test_iter_voice_segments_keeps_pausa_markers(self) -> None:
+        text = (
+            "Peter: Primeira fala curta o bastante para passar.\n"
+            "[PAUSA]\n"
+            "Peter: Segunda fala também com conteúdo suficiente aqui.\n"
+            "[PAUSA_CURTA]\n"
+            "Peter: Terceira fala fecha o bloco com palavras de mais.\n"
+        )
+        segs = tts.iter_voice_segments(text, "Charon")
+        self.assertGreaterEqual(len(segs), 2)
+        pauses = [p for _, p in segs]
+        self.assertIn(tts.PAUSA_LONGA_S, pauses)
+        self.assertTrue(all(body.strip() for body, _ in segs))
+        self.assertNotIn("[PAUSA]", " ".join(b for b, _ in segs))
 
 
 class ChunkCapTests(unittest.TestCase):
