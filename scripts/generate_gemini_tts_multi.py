@@ -170,6 +170,8 @@ PAUSA_CURTA_S = 0.5    # [PAUSA_CURTA] — entre falas longas
 # Temperatura TTS (Gemini): global (mesmo valor para todos os chunks/speakers).
 # 0.9 = mais expressivo/animado (pode introduzir variação maior de entonação).
 TTS_TEMPERATURE = 0.90
+# Cadência BM (Peter solo): 1.15× no ffmpeg. Diário (dois locutores) fica em 1.0.
+BM_TTS_ATEMPO = 1.15
 
 SAMPLE_RATE = 44100    # Hz — qualidade podcast (Fase 0.5)
 SAMPLE_WIDTH = 2       # bytes (16-bit PCM)
@@ -411,13 +413,15 @@ def resample_pcm(pcm_data: bytes, from_rate: int, to_rate: int) -> bytes:
                 pass
 
 
-def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path) -> None:
+def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path, tempo: float = 1.0) -> None:
     """
     Pós-processamento profissional com loudnorm EBU R128 de 2 passos.
     
     Passo 1: Medir LUFS/LRA/true-peak do arquivo.
     Passo 2: Aplicar loudnorm linear com os valores medidos (mais preciso que passo único).
     Também: highpass, compressor, EQ, 44.1kHz, 192kbps MP3.
+    tempo>1.0 (BM): atempo no passo 2 — cadência mais rápida sem pedir ao Gemini
+    para "soar acelerado" (o que degradava a persona).
     """
     log.info("Aplicando pós-processamento EBU R128 (2 passos) e gerando MP3 final...")
 
@@ -463,7 +467,13 @@ def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path) -> None:
         f"measured_TP={measured_tp}:measured_thresh={measured_thresh}:"
         f"offset={measured_offset}:linear=true:print_format=summary"
     )
+    tempo_filter = ""
+    if tempo and abs(float(tempo) - 1.0) > 0.001:
+        t = max(0.5, min(2.0, float(tempo)))
+        tempo_filter = f"atempo={t},"
+        log.info(f"Cadência atempo={t} (BM Peter solo)")
     audio_filter = (
+        f"{tempo_filter}"
         f"highpass=f=80,"
         f"acompressor=threshold=-22dB:ratio=2.2:attack=25:release=150,"
         f"equalizer=f=3500:width_type=h:width=1200:g=2.5,"
@@ -493,12 +503,29 @@ def build_system_instruction(speakers: list[str] | None = None) -> str:
     Recomendação dev gemini-3.1-flash-tts-preview (2026-08-09): diretrizes no
     campo system_instruction dão mais peso que no corpo do prompt e garantem
     consistência de timbre entre chunks. Enviada em TODA chamada do episódio.
+
+    Solo (BM / --single-speaker Peter): NÃO citar Ricardo/Kore. No Gemini 3.1
+    isso vai no corpo do prompt e o modelo troca de timbre no meio do episódio.
     """
     speakers = speakers or list(SPEAKERS.keys())
     persona_lines = []
     for sp in speakers:
         if sp in SPEAKER_PERSONAS:
             persona_lines.append(f"- {sp} ({SPEAKERS.get(sp, sp)}): {SPEAKER_PERSONAS[sp]}")
+    if len(speakers) == 1:
+        personas_text = persona_lines[0] if persona_lines else f"- {speakers[0]} ({SPEAKERS.get(speakers[0], speakers[0])})"
+        return (
+            "# Audio Profile\n"
+            f"{personas_text}\n\n"
+            "# Scene\n"
+            "Estúdio de podcast jornalístico profissional, locutor solo.\n\n"
+            "# Director's Notes\n"
+            "- Locutor SOLO: uma única voz do início ao fim. NÃO invente segundo locutor, diálogo ou troca de timbre.\n"
+            "- Leia o texto EXATAMENTE como fornecido, sem adicionar, remover ou alterar palavras.\n"
+            "- Ignore rótulos de speaker no texto (ex.: 'Peter:'); não os leia em voz alta.\n"
+            "- Cadência de comentarista; respire nas pausas. Sem segundo personagem.\n"
+            f"{ACCENT_GUIDANCE}"
+        )
     personas_text = "\n".join(persona_lines) if persona_lines else "- Peter (Charon), Ricardo (Kore)"
     return (
         "# Audio Profile\n"
@@ -806,6 +833,9 @@ def generate_halves_pcm(
     turns = parse_speaker_turns(episode_text)
     if not turns:
         raise RuntimeError("Nenhum turno Peter/Ricardo encontrado no texto TTS")
+    # BM / single-voice: só o locutor da voz pedida. Ricardo no texto não vira 2ª voz.
+    solo = _speaker_for_voice(voice_name)
+    turns = [(sp, body) for sp, body in turns if sp == solo] or turns
 
     joined = " ".join(body for _, body in turns)
     joined = sanitize_tts_text(joined)  # 2026-08-09: %→"por cento", $→"dólares", sem links/emojis
@@ -1479,7 +1509,8 @@ def main():
         min_bytes = MIN_FINAL_MP3_BYTES
 
     try:
-        run_ffmpeg_chain_2pass(out_path, mp3_path)
+        tempo = BM_TTS_ATEMPO if is_single else 1.0
+        run_ffmpeg_chain_2pass(out_path, mp3_path, tempo=tempo)
         log.info(f"✅ MP3 final com EBU R128 2-pass: {mp3_path}")
         if make_daily_alias:
             date_m = re.search(r"(\d{4}-\d{2}-\d{2})", out_path.name + " " + episode_path.name)

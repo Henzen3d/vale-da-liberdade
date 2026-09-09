@@ -12,6 +12,33 @@ sys.path.insert(0, str(SCRIPT_DIR))
 import generate_gemini_tts_multi as tts
 
 
+class SoloVsDailyInstructionTests(unittest.TestCase):
+    """BM Peter solo não pode herdar Director's Notes do diário (Peter+Ricardo)."""
+
+    def test_system_instruction_solo_peter_has_no_ricardo(self) -> None:
+        text = tts.build_system_instruction(["Peter"])
+        self.assertNotIn("Ricardo", text)
+        self.assertNotIn("Kore", text)
+        self.assertIn("Charon", text)
+        self.assertIn("solo", text.lower())
+
+    def test_system_instruction_duo_keeps_ricardo(self) -> None:
+        text = tts.build_system_instruction(["Peter", "Ricardo"])
+        self.assertIn("Ricardo", text)
+        self.assertIn("Kore", text)
+        self.assertIn("Peter", text)
+
+    def test_ffmpeg_chain_accepts_tempo(self) -> None:
+        import inspect
+
+        src = inspect.getsource(tts.run_ffmpeg_chain_2pass)
+        self.assertIn("atempo", src)
+        self.assertIn("tempo", src)
+
+    def test_bm_atempo_is_115(self) -> None:
+        self.assertAlmostEqual(tts.BM_TTS_ATEMPO, 1.15)
+
+
 class ChunkCapTests(unittest.TestCase):
     def test_halves_of_938_words_exceed_cap(self) -> None:
         """NJbcFf4f8cs: 938 palavras → 444+494. Ambos passam de 300."""
