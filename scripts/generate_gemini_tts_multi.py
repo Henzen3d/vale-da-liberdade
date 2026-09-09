@@ -173,8 +173,9 @@ TTS_TEMPERATURE = 0.90
 # Cadência BM Gemini (Peter solo): 1.15× no ffmpeg. Edge já tem boa cadência → 1.0.
 # Diário (dois locutores) fica em 1.0.
 BM_TTS_ATEMPO = 1.15
-# Cadeia FFmpeg versionada. v2 = default (mede loudnorm DEPOIS do EQ).
-# Rollback: VALE_TTS_FFMPEG_CHAIN=v1
+# Cadeia FFmpeg versionada. v2 = produção (mede loudnorm DEPOIS do EQ).
+# v3 existe mas perdeu A/B: mais sibilância/xiado nos S que a v2.
+# Não promover v3. Rollback: VALE_TTS_FFMPEG_CHAIN=v1
 FFMPEG_CHAIN_DEFAULT = "v2"
 
 SAMPLE_RATE = 44100    # Hz — qualidade podcast (Fase 0.5)
@@ -433,7 +434,8 @@ def voice_filter_graph(
     v2: highpass 90, de-esser leve, compressor mais lento, presença, alimiter.
     v3: forma (lowshelf 140 + corte 280 Hz) ANTES do compressor; presença 2.8 kHz
         DEPOIS; de-esser 0.22; attack 20 ms; ratio 1.8; alimiter sem auto-level.
-        Opt-in: VALE_TTS_FFMPEG_CHAIN=v3. Default permanece v2.
+        Opt-in só: VALE_TTS_FFMPEG_CHAIN=v3. Não promover — A/B 2026-09-09:
+        v3 xiou mais os S que a v2. Default permanece v2.
     """
     version = version or ffmpeg_chain_version()
     parts: list[str] = []
