@@ -15,6 +15,7 @@ Fluxo:
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import html as _html
 import json
@@ -778,6 +779,46 @@ def probe_duration_s(path: Path) -> float:
         return float(r.stdout.strip())
     except ValueError:
         return 0.0
+
+
+VAAPI_LOCK_PATH = Path("/tmp/vale-bm-vaapi.lock")
+
+
+def vaapi_encode_lock():
+    """HD 630: 2 h264_vaapi em paralelo geram NAL inválido (Gilmar Jjy1_umSvXA)."""
+
+    class _Lock:
+        def __enter__(self):
+            self.f = open(VAAPI_LOCK_PATH, "w")
+            fcntl.flock(self.f.fileno(), fcntl.LOCK_EX)
+            return self
+
+        def __exit__(self, *_exc):
+            try:
+                fcntl.flock(self.f.fileno(), fcntl.LOCK_UN)
+            finally:
+                self.f.close()
+
+    return _Lock()
+
+
+def mp4_is_playable(path: Path) -> bool:
+    """False se o container mente (duration ok) mas o H264 não decodifica."""
+    if not path or not path.is_file() or path.stat().st_size < 50_000:
+        return False
+    if probe_duration_s(path) < 5.0:
+        return False
+    r = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-t", "3", "-f", "null", "-"],
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    err = (r.stderr or "")
+    if r.returncode != 0:
+        return False
+    bad = ("invalid nal", "error splitting", "nothing was written", "pps_id")
+    return not any(b in err.lower() for b in bad)
 
 
 def load_episode(video_id: str) -> dict:
@@ -1978,8 +2019,9 @@ def mux_video(raw: Path, audio: Path, dest: Path) -> Path:
         "-movflags", "+faststart",
         str(dest),
     ]
-    r = _run_ffmpeg(cmd_hw)
-    if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0:
+    with vaapi_encode_lock():
+        r = _run_ffmpeg(cmd_hw)
+    if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0 and mp4_is_playable(dest):
         print("  ⚡ muxing acelerado por hardware Intel VA-API (h264_vaapi)")
         return dest
 
@@ -2061,10 +2103,14 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
         "-movflags", "+faststart",
         str(dest),
     ]
-    r = _run_ffmpeg(cmd_hw)
-    if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0:
+    with vaapi_encode_lock():
+        r = _run_ffmpeg(cmd_hw)
+    if r.returncode == 0 and dest.exists() and dest.stat().st_size > 0 and mp4_is_playable(dest):
         print(f"  ⚡ apresentador acelerado por hardware Intel VA-API ({dest.stat().st_size // 1024} KB)")
         return dest
+    if dest.exists():
+        dest.unlink(missing_ok=True)
+        print("  ⚠️  VA-API onair ilegível — fallback libx264")
 
     cmd_cpu = [
         "ffmpeg", "-y",
@@ -2078,7 +2124,7 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
         str(dest),
     ]
     r = subprocess.run(cmd_cpu, capture_output=True, text=True)
-    if r.returncode != 0 or not dest.exists():
+    if r.returncode != 0 or not dest.exists() or not mp4_is_playable(dest):
         print(f"  ⚠️  compose apresentador falhou; usa mockup puro: {(r.stderr or '')[-300:]}")
         return base_mp4
     print(f"  ✅ apresentador {dest.name} ({dest.stat().st_size // 1024} KB)")
@@ -2638,6 +2684,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
     mp4 = compose_presenter(mp4, episode, audio, work)
+    if not mp4_is_playable(mp4):
+        raise RuntimeError(f"{video_id}: MP4 ilegível após overlay — recusando upload")
     outro_video = resolve_outro_video(video_id, wallpaper=wallpaper, work=work)
     if not outro_video:
         raise RuntimeError(f"{video_id}: encerramento obrigatório — nenhum clip de outro resolvido")

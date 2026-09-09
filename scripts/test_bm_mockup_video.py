@@ -726,6 +726,23 @@ class PresenterLayerOrderTests(unittest.TestCase):
         self.assertGreater(av, -1)
         self.assertGreater(l3, av)
 
+    def test_compose_presenter_validates_playable_mp4(self):
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.compose_presenter)
+        self.assertIn("mp4_is_playable", src)
+        self.assertIn("vaapi_encode_lock", src)
+        self.assertIn("libx264", src)
+
+    def test_process_one_refuses_unplayable_upload(self):
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.process_one)
+        self.assertIn("mp4_is_playable", src)
+        self.assertIn("MP4 ilegível", src)
+
     def test_mockup_html_lt_matches_engine_scale(self) -> None:
         html = (Path(__file__).resolve().parent.parent
                 / "references/youtube/mockup-browser/mockup-brower.html").read_text(encoding="utf-8")
