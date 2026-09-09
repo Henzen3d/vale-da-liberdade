@@ -82,7 +82,10 @@ OUTRO_PRONTOS_DIR = BRANDING_DIR / "encerramento" / "prontos"
 GRAVACOES_DIR = BRANDING_DIR / "encerramento" / "gravacoes"
 AUDIO_OUTRO_DIR = BRANDING_DIR / "audio" / "outro"
 
-MAX_DURATION_S = 330.0
+# 8 min: episódios reais (Flávio 384s, Gilmar 374s) não podem sumir do YouTube.
+# Alvo editorial continua 4–5 min (docs/BM-EPISODE-PACING.md). Este teto é só o mockup.
+MAX_DURATION_S = 480.0
+SOFT_DURATION_S = 330.0
 MAX_PER_RUN = 1
 WINDOW_DAYS = 2
 MAX_SCENES = 8
@@ -2509,6 +2512,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     dur = probe_duration_s(audio)
     if dur > MAX_DURATION_S:
         raise RuntimeError(f"{video_id}: áudio {dur:.0f}s > {MAX_DURATION_S:.0f}s — pulado")
+    if dur > SOFT_DURATION_S:
+        print(f"  ⚠️  {video_id}: áudio {dur:.0f}s > {SOFT_DURATION_S:.0f}s (alvo 5m30s); gerando mesmo assim")
 
     scenes = source_scenes(episode, max_sources=MAX_SCENES)
     wallpaper = pick_wallpaper(video_id)
@@ -2708,8 +2713,12 @@ def pending_ids(days: int, backfill: bool) -> list[str]:
             continue
         if not (EPS_DIR / f"especial-{vid}.json").exists():
             continue
-        if probe_duration_s(audio) > MAX_DURATION_S:
+        dur_s = probe_duration_s(audio)
+        if dur_s > MAX_DURATION_S:
+            print(f"  ⏭️  {vid}: áudio {dur_s:.0f}s > {MAX_DURATION_S:.0f}s — fora da fila do mockup")
             continue
+        if dur_s > SOFT_DURATION_S:
+            print(f"  ⚠️  {vid}: áudio {dur_s:.0f}s > {SOFT_DURATION_S:.0f}s (alvo 5m30s); segue mesmo assim")
         pending.append(vid)
     return pending
 

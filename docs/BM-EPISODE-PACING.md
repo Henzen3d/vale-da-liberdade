@@ -11,7 +11,7 @@ Documento canônico do ritmo editorial, volumetria de fontes, sincronização á
 - **Alvo central:** 820 palavras (~4m40s).
 - **Teto de palavras:** 900 palavras (~5m08s).
 - **Ritmo de fala medido (Peter):** ~170–180 palavras por minuto.
-- **Teto máximo de segurança do mockup:** 330 segundos (5m30s).
+- **Teto máximo de segurança do mockup:** 480 segundos (8 min). Acima de 330 s o cron avisa e gera mesmo assim; acima de 480 s fica de fora da fila.
 
 ### Regra do Gate de Duração
 - Se a geração inicial tiver menos de 680 palavras, o condensador realiza retry automático solicitando aprofundamento factual com base no briefing de fontes extras.

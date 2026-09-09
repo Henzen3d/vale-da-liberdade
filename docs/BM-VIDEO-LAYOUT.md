@@ -103,7 +103,7 @@ Regras detalhadas de ritmo, contagem de palavras (680–900 / 4–5 min), enriqu
 
 ## Limites do hourly
 
-- 1 vídeo/hora, janela 2 dias, áudio ≤ 330 s (5m30s)
+- 1 vídeo/hora, janela 2 dias, áudio ≤ 480 s (8 min). Acima de 330 s gera com aviso.
 - Falha de vídeo **não** derruba `process-queue`
 - Python do vídeo: `.venv` do **projeto** (Playwright)
 - Python da fila: venv do Hermes

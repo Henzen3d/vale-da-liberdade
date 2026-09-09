@@ -641,6 +641,17 @@ class BrandingIntroOutroTests(unittest.TestCase):
         self.assertIn("swell_start = dur", src)
         self.assertNotIn("dur - 3.5", src)
 
+    def test_duration_cap_allows_over_330_warns_over_480(self):
+        import inspect
+        import bm_mockup_video as m
+
+        self.assertEqual(m.MAX_DURATION_S, 480.0)
+        self.assertEqual(m.SOFT_DURATION_S, 330.0)
+        src = inspect.getsource(m.pending_ids)
+        self.assertIn("SOFT_DURATION_S", src)
+        self.assertIn("fora da fila do mockup", src)
+        self.assertIn("segue mesmo assim", src)
+
 
 class RecordMockupGotoTests(unittest.TestCase):
     """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""
