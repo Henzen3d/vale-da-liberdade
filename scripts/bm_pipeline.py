@@ -174,7 +174,11 @@ def step_preprocess_tts(video_id: str) -> bool:
 
 
 def step_audio(video_id: str) -> bool:
-    """Fase 4b: Gerar áudio TTS single-speaker (Peter/Charon)."""
+    """Fase 4b: Gerar áudio TTS single-speaker (Peter).
+
+    BM 2026-09-09: Edge TTS (AntonioNeural) é o principal; Gemini 3.1
+    (Charon) só entra se o Edge falhar numa metade. Diário não muda.
+    """
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
     tts_path = EPS_DIR / f"especial-{video_id}-tts.txt"
@@ -193,8 +197,7 @@ def step_audio(video_id: str) -> bool:
 
     tts_script = SCRIPT_DIR / "generate_gemini_tts_multi.py"
 
-    # Tentar Gemini TTS (single speaker Peter) — 3.1 no BM (Peter solo);
-    # o Diário multi-locutor fica no 2.5 (default do generate_gemini_tts_multi).
+    # Edge principal (cadência); Gemini 3.1 só se o Edge falhar.
     ok = run_step(
         [PY, str(tts_script),
          "--episode", str(tts_path),
@@ -202,9 +205,10 @@ def step_audio(video_id: str) -> bool:
          "--speakers", "Peter",
          "--single-speaker", "Peter",
          "--mode", "halves",
+         "--prefer-edge",
          "--model", "gemini-3.1-flash-tts-preview",
          "--skip-preprocess"],
-        "Geração TTS Gemini 3.1 (voz Peter/Charon) — BM",
+        "Geração TTS Edge (Peter/AntonioNeural) — BM; Gemini fallback",
     )
 
     # Verificar se MP3 foi gerado pelo pós-processamento do TTS

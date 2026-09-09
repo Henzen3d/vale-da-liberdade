@@ -38,6 +38,47 @@ class SoloVsDailyInstructionTests(unittest.TestCase):
     def test_bm_atempo_is_115(self) -> None:
         self.assertAlmostEqual(tts.BM_TTS_ATEMPO, 1.15)
 
+    def test_prefer_edge_cli_flag_exists(self) -> None:
+        import inspect
+
+        src = inspect.getsource(tts.main)
+        self.assertIn("--prefer-edge", src)
+        self.assertIn("prefer_edge", src)
+
+    def test_halves_prefer_edge_tries_edge_before_gemini(self) -> None:
+        import inspect
+
+        src = inspect.getsource(tts.generate_halves_pcm)
+        self.assertIn("prefer_edge", src)
+        edge_pos = src.find("_edge_tts_generate_audio")
+        gemini_pos = src.find("generate_single_speaker_pcm")
+        self.assertGreater(edge_pos, 0)
+        self.assertGreater(gemini_pos, 0)
+        # Com prefer_edge, o ramo Edge aparece ANTES do Gemini no corpo.
+        prefer_block = src[src.find("if prefer_edge") :]
+        self.assertLess(
+            prefer_block.find("_edge_tts_generate_audio"),
+            prefer_block.find("generate_single_speaker_pcm"),
+        )
+
+    def test_bm_peter_eq_has_warmth_and_presence(self) -> None:
+        import inspect
+
+        src = inspect.getsource(tts.run_ffmpeg_chain_2pass)
+        self.assertIn("lowshelf", src)
+        self.assertIn("equalizer=f=3500", src)
+        self.assertIn("highpass=f=80", src)
+        self.assertIn("acompressor", src)
+
+    def test_bm_pipeline_step_audio_prefers_edge(self) -> None:
+        import inspect
+        import bm_pipeline as bm
+
+        src = inspect.getsource(bm.step_audio)
+        self.assertIn("--prefer-edge", src)
+        self.assertIn("--single-speaker", src)
+        self.assertLess(src.find("--prefer-edge"), src.find("gemini-3.1-flash-tts-preview"))
+
 
 class ChunkCapTests(unittest.TestCase):
     def test_halves_of_938_words_exceed_cap(self) -> None:

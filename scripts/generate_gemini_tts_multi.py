@@ -413,15 +413,21 @@ def resample_pcm(pcm_data: bytes, from_rate: int, to_rate: int) -> bytes:
                 pass
 
 
-def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path, tempo: float = 1.0) -> None:
+def run_ffmpeg_chain_2pass(
+    input_wav: Path,
+    output_mp3: Path,
+    tempo: float = 1.0,
+    peter_eq: bool = False,
+) -> None:
     """
     Pós-processamento profissional com loudnorm EBU R128 de 2 passos.
     
     Passo 1: Medir LUFS/LRA/true-peak do arquivo.
     Passo 2: Aplicar loudnorm linear com os valores medidos (mais preciso que passo único).
     Também: highpass, compressor, EQ, 44.1kHz, 192kbps MP3.
-    tempo>1.0 (BM): atempo no passo 2 — cadência mais rápida sem pedir ao Gemini
+    tempo>1.0 (BM Gemini): atempo no passo 2 — cadência mais rápida sem pedir ao Gemini
     para "soar acelerado" (o que degradava a persona).
+    peter_eq (BM solo): lowshelf + presença extra — Edge/Gemini saem um pouco magros.
     """
     log.info("Aplicando pós-processamento EBU R128 (2 passos) e gerando MP3 final...")
 
@@ -472,9 +478,18 @@ def run_ffmpeg_chain_2pass(input_wav: Path, output_mp3: Path, tempo: float = 1.0
         t = max(0.5, min(2.0, float(tempo)))
         tempo_filter = f"atempo={t},"
         log.info(f"Cadência atempo={t} (BM Peter solo)")
+    warmth = ""
+    if peter_eq:
+        # Corpo ~180 Hz (Edge Antonio costuma sair fino) + ar em 8 kHz.
+        warmth = (
+            "lowshelf=f=180:width_type=h:width=100:g=1.8,"
+            "equalizer=f=8000:width_type=h:width=2000:g=1.2,"
+        )
+        log.info("EQ Peter solo: lowshelf 180Hz +1.8 dB, air 8 kHz +1.2 dB")
     audio_filter = (
         f"{tempo_filter}"
         f"highpass=f=80,"
+        f"{warmth}"
         f"acompressor=threshold=-22dB:ratio=2.2:attack=25:release=150,"
         f"equalizer=f=3500:width_type=h:width=1200:g=2.5,"
         f"{loudnorm_filter}"
@@ -823,12 +838,14 @@ def generate_halves_pcm(
     episode_text: str,
     voice_name: str,
     model: str | None = None,
+    prefer_edge: bool = False,
 ) -> bytes:
     """Gera PCM 24kHz em N chamadas single-speaker com a MESMA voz.
 
     Uso: BM solo Peter. Junta os turnos, corta em blocos de no máximo
-    CHUNK_TARGET_WORDS (300) e chama Charon em cada um. Antes eram 2
-    metades livres (NJbcFf4f8cs: 444+494) e o Gemini degradava no fim.
+    CHUNK_TARGET_WORDS (300). Padrão histórico: Charon (Gemini). Com
+    prefer_edge=True o Edge (AntonioNeural) é o principal e o Gemini
+    só entra na metade que o Edge não entregar.
     """
     turns = parse_speaker_turns(episode_text)
     if not turns:
@@ -860,36 +877,62 @@ def generate_halves_pcm(
             continue
         log.info(f"  Metade {i}/{len(halves)}: {len(half.split())} palavras")
         pcm = b""
-        # 2026-08-10: retry 1x antes do fallback edge — metade com ruído/silêncio
-        # (RMS baixo) não passa mais no _pcm_is_usable e precisa ser regerada.
-        for attempt in (1, 2):
+        style = EDGE_SPEAKER_STYLE.get("Peter") or {
+            "voice": _FALLBACK_EDGE_TTS_VOICE,
+            "rate": "+0%",
+            "pitch": "+0Hz",
+        }
+        if prefer_edge:
+            # BM 2026-09-09: Edge é o principal (cadência). Rate +0% aqui —
+            # o 1.15× vem só do atempo no pós, senão empilha com +12%.
+            log.info(f"  Metade {i}: Edge TTS principal (pt-BR-AntonioNeural)")
             try:
-                pcm = generate_single_speaker_pcm(client, half, voice_name, model)
-            except Exception as exc:
-                log.warning(f"  Gemini halves {i} tentativa {attempt} falhou: {exc}")
-                pcm = b""
-            if _pcm_is_usable(pcm):
-                break
-            log.warning(f"  halves {i} tentativa {attempt}: áudio vazio/ruído (RMS baixo) — regerando")
-            pcm = b""
-        if not _pcm_is_usable(pcm):
-            # Fallback edge (voz distinta, mas fala real — melhor que silêncio)
-            log.warning(f"  halves {i}: Gemini falhou de vez — fallback edge-tts")
-            try:
-                style = EDGE_SPEAKER_STYLE.get("Peter") or {
-                    "voice": _FALLBACK_EDGE_TTS_VOICE,
-                    "rate": "+0%",
-                    "pitch": "+0Hz",
-                }
                 pcm = _edge_tts_generate_audio(
                     half,
                     voice=style["voice"],
-                    rate=style["rate"],
+                    rate="+0%",
                     pitch=style["pitch"],
                 )
-            except Exception as fb:
-                log.error(f"  halves {i} falhou de vez: {fb}")
+            except Exception as exc:
+                log.warning(f"  Edge halves {i} falhou: {exc}")
                 pcm = b""
+            if not _pcm_is_usable(pcm):
+                log.warning(f"  halves {i}: Edge falhou — fallback Gemini")
+                for attempt in (1, 2):
+                    try:
+                        pcm = generate_single_speaker_pcm(client, half, voice_name, model)
+                    except Exception as exc:
+                        log.warning(f"  Gemini halves {i} tentativa {attempt} falhou: {exc}")
+                        pcm = b""
+                    if _pcm_is_usable(pcm):
+                        break
+                    log.warning(f"  halves {i} Gemini tentativa {attempt}: vazio/ruído — regerando")
+                    pcm = b""
+        else:
+            # 2026-08-10: retry 1x antes do fallback edge — metade com ruído/silêncio
+            # (RMS baixo) não passa mais no _pcm_is_usable e precisa ser regerada.
+            for attempt in (1, 2):
+                try:
+                    pcm = generate_single_speaker_pcm(client, half, voice_name, model)
+                except Exception as exc:
+                    log.warning(f"  Gemini halves {i} tentativa {attempt} falhou: {exc}")
+                    pcm = b""
+                if _pcm_is_usable(pcm):
+                    break
+                log.warning(f"  halves {i} tentativa {attempt}: áudio vazio/ruído (RMS baixo) — regerando")
+                pcm = b""
+            if not _pcm_is_usable(pcm):
+                log.warning(f"  halves {i}: Gemini falhou de vez — fallback edge-tts")
+                try:
+                    pcm = _edge_tts_generate_audio(
+                        half,
+                        voice=style["voice"],
+                        rate=style["rate"],
+                        pitch=style["pitch"],
+                    )
+                except Exception as fb:
+                    log.error(f"  halves {i} falhou de vez: {fb}")
+                    pcm = b""
         if not _pcm_is_usable(pcm):
             log.error(f"  halves {i}: NENHUM áudio utilizável — metade faltando no episódio")
             missing_halves.append(i)
@@ -1237,6 +1280,11 @@ def main():
         help="Temperatura do TTS Gemini (default: 0.5). Mais alto = mais expressão/emoção, "
              "mais baixo = tom mais estável (0.2 deixava monótono)."
     )
+    parser.add_argument(
+        "--prefer-edge",
+        action="store_true",
+        help="BM Peter solo: Edge TTS como principal, Gemini só se o Edge falhar.",
+    )
     # (REMOVIDO) Temperatura por speaker/chunk: mantemos temperatura global.
     args = parser.parse_args()
 
@@ -1250,8 +1298,11 @@ def main():
 
     keys = _candidate_gemini_keys()
     if not keys and not os.environ.get("GEMINI_API_KEY"):
-        log.error("FALHA: defina GEMINI_API_KEY (ou GEMINI_API_KEY_2/_3) antes de executar.")
-        sys.exit(2)
+        if args.prefer_edge:
+            log.warning("Sem GEMINI_API_KEY — BM Edge-only, sem fallback Gemini")
+        else:
+            log.error("FALHA: defina GEMINI_API_KEY (ou GEMINI_API_KEY_2/_3) antes de executar.")
+            sys.exit(2)
     if keys:
         log.info(f"Chaves Gemini disponíveis: {len(keys)} (round-robin se >1)")
 
@@ -1370,7 +1421,13 @@ def main():
         log.info("Modo HALVES — N chamadas single-speaker (mesma voz, teto %s)", CHUNK_TARGET_WORDS)
         voice_name = SPEAKERS.get(speakers[0], "Charon") if speakers else "Charon"
         try:
-            data_24k = generate_halves_pcm(client, episode_text, voice_name, model=TTS_MODEL)
+            data_24k = generate_halves_pcm(
+                client,
+                episode_text,
+                voice_name,
+                model=TTS_MODEL,
+                prefer_edge=bool(args.prefer_edge),
+            )
         except Exception as exc:
             log.warning(f"Modo halves falhou: {exc} — tentando fallback Gemini/edge")
             try:
@@ -1510,7 +1567,7 @@ def main():
 
     try:
         tempo = BM_TTS_ATEMPO if is_single else 1.0
-        run_ffmpeg_chain_2pass(out_path, mp3_path, tempo=tempo)
+        run_ffmpeg_chain_2pass(out_path, mp3_path, tempo=tempo, peter_eq=is_single)
         log.info(f"✅ MP3 final com EBU R128 2-pass: {mp3_path}")
         if make_daily_alias:
             date_m = re.search(r"(\d{4}-\d{2}-\d{2})", out_path.name + " " + episode_path.name)
