@@ -60,6 +60,10 @@ AVATAR_LOOP = (
 AVATAR_CROP = "910:720:54:0"
 AVATAR_SCALE = "546:432"
 AVATAR_OVERLAY = "0:H-h+38"
+# Loop do Peter começa a falar no frame 0; a locução só entra em
+# INTRO_VOICE_DELAY_S (1.5s). Sem isso a boca mexe durante a vinheta.
+# 1.0s = pedido 2026-09-09 (não herdar 1.5s da intro sem A/B).
+AVATAR_START_DELAY_S = 1.0
 APP_URL = "https://news.mob.tec.br"
 
 # Screenshot com desvio padrão de luminância abaixo disso é considerada em
@@ -2076,7 +2080,8 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
     vf_avatar = (
         f"[1:v]crop={AVATAR_CROP},format=rgba,"
         f"colorkey=0x007E00:0.10:0.03,lut=a='if(lt(val\\,230)\\,0\\,255)',"
-        f"scale={AVATAR_SCALE}:flags=lanczos[av];"
+        f"scale={AVATAR_SCALE}:flags=lanczos,"
+        f"tpad=start_duration={AVATAR_START_DELAY_S}:start_mode=clone[av];"
         f"[0:v][av]overlay={AVATAR_OVERLAY}:format=auto:shortest=1"
     )
     inputs = ["-i", str(base_mp4), "-stream_loop", "-1", "-i", str(AVATAR_LOOP)]

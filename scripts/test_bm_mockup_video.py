@@ -726,6 +726,21 @@ class PresenterLayerOrderTests(unittest.TestCase):
         self.assertGreater(av, -1)
         self.assertGreater(l3, av)
 
+    def test_avatar_loop_starts_one_second_late(self) -> None:
+        import inspect
+        import bm_mockup_video as m
+
+        self.assertEqual(m.AVATAR_START_DELAY_S, 1.0)
+        src = inspect.getsource(m.compose_presenter)
+        self.assertIn("tpad=start_duration=", src)
+        self.assertIn("start_mode=clone", src)
+        self.assertIn("AVATAR_START_DELAY_S", src)
+        # tpad no avatar, antes do overlay — senão a boca mexe na vinheta.
+        tpad = src.find("tpad=start_duration=")
+        overlay = src.find("[0:v][av]overlay")
+        self.assertGreater(tpad, -1)
+        self.assertGreater(overlay, tpad)
+
     def test_compose_presenter_validates_playable_mp4(self):
         import inspect
         import bm_mockup_video as m
