@@ -652,6 +652,15 @@ class BrandingIntroOutroTests(unittest.TestCase):
         self.assertIn("fora da fila do mockup", src)
         self.assertIn("segue mesmo assim", src)
 
+    def test_video_id_with_leading_hyphen_is_not_eaten_by_argparse(self):
+        import bm_mockup_video as m
+
+        fixed = m._argv_video_id_allows_leading_hyphen(
+            ["--video-id", "-Z1IlCPZVoc", "--upload", "--privacy", "public"]
+        )
+        self.assertEqual(fixed[0], "--video-id=-Z1IlCPZVoc")
+        self.assertEqual(fixed[1:], ["--upload", "--privacy", "public"])
+
 
 class RecordMockupGotoTests(unittest.TestCase):
     """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""

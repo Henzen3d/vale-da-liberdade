@@ -2723,6 +2723,26 @@ def pending_ids(days: int, backfill: bool) -> list[str]:
     return pending
 
 
+def _argv_video_id_allows_leading_hyphen(argv: list[str]) -> list[str]:
+    """YouTube ids like -Z1IlCPZVoc look like flags to argparse.
+
+    `--video-id -Z1IlCPZVoc` → expected one argument. Rewrite to `--video-id=-Z1IlCPZVoc`.
+    """
+    out: list[str] = []
+    i = 0
+    while i < len(argv):
+        tok = argv[i]
+        if tok == "--video-id" and i + 1 < len(argv):
+            nxt = argv[i + 1]
+            if nxt.startswith("-") and not nxt.startswith("--"):
+                out.append(f"--video-id={nxt}")
+                i += 2
+                continue
+        out.append(tok)
+        i += 1
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Vídeo BM com mockup-browser + upload YouTube")
     ap.add_argument("--video-id", default=None)
@@ -2734,7 +2754,7 @@ def main() -> int:
     ap.add_argument("--privacy", default="public", choices=["unlisted", "private", "public"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", action="store_true", help="Gera vídeo mesmo se _skip_video_reason")
-    args = ap.parse_args()
+    args = ap.parse_args(_argv_video_id_allows_leading_hyphen(sys.argv[1:]))
 
     ids = [args.video_id] if args.video_id else (pending_ids(args.days, args.backfill) if args.pending else [])
     if not ids:
