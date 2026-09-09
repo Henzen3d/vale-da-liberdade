@@ -86,14 +86,29 @@ class SoloVsDailyInstructionTests(unittest.TestCase):
         self.assertEqual(tts.FFMPEG_CHAIN_DEFAULT, "v2")
         v1 = tts.voice_filter_graph(tempo=1.15, peter_eq=True, version="v1")
         v2 = tts.voice_filter_graph(tempo=1.15, peter_eq=True, version="v2")
+        v3 = tts.voice_filter_graph(tempo=1.0, peter_eq=True, version="v3")
         self.assertIn("highpass=f=80", v1)
         self.assertNotIn("deesser", v1)
         self.assertNotIn("alimiter", v1)
-        self.assertNotIn("loudnorm", v1)  # loudnorm é passo separado nas duas versões
+        self.assertNotIn("loudnorm", v1)
         self.assertIn("deesser", v2)
         self.assertIn("alimiter", v2)
         self.assertIn("highpass", v2)
-        self.assertNotIn("loudnorm", v2)  # v2 mede loudnorm DEPOIS do EQ
+        self.assertNotIn("loudnorm", v2)
+        # v3: forma antes do compressor, presença depois; width_type=h; attack 20; ratio 1.8
+        self.assertIn("highpass=f=80", v3)
+        self.assertIn("lowshelf=f=140:width_type=h", v3)
+        self.assertIn("equalizer=f=280:width_type=h:width=80:g=-1.5", v3)
+        self.assertIn("deesser=i=0.22", v3)
+        self.assertIn("attack=20", v3)
+        self.assertIn("ratio=1.8", v3)
+        self.assertIn("equalizer=f=2800:width_type=h", v3)
+        self.assertIn("highshelf=f=7000:width_type=h", v3)
+        self.assertIn("level=0", v3)
+        self.assertLess(v3.find("lowshelf"), v3.find("acompressor"))
+        self.assertLess(v3.find("equalizer=f=280:"), v3.find("acompressor"))
+        self.assertGreater(v3.find("equalizer=f=2800:"), v3.find("acompressor"))
+        self.assertNotIn("loudnorm", v3)
 
     def test_iter_voice_segments_keeps_pausa_markers(self) -> None:
         text = (

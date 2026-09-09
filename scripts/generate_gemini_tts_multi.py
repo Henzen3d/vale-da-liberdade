@@ -419,7 +419,7 @@ def resample_pcm(pcm_data: bytes, from_rate: int, to_rate: int) -> bytes:
 
 def ffmpeg_chain_version() -> str:
     raw = (os.environ.get("VALE_TTS_FFMPEG_CHAIN") or FFMPEG_CHAIN_DEFAULT).strip().lower()
-    return raw if raw in {"v1", "v2"} else FFMPEG_CHAIN_DEFAULT
+    return raw if raw in {"v1", "v2", "v3"} else FFMPEG_CHAIN_DEFAULT
 
 
 def voice_filter_graph(
@@ -431,6 +431,9 @@ def voice_filter_graph(
 
     v1: cadeia histórica (highpass + compressor + presença 3.5 kHz [+ lowshelf/air]).
     v2: highpass 90, de-esser leve, compressor mais lento, presença, alimiter.
+    v3: forma (lowshelf 140 + corte 280 Hz) ANTES do compressor; presença 2.8 kHz
+        DEPOIS; de-esser 0.22; attack 20 ms; ratio 1.8; alimiter sem auto-level.
+        Opt-in: VALE_TTS_FFMPEG_CHAIN=v3. Default permanece v2.
     """
     version = version or ffmpeg_chain_version()
     parts: list[str] = []
@@ -444,6 +447,20 @@ def voice_filter_graph(
             parts.append("equalizer=f=8000:width_type=h:width=2000:g=1.2")
         parts.append("acompressor=threshold=-22dB:ratio=2.2:attack=25:release=150")
         parts.append("equalizer=f=3500:width_type=h:width=1200:g=2.5")
+        return ",".join(parts)
+    if version == "v3":
+        # Antonio/Peter BM. F1 /a/ ~620 Hz; corte 280 Hz não mexe nisso.
+        # Conversacional F1 ~345 Hz: −0,44 dB em 350 Hz (medido).
+        parts.append("highpass=f=80")
+        if peter_eq:
+            parts.append("lowshelf=f=140:width_type=h:width=120:g=2.0")
+            parts.append("equalizer=f=280:width_type=h:width=80:g=-1.5")
+        parts.append("deesser=i=0.22:m=0.4:f=0.5:s=o")
+        parts.append("acompressor=threshold=-20dB:ratio=1.8:attack=20:release=250:makeup=1")
+        parts.append("equalizer=f=2800:width_type=h:width=1400:g=1.5")
+        if peter_eq:
+            parts.append("highshelf=f=7000:width_type=h:width=2000:g=0.8")
+        parts.append("alimiter=limit=0.89:attack=5:release=50:level=0")
         return ",".join(parts)
     # v2 — incremental, só FFmpeg. Sem dynaudnorm (bombeia LRA).
     parts.append("highpass=f=90")
@@ -502,7 +519,7 @@ def run_ffmpeg_chain_2pass(
 
     measure_input = input_wav
     tmp_shaped: Path | None = None
-    if version == "v2":
+    if version in {"v2", "v3"}:
         tmp_shaped = Path(tempfile.mkstemp(suffix="-shaped.wav")[1])
         cmd_shape = [
             "ffmpeg", "-y",
@@ -519,7 +536,7 @@ def run_ffmpeg_chain_2pass(
                 tmp_shaped.unlink(missing_ok=True)
             raise RuntimeError(f"ffmpeg (shape v2) falhou:\n{proc_s.stderr}")
         measure_input = tmp_shaped
-        log.info("Cadeia v2: loudnorm medido APÓS EQ/compressor (não no WAV cru)")
+        log.info(f"Cadeia {version}: loudnorm medido APÓS EQ/compressor (não no WAV cru)")
 
     cmd_measure = [
         "ffmpeg", "-y",
@@ -539,7 +556,7 @@ def run_ffmpeg_chain_2pass(
         f"measured_TP={m['input_tp']}:measured_thresh={m['input_thresh']}:"
         f"offset={m['target_offset']}:linear=true:print_format=summary"
     )
-    if version == "v2":
+    if version in {"v2", "v3"}:
         apply_filter = loudnorm_filter
         apply_input = measure_input
     else:
