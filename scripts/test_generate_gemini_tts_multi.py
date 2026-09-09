@@ -35,8 +35,13 @@ class SoloVsDailyInstructionTests(unittest.TestCase):
         self.assertIn("atempo", src)
         self.assertIn("tempo", src)
 
-    def test_bm_atempo_is_115(self) -> None:
+    def test_bm_atempo_is_115_for_gemini_only(self) -> None:
         self.assertAlmostEqual(tts.BM_TTS_ATEMPO, 1.15)
+        import inspect
+        src = inspect.getsource(tts.main)
+        self.assertIn("prefer_edge", src)
+        # Edge principal: cadência nativa (1.0). Gemini solo ainda usa 1.15.
+        self.assertIn("BM_TTS_ATEMPO if is_single and not args.prefer_edge else 1.0", src)
 
     def test_prefer_edge_cli_flag_exists(self) -> None:
         import inspect

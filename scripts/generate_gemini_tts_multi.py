@@ -170,7 +170,8 @@ PAUSA_CURTA_S = 0.5    # [PAUSA_CURTA] — entre falas longas
 # Temperatura TTS (Gemini): global (mesmo valor para todos os chunks/speakers).
 # 0.9 = mais expressivo/animado (pode introduzir variação maior de entonação).
 TTS_TEMPERATURE = 0.90
-# Cadência BM (Peter solo): 1.15× no ffmpeg. Diário (dois locutores) fica em 1.0.
+# Cadência BM Gemini (Peter solo): 1.15× no ffmpeg. Edge já tem boa cadência → 1.0.
+# Diário (dois locutores) fica em 1.0.
 BM_TTS_ATEMPO = 1.15
 # Cadeia FFmpeg versionada. v2 = default (mede loudnorm DEPOIS do EQ).
 # Rollback: VALE_TTS_FFMPEG_CHAIN=v1
@@ -1637,7 +1638,8 @@ def main():
         min_bytes = MIN_FINAL_MP3_BYTES
 
     try:
-        tempo = BM_TTS_ATEMPO if is_single else 1.0
+        # Edge (prefer_edge): sem atempo. Gemini solo BM: 1.15×.
+        tempo = BM_TTS_ATEMPO if is_single and not args.prefer_edge else 1.0
         run_ffmpeg_chain_2pass(out_path, mp3_path, tempo=tempo, peter_eq=is_single)
         log.info(f"✅ MP3 final com EBU R128 2-pass: {mp3_path}")
         if make_daily_alias:
