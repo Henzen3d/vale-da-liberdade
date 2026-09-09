@@ -2326,19 +2326,59 @@ def resolve_outro_video(video_id: str | None = None, wallpaper: Path | None = No
 
 
 
+def _normalize_clip_for_concat(src: Path, dest: Path) -> bool:
+    """Reencode 1920×1080 / 25fps / yuv420p / stereo 48k — concat demuxer exige isso."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        "ffmpeg", "-y", "-i", str(src),
+        "-vf",
+        "scale=1920:1080:force_original_aspect_ratio=decrease,"
+        "pad=1920:1080:(ow-iw)/2:(oh-ih)/2,"
+        "fps=25,format=yuv420p,setsar=1",
+        "-af", "aformat=sample_rates=48000:channel_layouts=stereo,aresample=async=1",
+        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    return r.returncode == 0 and dest.is_file() and dest.stat().st_size > 50_000
+
+
+def _concat_demux(clip_a: Path, clip_b: Path, dest: Path, work: Path) -> bool:
+    """Concatena dois clips já normalizados via concat demuxer (sem filtergraph)."""
+    lst = work / f"concat_{dest.stem}.txt"
+    lst.write_text(
+        f"file '{clip_a.resolve()}'\nfile '{clip_b.resolve()}'\n",
+        encoding="utf-8",
+    )
+    cmd = [
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+        "-i", str(lst),
+        "-c", "copy",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    return r.returncode == 0 and dest.is_file() and dest.stat().st_size > 50_000
+
+
 def append_outro_video(base_mp4: Path, outro_mp4: Path, work: Path) -> Path:
-    """Concatena o vídeo de encerramento ao final do episódio de forma transparente."""
+    """Concatena o encerramento. Falha = RuntimeError (não sobe sem outro)."""
     if not outro_mp4 or not outro_mp4.is_file():
-        return base_mp4
+        raise RuntimeError("encerramento obrigatório: arquivo de outro ausente")
 
     dest = base_mp4.with_name(base_mp4.stem + "-outro.mp4")
     print(f"  🎬 Concatenando encerramento: {outro_mp4.name}...")
 
     fc = (
-        "[0:v]scale=1920:1080,fps=25[v0];"
-        "[1:v]scale=1920:1080,fps=25[v1];"
-        "[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0];"
-        "[1:a]aformat=sample_rates=48000:channel_layouts=stereo[a1];"
+        "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,"
+        "pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=25,format=yuv420p,setsar=1[v0];"
+        "[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,"
+        "pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=25,format=yuv420p,setsar=1[v1];"
+        "[0:a]aformat=sample_rates=48000:channel_layouts=stereo,aresample=async=1[a0];"
+        "[1:a]aformat=sample_rates=48000:channel_layouts=stereo,aresample=async=1[a1];"
         "[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]"
     )
     cmd = [
@@ -2348,21 +2388,40 @@ def append_outro_video(base_mp4: Path, outro_mp4: Path, work: Path) -> Path:
         "-filter_complex", fc,
         "-map", "[v]", "-map", "[a]",
         "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
-        "-c:a", "aac", "-b:a", "192k",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
         "-pix_fmt", "yuv420p",
         "-movflags", "+faststart",
         str(dest),
     ]
+    last_err = ""
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
         if r.returncode == 0 and dest.is_file() and dest.stat().st_size > base_mp4.stat().st_size:
             print(f"  ✅ Encerramento anexado: {dest.name} ({dest.stat().st_size // 1024} KB)")
             return dest
-        print(f"  ⚠️  Falha ao concatenar encerramento: {(r.stderr or '')[-300:]}; segue sem encerramento")
+        last_err = (r.stderr or "")[-400:]
+        print(f"  ⚠️  concat filter falhou: {last_err}")
     except Exception as exc:
-        print(f"  ⚠️  Exceção ao concatenar encerramento: {exc}; segue sem encerramento")
+        last_err = str(exc)
+        print(f"  ⚠️  concat filter exceção: {exc}")
 
-    return base_mp4
+    # Retry: reencode ambos + concat demuxer (evita Invalid argument no filtergraph).
+    print("  🔁 retry concat_demux após normalizar os dois clips...")
+    na = work / f"{base_mp4.stem}-norm.mp4"
+    nb = work / f"{outro_mp4.stem}-norm.mp4"
+    if _normalize_clip_for_concat(base_mp4, na) and _normalize_clip_for_concat(outro_mp4, nb):
+        if _concat_demux(na, nb, dest, work) and dest.stat().st_size > base_mp4.stat().st_size:
+            print(f"  ✅ Encerramento anexado (concat_demux): {dest.name} ({dest.stat().st_size // 1024} KB)")
+            return dest
+
+    # Último recurso: outro canônico (já 1080p) no lugar do clip quebrado.
+    if OUTRO_CANONICAL.is_file() and outro_mp4.resolve() != OUTRO_CANONICAL.resolve():
+        print(f"  🔁 retry com outro canônico {OUTRO_CANONICAL.name}")
+        return append_outro_video(base_mp4, OUTRO_CANONICAL, work)
+
+    raise RuntimeError(
+        f"encerramento obrigatório: concat falhou para {base_mp4.name} + {outro_mp4.name}: {last_err}"
+    )
 
 
 
@@ -2580,8 +2639,9 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
     mp4 = compose_presenter(mp4, episode, audio, work)
     outro_video = resolve_outro_video(video_id, wallpaper=wallpaper, work=work)
-    if outro_video:
-        mp4 = append_outro_video(mp4, outro_video, work)
+    if not outro_video:
+        raise RuntimeError(f"{video_id}: encerramento obrigatório — nenhum clip de outro resolvido")
+    mp4 = append_outro_video(mp4, outro_video, work)
 
 
 

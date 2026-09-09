@@ -661,6 +661,27 @@ class BrandingIntroOutroTests(unittest.TestCase):
         self.assertEqual(fixed[0], "--video-id=-Z1IlCPZVoc")
         self.assertEqual(fixed[1:], ["--upload", "--privacy", "public"])
 
+    def test_append_outro_raises_instead_of_uploading_without(self):
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.append_outro_video)
+        self.assertNotIn("segue sem encerramento", src)
+        self.assertIn("RuntimeError", src)
+        src_proc = inspect.getsource(m.process_one)
+        self.assertIn("append_outro_video", src_proc)
+        self.assertIn("encerramento obrigatório", src_proc)
+
+    def test_append_outro_retries_canonical_after_filter_fail(self):
+        import inspect
+        import bm_mockup_video as m
+
+        src = inspect.getsource(m.append_outro_video)
+        self.assertIn("format=yuv420p", src)
+        self.assertIn("setsar=1", src)
+        self.assertIn("aresample", src)
+        self.assertIn("concat_demux", src)
+
 
 class RecordMockupGotoTests(unittest.TestCase):
     """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""
