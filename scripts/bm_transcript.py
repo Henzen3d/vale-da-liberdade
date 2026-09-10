@@ -50,10 +50,42 @@ _YT_DLP = (
     or "yt-dlp"
 )
 
+# Netscape cookies. Sem isso o YouTube responde "Sign in to confirm you're not a bot"
+# e o extrator falha mesmo com auto-caption já no ar (C2ad_B39L_c, 2026-09-10).
+_COOKIES_CANDIDATES = (
+    PROJECT_ROOT / "credentials" / "youtube_cookies.txt",
+    Path.home() / ".config" / "yt-dlp" / "cookies.txt",
+)
+
+# stderr do último yt-dlp (diagnóstico; não vaza cookie).
+LAST_YTDLP_STDERR: str = ""
+
+
+def youtube_cookies_path() -> Path | None:
+    env = Path(os.environ.get("YTDLP_COOKIES") or "")
+    for p in (env, *_COOKIES_CANDIDATES):
+        if p and str(p) not in {".", ""} and p.is_file() and p.stat().st_size > 80:
+            return p
+    return None
+
 
 def _yt_dlp_cmd(*args: str) -> list[str]:
     """Build yt-dlp argv using the absolute binary when available."""
-    return [_YT_DLP, *args]
+    cmd = [_YT_DLP, *args]
+    cookies = youtube_cookies_path()
+    if cookies:
+        cmd[1:1] = ["--cookies", str(cookies)]
+    return cmd
+
+
+def ytdlp_is_bot_block(stderr: str) -> bool:
+    low = (stderr or "").lower()
+    return (
+        "sign in to confirm" in low
+        or "confirm you’re not a bot" in low
+        or "confirm you're not a bot" in low
+        or "not a bot" in low
+    )
 
 
 def extract_video_id(url: str) -> str | None:
@@ -313,6 +345,20 @@ def fetch_source_name(url: str) -> str:
 
 
 
+def _run_ytdlp(cmd: list[str], timeout: int = 120) -> subprocess.CompletedProcess:
+    """Roda yt-dlp e guarda stderr para classificar bot-check vs sem-legenda."""
+    global LAST_YTDLP_STDERR
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", timeout=timeout
+    )
+    err = (result.stderr or "")[-4000:]
+    LAST_YTDLP_STDERR = err
+    if result.returncode != 0 and err.strip():
+        tail = err.strip().splitlines()[-3:]
+        print("   ⚠️  yt-dlp: " + " | ".join(t.strip() for t in tail)[:500])
+    return result
+
+
 def download_subtitles(url: str, work_dir: Path) -> str | None:
     """Baixa legendas via yt-dlp. Retorna caminho do arquivo .srt ou None."""
     # Tentar legendas em português (manual → automática)
@@ -327,15 +373,17 @@ def download_subtitles(url: str, work_dir: Path) -> str | None:
                 url,
             )
             try:
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, encoding="utf-8", timeout=120
-                )
-                # Procurar arquivo .srt gerado
+                _run_ytdlp(cmd, timeout=120)
+                if ytdlp_is_bot_block(LAST_YTDLP_STDERR):
+                    return None
                 for f in work_dir.iterdir():
                     if f.suffix == ".srt" and f.stat().st_size > 100:
                         return str(f)
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 continue
+
+    if ytdlp_is_bot_block(LAST_YTDLP_STDERR):
+        return None
 
     # Fallback: qualquer idioma disponível
     cmd = _yt_dlp_cmd(
@@ -346,7 +394,7 @@ def download_subtitles(url: str, work_dir: Path) -> str | None:
         url,
     )
     try:
-        subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=120)
+        _run_ytdlp(cmd, timeout=120)
         for f in work_dir.iterdir():
             if f.suffix == ".srt" and f.stat().st_size > 100:
                 return str(f)
@@ -395,7 +443,7 @@ def download_audio_for_stt(url: str, work_dir: Path) -> str | None:
         url,
     )
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=300)
+        result = _run_ytdlp(cmd, timeout=300)
         if result.returncode == 0:
             for f in work_dir.iterdir():
                 if f.suffix in (".mp3", ".m4a", ".wav", ".opus"):
@@ -438,6 +486,7 @@ def transcribe_audio_whisper(audio_path: str) -> str | None:
 
 
 EXIT_CODE_NO_SUBS = 3
+EXIT_CODE_BOT_BLOCK = 4
 LAST_EXTRACTION_ERROR: str | None = None
 
 
@@ -493,7 +542,16 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
                     )
 
     if not transcript_text or len(transcript_text.split()) < 20:
-        if subs_missing:
+        if ytdlp_is_bot_block(LAST_YTDLP_STDERR):
+            LAST_EXTRACTION_ERROR = "YOUTUBE_BOT_CHECK"
+            cookies = youtube_cookies_path()
+            print("   ❌ YouTube anti-bot no yt-dlp (Sign in to confirm you’re not a bot).")
+            print("      Isso NÃO significa que a legenda não existe no player.")
+            if cookies:
+                print(f"      Cookies em uso: {cookies} — sessão rejeitada; reexporte o Netscape.")
+            else:
+                print("      Sem cookies. Grave credentials/youtube_cookies.txt (Netscape) e rode de novo.")
+        elif subs_missing:
             LAST_EXTRACTION_ERROR = "NO_SUBTITLES"
             print("   ⏳ Legendas ainda não disponíveis no YouTube para este vídeo (vídeo recente).")
             print("   ⏳ Requer aguardar o processamento de áudio/legendas pelo YouTube.")
@@ -571,6 +629,9 @@ def main():
         if result["source_names"]:
             print(f"   Fontes: {', '.join(result['source_names'])}")
     else:
+        if LAST_EXTRACTION_ERROR == "YOUTUBE_BOT_CHECK":
+            print("❌ YouTube anti-bot no yt-dlp (exit 4). Precisa de cookies Netscape válidos.")
+            sys.exit(EXIT_CODE_BOT_BLOCK)
         if LAST_EXTRACTION_ERROR == "NO_SUBTITLES":
             print("⏳ Aguardando legendas serem geradas pelo YouTube (exit 3).")
             sys.exit(EXIT_CODE_NO_SUBS)

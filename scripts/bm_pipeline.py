@@ -417,6 +417,9 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         if tr_rc == 3:
             print("⏳ FALHA: Legendas do YouTube ainda não geradas para este vídeo. Abortando com exit 3 (aguardando retry).")
             sys.exit(3)
+        if tr_rc == 4:
+            print("❌ FALHA: YouTube anti-bot no yt-dlp (exit 4). Precisa de credentials/youtube_cookies.txt — NÃO é ausência de legenda.")
+            sys.exit(4)
         print("❌ FALHA na extração. Abortando.")
         sys.exit(2)
 
@@ -707,6 +710,9 @@ def cmd_process_queue(skip_audio: bool = False, force_all: bool = False, max_ite
                     if exit_code == 3:
                         err_label = "Legendas do YouTube ainda não geradas (aguardando YouTube)"
                         backoff_mins = 20 if attempts == 1 else (15 + 15 * attempts)
+                    elif exit_code == 4:
+                        err_label = "YouTube anti-bot no yt-dlp (precisa cookies Netscape)"
+                        backoff_mins = 60
                     else:
                         err_label = f"Falha no pipeline (exit {exit_code})"
                         backoff_mins = 15 * attempts

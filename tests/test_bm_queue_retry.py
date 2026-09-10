@@ -18,6 +18,16 @@ class TestBMQueueRetry(unittest.TestCase):
         """Garante que o código semântico de ausência de legendas seja 3."""
         self.assertEqual(EXIT_CODE_NO_SUBS, 3)
 
+    def test_bot_block_is_not_no_subs(self):
+        from bm_transcript import EXIT_CODE_BOT_BLOCK, ytdlp_is_bot_block, youtube_cookies_path
+
+        self.assertEqual(EXIT_CODE_BOT_BLOCK, 4)
+        self.assertNotEqual(EXIT_CODE_BOT_BLOCK, EXIT_CODE_NO_SUBS)
+        err = "ERROR: [youtube] C2ad_B39L_c: Sign in to confirm you’re not a bot. Use --cookies"
+        self.assertTrue(ytdlp_is_bot_block(err))
+        self.assertFalse(ytdlp_is_bot_block("WARNING: There are no subtitles for the requested languages"))
+        self.assertIsNone(youtube_cookies_path())
+
     def test_is_interview_title(self):
         """Valida que entrevistas do ANCAPSU sejam detectadas para exclusão."""
         self.assertTrue(is_interview_title("PETER ENTREVISTA JESSÉ SANGALLI - Deputado"))
