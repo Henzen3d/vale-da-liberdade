@@ -3062,6 +3062,69 @@ const VDL_MOCKUP_ENGINE = {
     }
   },
 
+  _isValePlaceholderUrl(u) {
+    const s = String(u || "").toLowerCase();
+    return !s || s.includes("news.mob.tec.br") || s.includes("valedaliberdade.com.br");
+  },
+
+  _applyPageMedia(d) {
+    const pageShot = document.getElementById("pageShot");
+    const pageVideo = document.getElementById("pageVideo");
+    if (pageVideo) {
+      const fitPageVideo = () => {
+        pageVideo.classList.toggle(
+          "is-portrait",
+          pageVideo.videoHeight > pageVideo.videoWidth && pageVideo.videoWidth > 0
+        );
+      };
+      if (!pageVideo.dataset.fitBound) {
+        pageVideo.dataset.fitBound = "1";
+        pageVideo.addEventListener("loadedmetadata", fitPageVideo);
+      }
+      if (d.pageVideo) {
+        const src = d.pageVideo;
+        if (!pageVideo.src.endsWith(src)) {
+          pageVideo.src = src;
+          pageVideo.load();
+          pageVideo.play().catch(() => {});
+        } else {
+          fitPageVideo();
+        }
+        pageVideo.hidden = false;
+        if (pageShot) pageShot.hidden = true;
+      } else {
+        pageVideo.hidden = true;
+        try { pageVideo.pause(); } catch(e) {}
+        pageVideo.removeAttribute("src");
+        try { pageVideo.load(); } catch(e) {}
+        pageVideo.classList.remove("is-portrait");
+      }
+    }
+    if (pageShot) {
+      if (d.pageImage && (!pageVideo || !d.pageVideo)) {
+        const src = d.pageImage;
+        const current = pageShot.getAttribute("src") || "";
+        if (current === src || current.endsWith(src)) {
+          pageShot.hidden = false;
+          return;
+        }
+        const pre = new Image();
+        pre.onload = () => {
+          pageShot.src = src;
+          pageShot.hidden = false;
+        };
+        pre.onerror = () => {
+          pageShot.src = src;
+          pageShot.hidden = false;
+        };
+        pre.src = src;
+      } else if (!d.pageImage) {
+        pageShot.removeAttribute("src");
+        pageShot.hidden = true;
+      }
+    }
+  },
+
   /**
    * Atualiza todo o estado da página e roteia componentes
    */
@@ -3076,6 +3139,9 @@ const VDL_MOCKUP_ENGINE = {
       this.data.visual_variant = newData.visual_variant;
       payload.visual_variant = newData.visual_variant;
     }
+
+    // Mídia ANTES da transição — senão o browser entra branco com URL do Vale.
+    this._applyPageMedia(d);
 
     if (kind === "quote") {
       this.transitionToQuote(payload);
@@ -3103,67 +3169,27 @@ const VDL_MOCKUP_ENGINE = {
     const metaEl = document.getElementById("articleMeta");
     if (metaEl) metaEl.innerHTML = `<span>Por ${d.autor}</span> • <span>${d.dataExtenso}</span> • <span>${d.leitura}</span>`;
     
-    // Aba & URL
+    // Aba & URL — não sobrescrever com placeholder do Vale quando há print
     const tabEl = document.getElementById("tabTitle");
     if (tabEl) tabEl.textContent = d.titulo.length > 34 ? d.titulo.substring(0, 34) + "..." : d.titulo;
     
-    let formattedUrl = d.url;
-    try {
-      const parsed = new URL(d.url.startsWith('http') ? d.url : `https://${d.url}`);
-      formattedUrl = `${parsed.protocol}//<b>${parsed.hostname}</b>${parsed.pathname}`;
-    } catch(e) {
-      formattedUrl = d.url;
+    const skipOmnibox = this._isValePlaceholderUrl(d.url) && !!(d.pageImage || d.pageVideo);
+    if (!skipOmnibox && d.url) {
+      let formattedUrl = d.url;
+      try {
+        const parsed = new URL(d.url.startsWith('http') ? d.url : `https://${d.url}`);
+        formattedUrl = `${parsed.protocol}//<b>${parsed.hostname}</b>${parsed.pathname}`;
+      } catch(e) {
+        formattedUrl = d.url;
+      }
+      const urlEl = document.getElementById("urlText");
+      if (urlEl) urlEl.innerHTML = formattedUrl;
     }
-    const urlEl = document.getElementById("urlText");
-    if (urlEl) urlEl.innerHTML = formattedUrl;
 
     // Imagem do Artigo
     const imgContainer = document.getElementById("articleImageBox");
     if (imgContainer && d.imagem) {
       imgContainer.innerHTML = `<img class="article-cover-img" src="${d.imagem}" alt="${d.titulo}">`;
-    }
-
-    const pageShot = document.getElementById("pageShot");
-    const pageVideo = document.getElementById("pageVideo");
-    if (pageVideo) {
-      const fitPageVideo = () => {
-        pageVideo.classList.toggle(
-          "is-portrait",
-          pageVideo.videoHeight > pageVideo.videoWidth && pageVideo.videoWidth > 0
-        );
-      };
-      if (!pageVideo.dataset.fitBound) {
-        pageVideo.dataset.fitBound = "1";
-        pageVideo.addEventListener("loadedmetadata", fitPageVideo);
-      }
-      if (d.pageVideo) {
-        const src = d.pageVideo;
-        if (!pageVideo.src.endsWith(src)) {
-          pageVideo.src = src;
-          pageVideo.load();
-          pageVideo.play().catch(() => {});
-        } else {
-          fitPageVideo();
-        }
-        pageVideo.hidden = false;
-        if (pageShot) pageShot.hidden = true;
-      } else {
-        try { pageVideo.pause(); } catch(e) {}
-        pageVideo.removeAttribute("src");
-        pageVideo.load();
-        pageVideo.classList.remove("is-portrait");
-        pageVideo.hidden = true;
-        if (pageShot && d.pageImage) pageShot.hidden = false;
-      }
-    }
-    if (pageShot) {
-      if (d.pageImage && (!pageVideo || !d.pageVideo)) {
-        pageShot.src = d.pageImage;
-        pageShot.hidden = false;
-      } else if (!d.pageImage) {
-        pageShot.removeAttribute("src");
-        pageShot.hidden = true;
-      }
     }
 
     const wall = document.getElementById("sceneWallpaper");

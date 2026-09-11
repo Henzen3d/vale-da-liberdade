@@ -22,6 +22,7 @@ from bm_mockup_video import (
     extract_instagram_video,
     extract_uol_flash_video,
     find_episode_thumbnail,
+    highlight_from_script,
     host_kind,
     instagram_shortcode,
     is_blocked_source_url,
@@ -334,16 +335,19 @@ class MetadataTests(unittest.TestCase):
             ],
         }
         audio = Path("/tmp/4B3BAjbSseU_2026-08-22.mp3")
-        title, desc, tags = build_metadata("4B3BAjbSseU", ep, audio)
+        with patch("description_optimizer.generate_description_via_llm", return_value=None):
+            title, desc, tags = build_metadata("4B3BAjbSseU", ep, audio)
         self.assertIn("Evergrande", title)
         self.assertNotIn("youtube.com", desc.lower())
         self.assertNotIn("ancapsu", desc.lower())
         self.assertIn("cnnbrasil.com.br", desc)
         self.assertIn("news.mob.tec.br", desc)
-        self.assertIn("narrativa oficial é fraude", desc)
+        self.assertIn("Peter Albuquerque", desc)
+        self.assertIn("comentários", desc.lower())
+        self.assertNotIn("O Estado chinês condenou o dono da Evergrande", desc)
         self.assertIn("economia", tags)
 
-    def test_chapters_with_timeline_beats(self):
+    def test_chapters_with_timeline_beats_fallback_without_roteiro(self):
         beats = [
             SceneBeat(t0=0.0, t1=30.0, url="https://g1.globo.com/1", veiculo="G1", kind="source"),
             SceneBeat(t0=30.0, t1=31.0, url="", veiculo="Transição", kind="broll"),
@@ -356,6 +360,47 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("Folha", labels)
         self.assertNotIn("Transição", labels)
         self.assertIn("Conclusão", labels)
+
+    def test_chapters_use_script_highlights_not_outlet_names(self):
+        ep = {
+            "titulo": "Lula tenta salvar aliados na crise do STF",
+            "abertura": [
+                {"texto": "A Folha traz os bastidores da movimentação do Executivo no STF."}
+            ],
+            "desenvolvimento": [
+                {"texto": "A tentativa de interferir nas investigações e blindar o delegado Andrei Rodrigues revelou o desespero do Planalto."},
+                {"texto": "A petição de Flávio Dino joga o ônus da investigação nas costas de Alexandre de Moraes."},
+                {"texto": "A oposição capitaliza o contra-ataque de Dino contra André Mendonça e escancara o intervencionismo."},
+            ],
+            "fechamento": [
+                {"texto": "No fim das contas a tentativa de apaziguar o STF escancarou a incompetência operacional."}
+            ],
+        }
+        beats = [
+            SceneBeat(t0=0.0, t1=40.0, url="https://g1.globo.com/1", veiculo="G1", kind="source"),
+            SceneBeat(t0=40.0, t1=80.0, url="https://folha.uol.com.br/2", veiculo="Folha", kind="source"),
+            SceneBeat(t0=80.0, t1=120.0, url="https://veja.abril.com.br/3", veiculo="VEJA", kind="source"),
+        ]
+        chapters = build_chapters([], dur=180.0, timeline_beats=beats, episode=ep)
+        labels = [c[1] for c in chapters]
+        blob = " ".join(labels).lower()
+        self.assertIn("Introdução", labels)
+        self.assertIn("Conclusão", labels)
+        self.assertNotIn("G1", labels)
+        self.assertNotIn("Folha", labels)
+        self.assertNotIn("VEJA", labels)
+        self.assertTrue(
+            any(k in blob for k in ("stf", "dino", "delegado", "moraes", "mendonça", "planalto", "blindar")),
+            labels,
+        )
+
+    def test_highlight_from_script_is_a_punch_not_the_outlet(self):
+        label = highlight_from_script(
+            "A tentativa de interferir nas investigações e blindar o delegado Andrei Rodrigues revelou o desespero do Planalto."
+        )
+        self.assertTrue(label)
+        self.assertNotEqual(label.lower(), "folha")
+        self.assertLessEqual(len(label), 48)
 
 
 class HostPrepareTests(unittest.TestCase):
@@ -763,6 +808,42 @@ class PresenterLayerOrderTests(unittest.TestCase):
                 / "references/youtube/mockup-browser/mockup-brower.html").read_text(encoding="utf-8")
         self.assertIn("--lt-width: 1576px", html)
         self.assertIn("left: 300px", html)
+
+
+class MockupShotSwapTests(unittest.TestCase):
+    """Print no viewport: sem flash branco nem URL do Vale na barra."""
+
+    def test_payload_omits_vale_url_when_shot_present(self) -> None:
+        import bm_mockup_video as m
+
+        payload = m._build_mockup_update_payload(
+            {
+                "shot": "src-00.png",
+                "url": "https://news.mob.tec.br",
+                "kind": "source",
+                "visual_component": "source",
+            }
+        )
+        self.assertEqual(payload["pageImage"], "/shots/src-00.png")
+        self.assertNotIn("url", payload)
+
+        payload2 = m._build_mockup_update_payload(
+            {
+                "shot": "src-01.png",
+                "url": "https://www.folha.uol.com.br/poder/foo",
+                "kind": "source",
+            }
+        )
+        self.assertEqual(payload2["url"], "https://www.folha.uol.com.br/poder/foo")
+
+    def test_html_preloads_page_shot_before_swap(self) -> None:
+        html = (
+            Path(__file__).resolve().parent.parent
+            / "references/youtube/mockup-browser/mockup-brower.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_applyPageMedia", html)
+        self.assertIn("pre.onload", html)
+        self.assertIn("news.mob.tec.br", html)
 
 
 if __name__ == "__main__":

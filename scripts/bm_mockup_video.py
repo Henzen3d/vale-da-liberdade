@@ -1890,6 +1890,17 @@ def _normalize_beat_v2(beat: Any) -> dict:
     return out2
 
 
+def _omnibox_url(url: str | None) -> str:
+    """URL da barra do mockup. Nunca o portal Vale — isso é o template branco."""
+    u = (url or "").strip()
+    if not u:
+        return ""
+    low = u.lower()
+    if "news.mob.tec.br" in low or "valedaliberdade.com.br" in low:
+        return ""
+    return u
+
+
 def _build_mockup_update_payload(beat_v2: dict) -> dict:
     """Payload para window.VDL_MOCKUP.update — campos V2 + legado."""
     from urllib.parse import quote as _q
@@ -1899,7 +1910,6 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
     if kind == "broll" and beat_v2.get("broll_file"):
         page_video = f"/broll/{_q(beat_v2['broll_file'])}"
     payload: dict = {
-        "url": beat_v2.get("url") or "https://news.mob.tec.br",
         "pageImage": page_image,
         "pageVideo": page_video,
         "kind": kind,
@@ -1907,6 +1917,9 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
         "visual_variant": beat_v2.get("visual_variant") or "",
         "visual_payload": dict(beat_v2.get("visual_payload") or {}),
     }
+    url = _omnibox_url(beat_v2.get("url"))
+    if url:
+        payload["url"] = url
     x_post = beat_v2.get("x_post") or beat_v2.get("xPost")
     if x_post:
         payload["xPost"] = x_post
@@ -1983,11 +1996,13 @@ def record_mockup(
                     "categoria": payload["categoria"], "titulo": payload["titulo"],
                     "resumo": payload["resumo"], "autor": payload["autor"],
                     "data": payload["data"], "dataExtenso": payload["dataExtenso"],
-                    "url": payload["url"], "eyebrow": payload["eyebrow"],
+                    "eyebrow": payload["eyebrow"],
                     "lowerTitle": payload["lowerTitle"], "lowerSubtitle": payload["lowerSubtitle"],
                     "live": payload["liveText"], "brandSub": payload["brandSub"],
                     "tag": payload["tag"], "ticker": ticker,
                 }
+                if payload.get("url"):
+                    pairs["url"] = payload["url"]
                 if payload.get("pageImage"):
                     pairs["pageImage"] = payload["pageImage"]
                 if payload.get("pageVideo"):
@@ -2010,14 +2025,16 @@ def record_mockup(
             fb_v2 = _normalize_beat_v2(first_beat) if first_beat else {}
             first_shot = fb_v2.get("shot") or (scenes[0].get("shot") if scenes else None)
             first_vid = fb_v2.get("video") or (scenes[0].get("video") if scenes else None)
-            first_url = fb_v2.get("url") or (scenes[0].get("url") if scenes else "https://news.mob.tec.br")
+            first_url = _omnibox_url(
+                fb_v2.get("url") or (scenes[0].get("url") if scenes else "")
+            )
             first_kind = fb_v2.get("visual_component") or fb_v2.get("kind") or (scenes[0].get("kind") if scenes else "source")
             first_xpost = fb_v2.get("x_post") or (scenes[0].get("x_post") if scenes else None)
 
             init_payload = {
                 "categoria": "BRASIL E MUNDO", "titulo": title, "resumo": subhead,
                 "autor": "Peter Albuquerque", "data": ymd, "dataExtenso": ymd,
-                "url": first_url or "https://news.mob.tec.br",
+                "url": first_url,
                 "eyebrow": f"VALE DA LIBERDADE • {veiculo.upper()}",
                 "lowerTitle": title, "lowerSubtitle": subhead,
                 "liveText": "B&M", "brandSub": "B&M", "tag": "VALE DA LIBERDADE",
