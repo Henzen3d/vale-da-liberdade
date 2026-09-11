@@ -957,6 +957,122 @@ def _clip_line(text: str, limit: int) -> str:
     return s[:limit].rsplit(" ", 1)[0].rstrip(",;:") + "…"
 
 
+_CTA_RE = re.compile(
+    r"(deixe seu like|inscreva-se|compartilhe este v[ií]deo|um abra[cç]o|até a pr[oó]xima)",
+    re.I,
+)
+_OUTLET_PREFIX_RE = re.compile(
+    r"^(?:a |o )?(folha(?: de s[ãa]o paulo)?|g1|veja|cnn(?: brasil)?|"
+    r"estad[aã]o|bbc|uol|band|jovem pan|reuters|associated press|ap)\b[\s,:—-]*",
+    re.I,
+)
+
+
+def highlight_from_script(text: str, limit: int = 48) -> str:
+    """Ponto alto do roteiro para capítulo YouTube — não o nome do veículo."""
+    s = _unescape(text or "").strip()
+    s = re.sub(r"^\s*peter:\s*", "", s, flags=re.I)
+    if not s or _CTA_RE.search(s):
+        return ""
+    sent = s
+    for sep in (". ", "! ", "? ", "; "):
+        i = s.find(sep)
+        if 18 <= i <= 160:
+            sent = s[:i].strip()
+            break
+    sent = _OUTLET_PREFIX_RE.sub("", sent).strip()
+    sent = re.sub(
+        r"^(?:traz(?: os bastidores)?|mostra|aponta|relata|informa)(?: que)?\s+",
+        "",
+        sent,
+        flags=re.I,
+    )
+    sent = re.sub(r"\s+", " ", sent).strip(" ,;:—-")
+    if len(sent) > limit:
+        cut = sent[:limit]
+        for sep in (", ", " e ", " que ", " para ", " sobre "):
+            j = cut.rfind(sep)
+            if j >= 18:
+                cut = cut[:j]
+                break
+        else:
+            cut = cut.rsplit(" ", 1)[0]
+        sent = cut.strip(" ,;:—-")
+    if not sent:
+        return ""
+    return sent[0].upper() + sent[1:]
+
+
+def _chapter_labels_from_episode(episode: dict, n: int) -> list[str]:
+    """N rótulos a partir do desenvolvimento (abertura só se faltar texto)."""
+    if n <= 0 or not episode:
+        return []
+    labels: list[str] = []
+    seen: set[str] = set()
+    for key in ("desenvolvimento", "abertura"):
+        for item in episode.get(key) or []:
+            raw = item.get("texto") if isinstance(item, dict) else item
+            h = highlight_from_script(raw or "")
+            keyn = h.casefold()
+            if not h or keyn in seen:
+                continue
+            seen.add(keyn)
+            labels.append(h)
+            if len(labels) >= n:
+                return labels
+    return labels
+
+
+def _inject_assista(desc: str, assista: str) -> str:
+    if not assista:
+        return desc
+    if "Fontes:" in desc:
+        return desc.replace("Fontes:", assista + "Fontes:", 1)
+    return desc.rstrip() + "\n\n" + assista
+
+
+def _bm_seo_description(
+    video_id: str,
+    episode: dict,
+    title: str,
+    refs_ok: list[str],
+    tags: list[str],
+) -> str:
+    """Corpo SEO da skill descricoes-vale-liberdade — nunca o início cru do roteiro."""
+    try:
+        from description_optimizer import (
+            clean_youtube_description,
+            deterministic_description,
+            generate_description_via_llm,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  description_optimizer indisponível: {exc}")
+        return ""
+    ctx = {
+        "video_id": video_id,
+        "title": title,
+        "resumo": episode_summary(episode, limit=1200) or title,
+        "is_bm": True,
+    }
+    raw_body = None
+    llm_tags: list[str] = []
+    try:
+        llm_res = generate_description_via_llm(ctx)
+        if llm_res:
+            raw_body, llm_tags = llm_res
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  LLM da descrição falhou: {exc}")
+    if not raw_body:
+        raw_body = deterministic_description(ctx)
+    hashtags = llm_tags or [f"#{t}" for t in tags if t][:3]
+    return clean_youtube_description(
+        raw_body,
+        sources=refs_ok,
+        hashtags=hashtags,
+        is_bm=True,
+    )
+
+
 def one_line_subhead(episode: dict, limit: int = 98) -> str:
     """Linha fina: submanchete de uma linha, nunca o nome da fonte nem a fala de abertura do roteiro."""
     title = _unescape((episode.get("titulo") or "").strip())
@@ -1047,8 +1163,13 @@ def find_episode_thumbnail(video_id: str, ymd: str) -> Path | None:
         return None
 
 
-def build_chapters(scenes: list[dict], dur: float, timeline_beats: list[Any] | None = None) -> list[tuple[float, str]]:
-    """Timestamps das cenas do mockup baseados na timeline calculada."""
+def build_chapters(
+    scenes: list[dict],
+    dur: float,
+    timeline_beats: list[Any] | None = None,
+    episode: dict | None = None,
+) -> list[tuple[float, str]]:
+    """Timestamps das cenas; rótulos = pontos altos do roteiro, não o veículo do print."""
     entries: list[tuple[float, str]] = []
     if timeline_beats:
         for beat in timeline_beats:
@@ -1058,7 +1179,6 @@ def build_chapters(scenes: list[dict], dur: float, timeline_beats: list[Any] | N
             t0 = float(b_dict.get("t0", 0.0))
             label = (b_dict.get("veiculo") or "Fonte").strip()
             if label and label.lower() not in {"transição", "introdução"}:
-                # Se for a primeira cena, posiciona com folga após introdução
                 ts = t0 if t0 >= 10.0 else max(10.0, round(dur * 0.08))
                 entries.append((ts, label))
         concl = max(entries[-1][0] + 10.0 if entries else 0.0, dur - min(20.0, dur * 0.15))
@@ -1073,6 +1193,19 @@ def build_chapters(scenes: list[dict], dur: float, timeline_beats: list[Any] | N
         concl = max(t, dur - min(20.0, dur * 0.15))
         entries.append((concl, "Conclusão"))
 
+    highlight_slots = sum(1 for ts, label in entries if label != "Conclusão")
+    highlights = _chapter_labels_from_episode(episode or {}, highlight_slots)
+    if highlights:
+        hi = 0
+        rewritten: list[tuple[float, str]] = []
+        for ts, label in entries:
+            if label == "Conclusão":
+                rewritten.append((ts, label))
+                continue
+            rewritten.append((ts, highlights[hi] if hi < len(highlights) else label))
+            hi += 1
+        entries = rewritten
+
     # normaliza: Introdução sempre em 0:00, timestamps crescentes, >=10s entre capítulos
     out: list[tuple[float, str]] = [(0, "Introdução")]
     for ts, label in sorted(entries, key=lambda x: x[0]):
@@ -1085,8 +1218,13 @@ def build_chapters(scenes: list[dict], dur: float, timeline_beats: list[Any] | N
     return out
 
 
-def chapters_block(scenes: list[dict], dur: float, timeline_beats: list[Any] | None = None) -> str:
-    ch = build_chapters(scenes, dur, timeline_beats=timeline_beats)
+def chapters_block(
+    scenes: list[dict],
+    dur: float,
+    timeline_beats: list[Any] | None = None,
+    episode: dict | None = None,
+) -> str:
+    ch = build_chapters(scenes, dur, timeline_beats=timeline_beats, episode=episode)
     if len(ch) < 3:
         return ""
     lines = ["", "⏱ CAPÍTULOS:", "0:00 Introdução"]
@@ -1175,15 +1313,24 @@ def build_metadata(
         y, mo, d = ymd.split("-")
         summary = f"Comentário de {d}/{mo}/{y} sobre {veiculo or 'a pauta do dia'}."
     assista = build_assista_tambem(video_id, title, summary)
-    desc = DESC_TEMPLATE.format(
-        summary=summary,
-        app=APP_URL,
-        assista=assista,
-        refs="\n".join(refs_ok) if refs_ok else "—",
-        tags=" ".join(t.replace(" ", "") for t in tags if t),
-    )
+    desc = _bm_seo_description(video_id, episode, title, refs_ok, tags)
+    if not desc:
+        desc = DESC_TEMPLATE.format(
+            summary=summary,
+            app=APP_URL,
+            assista=assista,
+            refs="\n".join(refs_ok) if refs_ok else "—",
+            tags=" ".join(t.replace(" ", "") for t in tags if t),
+        )
+    else:
+        desc = _inject_assista(desc, assista)
     if scenes or timeline_beats:
-        desc += chapters_block(scenes or [], probe_duration_s(audio) or 0.0, timeline_beats=timeline_beats)
+        desc += chapters_block(
+            scenes or [],
+            probe_duration_s(audio) or 0.0,
+            timeline_beats=timeline_beats,
+            episode=episode,
+        )
     seen: set[str] = set()
     uniq: list[str] = []
     for t in tags:
@@ -1462,30 +1609,30 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 "Sec-Fetch-User": "?1",
             },
         )
-        page = ctx.new_page()
-        try:
-            from playwright_stealth import Stealth
-
-            Stealth().apply_stealth_sync(page)
-        except Exception:  # noqa: BLE001
-            pass
         last_domain = ""
 
         for i, scene, dest in to_fetch:
-            url = scene.get("url") or ""
-            current_domain = domain_of(url)
-
-            # Delay educado com jitter entre requisições
-            if last_domain:
-                if current_domain and current_domain == last_domain:
-                    delay = random.uniform(8.0, 15.0)
-                else:
-                    delay = random.uniform(3.5, 8.0)
-                print(f"  ⏳ Delay educado anti-bot: {delay:.1f}s...")
-                time.sleep(delay)
-            last_domain = current_domain
-
+            page = ctx.new_page()
             try:
+                try:
+                    from playwright_stealth import Stealth
+
+                    Stealth().apply_stealth_sync(page)
+                except Exception:  # noqa: BLE001
+                    pass
+                url = scene.get("url") or ""
+                current_domain = domain_of(url)
+
+                # Delay educado com jitter entre requisições
+                if last_domain:
+                    if current_domain and current_domain == last_domain:
+                        delay = random.uniform(8.0, 15.0)
+                    else:
+                        delay = random.uniform(3.5, 8.0)
+                    print(f"  ⏳ Delay educado anti-bot: {delay:.1f}s...")
+                    time.sleep(delay)
+                last_domain = current_domain
+
                 # X com vídeo embutido: baixa o clipe em vez de screenshot estático
                 if host_kind(url) == "x":
                     vid_rel = extract_x_video(url, shot_dir.parent, shot_dir.parent.name, i)
@@ -1617,6 +1764,11 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 dest.unlink(missing_ok=True)
             except Exception as exc:
                 print(f"  ⚠️  captura falhou / skip:blocked {url}: {exc}")
+            finally:
+                try:
+                    page.close()
+                except Exception:
+                    pass
             item = dict(scene)
             item["shot"] = None
             by_index[i] = item

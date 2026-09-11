@@ -10,6 +10,7 @@ Usa execução paralela (ThreadPoolExecutor) para maior desempenho.
 import argparse
 import concurrent.futures
 import datetime
+from functools import lru_cache
 import hashlib
 import json
 import logging
@@ -88,11 +89,12 @@ log = logging.getLogger("news-collector")
 
 # User-Agent realista para evitar bloqueios HTTP
 try:
-    from http_fetch import BROWSER_HEADERS as HEADERS  # noqa: E402
+    from http_fetch import BROWSER_HEADERS as HEADERS, fetch_html  # noqa: E402
 except ImportError:
-    from scripts.http_fetch import BROWSER_HEADERS as HEADERS  # type: ignore
+    from scripts.http_fetch import BROWSER_HEADERS as HEADERS, fetch_html  # type: ignore
 
 
+@lru_cache(maxsize=1)
 def load_config():
     """Carrega fontes do sources.json."""
     if not SOURCES_JSON.exists():
@@ -277,23 +279,12 @@ def fetch_rss_source(source, hours=48):
     articles = []
     
     feed = None
-    # 2 tentativas de requisição HTTP para tolerar instabilidades de rede e DNS
-    for attempt in range(2):
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=10, verify=False)
-            if response.status_code == 200:
-                feed = feedparser.parse(response.content)
-                break
-            else:
-                log.warning(f"[{source['id']}] HTTP {response.status_code} ao buscar RSS (tentativa {attempt+1}/2).")
-                if response.status_code in (401, 403, 429):
-                    # Bloqueio antibot: backoff exponencial com cap (transitório)
-                    time.sleep(min(2 ** attempt * 2, 30))
-                    continue
-        except Exception as e:
-            log.warning(f"[{source['id']}] Erro na requisição HTTP (tentativa {attempt+1}/2): {e}")
-            if attempt == 0:
-                time.sleep(2)  # Aguardar 2s antes de tentar novamente
+    # HTTP via http_fetch (headers/delay/recovery unificados; TLS do fetch_html)
+    html, status = fetch_html(url, timeout=10, max_attempts=2)
+    if html:
+        feed = feedparser.parse(html)
+    else:
+        log.warning(f"[{source['id']}] HTTP {status} ao buscar RSS via http_fetch.")
 
     # Fallback caso a requisição HTTP direta falhe ou retorne não-200
     if not feed or not feed.entries:

@@ -33,6 +33,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 
 # Adicionar diretório de scripts ao path para imports
@@ -449,6 +450,7 @@ Ricardo: [reflexão ou chamada à ação]
 """
 
 
+@lru_cache(maxsize=32)
 def get_episode_number(date: str) -> int:
     """Calcula o número sequencial do episódio com base no archive/index.md."""
     index_path = ARCHIVE_DIR / "index.md"
@@ -614,6 +616,13 @@ def cmd_process(date: str, force_render: bool = False):
         validation_warnings=warnings,
         breaking_count=breaking_count,
     )
+    title_path = EPISODES_DIR / f"{date}-title.txt"
+    if title_path.exists():
+        metadata["youtube_title"] = title_path.read_text(encoding="utf-8").strip()
+    desc_path = EPISODES_DIR / f"{date}-description.txt"
+    if desc_path.exists():
+        metadata["youtube_description"] = desc_path.read_text(encoding="utf-8").strip()
+
     metadata_path = EPISODES_DIR / f"{date}-metadata.json"
     metadata_path.write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2),
@@ -853,6 +862,25 @@ def cmd_update_archive(date: str):
     print(f"  ✅ Índice atualizado: {index_path}")
 
 
+def _run_subprocess_step(script: Path, extra_args: list[str], *, tail: int = 1200, label: str | None = None) -> int:
+    name = label or script.name
+    if not script.exists():
+        print(f"  ({script.name} não encontrado, pulando)")
+        return 0
+    r = subprocess.run(
+        [sys.executable, str(script), *extra_args],
+        capture_output=True,
+        text=True,
+        env=os.environ.copy(),
+        cwd=str(PROJECT_ROOT),
+    )
+    if r.stdout:
+        print(r.stdout[-tail:])
+    if r.returncode != 0:
+        print(f"⚠️  {name} exit {r.returncode} (não bloqueia): {(r.stderr or '')[-400:]}")
+    return r.returncode
+
+
 def cmd_full(
     date: str,
     hours: int = 48,
@@ -906,6 +934,26 @@ def cmd_full(
     except Exception as e:
         print(f"⚠️  title_optimizer falhou (não bloqueia): {e}")
 
+    # 2.6. Descrição otimizada (skill descricoes-vale-liberdade) — NÃO bloqueia
+    print("\n📝 Etapa 2.6/8 — Descrição otimizada do episódio")
+    try:
+        desc_script = SCRIPT_DIR / "description_optimizer.py"
+        if desc_script.exists():
+            dr = subprocess.run(
+                [sys.executable, str(desc_script), "--date", date],
+                capture_output=True, text=True,
+                env=os.environ.copy(), cwd=str(PROJECT_ROOT),
+            )
+            if dr.stdout:
+                lines = [l for l in dr.stdout.splitlines() if l.strip()]
+                print("\n".join(lines[-20:]))
+            if dr.returncode != 0:
+                print(f"⚠️  description_optimizer exit {dr.returncode} (não bloqueia): {(dr.stderr or '')[-300:]}")
+        else:
+            print("  (description_optimizer.py não encontrado, pulando)")
+    except Exception as e:
+        print(f"⚠️  description_optimizer falhou (não bloqueia): {e}")
+
     # 3. Processar (render MD se template + TTS + metadados)
     print("\n📝 Etapa 3/7 — Processamento do roteiro (MD + TTS)")
     # Se MD é template ou force, re-renderiza a partir do JSON
@@ -931,39 +979,36 @@ def cmd_full(
         print("\n🎙️  Etapa 5/7 — Geração de áudio")
         cmd_audio(date, allow_short=allow_short_audio)
 
-    # 5.5. Inserção de anúncio de patrocinador (Tipo 1 — ads/schedule.json)
-    print("\n📢 Etapa 5.5/8 — Inserção de anúncio (patrocínio Tipo 1)")
-    try:
-        ads_script = SCRIPT_DIR / "ads_insert.py"
-        if ads_script.exists():
-            r = subprocess.run(
-                [sys.executable, str(ads_script), "--date", date, "--no-republish"],
-                capture_output=True, text=True, env=os.environ.copy(),
-                cwd=str(PROJECT_ROOT),
-            )
-            if r.stdout:
-                print(r.stdout[-1200:])
-            if r.returncode != 0:
-                print(f"⚠️  ads_insert exit {r.returncode} (não bloqueia): {(r.stderr or '')[-400:]}")
-        else:
-            print("  (ads_insert.py não encontrado, pulando)")
-    except Exception as e:
-        print(f"⚠️  ads_insert falhou (não bloqueia): {e}")
+    # 5.5 + 5.6. Ads ∥ thumbnail (depois do áudio; title/desc ficam sequenciais)
+    print("\n📢🖼️  Etapa 5.5–5.6/8 — Anúncio e thumbnail em paralelo")
 
-    # 5.6. Thumbnail/capa automática (DashScope cascade) — NÃO bloqueia o pipeline
-    print("\n🖼️  Etapa 5.6/8 — Thumbnail automática do episódio")
-    try:
-        from thumbnail_generator import generate_thumbnail_safe
-        thumb = generate_thumbnail_safe(date=date, episode_id=f"ep_{date}")
-        if thumb.get("path"):
-            print(
-                f"  ✅ thumbnail: {thumb.get('path')} "
-                f"(model={thumb.get('image_model_used')} placeholder={thumb.get('is_placeholder')})"
-            )
-        else:
-            print(f"  ⚠️  thumbnail sem path (não bloqueia): {thumb.get('error', thumb)}")
-    except Exception as e:
-        print(f"⚠️  thumbnail falhou (não bloqueia): {e}")
+    def _ads_step():
+        _run_subprocess_step(
+            SCRIPT_DIR / "ads_insert.py",
+            ["--date", date, "--no-republish"],
+            label="ads_insert",
+        )
+
+    def _thumb_step():
+        try:
+            from thumbnail_generator import generate_thumbnail_safe
+            thumb = generate_thumbnail_safe(date=date, episode_id=f"ep_{date}")
+            if thumb.get("path"):
+                print(
+                    f"  ✅ thumbnail: {thumb.get('path')} "
+                    f"(model={thumb.get('image_model_used')} placeholder={thumb.get('is_placeholder')})"
+                )
+            else:
+                print(f"  ⚠️  thumbnail sem path (não bloqueia): {thumb.get('error', thumb)}")
+        except Exception as e:
+            print(f"⚠️  thumbnail falhou (não bloqueia): {e}")
+
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        fa = pool.submit(_ads_step)
+        ft = pool.submit(_thumb_step)
+        fa.result()
+        ft.result()
 
     # 6. Atualizar arquivo
     print("\n📁 Etapa 6/8 — Atualização do índice")

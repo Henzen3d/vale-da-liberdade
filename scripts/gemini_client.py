@@ -17,8 +17,13 @@ import random
 import re
 import sys
 import time
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None  # type: ignore
 try:
     from zoneinfo import ZoneInfo
     PACIFIC = ZoneInfo("America/Los_Angeles")
@@ -86,8 +91,70 @@ def _estimate_tokens(contents) -> int:
     return 1000
 
 
+_FLOCK_TIMEOUT_S = 5.0
+
+
+def _usage_lock_path(file_path: Path) -> Path:
+    return Path(str(file_path) + ".lock")
+
+
+def _load_usage_unlocked(file_path: Path) -> dict:
+    if not file_path.exists():
+        return {}
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (PermissionError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_usage_unlocked(file_path: Path, data: dict) -> None:
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+    with open(temp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(temp_path, file_path)
+
+
+@contextmanager
+def _usage_lock(file_path: Path):
+    """flock exclusivo no lockfile. Nunca segurar durante time.sleep de RPM."""
+    if fcntl is None:
+        yield
+        return
+    lock_path = _usage_lock_path(file_path)
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    fh = open(lock_path, "a+", encoding="utf-8")
+    start = time.time()
+    got = False
+    try:
+        while True:
+            try:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                got = True
+                break
+            except BlockingIOError:
+                if time.time() - start >= _FLOCK_TIMEOUT_S:
+                    log.warning("flock timeout %ss em %s — seguindo sem lock", _FLOCK_TIMEOUT_S, lock_path)
+                    break
+                time.sleep(0.05)
+        yield
+    finally:
+        if got:
+            try:
+                fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+        fh.close()
+
+
 def _load_usage(file_path: Path) -> dict:
-    """Lê o arquivo de controle de uso com retentativas para evitar colisões de escrita no Windows."""
+    """Lê gemini_usage.json. flock no Linux; retry curto no Windows."""
+    if fcntl is not None:
+        with _usage_lock(file_path):
+            return _load_usage_unlocked(file_path)
     for _ in range(30):
         try:
             if not file_path.exists():
@@ -100,17 +167,18 @@ def _load_usage(file_path: Path) -> dict:
 
 
 def _save_usage(file_path: Path, data: dict):
-    """Escreve o arquivo de controle de uso de forma concorrente-segura no Windows."""
+    """os.replace atômico. Sem unlink. flock no Linux."""
+    if fcntl is not None:
+        with _usage_lock(file_path):
+            _save_usage_unlocked(file_path, data)
+            return
     file_path.parent.mkdir(parents=True, exist_ok=True)
     for _ in range(30):
         try:
-            # Escrever em arquivo temporário e substituir para atomicidade
             temp_path = file_path.with_suffix(".tmp")
             with open(temp_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            if file_path.exists():
-                file_path.unlink()
-            temp_path.rename(file_path)
+            os.replace(temp_path, file_path)
             return
         except PermissionError:
             time.sleep(random.uniform(0.02, 0.1))
@@ -340,81 +408,73 @@ class GeminiClient:
         min_gap = 60.0 / max(1, rpm)
 
         while True:
-            now = time.time()
-            usage = _load_usage(self.usage_file)
+            wait_gap = 0.0
+            reserved = None
+            with _usage_lock(self.usage_file):
+                now = time.time()
+                usage = _load_usage_unlocked(self.usage_file)
+                _gc_usage_data(usage)
 
-            # GC global no load: limpa timestamps antigos e fake pads de TODAS as chaves
-            _gc_usage_data(usage)
+                key_data = usage.setdefault(key_id, {})
+                model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
 
-            key_data = usage.setdefault(key_id, {})
-            model_data = key_data.setdefault(model, {"requests": [], "tokens": []})
+                real_requests = model_data.get("requests") or []
+                requests_minute = [t for t in real_requests if now - t < 60]
+                requests_day = _requests_in_rpd_window(real_requests, now)
+                tokens_minute = [entry for entry in model_data["tokens"] if now - entry["timestamp"] < 60]
 
-            real_requests = model_data.get("requests") or []  # já limpo pelo GC
-            requests_minute = [t for t in real_requests if now - t < 60]
-            requests_day = _requests_in_rpd_window(real_requests, now)
-            tokens_minute = [entry for entry in model_data["tokens"] if now - entry["timestamp"] < 60]
+                model_data["requests"] = requests_day
+                model_data["tokens"] = tokens_minute
+                exhausted_until = float(model_data.get("exhausted_until") or 0)
+                if exhausted_until and exhausted_until <= now:
+                    model_data["exhausted_until"] = 0
+                    exhausted_until = 0
 
-            model_data["requests"] = requests_day
-            model_data["tokens"] = tokens_minute
-            exhausted_until = float(model_data.get("exhausted_until") or 0)
-            if exhausted_until and exhausted_until <= now:
-                model_data["exhausted_until"] = 0
-                exhausted_until = 0
-
-            if len(requests_day) >= rpd:
-                raise RuntimeError(
-                    f"Limite diário atingido (RPD de {rpd}) para o modelo {model}. "
-                    f"Reset à meia-noite do Pacífico (AI Studio) ou alterne a chave."
-                )
-            if exhausted_until > now:
-                # Trava Google só é confiável se o dia local também saturado.
-                # exhausted_until com 0 requests reais = 429 de RPM classificado
-                # como RPD (incidente 2026-09-05: 6 chaves TTS mortas o dia todo).
-                log.warning(
-                    f"{key_id} {model}: ignorando exhausted_until "
-                    f"({len(requests_day)}/{rpd} requests reais hoje)"
-                )
-                model_data["exhausted_until"] = 0
-
-            # Timer por chave: não disparar mais cedo que 60/RPM (TTS 3.1 = 20s).
-            if requests_day:
-                last = max(requests_day)
-                wait_gap = (last + min_gap) - now
-                if wait_gap > 0.05:
-                    log.warning(
-                        f"Timer {key_id} {model}: intervalo mínimo {min_gap:.1f}s "
-                        f"(RPM={rpm}). Dormindo {wait_gap:.2f}s..."
+                if len(requests_day) >= rpd:
+                    _save_usage_unlocked(self.usage_file, usage)
+                    raise RuntimeError(
+                        f"Limite diário atingido (RPD de {rpd}) para o modelo {model}. "
+                        f"Reset à meia-noite do Pacífico (AI Studio) ou alterne a chave."
                     )
-                    time.sleep(wait_gap)
-                    continue
+                if exhausted_until > now:
+                    log.warning(
+                        f"{key_id} {model}: ignorando exhausted_until "
+                        f"({len(requests_day)}/{rpd} requests reais hoje)"
+                    )
+                    model_data["exhausted_until"] = 0
 
-            if len(requests_minute) >= rpm:
-                oldest_req = min(requests_minute)
-                wait_time = max(0.1, 60 - (now - oldest_req) + 0.2)
+                if requests_day:
+                    last = max(requests_day)
+                    wait_gap = (last + min_gap) - now
+                    if wait_gap > 0.05:
+                        _save_usage_unlocked(self.usage_file, usage)
+                    else:
+                        wait_gap = 0.0
+
+                if wait_gap <= 0 and len(requests_minute) >= rpm:
+                    oldest_req = min(requests_minute)
+                    wait_gap = max(0.1, 60 - (now - oldest_req) + 0.2)
+
+                if wait_gap <= 0:
+                    current_tokens = sum(entry["tokens"] for entry in tokens_minute)
+                    if current_tokens + estimated_tokens >= tpm:
+                        oldest_token_ts = min(entry["timestamp"] for entry in tokens_minute)
+                        wait_gap = max(0.1, 60 - (now - oldest_token_ts) + 0.2)
+
+                if wait_gap <= 0:
+                    reserved = time.time()
+                    model_data["requests"].append(reserved)
+                    model_data["tokens"].append({"timestamp": reserved, "tokens": estimated_tokens})
+                    _save_usage_unlocked(self.usage_file, usage)
+
+            if reserved is not None:
+                return reserved
+            if wait_gap > 0.05:
                 log.warning(
-                    f"Rate Limiting: Limite RPM ({rpm}) atingido para {model}. "
-                    f"Dormindo {wait_time:.2f} segundos..."
+                    f"Timer {key_id} {model}: intervalo mínimo {min_gap:.1f}s "
+                    f"(RPM={rpm}). Dormindo {wait_gap:.2f}s..."
                 )
-                time.sleep(wait_time)
-                continue
-
-            current_tokens = sum(entry["tokens"] for entry in tokens_minute)
-            if current_tokens + estimated_tokens >= tpm:
-                oldest_token_ts = min(entry["timestamp"] for entry in tokens_minute)
-                wait_time = max(0.1, 60 - (now - oldest_token_ts) + 0.2)
-                log.warning(
-                    f"Rate Limiting: Limite TPM ({current_tokens}/{tpm}) perto de estourar "
-                    f"para {model} com estimativa de {estimated_tokens} tokens. "
-                    f"Dormindo {wait_time:.2f} segundos..."
-                )
-                time.sleep(wait_time)
-                continue
-
-            reserved = time.time()
-            model_data["requests"].append(reserved)
-            model_data["tokens"].append({"timestamp": reserved, "tokens": estimated_tokens})
-            _save_usage(self.usage_file, usage)
-            return reserved
+                time.sleep(wait_gap)
 
     def _rollback_rate_limit(self, model: str, request_time: float) -> None:
         """Solta a reserva se a API rejeitou (429 RPM / 503 / rede)."""

@@ -153,6 +153,25 @@ _CURRENCY_SPECS: list[tuple[str, str, str]] = [
     (r"£|GBP\b", "libras", "de libras"),
     (r"(?<![A-Za-z])\$", "dólares", "de dólares"),
 ]
+_CURRENCY_COMPILED = [
+    (
+        re.compile(rf"(?:{symbol_re})\s*([\d.,]*\d)(?:\s*{_CURRENCY_UNIT})?", re.IGNORECASE),
+        simple,
+        de,
+    )
+    for symbol_re, simple, de in _CURRENCY_SPECS
+]
+_PCT_RE = re.compile(r"([\d,]+)\s*%")
+_DATE_RE = re.compile(r"(\d{1,2})/(\d{1,2})/(\d{2,4})")
+_YEAR_RE = re.compile(r"(?<![\d/\-])((?:19|20)\d{2})(?![\d/\-])")
+_TIME_MIN_RE = re.compile(r"(\d{1,2})h(\d{2})min\b", re.IGNORECASE)
+_TIME_RE = re.compile(r"(\d{1,2})h(\d{2})?")
+_DUR_MIN_RE = re.compile(r"(\d+)\s*min\b", re.IGNORECASE)
+_DUR_M_RE = re.compile(r"(\d+)\s*m\b(?!\s+de\b)")
+_ROAD_RE = re.compile(r"\b((?:rodovia\s+)?[A-Z]{2})-(\d{1,6})\b", re.IGNORECASE)
+_PLAIN_NUM_RE = re.compile(r"(?<![\w/\-.])\d{2,6}(?:[.]\d{3})*(?![\w/\-.])")
+_WS_RE = re.compile(r"\s{2,}")
+_MULTI_NL_RE = re.compile(r"\n{3,}")
 
 
 def _format_spoken_currency(raw_num: str, unit: str | None, simple: str, de: str) -> str:
@@ -185,16 +204,11 @@ def _normalize_currency(text: str) -> str:
     R$ 50 mil → "50 mil reais" (ou "cinquenta mil reais" se num2words).
     Nunca "reais 50 mil". Vale para US$, $, €, £.
     """
-    for symbol_re, simple, de in _CURRENCY_SPECS:
+    for compiled, simple, de in _CURRENCY_COMPILED:
         def _repl(match, simple=simple, de=de):
             return _format_spoken_currency(match.group(1), match.group(2), simple, de)
 
-        text = re.sub(
-            rf"(?:{symbol_re})\s*([\d.,]*\d)(?:\s*{_CURRENCY_UNIT})?",
-            _repl,
-            text,
-            flags=re.IGNORECASE,
-        )
+        text = compiled.sub(_repl, text)
     return text
 
 
@@ -208,7 +222,7 @@ def _normalize_percentage(text: str) -> str:
             return f"{_number_to_words(val_int)} por cento"
         except ValueError:
             return match.group(0)
-    return re.sub(r"([\d,]+)\s*%", _replace, text)
+    return _PCT_RE.sub(_replace, text)
 
 
 def _normalize_dates(text: str) -> str:
@@ -229,7 +243,7 @@ def _normalize_dates(text: str) -> str:
         year_w = _number_to_words(year)
         return f"{day_w} de {month_name} de {year_w}"
 
-    return re.sub(r"(\d{1,2})/(\d{1,2})/(\d{2,4})", _replace_date, text)
+    return _DATE_RE.sub(_replace_date, text)
 
 
 def _normalize_years(text: str) -> str:
@@ -238,7 +252,7 @@ def _normalize_years(text: str) -> str:
         year = int(match.group(1))
         return _number_to_words(year)
     # Apenas anos isolados (não datas, não CPF, não telefone)
-    return re.sub(r"(?<![\d/\-])((?:19|20)\d{2})(?![\d/\-])", _replace_year, text)
+    return _YEAR_RE.sub(_replace_year, text)
 
 
 def _normalize_times(text: str) -> str:
@@ -259,8 +273,8 @@ def _normalize_times(text: str) -> str:
 
     # Ordem importa: 22h20min (com sufixo min) ANTES de 22h20 simples,
     # para não deixar 'min' colado (ex.: 'vintemin').
-    text = re.sub(r"(\d{1,2})h(\d{2})min\b", _replace_time, text, flags=re.IGNORECASE)
-    text = re.sub(r"(\d{1,2})h(\d{2})?", _replace_time, text)
+    text = _TIME_MIN_RE.sub(_replace_time, text)
+    text = _TIME_RE.sub(_replace_time, text)
     return text
 
 
@@ -279,10 +293,10 @@ def _normalize_durations(text: str) -> str:
         return f"{_number_to_words(val)} minutos"
 
     # 28min | 28MIN  (sempre minuto)
-    text = re.sub(r"(\d+)\s*min\b", _replace_min, text, flags=re.IGNORECASE)
+    text = _DUR_MIN_RE.sub(_replace_min, text)
     # 28m (letra m isolada, com word boundary). Protege contra "3m de tubulação"
     # (metro, não minuto): não converte se seguido de " de <substantivo>".
-    text = re.sub(r"(\d+)\s*m\b(?!\s+de\b)", _replace_m, text)
+    text = _DUR_M_RE.sub(_replace_m, text)
     return text
 
 
@@ -298,13 +312,7 @@ def _normalize_roads(text: str) -> str:
         return f"{prefix} {_number_to_words(num)}"
 
     # BR-470 | SC-101 | rodovia BR-470 | Rodovia SC-101
-    text = re.sub(
-        r"\b((?:rodovia\s+)?[A-Z]{2})-(\d{1,6})\b",
-        _replace_road,
-        text,
-        flags=re.IGNORECASE,
-    )
-    return text
+    return _ROAD_RE.sub(_replace_road, text)
 
 
 def _normalize_plain_numbers(text: str):
@@ -325,7 +333,7 @@ def _normalize_plain_numbers(text: str):
             return match.group(0)
 
     # Apenas números isolados (não precedidos/seguidos de letras/símbolos especiais)
-    return re.sub(r"(?<![\w/\-.])\d{2,6}(?:[.]\d{3})*(?![\w/\-.])", _replace_num, text)
+    return _PLAIN_NUM_RE.sub(_replace_num, text)
 
 
 def _apply_num2words_normalization(text: str) -> str:
@@ -355,11 +363,12 @@ def _apply_num2words_normalization(text: str) -> str:
 
 _PRONUNCIATION_LEXICON: dict[str, str] = {}  # Carregado na primeira chamada
 _LEXICON_LOADED = False
+_LEXICON_COMPILED: list[tuple[re.Pattern[str], str]] = []
 
 
 def load_pronunciation_lexicon() -> dict[str, str]:
     """Carrega sources/pronunciation_lexicon.json com aliases de pronúncia regional."""
-    global _PRONUNCIATION_LEXICON, _LEXICON_LOADED
+    global _PRONUNCIATION_LEXICON, _LEXICON_LOADED, _LEXICON_COMPILED
     if _LEXICON_LOADED:
         return _PRONUNCIATION_LEXICON
     try:
@@ -368,19 +377,21 @@ def load_pronunciation_lexicon() -> dict[str, str]:
                 _PRONUNCIATION_LEXICON = json.load(f)
     except Exception:
         pass  # Lexicon é opcional — falha silenciosa
+    _LEXICON_COMPILED = [
+        (re.compile(rf"(?<![\w])({re.escape(original)})(?![\w])", re.IGNORECASE), phonetic)
+        for original, phonetic in (_PRONUNCIATION_LEXICON or {}).items()
+    ]
     _LEXICON_LOADED = True
     return _PRONUNCIATION_LEXICON
 
 
 def _apply_pronunciation_lexicon(text: str) -> str:
     """Aplica substituições fonéticas do lexicon regional."""
-    lexicon = load_pronunciation_lexicon()
-    if not lexicon:
+    load_pronunciation_lexicon()
+    if not _LEXICON_COMPILED:
         return text
-    for original, phonetic in lexicon.items():
-        # Word-boundary match para evitar substituições parciais
-        pattern = rf"(?<![\w])({re.escape(original)})(?![\w])"
-        text = re.sub(pattern, phonetic, text, flags=re.IGNORECASE)
+    for compiled, phonetic in _LEXICON_COMPILED:
+        text = compiled.sub(phonetic, text)
     return text
 
 
@@ -672,7 +683,7 @@ def preprocess_for_tts(markdown_text: str) -> str:
         sp, _, body = line.partition(":")
         body = re.sub(r",\s*(Peter|Ricardo|Piter)\b", r" \1", body)
         body = re.sub(r"\b(Peter|Ricardo|Piter),\s+", r"\1 ", body)
-        body = re.sub(r"\s{2,}", " ", body)
+        body = _WS_RE.sub(" ", body)
         return f"{sp}:{body}"
 
     text = "\n".join(_soften_names_line(l) for l in text.split("\n"))
@@ -684,7 +695,7 @@ def preprocess_for_tts(markdown_text: str) -> str:
     text = _insert_pauses(text)
 
     # 8. Limpeza final
-    text = re.sub(r"\n{3,}", "\n\n", text)  # Máximo 1 linha vazia
+    text = _MULTI_NL_RE.sub("\n\n", text)  # Máximo 1 linha vazia
     text = text.strip() + "\n"
 
     return text

@@ -178,6 +178,45 @@ def fetch_html(
     return None, status
 
 
+async def fetch_html_async(
+    url: str,
+    *,
+    session=None,
+    referer: str | None = None,
+    timeout: float = BOT_ATTEMPT_TIMEOUT_S,
+) -> tuple[str | None, int | None]:
+    """GET aiohttp com TLS ligado (ssl default). limit vem do session connector."""
+    try:
+        import aiohttp
+    except ImportError:
+        return fetch_html(url, referer=referer, timeout=timeout)
+
+    headers = dict(BROWSER_HEADERS)
+    if not referer:
+        parsed = urllib.parse.urlparse(url)
+        referer = f"{parsed.scheme}://{parsed.netloc}/"
+    headers["Referer"] = referer
+    close = False
+    if session is None:
+        timeout_cfg = aiohttp.ClientTimeout(total=timeout, connect=5)
+        connector = aiohttp.TCPConnector(limit=8, limit_per_host=2, ttl_dns_cache=300, ssl=True)
+        session = aiohttp.ClientSession(timeout=timeout_cfg, connector=connector, headers=headers)
+        close = True
+    try:
+        async with session.get(url, headers=headers, ssl=True) as resp:
+            if resp.status == 200:
+                text = await resp.text()
+                if not _looks_like_block(None, text[:2000]):
+                    return text, 200
+            return None, resp.status
+    except Exception as exc:
+        log.warning("http_fetch_async erro %s: %s", domain_of(url), str(exc)[:120])
+        return None, None
+    finally:
+        if close:
+            await session.close()
+
+
 def fetch_html_browser(
     url: str,
     *,
