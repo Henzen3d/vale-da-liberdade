@@ -870,38 +870,6 @@ def record_mockup(
             )
             page = ctx.new_page()
 
-            def _qs_payload(payload: dict) -> str:
-                from urllib.parse import quote as _q
-                ticker = "|".join(payload.get("ticker") or [])
-                pairs = {
-                    "categoria": payload["categoria"], "titulo": payload["titulo"],
-                    "resumo": payload["resumo"], "autor": payload["autor"],
-                    "data": payload["data"], "dataExtenso": payload["dataExtenso"],
-                    "eyebrow": payload["eyebrow"],
-                    "lowerTitle": payload["lowerTitle"], "lowerSubtitle": payload["lowerSubtitle"],
-                    "live": payload["liveText"], "brandSub": payload["brandSub"],
-                    "tag": payload["tag"], "ticker": ticker,
-                }
-                if payload.get("url"):
-                    pairs["url"] = payload["url"]
-                if payload.get("pageImage"):
-                    pairs["pageImage"] = payload["pageImage"]
-                if payload.get("pageVideo"):
-                    pairs["pageVideo"] = payload["pageVideo"]
-                if payload.get("wallpaper"):
-                    pairs["wallpaper"] = payload["wallpaper"]
-                if payload.get("kind"):
-                    pairs["kind"] = payload["kind"]
-                if payload.get("visual_component"):
-                    pairs["visual_component"] = payload["visual_component"]
-                if payload.get("visual_variant"):
-                    pairs["visual_variant"] = payload["visual_variant"]
-                if payload.get("visual_payload"):
-                    pairs["visual_payload"] = json.dumps(payload["visual_payload"])
-                if payload.get("xPost"):
-                    pairs["xPost"] = payload["xPost"] if isinstance(payload["xPost"], str) else json.dumps(payload["xPost"])
-                return "&".join(f"{k}={_q(str(v))}" for k, v in pairs.items())
-
             first_beat = timeline_beats[0] if timeline_beats else None
             fb_v2 = _normalize_beat_v2(first_beat) if first_beat else {}
             first_shot = fb_v2.get("shot") or (scenes[0].get("shot") if scenes else None)
@@ -929,10 +897,16 @@ def record_mockup(
                 "visual_payload": fb_v2.get("visual_payload") or {},
             }
             if first_xpost:
-                init_payload["xPost"] = json.dumps(first_xpost) if not isinstance(first_xpost, str) else first_xpost
-            # pageVideo em autoplay+loop (dezenas de MB) + Google Fonts/GSAP no CDN
-            # nunca deixam a rede ociosa — networkidle estoura 45s (FNTK1AJegxI).
-            page.goto(f"{url}?{_qs_payload(init_payload)}", wait_until="domcontentloaded", timeout=45000)
+                init_payload["xPost"] = first_xpost
+            # Query string no HTML estoura 404 no http.server (xauvz73KEpA).
+            # Estado vai via VDL_MOCKUP.update depois do goto limpo.
+            # pageVideo+CDN: nunca networkidle (FNTK1AJegxI).
+            resp = page.goto(url, wait_until="domcontentloaded", timeout=45000)
+            status = getattr(resp, "status", None)
+            if status is None or int(status) >= 400:
+                raise RuntimeError(f"mockup {MOCKUP_HTML} HTTP {status} em {url}")
+            page.wait_for_function("() => !!window.VDL_MOCKUP", timeout=10000)
+            _safe_mockup_update(page, init_payload, label="init")
             # LT do HTML some na gravação. Overlay oficial (1576px, left 300)
             # entra no compose_presenter NA FRENTE do Peter. Sem isso o avatar
             # cobre o LT do mockup (L6BdCfuMVpQ).

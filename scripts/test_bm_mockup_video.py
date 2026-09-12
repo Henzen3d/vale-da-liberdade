@@ -764,6 +764,8 @@ class RecordMockupGotoTests(unittest.TestCase):
         src = inspect.getsource(m.record_mockup)
         self.assertIn('wait_until="domcontentloaded"', src)
         self.assertNotIn('wait_until="networkidle"', src)
+        self.assertNotIn("_qs_payload", src)
+        self.assertIn("VDL_MOCKUP", src)
 
     def test_pending_max_counts_attempts_not_successes(self) -> None:
         import inspect
