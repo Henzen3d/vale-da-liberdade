@@ -26,7 +26,22 @@ class TestBMQueueRetry(unittest.TestCase):
         err = "ERROR: [youtube] C2ad_B39L_c: Sign in to confirm you’re not a bot. Use --cookies"
         self.assertTrue(ytdlp_is_bot_block(err))
         self.assertFalse(ytdlp_is_bot_block("WARNING: There are no subtitles for the requested languages"))
-        self.assertIsNone(youtube_cookies_path())
+        cookies = youtube_cookies_path()
+        if cookies is not None:
+            self.assertTrue(cookies.is_file())
+            self.assertGreater(cookies.stat().st_size, 80)
+
+    def test_ytdlp_never_gets_original_cookie_path(self):
+        from bm_transcript import _netscape_copy_for_ytdlp, youtube_cookies_path
+
+        src = youtube_cookies_path()
+        if src is None:
+            self.skipTest("sem jar de cookies")
+        copy = _netscape_copy_for_ytdlp(src)
+        self.assertIsNotNone(copy)
+        self.assertNotEqual(copy.resolve(), src.resolve())
+        self.assertTrue(copy.is_file())
+        self.assertGreater(copy.stat().st_size, 80)
 
     def test_is_interview_title(self):
         """Valida que entrevistas do ANCAPSU sejam detectadas para exclusão."""

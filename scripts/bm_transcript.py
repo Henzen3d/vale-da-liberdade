@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Extrator de transcrição YouTube via yt-dlp — Pipeline Brasil e Mundo.
+Extrator de transcrição YouTube — Pipeline Brasil e Mundo.
 
-Extrai legendas (automáticas ou manuais) de vídeos do YouTube usando yt-dlp.
-Faz fallback para download de áudio + STT local (Whisper) se não houver legenda.
+Primeiro tenta legendas via cookies de sessão (HTML watch + timedtext),
+sem yt-dlp — o YouTube bloqueia o extractor com "Sign in to confirm you're
+not a bot" mesmo com auto-caption no ar. yt-dlp fica de fallback.
 Salva transcrição limpa + metadata em output/brasil_e_mundo/raw/{video_id}.json.
 
 Uso:
@@ -50,23 +51,87 @@ _YT_DLP = (
     or "yt-dlp"
 )
 
-# Netscape cookies. Sem isso o YouTube responde "Sign in to confirm you're not a bot"
-# e o extrator falha mesmo com auto-caption já no ar (C2ad_B39L_c, 2026-09-10).
+# Cookies de sessão. Preferir JSON do Bazar/Cookie-Editor (LOGIN_INFO) ao
+# Netscape que o yt-dlp regrava como jar de visitante.
 _COOKIES_CANDIDATES = (
+    PROJECT_ROOT / "credentials" / "www.youtube.com_cookies.txt",
+    PROJECT_ROOT / "credentials" / "youtube_cookies_heron.txt",
+    PROJECT_ROOT / "credentials" / "youtube_cookies_bazar.txt",
     PROJECT_ROOT / "credentials" / "youtube_cookies.txt",
     Path.home() / ".config" / "yt-dlp" / "cookies.txt",
 )
+
+try:
+    from youtube_session_captions import (
+        extract_via_session_cookies,
+        netscape_from_records,
+        parse_cookie_file,
+        pick_cookie_file,
+    )
+except ImportError:  # pragma: no cover
+    extract_via_session_cookies = None  # type: ignore[assignment]
+    netscape_from_records = None  # type: ignore[assignment]
+    parse_cookie_file = None  # type: ignore[assignment]
+    pick_cookie_file = None  # type: ignore[assignment]
 
 # stderr do último yt-dlp (diagnóstico; não vaza cookie).
 LAST_YTDLP_STDERR: str = ""
 
 
 def youtube_cookies_path() -> Path | None:
-    env = Path(os.environ.get("YTDLP_COOKIES") or "")
+    if pick_cookie_file is not None:
+        return pick_cookie_file(list(_COOKIES_CANDIDATES))
+    env = Path(os.environ.get("YTDLP_COOKIES") or os.environ.get("YOUTUBE_COOKIES") or "")
     for p in (env, *_COOKIES_CANDIDATES):
         if p and str(p) not in {".", ""} and p.is_file() and p.stat().st_size > 80:
             return p
     return None
+
+
+_YTDLP_COOKIE_COPY: Path | None = None
+
+
+def _netscape_copy_for_ytdlp(source: Path) -> Path | None:
+    """Cópia temporária Netscape. yt-dlp --cookies LÊ e GRAVA o mesmo arquivo.
+
+    Nunca passar o jar original: o yt-dlp reescreve e transforma sessão logada
+    em jar de visitante (causa o anti-bot na próxima rodada).
+    """
+    global _YTDLP_COOKIE_COPY
+    if parse_cookie_file is None or netscape_from_records is None:
+        if source.suffix == ".json":
+            return None
+        fd, name = tempfile.mkstemp(prefix="yt_cookies_", suffix=".txt")
+        os.close(fd)
+        dest = Path(name)
+        try:
+            os.chmod(dest, 0o600)
+        except OSError:
+            pass
+        dest.write_bytes(source.read_bytes())
+        _YTDLP_COOKIE_COPY = dest
+        return dest
+    try:
+        recs = parse_cookie_file(source)
+    except (OSError, json.JSONDecodeError, ValueError):
+        return None
+    try:
+        from youtube_session_captions import _youtube_only_records  # noqa: PLC0415
+        recs = _youtube_only_records(recs)
+    except Exception:
+        pass
+    if not recs:
+        return None
+    if _YTDLP_COOKIE_COPY is None:
+        fd, name = tempfile.mkstemp(prefix="yt_cookies_", suffix=".txt")
+        os.close(fd)
+        _YTDLP_COOKIE_COPY = Path(name)
+        try:
+            os.chmod(_YTDLP_COOKIE_COPY, 0o600)
+        except OSError:
+            pass
+    _YTDLP_COOKIE_COPY.write_text(netscape_from_records(recs), encoding="utf-8")
+    return _YTDLP_COOKIE_COPY
 
 
 def _yt_dlp_cmd(*args: str) -> list[str]:
@@ -74,7 +139,9 @@ def _yt_dlp_cmd(*args: str) -> list[str]:
     cmd = [_YT_DLP, *args]
     cookies = youtube_cookies_path()
     if cookies:
-        cmd[1:1] = ["--cookies", str(cookies)]
+        ns_path = _netscape_copy_for_ytdlp(cookies)
+        if ns_path:
+            cmd[1:1] = ["--cookies", str(ns_path)]
     return cmd
 
 
@@ -512,23 +579,67 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
 
     print(f"📝 Extraindo transcrição de {video_id}...")
 
-    # 1. Metadata
-    print("   📊 Obtendo metadata...")
-    meta = get_video_metadata(url)
+    transcript_text = None
+    meta: dict = {}
+    session_hit = False
+
+    # 0. Legendas via cookies de sessão (sem yt-dlp)
+    if extract_via_session_cookies is not None:
+        cookies = youtube_cookies_path()
+        print("   🍪 Tentando legendas via cookies de sessão (sem yt-dlp)...")
+        if cookies:
+            print(f"      arquivo principal: {cookies.name} (jar único; yt-dlp usa cópia temporária)")
+        session = extract_via_session_cookies(video_id)
+        if session and session.get("ok") and session.get("transcript"):
+            transcript_text = session["transcript"]
+            session_hit = True
+            meta = {
+                "title": session.get("title") or "",
+                "channel": session.get("channel") or "",
+                "duration_s": session.get("duration_s") or 0,
+                "description": session.get("description") or "",
+            }
+            print(
+                f"   ✅ Legenda via sessão ({len(transcript_text.split())} palavras, "
+                f"{session.get('language') or '?'})"
+            )
+        elif session and session.get("reason") == "bot_or_login":
+            print("   ⚠️  Sessão rejeitada no HTML (LOGIN_REQUIRED). Fallback yt-dlp.")
+        elif session and session.get("title"):
+            meta = {
+                "title": session.get("title") or "",
+                "channel": session.get("channel") or "",
+                "duration_s": session.get("duration_s") or 0,
+                "description": session.get("description") or "",
+            }
+            print(
+                f"   ⚠️  HTML autenticado ({session.get('reason')}); "
+                "sem corpo de legenda. Fallback yt-dlp."
+            )
+        else:
+            print("   ⚠️  Extração por sessão não obteve legenda. Fallback yt-dlp.")
+
+    # 1. Metadata (yt-dlp) se a sessão não trouxe título
+    if not meta.get("title"):
+        print("   📊 Obtendo metadata...")
+        meta = get_video_metadata(url) or meta
     if not meta:
         meta = {"title": "", "channel": "", "duration_s": 0, "description": ""}
 
-    # 2. Legendas
-    transcript_text = None
+    # 2. Legendas via yt-dlp se a sessão falhou
     subs_missing = False
     with tempfile.TemporaryDirectory(prefix="bm_transcript_") as tmpdir:
         work_dir = Path(tmpdir)
-        print("   📄 Baixando legendas...")
-        srt_path = download_subtitles(url, work_dir)
+        srt_path = None
+        if not session_hit:
+            print("   📄 Baixando legendas (yt-dlp)...")
+            srt_path = download_subtitles(url, work_dir)
 
         if srt_path:
             transcript_text = parse_srt(srt_path)
             print(f"   ✅ Legenda extraída ({len(transcript_text.split())} palavras)")
+        elif session_hit:
+            pass
         else:
             subs_missing = True
             # 3. Fallback STT
