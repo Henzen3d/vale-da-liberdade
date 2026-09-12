@@ -53,6 +53,10 @@ _CLEANUP_CNN_JS = """() => {
   const adSelectors = [
     '#header_ads',
     '[id*="header_ads"]',
+    '.header-ads-slot',
+    '[class*="header-ads"]',
+    '[class*="header_ads"]',
+    'section:has(#header_ads)',
     '[id^="ads-banner"]',
     '[id*="ads-banner"]',
     '[class*="ad__area"]',
@@ -80,6 +84,12 @@ _CLEANUP_CNN_JS = """() => {
       el.remove();
       removed.push(sel);
     });
+  });
+
+  // Remover explicitamente o slot de anúncio do topo e quaisquer seções vazias de banner
+  document.querySelectorAll('.header-ads-slot, [class*="header-ads-slot"], section:has(#header_ads)').forEach(el => {
+    el.remove();
+    removed.push('header-ads-slot-explicit');
   });
 
   // Remover wrappers de anúncio com imagem de fundo ad-bg.png (barra cinza texturizada)

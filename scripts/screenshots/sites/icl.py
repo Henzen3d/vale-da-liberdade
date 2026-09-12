@@ -67,8 +67,15 @@ _CLEANUP_ICL_JS = """() => {
     });
   });
 
-  // 2. Remover barras flutuantes e modais de cookies
+  // 2. Remover barras flutuantes, barra ao vivo, espaçadores vazios e modais de cookies
   const floatingSelectors = [
+    '.header-space',
+    '[class*="header-space"]',
+    '#site-header.header-space',
+    '.live-warning',
+    '[class*="live-warning"]',
+    '[class*="live-stamp"]',
+    '[class*="live-title"]',
     '.sticky-footer',
     '.floating-bar',
     '.c-share-bar--floating',

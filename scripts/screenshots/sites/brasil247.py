@@ -73,9 +73,14 @@ _CLEANUP_247_JS = """() => {
     });
   });
 
-  // 2. Configurar cabeçalho como estático para não sobrepor o H1
+  // 2. Configurar cabeçalho como estático e eliminar vão branco de topo
+  document.querySelectorAll('.b247-header-shell').forEach(el => {
+    el.style.setProperty('padding-top', '0px', 'important');
+    el.style.setProperty('margin-top', '0px', 'important');
+  });
   document.querySelectorAll('.b247-header-brand, header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
+    el.style.setProperty('top', '0px', 'important');
   });
 
   // 3. Forçar carregamento das imagens da matéria (desativa lazy loading)

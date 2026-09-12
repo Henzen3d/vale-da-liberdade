@@ -71,6 +71,8 @@ REQUIRED_DOMAINS = (
     "www1.folha.uol.com.br",
     "polymarket.com",
     "kalshi.com",
+    "folhadoestado.com.br",
+    "terrabrasilnoticias.com",
 )
 
 

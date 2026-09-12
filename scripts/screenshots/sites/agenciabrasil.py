@@ -49,7 +49,7 @@ _WAIT_AGENCIA_CONTENT_JS = """() => {
 _CLEANUP_AGENCIA_JS = """() => {
   const removed = [];
 
-  // 1. Remover barras de governo e acessibilidade que ocupam topo excessivo
+  // 1. Remover barras de governo, popups LGPD e acessibilidade (VLibras)
   const overlaySelectors = [
     '.search-container',
     '#barra-brasil',
@@ -57,8 +57,16 @@ _CLEANUP_AGENCIA_JS = """() => {
     '.vlibras',
     '[vw]',
     '[vw-access-button]',
+    '[vw-plugin-wrapper]',
+    '#vlibras-access-wrapper',
     '#vlibras-widget',
     '.access-button',
+    '[class*="vw-"]',
+    '#sliding-popup',
+    '[id*="sliding-popup"]',
+    '.sliding-popup-bottom',
+    '.eu-cookie-compliance-banner',
+    '.eu-cookie-compliance-popup',
     '.banner-lgpd',
     '.banner-lgpd-consent',
     '#onetrust-banner-sdk',
@@ -71,6 +79,7 @@ _CLEANUP_AGENCIA_JS = """() => {
 
   overlaySelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
+      if (el.tagName === 'BODY' || el.tagName === 'HTML' || el.querySelector('article, h1, .main-site, #panel, header')) return;
       el.remove();
       removed.push(sel);
     });
@@ -100,18 +109,29 @@ _CLEANUP_AGENCIA_JS = """() => {
     el.style.setProperty('visibility', 'visible', 'important');
   });
 
-  // 4. Destravar scroll, alturas e overflow no html e body
+  // 4. Corrigir espaçamento do conteúdo principal (remove faixa azul escura do margin-top)
+  document.querySelectorAll('.main-site, main').forEach(el => {
+    el.style.setProperty('margin-top', '0px', 'important');
+    el.style.setProperty('padding-top', '0px', 'important');
+  });
+  document.querySelectorAll('#panel').forEach(el => {
+    el.style.setProperty('margin-top', '10px', 'important');
+  });
+
+  // 5. Destravar scroll, alturas e redefinir fundo limpo no html e body
   const force = (el, prop, val) => el && el.style.setProperty(prop, val, 'important');
   force(document.documentElement, 'overflow', 'auto');
   force(document.documentElement, 'position', 'static');
   force(document.documentElement, 'height', 'auto');
+  force(document.documentElement, 'background', '#ffffff');
   if (document.body) {
     force(document.body, 'overflow', 'auto');
     force(document.body, 'position', 'static');
     force(document.body, 'height', 'auto');
+    force(document.body, 'background', '#ffffff');
   }
 
-  // 5. Garantir que parágrafos, fotos e legendas estejam 100% visíveis
+  // 6. Garantir que parágrafos, fotos e legendas estejam 100% visíveis
   document.querySelectorAll('article *, .content-news *, .field--name-body *').forEach(el => {
     if (el.style.filter && el.style.filter !== 'none') el.style.filter = 'none';
     if (el.style.opacity && el.style.opacity !== '1') el.style.opacity = '1';
@@ -122,7 +142,7 @@ _CLEANUP_AGENCIA_JS = """() => {
     }
   });
 
-  // 6. Forçar imagens da matéria com eager loading
+  // 7. Forçar imagens da matéria com eager loading
   document.querySelectorAll('img').forEach(img => {
     img.loading = 'eager';
     if (img.dataset.src && (!img.src || img.src.startsWith('data:'))) {

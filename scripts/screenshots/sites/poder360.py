@@ -55,7 +55,6 @@ _CLEANUP_PODER360_JS = """() => {
     '[class*="publicidade"]',
     '[class*="advertising"]',
     '[id*="google_ads"]',
-    '[id*="ad_"]',
     '[id*="dfp-"]',
     '.banner-topo',
     '.banner-floating',
@@ -67,15 +66,18 @@ _CLEANUP_PODER360_JS = """() => {
 
   adSelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
-      // Segurança: nunca remover se contiver o corpo do artigo ou título
-      if (el.querySelector('article, h1, .box-text, .entry-content, .post-content')) return;
+      // Segurança: nunca remover se contiver o corpo do artigo, título, imagem ou infográfico
+      if (el.querySelector('article, h1, img, picture, figure, .box-text, .entry-content, .post-content')) return;
       el.remove();
       removed.push(sel);
     });
   });
 
-  // 2. Remover modais de newsletter/drive, popups de assinatura e banners LGPD
+  // 2. Remover links de acessibilidade desformatados, modais de newsletter/drive e banners LGPD
   const modalSelectors = [
+    '.menu-accessibility',
+    '[class*="menu-accessibility"]',
+    '[class*="accessibility-menu"]',
     '.modal-newsletter',
     '.c-modal-subscribe',
     '.box-newsletter-fixed',
@@ -97,7 +99,7 @@ _CLEANUP_PODER360_JS = """() => {
   });
 
   // 3. Tornar o cabeçalho institucional (logo Poder360) estático e visível
-  document.querySelectorAll('header, .header, .site-header, nav').forEach(el => {
+  document.querySelectorAll('header, .header, .site-header, .header-principal, .box-header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
