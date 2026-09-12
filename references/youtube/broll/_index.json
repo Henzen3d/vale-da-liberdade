@@ -1,3 +1,76 @@
 {
-  "clips": []
+  "clips": [
+    {
+      "id": "broll-pexels-6101151",
+      "file": "broll-pexels-6101151.mp4",
+      "tags": [
+        "justica"
+      ],
+      "dur_s": 3.5,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-6101367",
+      "file": "broll-pexels-6101367.mp4",
+      "tags": [
+        "stf"
+      ],
+      "dur_s": 3.5,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-6699964",
+      "file": "broll-pexels-6699964.mp4",
+      "tags": [
+        "tribunal"
+      ],
+      "dur_s": 3.5,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-7714436",
+      "file": "broll-pexels-7714436.mp4",
+      "tags": [
+        "policia"
+      ],
+      "dur_s": 3.5,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-38209367",
+      "file": "broll-pexels-38209367.mp4",
+      "tags": [
+        "economia"
+      ],
+      "dur_s": 3.52,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-38168755",
+      "file": "broll-pexels-38168755.mp4",
+      "tags": [
+        "bolsa"
+      ],
+      "dur_s": 3.52,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-4393479",
+      "file": "broll-pexels-4393479.mp4",
+      "tags": [
+        "dolar"
+      ],
+      "dur_s": 3.5,
+      "provider": "pexels"
+    },
+    {
+      "id": "broll-pexels-6124806",
+      "file": "broll-pexels-6124806.mp4",
+      "tags": [
+        "corrupcao"
+      ],
+      "dur_s": 3.5,
+      "provider": "pexels"
+    }
+  ]
 }

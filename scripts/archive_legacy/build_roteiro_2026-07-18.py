@@ -1,0 +1,418 @@
+#!/usr/bin/env python3
+"""Constrói roteiro-2026-07-18.json manualmente a partir do raw."""
+import json
+from pathlib import Path
+
+PROJECT = Path("/home/osmar/web-jornal-vale-da-liberdade")
+OUT = PROJECT / "episodes" / "roteiro-2026-07-18.json"
+
+MANCHETES = [
+    "Extorsão com ameaças supera R$ 213 mil e revela fragilidade na proteção de vítimas em Blumenau",
+    "Adolescente blumenauense fica 22 dias em coma e família busca apoio para custear tratamento",
+    "Carro pega fogo em garagem de prédio e expõe falhas na inspeção preventiva de edifícios",
+    "Anac promete regulamentação definitiva para balonismo um ano após tragédia em SC",
+    "Defesa Civil de Gaspar testa alerta sonoro em smartphones neste sábado",
+    "Hospital Santa Isabel realiza primeiro implante de marcapasso sem fio do interior de SC",
+]
+
+INTRODUCAO = [
+    {
+        "quadro": "INTRODUÇÃO EDITORIAL",
+        "speaker": "Peter",
+        "texto": (
+            "Hoje começa com um carro incendiado em garagem de prédio de 12 andares em Blumenau, "
+            "uma extorsão de mais de R$ 213 mil com meses de ameaça e um adolescente de 15 anos "
+            "que lutou por 22 dias em coma após acidente de bicicleta. O Estado anuncia seminário "
+            "de resgate animal e regulamentação de balonismo só no final do ano."
+        ),
+    },
+    {
+        "quadro": "INTRODUÇÃO EDITORIAL",
+        "speaker": "Ricardo",
+        "texto": (
+            "Peter, há fatos que escapam do caos: a Defesa Civil de Gaspar testa alerta sonoro em "
+            "smartphones, o Hospital Santa Isabel faz o primeiro implante de marcapasso sem fio do "
+            "interior catarinense e Rio do Sul investe quase R$ 900 mil em escolas municipais. "
+            "Nem tudo é retórica; há ação concreta."
+        ),
+    },
+    {
+        "quadro": "INTRODUÇÃO EDITORIAL",
+        "speaker": "Peter",
+        "texto": (
+            "Ricardo, se a ação fosse suficiente, não precisaríamos de seminário para lembrar que "
+            "animal também é vítima de enchente. Vamos aos fatos, começando por segurança pública."
+        ),
+    },
+]
+
+# Helper
+def q(name):
+    return f"QUADRO: {name}"
+
+def item(quadro, speaker, texto):
+    return {"quadro": quadro, "speaker": speaker, "texto": texto}
+
+# Segurança Pública: Ricardo abre
+SEGURANCA = [
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Um Citroën Xsara Picasso foi destruído por um incêndio na noite desta sexta-feira, "
+         "por volta das 22h, na garagem de um edifício de 12 pavimentos na Rua Tobias Barreto, "
+         "em Vila Nova, Blumenau. O Corpo de Bombeiros Militar foi acionado e combateu as chamas."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "O caso chama atenção porque não é comum um carro pegar fogo sozinho em garagem fechada. "
+         "A perícia vai determinar a causa, mas para os moradores já resta a insegurança em prédios "
+         "com inspeção preventiva deficiente."),
+    item(q("SEGURANÇA PÚBLICA"), "Peter",
+         "Prédio de 12 andares e o Estado não garante inspeção contra incêndio. O Corpo de Bombeiros "
+         "só aparece depois que o fogo alastra. O contribuinte paga o corpo de bombeiros e a prevenção "
+         "virou letra morta em decreto."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Cabe à Prefeitura a inspeção predial, não aos bombeiros. O problema não é falta de lei, "
+         "é fiscalização que funciona de fato."),
+
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Meses de ameaças de morte contra uma pessoa e seus familiares sustentaram um esquema de "
+         "extorsão que movimentou mais de R$ 213 mil em Blumenau. Os investigados foram presos "
+         "preventivamente nesta sexta-feira pela Polícia Civil, na 1ª Delegacia."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Valor alto para uma cidade do interior e o modus operandi mostra que extorsão não é crime "
+         "de oportunidade: é planejada para durar meses, com risco crescente para a vítima."),
+    item(q("SEGURANÇA PÚBLICA"), "Peter",
+         "R$ 213 mil e o Estado demora meses para responder. A vítima pagou com medo porque a proteção "
+         "estatal não existe no horário em que o bandido liga. Polícia Civil investiga, mas investigação "
+         "não devolve o dinheiro nem o trauma."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "A operação da 1ª Delegacia prendeu preventivamente os suspeitos. O inquérito corre em sigilo, "
+         "e a chave é provar o vínculo entre ameaças e transferências."),
+
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Agronômica recebeu seminário regional sobre resgate técnico animal e medicina veterinária "
+         "voltado a situações de enchente. O evento reuniu especialistas para discutir protocolos de "
+         "atendimento a animais em desastres."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Em uma região que já registrou enchentes severas, discutir resgate animal não é luxo: é "
+         "continuidade da proteção civil. Muitas famílias não evacuam sem seus animais, e isso atrasa "
+         "resgates humanos."),
+    item(q("SEGURANÇA PÚBLICA"), "Peter",
+         "Seminário bom, mas o Estado já devia ter protocolo pronto. Enchente não é surpresa em Santa "
+         "Catarina, e todo ano a mesma história: alerta, drama e depois ninguém lembra até a próxima cheia."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Protocolos existem no papel, mas a operação conjunta entre veterinários e Defesa Civil ainda "
+         "é incompleta. Eventos como esse ajudam a alinhar prática e teoria."),
+
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "O adolescente Gabriel Forster, de 15 anos, morador de Blumenau, ficou 22 dias em coma após "
+         "um grave acidente de bicicleta em 28 de março de 2024. A família agora busca apoio para custear "
+         "o tratamento contínuo."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "Vinte e dois dias em coma e o tratamento não acaba na alta. Fisioterapia, acompanhamento "
+         "neurológico e medicamentos geram custos que a família não consegue bancar sozinha."),
+    item(q("SEGURANÇA PÚBLICA"), "Peter",
+         "Vinte e dois dias de coma viram estatística no sistema. O Estado garanta lei e taxa, mas quando "
+         "o adolescente precisa de acompanhamento, a família que rala. Onde está a rede de proteção que "
+         "prometem em propaganda?"),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "A família organizou campanhas de arrecadação. Não é negligência médica, é lacuna de cobertura "
+         "que o sistema público não consegue fechar."),
+
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "A Comissão de Turismo da Câmara dos Deputados debateu a regulamentação do balonismo um ano "
+         "após o maior acidente da atividade no Brasil, em Praia Grande, Santa Catarina, que deixou 8 "
+         "mortos e 18 feridos. A Anac promete regra definitiva até o fim do ano."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "A tragédia em Praia Grande expôs o vácuo regulatório. Enquanto isso, o turismo de balonismo "
+         "cresce no país sem padrões unificados de operação e manutenção."),
+    item(q("SEGURANÇA PÚBLICA"), "Peter",
+         "Regulamentação definitiva só no final do ano? O Estado demora um ano para reagir a 8 mortos. "
+         "Enquanto isso, operadores continuam voando sem padrão, e o passageiro paga o risco com a vida."),
+    item(q("SEGURANÇA PÚBLICA"), "Ricardo",
+         "A resolução provisória de outubro criou requisitos mínimos, mas operadores cobram regra clara "
+         "para investir em segurança. A pressão da Câmara agora é grande."),
+]
+
+SAUDE = [
+    item(q("SAÚDE"), "Ricardo",
+         "Artigo de Josiane Menestrina, fundadora da ABLUPAA e pré-candidata a deputada estadual, "
+         "denuncia que as filas de espera para atendimentos de saúde de crianças e adolescentes revelam "
+         "números que escapam da narrativa oficial."),
+    item(q("SAÚDE"), "Ricardo",
+         "Cada criança em espera por consulta, avaliação ou terapia perde uma janela de desenvolvimento, "
+         "especialmente em transtornos do neurodesenvolvimento como autismo e TDAH."),
+    item(q("SAÚDE"), "Peter",
+         "Artigo bom, mas o deputado anuncia R$ 1 milhão e a fila não diminui. O Estado gosta de número "
+         "em propaganda, mas a criança continua aguardando enquanto a burocracia engaveta o problema."),
+    item(q("SAÚDE"), "Ricardo",
+         "A crítica é válida. Enquanto a gestão municipal amplia anúncios, o Conselho Tutelar e o "
+         "Ministério Público cobram cumprimento constitucional. O tempo na fila é o verdadeiro indicador."),
+
+    item(q("SAÚDE"), "Ricardo",
+         "O Hospital Santa Isabel, em Blumenau, realizou o primeiro implante de marcapasso cardíaco sem "
+         "fio do interior de Santa Catarina. O procedimento minimamente invasivo reduz riscos e amplia "
+         "opções para pacientes com distúrbios do ritmo cardíaco."),
+    item(q("SAÚDE"), "Ricardo",
+         "Inédito no interior catarinense, e a pergunta é: o procedimento é feito pelo SUS? "
+         "Tecnologia de ponta no sistema público é exceção, não regra."),
+    item(q("SAÚDE"), "Peter",
+         "Marcapasso sem fio é avanço, mas não resolve a fila para consulta cardiológica nem a espera "
+         "por cirurgia eletiva. O Estado gosta de anunciar procedimento inédito enquanto a média de "
+         "espera por tomografia é de meses."),
+    item(q("SAÚDE"), "Ricardo",
+         "Avance com tecnologia e mantenha acesso ampliado não são excludentes. O feito do HSI merece "
+         "reconhecimento, desde que não mascare o gap de cobertura."),
+]
+
+EDUCACAO = [
+    item(q("EDUCAÇÃO"), "Peter",
+         "Mais de 60 estudantes do 5º ano da EBM Pedro I receberam o certificado de Agente Multiplicador "
+         "de Trânsito Seguro na Secretaria Municipal de Trânsito e Transportes de Blumenau, formando a "
+         "primeira turma concluinte do programa em 2026."),
+    item(q("EDUCAÇÃO"), "Peter",
+         "Crianças formadas por uma secretaria municipal enquanto a Prefeitura erra o orçamento para brigar "
+         "de trânsito. A educação viária que funciona vem da escola, não da fiscalização ostensiva que o "
+         "Estado adora."),
+    item(q("EDUCAÇÃO"), "Ricardo",
+         "O programa é legítimo e complementa a educação formal. Agentes mirins multiplicam conhecimento "
+         "nas famílias, e a SMTT acerta ao investir em prevenção, não em multa."),
+    item(q("EDUCAÇÃO"), "Peter",
+         "Prevenção não dá voto nem foto de inauguração. Vamos ver se, na próxima campanha, a mesma "
+         "prefeitura lembra do programa ou se vira mais uma ação social para foto."),
+
+    item(q("EDUCAÇÃO"), "Peter",
+         "A Casa Fritz Müller oferece programação gratuita de férias com oficinas, desafios científicos "
+         "e atividades ao ar livre para todas as idades: de terça a sexta, das 10h às 16h, e aos sábados, "
+         "das 9h às 13h."),
+    item(q("EDUCAÇÃO"), "Peter",
+         "Programa gratuito de férias que junta ciência e natureza sem custo para a família. Diferente "
+         "de muitos centros públicos que abrem só para preencher lacuna de orçamento, este funciona porque "
+         "a gestão priorizou estrutura."),
+    item(q("EDUCAÇÃO"), "Ricardo",
+         "Espaço científico e cultural aberto ao público sem cobrança é resultado de investimento contínuo, "
+         "não de campanha eleitoral. A Casa Fritz Müller sempre foi referência porque independe de verba "
+         "de emenda."),
+    item(q("EDUCAÇÃO"), "Peter",
+         "Referência que poderia ser modelo para outras secretarias. Modelar exige trabalho, e trabalho "
+         "não aparece em feed de campanha."),
+
+    item(q("EDUCAÇÃO"), "Peter",
+         "Rio do Sul aplicou R$ 883.637,74 em reformas, manutenções e melhorias de infraestrutura em 21 "
+         "unidades da rede municipal, totalizando 22 intervenções ao longo de 2026."),
+    item(q("EDUCAÇÃO"), "Peter",
+         "Quase R$ 900 mil investidos em escolas municipais de Rio do Sul. O valor parece alto até lembrar "
+         "que o Estado gasta milhões com centro de eventos e festa internacional enquanto escola pública "
+         "continua com telhado vazando."),
+    item(q("EDUCAÇÃO"), "Ricardo",
+         "Investimento em infraestrutura escolar impacta diretamente a qualidade de ensino e a segurança "
+         "dos alunos. Manter prédio e equipamentos é obrigação do município, e Rio do Sul cumpre."),
+    item(q("EDUCAÇÃO"), "Peter",
+         "Obrigação que muitos municípios atrasam por falta de planejamento. Veremos se o resultado aparece "
+         "em nota fiscal ou em placa de inauguração no ano eleitoral."),
+]
+
+POLITICA = [
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "A Prefeitura de Gaspar informa que, neste sábado, 18 de julho, moradores poderão receber em "
+         "seus smartphones um alerta sonoro e visual da Defesa Civil. O aviso será enviado entre 8h e 12h "
+         "e faz parte do Simulado de Preparação para Desastres."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Alerta sonoro em celular é tecnologia barata que deveria ser padrão, não simulado. O Estado "
+         "gasta fortunas em sistema de proteção que só funciona quando a populacao já esta na rua molhada."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Ricardo",
+         "O simulado integra a Secretaria de Proteção e Defesa Civil de Blumenau e pode alcançar "
+         "municípios vizinhos porque o sistema de alertas opera em rede. Testar é necessário para evitar "
+         "pânico real na próxima enchente."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Testar só agora, no quarto ano de mandato, revela que a prevenção nunca foi prioridade. A prioridade "
+         "sempre foi a obra faturada para o eleitor ver."),
+
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Três projetos da rede municipal de saúde de Blumenau foram selecionados para compor o Observatório "
+         "de Boas Práticas de Equidade na Atenção Primária à Saúde. A apresentação ocorreu no 39º Congresso do "
+         "Conasems, em Porto Alegre, entre 12 e 15 de julho."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Projetos selecionados em congresso nacional enquanto a fila de consulta pediátrica chega a um ano. "
+         "A propaganda oficial ama exportar boa prática, mas a realidade dentro da UPA é outra."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Ricardo",
+         "Os projetos — Projeto Sorriso, Fios de Afeto e Odontologia Inclusiva — foram incluídos no "
+         "programa do evento por práticas voltadas à humanização e ampliação do acesso gratuito. "
+         "Reconhecimento existe, e pode trazer recurso adicional."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Recurso adicional vem com contrapartida, burocracia e prazo. Veremos se os projetos viram "
+         "política pública ou apenas currículo de secretário em ano eleitoral."),
+
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "A nova dona de um negócio de TI em Blumenau demitiu em massa dois meses após concluir a compra "
+         "da empresa. A medida surpreendeu funcionários e gerou apreensão no setor de tecnologia local."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Demissão em massa logo após aquisição é roteiro clássico de holding que corta custo para "
+         "repassar valor ao mercado. O funcionário que gera conhecimento é o primeiro custo a sair."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Ricardo",
+         "A decisão é da empresa privada, não do Estado. Mercado reage a resultados, e se a operação não "
+         "fechava as contas, a continuidade também geraria demissão. Difícil separar narrativa de dado."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Privado corta por resultado; Estado mantém por estatística. O funcionário privado pede a conta "
+         "sabendo o risco; o servidor aguenta humilhação porque a estabilidade virou recompensa por "
+         "mediocridade."),
+
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "O ainda pré-candidato ao Senado Carlos Bolsonaro contratou o marqueteiro Nelson Santiago, "
+         "de Blumenau, para a comunicação de sua primeira campanha em Santa Catarina."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Nelson Santiago passou por campanhas de João Paulo Kleinübing, secretaria da Fazenda e chefia "
+         "de gabinete em Blumenau, além de secretaria de Estado da Comunicação e diretoria na Celesc. "
+         "É a máquina eleitoral de sempre: os mesmos nomes trocam de camisa."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Ricardo",
+         "Experiência prévia em gestão e comunicação não é tráfico de influência. O risco é eleitoral, "
+         "não criminal. Os eleitores julgam se o currículo agrega ou se é só retrovisor."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Experiência em Celesc e Badesc é currículo que o contribuinte já pagou. O Estado forma "
+         "marqueteiro com dinheiro público e depois o devolve para campanha. É o ciclo perpétuo."),
+
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "A Comissão de Educação e Saúde Pública da Câmara de Blumenau realizou reunião extraordinária "
+         "para discutir as filas de espera por atendimentos de saúde de crianças e adolescentes. "
+         "O encontro contou com vereadores convidados, Conselhos Tutelares e o secretário Marcelo Lanzarin."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Comissão extraordinária só existe porque a fila virou escândalo. Se a imprensa não cobrasse, "
+         "a reunião continuaria engavetada na pauta."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Ricardo",
+         "O ofício dos Conselhos Tutelares forçou a movimentação da Câmara. O Legislativo exerceu papel "
+         "de fiscalização, e a audiência pública é instrumento legítimo de pressão."),
+    item(q("POLÍTICA E ADMINISTRAÇÃO PÚBLICA"), "Peter",
+         "Instrumento legítimo que devia ser semestral, não reacional. A saúde infantil virou moeda "
+         "eleitoral: aparece quando a foto interessa."),
+]
+
+ESPORTES = [
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "O Parque Nacional da Serra do Itajaí ganhará um novo roteiro de cicloturismo com mais de 300 "
+         "quilômetros por dez municípios da região. Blumenau será ponto oficial de início e término, "
+         "com lançamento previsto para 8 de novembro."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "Roteiro que integra dez municípios sem depender de verba pública milionária. O cicloturismo "
+         "movimenta economia local e descentraliza o fluxo turístico."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Peter",
+         "Cicloturismo é iniciativa privada que o Estado queria patrocinar. Se o projeto depende de "
+         "isenção fiscal para sair do papel, a história já começa errada."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A infraestrutura de apoio ainda exige parcerias, mas o traçado já existe como potencial "
+         "sem custo inicial para o contribuinte."),
+
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "O organista paulista Felipe Bernardo se apresenta neste domingo, 19 de julho, às 19h, na "
+         "Comunidade Luterana Blumenau Centro, na Rua Amazonas, 119. A apresentação integra a 3ª temporada "
+         "da Série de Grandes Concertos da Igreja Luterana do Espírito Santo."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "Evento cultural gratuito que valoriza o patrimonio religioso e musical de Blumenau. A entrada "
+         "aberta demonstra que cultura não precisa de ingresso milionário."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Peter",
+         "Cultura gratuita funciona porque a igreja e os patrocinadores privados arcam com o custo. "
+         "Se dependesse de edital estatal, teria taxa de inscrição e fiscalização de lista."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A iniciativa privada e as instituições comunitárias continuam fazendo o que a máquina pública "
+         "não entrega: agenda cultural acessível."),
+
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "Blumenau recebe a 38ª edição dos Joguinhos Abertos de Santa Catarina entre 23 de julho e 2 de "
+         "agosto. Principal competição de base do esporte catarinense para atletas de 15 a 18 anos, o evento "
+         "deverá receber mais de 9 mil pessoas."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "Joguinhos movimentam economia local, hotéis e alimentação. A cidade já sediou a edição em 2022 "
+         "e repete a aposta no esporte de base."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Peter",
+         "Evento esportivo que supera orçamento de secretaria, mas o Estado não mantém quadra de escola "
+         "sem goteira. A prioridade sempre foi a roda grande, não o atleta mirim."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A segurança da competição depende da estrutura oferecida. Se a quadra fecha, o atleta amador "
+         "é o primeiro prejudicado."),
+
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A 1ª Copa do Mundo de Futebol de Robôs da Escola Básica Municipal Machado de Assis reuniu "
+         "98 estudantes da rede municipal de Blumenau. A torcida acompanhou pequenos robôs em busca de gol "
+         "na quadra da escola."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "Robôs feitos pelos próprios alunos misturam tecnologia, estratégia e esporte. A iniciação "
+         "tecnológica na escola pública é vitrine que funciona."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Peter",
+         "A robótica que funciona na sala de aula é a exceção que confirma a regra: quando a escola "
+         "pública recebe projeto estruturado, o aluno voa. O problema é depender de evento pontual "
+         "para ter conteúdo."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A competição prova que a rede pública tem capacidade de inovar quando a direção e os parceiros "
+         "alinharem metas."),
+
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A 31ª Cãominhada de Blumenau abre inscrições gratuitas para o dia 19 de julho, a partir das 8h, "
+         "com trajeto de 1,5 km no entorno do Parque Vila Germânica. O evento é um dos mais esperados "
+         "do calendário pet-friendly da cidade."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "Evento gratuito que movimenta o comércio local e fortalece a cultura de convivência entre "
+         "tutores e animais. O custo quase zero para o município é modelo."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Peter",
+         "Gratuito porque a iniciativa privada patrocina e o parque não pede aluguel. Se o Estado "
+         "organizasse, teria edital, taxa de inscrição e fiscalização de barraca."),
+    item(q("ESPORTES E INTERESSE COMUNITÁRIO"), "Ricardo",
+         "A Cãominhada sobrevive há 31 anos porque a comunidade abraça a causa sem depender de verba pública."),
+]
+
+BRASIL = [
+    item(q("BRASIL"), "Ricardo",
+         "Três jogos animaram a sexta-feira pelo Campeonato Brasileiro: Mirassol venceu o Grêmio por 2 a 1, "
+         "Fluminense e Red Bull Bragantino também estiveram em campo pela 19ª rodada."),
+    item(q("BRASIL"), "Ricardo",
+         "A rodada movimenta a parte de cima da tabela e mantém o torcedor atento ao G4."),
+    item(q("BRASIL"), "Peter",
+         "Futebol é a única política que o brasileiro acredita. Enquanto isso, a Câmara aprova orçamento "
+         "fictício e o contribuinte continua pagando o ingresso."),
+]
+
+MUNDO = [
+    item(q("MUNDO"), "Peter",
+         "A Venezuela registrou dois terremotos de magnitude acima de 7, com pelo menos 235 mortos e "
+         "4.300 feridos. O epicentro foi próximo a Caracas e abalou aeroporto e prédios."),
+    item(q("MUNDO"), "Peter",
+         "Infraestrutura combalida por décadas de estatismo. O Estado controla tudo e quando o solo treme, "
+         "quem paga o preço é a população. O número de mortos reflete falência estatal."),
+    item(q("MUNDO"), "Ricardo",
+         "A Venezuela enfrenta também crise humanitária anterior aos tremores. A resposta a desastres "
+         "naturais depende de governança mínima, que falta há anos."),
+]
+
+FECHAMENTO = [
+    {
+        "quadro": "FECHAMENTO EDITORIAL",
+        "speaker": "Peter",
+        "texto": (
+            "Encerro com isso: em Blumenau, um adolescente de 15 anos luta para voltar a andar de bicicleta "
+            "enquanto o Estado inaugura Centro de Eventos. Em Gaspar, alerta sonoro atrasa para simular o que "
+            "já devia ser padrão. E na Venezuela, a terra treme e o Estado some."
+        ),
+    },
+    {
+        "quadro": "FECHAMENTO EDITORIAL",
+        "speaker": "Ricardo",
+        "texto": (
+            "Eu deixo o recado: acompanhem a execução do orçamento de Blumenau, fiscalizem a fila de saúde "
+            "e compareçam ao simulado de Defesa Civil. A sociedade funciona quando cada um faz a sua parte, "
+            "não quando espera o Estado fazer tudo."
+        ),
+    },
+]
+
+QUADROS = SEGURANCA + SAUDE + EDUCACAO + POLITICA + ESPORTES + BRASIL + MUNDO
+
+ROTEIRO = {
+    "manchetes": MANCHETES,
+    "introducao": INTRODUCAO,
+    "quadros": QUADROS,
+    "fechamento": FECHAMENTO,
+}
+
+OUT.write_text(json.dumps(ROTEIRO, ensure_ascii=False, indent=2), encoding="utf-8")
+print(f"✅ Roteiro salvo: {OUT}")
+print(f"   Manchetes: {len(MANCHETES)}")
+print(f"   Introdução: {len(INTRODUCAO)}")
+print(f"   Quadros: {len(QUADROS)}")
+print(f"   Fechamento: {len(FECHAMENTO)}")
+total_items = len(INTRODUCAO) + len(QUADROS) + len(FECHAMENTO)
+print(f"   Total falas: {total_items}")

@@ -90,6 +90,7 @@ public/screenshots/
 # Estado runtime do pipeline
 sources/gemini_limits.json
 sources/gemini_usage.json
+sources/*.lock
 sources/image_quota_tracker.json
 sources/news_memory_test.json
 sources/sources_candidates.json
@@ -117,6 +118,7 @@ archive/index.md
 # Workspaces/experimentos locais
 moss-tts-nano/
 thumbnail-generetor/
+scripts/x-twitter/
 
 # Snapshots/rascunhos locais da reorganização cirúrgica (não spec)
 archive/backup_pre_cirurgico/
