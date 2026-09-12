@@ -59,3 +59,45 @@ def test_build_mockup_update_payload_x_post():
     assert payload["visual_component"] == "x-post"
     assert payload["xPost"]["author_name"] == "Alexandre de Moraes"
     assert payload["xPost"]["media"] == "/shots/x-media-123.jpg"
+
+
+def test_build_scene_timeline_preserves_x_post_without_shot():
+    from scripts.bm_scene_timeline import build_scene_timeline, SceneBeatV2
+
+    episode = {
+        "titulo": "Teste X Post",
+        "abertura": [{"speaker": "Peter", "texto": "Abertura comentando a repercussão no X.", "fonte_url": "https://x.com/autor/status/123"}],
+        "desenvolvimento": [{"speaker": "Peter", "texto": "Desenvolvimento do comentário sobre o tweet.", "fonte_url": "https://x.com/autor/status/123"}],
+        "fechamento": [{"speaker": "Peter", "texto": "Fechamento."}],
+    }
+    scenes = [
+        {
+            "veiculo": "Post no X",
+            "url": "https://x.com/autor/status/123",
+            "kind": "x-post",
+            "shot": None,
+            "video": None,
+            "x_post": {
+                "author_name": "Autor Teste",
+                "handle": "@autor",
+                "text": "Texto do tweet",
+                "likes": "150",
+            },
+        }
+    ]
+    beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+    assert len(beats) > 0
+    x_beats = [b for b in beats if b.visual_component == "x-post" or b.kind == "x-post"]
+    assert len(x_beats) > 0, "Deveria conter beats com componente x-post"
+    assert x_beats[0].x_post is not None, "x_post deve ser preservado no SceneBeat"
+    assert x_beats[0].x_post["author_name"] == "Autor Teste"
+
+    # Teste em V2
+    beats_v2 = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes, return_v2=True)
+    assert len(beats_v2) > 0
+    x_beats_v2 = [b for b in beats_v2 if b.visual_component == "x-post"]
+    assert len(x_beats_v2) > 0
+    assert x_beats_v2[0].x_post is not None, "x_post deve ser preservado no SceneBeatV2"
+    legacy = x_beats_v2[0].to_legacy_beat()
+    assert legacy.x_post is not None, "to_legacy_beat() deve transferir x_post"
+

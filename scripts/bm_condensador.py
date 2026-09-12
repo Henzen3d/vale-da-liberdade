@@ -252,6 +252,31 @@ OPENROUTER_MODELS = [
     "openai/gpt-oss-20b:free",
 ]
 
+# ── Schema Pydantic para Saída Estruturada (Structured Outputs) ────────────────
+try:
+    from pydantic import BaseModel, Field
+    from typing import List, Optional
+
+    class FalaItem(BaseModel):
+        speaker: str = "Peter"
+        texto: str
+        fonte_url: Optional[str] = None
+
+    class RoteiroBMSchema(BaseModel):
+        titulo: str
+        subtitulo: str
+        fonte_url: str = ""
+        fonte_canal: str = ""
+        fonte_veiculo: str = ""
+        tags: List[str] = Field(default_factory=list)
+        abertura: List[FalaItem]
+        desenvolvimento: List[FalaItem]
+        fechamento: List[FalaItem]
+
+except ImportError:  # pragma: no cover
+    FalaItem = None  # type: ignore[assignment]
+    RoteiroBMSchema = None  # type: ignore[assignment]
+
 
 def _call_gemini(prompt: str) -> str:
     keys = _candidate_keys("GEMINI_API_KEY")
@@ -263,11 +288,18 @@ def _call_gemini(prompt: str) -> str:
     for model in GEMINI_MODELS:
         try:
             print(f"  → Gemini: {model}")
+            cfg: dict = {
+                "temperature": 0.65,
+                "max_output_tokens": 8192,
+                "response_mime_type": "application/json",
+            }
+            if RoteiroBMSchema is not None and "gemma" not in model.lower():
+                cfg["response_schema"] = RoteiroBMSchema
+
             resp = client.generate_content(
                 model=model,
                 contents=prompt,
-                config={"temperature": 0.65, "max_output_tokens": 8192,
-                        "response_mime_type": "application/json"},
+                config=cfg,
             )
             text = getattr(resp, "text", None) or ""
             if not text:

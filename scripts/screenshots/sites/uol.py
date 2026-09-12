@@ -183,14 +183,6 @@ class UolScraper(BaseScraper):
         "educacao.uol.com.br",
     )
 
-    def prepare_page(self, page: Any, url: str) -> None:
-        """Inicializa sessão a partir do domínio raiz do UOL para evitar 403 em subdomínios."""
-        try:
-            page.goto("https://www.uol.com.br/", wait_until="domcontentloaded", timeout=12000)
-            page.wait_for_timeout(300)
-        except Exception:
-            pass
-
     def wait_for_content(self, page: Any) -> bool:
         """Espera o artigo do UOL carregar no DOM."""
         for _ in range(15):

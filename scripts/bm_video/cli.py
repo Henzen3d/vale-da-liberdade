@@ -101,14 +101,13 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     shots.mkdir(parents=True, exist_ok=True)
     captured = capture_sources(scenes, shots) if scenes else []
 
-    # Descarta cenas mortas: captura falhou (sem screenshot E sem vídeo).
-    # Sem esse filtro elas continuavam ocupando 8s+ da timeline exibindo o
-    # browser vazio — era o "frame preto/escuro travado" reportado.
-    usable = [c for c in captured if c.get("shot") or c.get("video")]
+    # Descarta cenas mortas: captura falhou (sem screenshot E sem vídeo E sem x_post).
+    # Cenas do X (Modo 8) possuem dados estruturados (x_post) e renderizam nativamente via DOM.
+    usable = [c for c in captured if c.get("shot") or c.get("video") or c.get("x_post")]
     dropped = len(captured) - len(usable)
     if dropped:
         for c in captured:
-            if not (c.get("shot") or c.get("video")):
+            if not (c.get("shot") or c.get("video") or c.get("x_post")):
                 print(f"  🚫 cena descartada (captura falhou): {c.get('veiculo')} · {c.get('url')}")
     if not usable:
         usable = [{

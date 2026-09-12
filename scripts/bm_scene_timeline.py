@@ -76,6 +76,7 @@ class SceneBeatV2:
     shot: str | None = None                        # Screenshot estático (se houver)
     video: str | None = None                       # Vídeo/clipe auxiliar (se houver)
     broll_file: str | None = None                  # Arquivo de b-roll local
+    x_post: dict | None = None                     # Dados estruturados do post no X (Modo 8)
 
     @property
     def duration(self) -> float:
@@ -96,7 +97,7 @@ class SceneBeatV2:
             shot=self.shot,
             video=self.video,
             broll_file=self.broll_file,
-            x_post=None,
+            x_post=self.x_post,
             semantic_role=self.semantic_role,
             visual_component=self.visual_component,
             visual_variant=self.visual_variant,
@@ -139,6 +140,7 @@ class SceneBeatV2:
             "shot": beat.shot,
             "video": beat.video,
             "broll_file": beat.broll_file,
+            "x_post": getattr(beat, "x_post", None),
         }
         base.update(overrides)
         return cls(**base)
@@ -607,41 +609,49 @@ def build_scene_timeline(
                 current_t = broll_end
                 t_end = min(total_dur, current_t + dur_block)
 
-        # Detecta componente visual adequado para o parágrafo
-        opp = detect_visual_opportunities(
-            b["texto"],
-            scene_item.get("url") or "",
-            scene_item.get("veiculo") or "",
-            block_index=idx,
-        )
-        chosen_comp = opp.get("chosen_component") or "source"
+        # Se a cena for nativa do X (Modo 8), prioriza o componente x-post
+        is_x_post = (scene_item.get("kind") == "x-post") or bool(scene_item.get("x_post"))
+        if is_x_post:
+            chosen_comp = "x-post"
+            semantic_role = "repercussao_social"
+            variant = "x_card"
+            payload = {"x_post": scene_item.get("x_post")} if scene_item.get("x_post") else {}
+        else:
+            # Detecta componente visual adequado para o parágrafo
+            opp = detect_visual_opportunities(
+                b["texto"],
+                scene_item.get("url") or "",
+                scene_item.get("veiculo") or "",
+                block_index=idx,
+            )
+            chosen_comp = opp.get("chosen_component") or "source"
 
-        # Atribui dados estruturados se componente especial foi escolhido
-        payload: dict[str, Any] = {}
-        variant = _VARIANT_BY_COMPONENT.get(chosen_comp, "portal_clean")
-        role_map = {
-            "quote": "declaracao_forte",
-            "document": "evidencia_documental",
-            "timeline": "contexto_cronologico",
-            "chart": "impacto_economico",
-            "comparison": "confronto_posicoes",
-            "source": "apresentacao_fato",
-        }
-        semantic_role = role_map.get(chosen_comp, "apresentacao_fato")
+            # Atribui dados estruturados se componente especial foi escolhido
+            payload: dict[str, Any] = {}
+            variant = _VARIANT_BY_COMPONENT.get(chosen_comp, "portal_clean")
+            role_map = {
+                "quote": "declaracao_forte",
+                "document": "evidencia_documental",
+                "timeline": "contexto_cronologico",
+                "chart": "impacto_economico",
+                "comparison": "confronto_posicoes",
+                "source": "apresentacao_fato",
+            }
+            semantic_role = role_map.get(chosen_comp, "apresentacao_fato")
 
-        if chosen_comp != "source":
-            for op_item in opp.get("detected_opportunities") or []:
-                if op_item.get("recommended_component") == chosen_comp:
-                    payload = dict(op_item.get("extracted_data") or {})
-                    variant = op_item.get("recommended_variant") or variant
-                    break
+            if chosen_comp != "source":
+                for op_item in opp.get("detected_opportunities") or []:
+                    if op_item.get("recommended_component") == chosen_comp:
+                        payload = dict(op_item.get("extracted_data") or {})
+                        variant = op_item.get("recommended_variant") or variant
+                        break
 
         raw_beats.append({
             "t0": round(current_t, 2),
             "t1": round(t_end, 2),
             "url": scene_item.get("url") or "",
             "veiculo": scene_item.get("veiculo") or "Fonte",
-            "kind": scene_item.get("kind") or (chosen_comp if chosen_comp in _LEGACY_KINDS else "source"),
+            "kind": "x-post" if is_x_post else (scene_item.get("kind") or (chosen_comp if chosen_comp in _LEGACY_KINDS else "source")),
             "shot": scene_item.get("shot"),
             "video": scene_item.get("video"),
             "broll_file": None,
@@ -722,18 +732,19 @@ def build_scene_timeline(
                 visual_component="source",
                 visual_variant="portal_clean",
             )
+            alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
             b0_b = SceneBeat(
                 t0=cut1,
                 t1=cut2,
                 url=alt_scene.get("url") or old_first.url,
                 veiculo=alt_scene.get("veiculo") or old_first.veiculo,
-                kind=alt_scene.get("kind") or "source",
+                kind="x-post" if alt_is_x else (alt_scene.get("kind") or "source"),
                 shot=alt_scene.get("shot") or old_first.shot,
                 video=alt_scene.get("video") or old_first.video,
                 x_post=alt_scene.get("x_post") or old_first.x_post,
-                semantic_role="apresentacao_fato",
-                visual_component="source",
-                visual_variant="portal_clean",
+                semantic_role="repercussao_social" if alt_is_x else "apresentacao_fato",
+                visual_component="x-post" if alt_is_x else "source",
+                visual_variant="x_card" if alt_is_x else "portal_clean",
             )
             b0_c = SceneBeat(
                 t0=cut2,
@@ -810,19 +821,20 @@ def build_scene_timeline(
                 visual_variant=b_target.visual_variant,
                 visual_payload=b_target.visual_payload,
             )
+            alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
             b2 = SceneBeat(
                 t0=half,
                 t1=b_target.t1,
                 url=alt_scene.get("url") or b_target.url,
                 veiculo=alt_scene.get("veiculo") or b_target.veiculo,
-                kind=alt_scene.get("kind") or "source",
+                kind="x-post" if alt_is_x else (alt_scene.get("kind") or "source"),
                 shot=alt_scene.get("shot") or b_target.shot,
                 video=alt_scene.get("video") or b_target.video,
                 broll_file=None,
                 x_post=alt_scene.get("x_post") or b_target.x_post,
-                semantic_role="apresentacao_fato",
-                visual_component="source",
-                visual_variant="portal_clean",
+                semantic_role="repercussao_social" if alt_is_x else "apresentacao_fato",
+                visual_component="x-post" if alt_is_x else "source",
+                visual_variant="x_card" if alt_is_x else "portal_clean",
             )
             expanded_beats[longest_idx:longest_idx + 1] = [b1, b2]
 

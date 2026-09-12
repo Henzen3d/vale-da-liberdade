@@ -926,12 +926,28 @@ def deploy_noticias_pages() -> None:
         return
 
     # 1. Recuperar credenciais Cloudflare do .env ou ambiente
+    def _read_env_key(var_name: str) -> str:
+        val = os.environ.get(var_name, "").strip()
+        if val:
+            return val
+        for env_path in (ROOT / ".env", Path.home() / ".hermes" / ".env"):
+            if env_path.is_file():
+                try:
+                    for line in env_path.read_text(encoding="utf-8").splitlines():
+                        line = line.strip()
+                        if line.startswith(f"{var_name}="):
+                            _, _, v = line.partition("=")
+                            return v.strip().strip('"').strip("'")
+                except Exception:
+                    pass
+        return ""
+
     account_id = (
-        os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
-        or os.environ.get("CF_ACCOUNT_ID", "").strip()
-        or os.environ.get("R2_ACCOUNT_ID", "").strip()
+        _read_env_key("CLOUDFLARE_ACCOUNT_ID")
+        or _read_env_key("CF_ACCOUNT_ID")
+        or _read_env_key("R2_ACCOUNT_ID")
     )
-    api_token = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+    api_token = _read_env_key("CLOUDFLARE_API_TOKEN")
 
     env = dict(os.environ)
     if account_id:

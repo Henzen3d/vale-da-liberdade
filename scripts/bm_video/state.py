@@ -696,7 +696,10 @@ def _omnibox_url(url: str | None) -> str:
 def _build_mockup_update_payload(beat_v2: dict) -> dict:
     """Payload para window.VDL_MOCKUP.update — campos V2 + legado."""
     from urllib.parse import quote as _q
+    x_post = beat_v2.get("x_post") or beat_v2.get("xPost")
     kind = beat_v2.get("visual_component") or beat_v2.get("kind") or "source"
+    if x_post or kind in ("x-post", "x", "tweet"):
+        kind = "x-post"
     page_image = f"/shots/{beat_v2['shot']}" if beat_v2.get("shot") else ""
     page_video = beat_v2.get("video") or ""
     if kind == "broll" and beat_v2.get("broll_file"):
@@ -706,13 +709,12 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
         "pageVideo": page_video,
         "kind": kind,
         "visual_component": kind,
-        "visual_variant": beat_v2.get("visual_variant") or "",
+        "visual_variant": beat_v2.get("visual_variant") or ("x_card" if kind == "x-post" else ""),
         "visual_payload": dict(beat_v2.get("visual_payload") or {}),
     }
     url = _omnibox_url(beat_v2.get("url"))
     if url:
         payload["url"] = url
-    x_post = beat_v2.get("x_post") or beat_v2.get("xPost")
     if x_post:
         payload["xPost"] = x_post
     return payload

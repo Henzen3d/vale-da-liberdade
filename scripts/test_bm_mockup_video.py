@@ -893,6 +893,18 @@ class MockupShotSwapTests(unittest.TestCase):
         self.assertIn("pre.onload", html)
         self.assertIn("news.mob.tec.br", html)
 
+    def test_usable_filter_retains_x_post_scene(self) -> None:
+        """Cenas do X com x_post devem ser utilizáveis mesmo sem screenshot estático."""
+        captured = [
+            {"veiculo": "UOL", "url": "https://uol.com.br", "shot": "src-00.png", "video": None},
+            {"veiculo": "Post no X", "url": "https://x.com/post/1", "shot": None, "video": None, "x_post": {"author_name": "Fulano", "handle": "@fulano"}},
+            {"veiculo": "Falha", "url": "https://dead.com", "shot": None, "video": None},
+        ]
+        usable = [c for c in captured if c.get("shot") or c.get("video") or c.get("x_post")]
+        self.assertEqual(len(usable), 2)
+        self.assertIn("Post no X", [c["veiculo"] for c in usable])
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -35,10 +35,10 @@ DEFAULT_TIMEOUT_MS = 45_000
 BLANK_SHOT_STDDEV = 6.0    # abaixo disso → print em branco (alinhado com bm_mockup_video.py)
 MIN_SHOT_BYTES = 20_000    # abaixo disso → captura falhou
 
-# User-agent real (Chrome 124 Windows)
+# User-agent real (Chrome 131 Windows)
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 )
 
 # ---- Hosts bloqueados (ads, trackers, paywall engines) --------------------
@@ -364,11 +364,27 @@ class BaseScraper:
 
     def _launch_context(self, pw: Any) -> tuple:
         """Cria browser + context com stealth, bloqueio e viewport."""
-        browser = pw.chromium.launch(headless=True)
+        browser = pw.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
         ctx = browser.new_context(
             viewport=self.viewport,
             locale="pt-BR",
             user_agent=USER_AGENT,
+            timezone_id="America/Sao_Paulo",
+            extra_http_headers={
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                "Sec-Ch-Ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+                "Sec-Ch-Ua-Mobile": "?0",
+                "Sec-Ch-Ua-Platform": '"Windows"',
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1",
+                "Upgrade-Insecure-Requests": "1",
+            },
         )
         # Bloqueia ads/trackers na camada de rede, mas NUNCA bloqueia CSS ou fontes
         def _route_filter(route):

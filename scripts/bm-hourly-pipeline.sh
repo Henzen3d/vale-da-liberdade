@@ -30,6 +30,14 @@ MOCKUP_MIN_S=900
 cd "$WORK_DIR"
 mkdir -p "$LOG_DIR"
 
+# Load environment variables for the project (same as cron-wrapper.sh)
+if [ -f "$WORK_DIR/.env" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$WORK_DIR/.env"
+  set +a
+fi
+
 if [[ ! -x "$HERMES_PY" ]]; then
   echo "WARN: HERMES_PY não encontrado ou não-executável: $HERMES_PY" >&2
   if [[ -x "$PROJECT_PY" ]]; then
