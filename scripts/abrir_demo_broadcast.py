@@ -33,7 +33,7 @@ class _MultiDirHandler(SimpleHTTPRequestHandler):
             if cand.is_file():
                 return str(cand)
             if cand.is_dir():
-                for idx in ("demo-broadcast-studio.html", "mockup-brower.html", "index.html"):
+                for idx in ("demo-broadcast-studio.html", "mockup-browser.html", "mockup-brower.html", "index.html"):
                     target = cand / idx
                     if target.exists():
                         return str(target)

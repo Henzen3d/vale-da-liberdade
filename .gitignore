@@ -69,7 +69,8 @@ ads/
 branding/
 comparison/
 pipelines/
-youtube/
+/youtube/
+!references/youtube/mockup-browser/
 thumbnails/
 new-ux.backup-20260806/
 metrics/

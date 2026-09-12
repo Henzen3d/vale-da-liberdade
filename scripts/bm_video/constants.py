@@ -10,7 +10,7 @@ SCRIPT_DIR = ROOT / "scripts"
 
 MOCKUP_DIR = ROOT / "references" / "youtube" / "mockup-browser"
 
-MOCKUP_HTML = "mockup-brower.html"
+MOCKUP_HTML = "mockup-browser.html" if (MOCKUP_DIR / "mockup-browser.html").exists() else "mockup-brower.html"
 
 WALLPAPER_DIR = MOCKUP_DIR / "wallpaper"
 

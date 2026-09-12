@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vale da Liberdade • Broadcast Studio V2 Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #0a0c10;
+    --bg-surface: #12161f;
+    --bg-card: #181e2b;
+    --border: #232b3b;
+    --accent-gold: #d4a017;
+    --accent-gold-light: #f5c842;
+    --accent-red: #e62232;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --font-ui: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    --font-heading: 'Barlow Condensed', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Header do Studio */
+  header.studio-header {
+    height: 56px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(230, 34, 50, 0.15);
+    color: var(--accent-red);
+    border: 1px solid rgba(230, 34, 50, 0.4);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--accent-red);
+    border-radius: 50%;
+    animation: pulseDot 1.4s ease-in-out infinite;
+  }
+
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+  }
+
+  .studio-title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .studio-title span {
+    color: var(--accent-gold);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .select-styled {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+  }
+  .select-styled:focus { border-color: var(--accent-gold); color: #fff; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border-color: #475569;
+  }
+
+  /* Palco Principal */
+  main.studio-main {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .viewport-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: radial-gradient(circle at 50% 30%, #151a24 0%, #08090d 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Contêiner 16:9 em Escala Fiel */
+  .monitor-container {
+    width: 100%;
+    max-width: 1400px;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .monitor-iframe {
+    width: 1920px;
+    height: 1080px;
+    border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+  }
+
+  /* Painel Lateral Direito (Editor de Payload / Inspector) */
+  .side-inspector {
+    width: 360px;
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .side-inspector.closed {
+    transform: translateX(100%);
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+  }
+
+  .inspector-header {
+    height: 48px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .inspector-body {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .payload-editor {
+    width: 100%;
+    height: 280px;
+    background: #080a0f;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    color: #38bdf8;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+  }
+  .payload-editor:focus {
+    border-color: var(--accent-gold);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #b8860b 100%);
+    color: #000;
+    font-weight: 800;
+    font-size: 13px;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  /* Barra de Controle de Transmissão (Footer Switcher) */
+  footer.studio-switcher {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  /* Timeline Player Bar */
+  .timeline-player {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0,0,0,0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .player-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    color: #000;
+    border: none;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .player-btn:hover { transform: scale(1.08); }
+  .player-btn.active { background: var(--accent-red); color: #fff; }
+
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    background: #1e293b;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+    border-radius: 4px;
+    transition: width 0.1s linear;
+  }
+
+  .timer-display {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: #cbd5e1;
+    min-width: 90px;
+    text-align: right;
+  }
+
+  /* Botoes de Componentes (Switcher Bancada) */
+  .switcher-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .btn-cue {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-cue:hover {
+    background: #1f2737;
+    border-color: #475569;
+    transform: translateY(-2px);
+  }
+
+  .btn-cue.active {
+    background: rgba(212, 160, 23, 0.12);
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 16px rgba(212, 160, 23, 0.2);
+  }
+
+  .btn-cue.active .cue-tag {
+    background: var(--accent-gold);
+    color: #000;
+  }
+
+  .cue-tag {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 800;
+    background: rgba(255,255,255,0.08);
+    color: #cbd5e1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cue-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .cue-desc {
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<header class="studio-header">
+  <div class="brand-group">
+    <div class="live-badge"><span class="live-dot"></span> ESTÚDIO ATIVO</div>
+    <div class="studio-title">VALE DA LIBERDADE <span>• BROADCAST V2 DEMO</span></div>
+  </div>
+
+  <div class="header-actions">
+    <select id="wallpaperSelect" class="select-styled" title="Papel de parede de estúdio">
+      <option value="Aesthetic Desktop Background 4k Wallpaper.jpg">Wallpaper: Minimalist Studio 4K</option>
+      <option value="101909.jpg">Wallpaper: Blue Broadcast Dark</option>
+      <option value="94665.jpg">Wallpaper: Studio Gold Accent</option>
+      <option value="Aesthetic Sky Wallpaper.jpg">Wallpaper: Clean Sky Horizon</option>
+      <option value="alena-aenami-escape-hd.jpg">Wallpaper: Cinematic Sunset</option>
+    </select>
+
+    <button id="toggleFullscreen" class="btn-ghost" title="Alternar tela cheia">
+      ⛶ Tela Cheia
+    </button>
+    <button id="toggleInspector" class="btn-ghost">
+      ⚙️ Payload Inspector
+    </button>
+  </div>
+</header>
+
+<main class="studio-main">
+  <div class="viewport-area" id="viewportArea">
+    <div class="monitor-container" id="monitorContainer">
+      <iframe id="mockupFrame" class="monitor-iframe" src="mockup-browser.html"></iframe>
+    </div>
+  </div>
+
+  <!-- Inspector Lateral de Payload JSON -->
+  <aside class="side-inspector" id="sideInspector">
+    <div class="inspector-header">
+      <span>JSON PAYLOAD AO VIVO</span>
+      <span id="activeKindBadge" style="color:var(--accent-gold); font-family:var(--font-heading); font-size:14px;">SOURCE</span>
+    </div>
+    <div class="inspector-body">
+      <p style="font-size:11px; color:var(--text-secondary); line-height:1.4;">
+        Este payload é o mesmo gerado por <code>_build_mockup_update_payload()</code> durante o render de vídeo. Edite os dados abaixo e clique em disparar para ver as atualizações em tempo real no monitor:
+      </p>
+      <textarea id="payloadEditor" class="payload-editor"></textarea>
+      <button id="btnSendLive" class="btn-primary">⚡ Enviar para o Ar (Live Update)</button>
+      
+      <div style="font-size:11px; color:#64748b; background:rgba(255,255,255,0.02); padding:10px; border-radius:6px; border:1px solid #1e293b;">
+        <b style="color:#e2e8f0;">Componentes Testados:</b><br>
+        ✓ Roteamento VDL_MOCKUP.update()<br>
+        ✓ Preservação de visual_variant<br>
+        ✓ Efeito Sweep de Marca-Texto em Documentos<br>
+        ✓ Animação progressiva de nós na Timeline<br>
+        ✓ Barras procedurais no DataChart
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="studio-switcher">
+  <!-- Simulador de Linha do Tempo Real -->
+  <div class="timeline-player">
+    <button id="btnPlayTimeline" class="player-btn" title="Reproduzir timeline automática de 60 segundos">▶</button>
+    <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">
+      Simulação Automática
+    </div>
+    <div class="progress-track" id="progressTrack">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="timer-display" id="timerDisplay">00:00 / 01:00</div>
+  </div>
+
+  <!-- Botões de Câmeras / Componentes (Switcher Bancada) -->
+  <div class="switcher-buttons">
+    <button class="btn-cue active" data-kind="source">
+      <span class="cue-tag">Modo 1</span>
+      <span class="cue-label">📰 Portal de Notícias</span>
+      <span class="cue-desc">Navegador web + ticker</span>
+    </button>
+
+    <button class="btn-cue" data-kind="quote">
+      <span class="cue-tag">Modo 2</span>
+      <span class="cue-label">💬 Aspas Editorial</span>
+      <span class="cue-desc">Declaração forte / Card Gold</span>
+    </button>
+
+    <button class="btn-cue" data-kind="document">
+      <span class="cue-tag">Modo 3</span>
+      <span class="cue-label">⚖️ Decisão Judicial</span>
+      <span class="cue-desc">Document Zoom + sweep</span>
+    </button>
+
+    <button class="btn-cue" data-kind="timeline">
+      <span class="cue-tag">Modo 4</span>
+      <span class="cue-label">⏳ Linha do Tempo</span>
+      <span class="cue-desc">Cronologia dos fatos</span>
+    </button>
+
+    <button class="btn-cue" data-kind="chart">
+      <span class="cue-tag">Modo 5</span>
+      <span class="cue-label">📊 Impacto Econômico</span>
+      <span class="cue-desc">Métrica + barras animadas</span>
+    </button>
+
+    <button class="btn-cue" data-kind="comparison">
+      <span class="cue-tag">Modo 6</span>
+      <span class="cue-label">⚖️ Confronto Direto</span>
+      <span class="cue-desc">Split Screen A × B</span>
+    </button>
+
+    <button class="btn-cue" data-kind="recorte">
+      <span class="cue-tag">Modo 7</span>
+      <span class="cue-label">🗞️ Recorte Impresso</span>
+      <span class="cue-desc">Torn paper editorial</span>
+    </button>
+
+    <button class="btn-cue" data-kind="x-post">
+      <span class="cue-tag">Modo 8</span>
+      <span class="cue-label">🐦 Publicação do X</span>
+      <span class="cue-desc">Post / Tweet verificado</span>
+    </button>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// PAYLOADS MODELO PARA CADA COMPONENTE BROADCAST V2
+// ============================================================
+const DEMO_PRESETS = {
+  source: {
+    kind: "source",
+    visual_component: "source",
+    visual_variant: "portal_clean",
+    url: "https://oglobo.globo.com/politica/noticia/2026/09/stf-decisao-recursos.ghtml",
+    titulo: "A BANDA PODRE do STF Vive numa TEORIA da CONSPIRAÇÃO?",
+    resumo: "Análise profunda revela a crise institucional entre cortes superiores e a repercussão nos poderes.",
+    categoria: "BRASIL E MUNDO",
+    autor: "Peter Albuquerque",
+    dataExtenso: "06 de Setembro de 2026",
+    visual_payload: {}
+  },
+  quote: {
+    kind: "quote",
+    visual_component: "quote",
+    visual_variant: "card_gold",
+    url: "https://noticias.uol.com.br/politica/declaracoes-exclusivas",
+    visual_payload: {
+      author_name: "Cláudio Dantas",
+      author_role: "Colunista / Análise Política",
+      quote_text: "Flávio age como estadista: busca Gilmar e isola Moraes, desarmando a narrativa persecutória no STF.",
+      source_name: "Bastidores de Brasília",
+      date: "06 de Setembro de 2026",
+      category: "DECLARAÇÃO FORTE",
+      verified: true
+    }
+  },
+  document: {
+    kind: "document",
+    visual_component: "document",
+    visual_variant: "highlight_zoom",
+    url: "https://portal.stf.jus.br/processos/detalhe.asp?incidente=6129481",
+    visual_payload: {
+      doc_type: "sentenca",
+      doc_institution: "SUPREMO TRIBUNAL FEDERAL",
+      doc_title: "GABINETE DA PRESIDÊNCIA • REPERCUSSÃO GERAL",
+      case_number: "RECURSO EXTRAORDINÁRIO Nº 1.482.910",
+      court_sub: "Brasília • Plenário Virtual e Decisões de Urgência",
+      lead_text: "Vistos etc. Trata-se de mandado de segurança preventivo com expresso pedido liminar com o objetivo de suspender medidas de bloqueio sem o devido contraditório.",
+      highlight_text: "DEFIRO A LIMINAR pleiteada para determinar a imediata suspensão da ordem de censura prévia sobre os perfis do veículo.",
+      notice: "Intime-se com urgência no prazo impreterível de 24 horas sob pena de responsabilidade funcional."
+    }
+  },
+  timeline: {
+    kind: "timeline",
+    visual_component: "timeline",
+    visual_variant: "progressive_nodes",
+    url: "https://senado.leg.br/noticias/cronograma-votacao",
+    visual_payload: {
+      timeline_title: "CRONOLOGIA DA ESCALADA INSTITUCIONAL",
+      year: "2026",
+      events: [
+        { date: "15/JAN • ABERTURA", desc: "Apresentação da denúncia ao plenário e formação da comissão especial" },
+        { date: "22/ABR • PARECER", desc: "Comissão rejeita por 14 a 3 as alegações preliminares da defesa" },
+        { date: "HOJE • JULGAMENTO", desc: "Decisão final define os rumos da prerrogativa dos parlamentares" }
+      ]
+    }
+  },
+  chart: {
+    kind: "chart",
+    visual_component: "chart",
+    visual_variant: "stat_counter",
+    url: "https://valor.globo.com/financas/indicadores-2026",
+    visual_payload: {
+      metric_label: "ROMBO NAS CONTAS PÚBLICAS (PREVISÃO OFICIAL)",
+      metric_prefix: "R$",
+      metric_value: "68,4",
+      metric_suffix: "BI",
+      delta_text: "+24,8% acima da meta fiscal",
+      trend: "down",
+      context: "Déficit primário acumulado no último quadrimestre acende alerta máximo no Ministério da Fazenda e no Banco Central.",
+      sub_items: [
+        { label: "Meta Original (LDO)", value: "R$ 0,0 bi", pct: "20%" },
+        { label: "Projeção Mercado (Focus)", value: "R$ 45,2 bi", pct: "65%" },
+        { label: "Estimativa Atualizada", value: "R$ 68,4 bi", pct: "95%" }
+      ]
+    }
+  },
+  comparison: {
+    kind: "comparison",
+    visual_component: "comparison",
+    visual_variant: "split_screen",
+    url: "https://g1.globo.com/politica/noticia/confronto-direto-promessas",
+    visual_payload: {
+      comparison_title: "PROMESSA EM DISCURSO × REALIDADE NA LEI ORÇAMENTÁRIA",
+      side_a: {
+        header: "PROMESSA OFICIAL (2024)",
+        highlight: "ZERO IMPOSTOS",
+        details: "Garantia formal de não aumentar alíquotas de tributos federais sobre consumo ou serviços."
+      },
+      side_b: {
+        header: "REALIDADE APROVADA (2026)",
+        highlight: "+18,5% NA NOTA",
+        details: "Regulamentação da reforma tributária elevou a alíquota de referência para produtos essenciais."
+      }
+    }
+  },
+  recorte: {
+    kind: "recorte",
+    visual_component: "recorte",
+    visual_variant: "newspaper_clip",
+    url: "https://www1.folha.uol.com.br/poder/2026/09/manchete-do-dia.shtml",
+    visual_payload: {
+      source_name: "FOLHA DE S.PAULO",
+      headline: "Maioria dos ministros vê esgotamento no modelo de inquéritos perpétuos no STF",
+      sublead: "Relatório de bastidores aponta articulação interna para limitar decisões monocráticas antes do recesso.",
+      date: "EDIÇÃO DE DOMINGO • 06 DE SETEMBRO DE 2026"
+    }
+  },
+  "x-post": {
+    kind: "x-post",
+    visual_component: "x-post",
+    visual_variant: "clean_card",
+    url: "https://x.com/alexandre/status/1830689409823485952",
+    visual_payload: {
+      author_name: "Alexandre de Moraes",
+      handle: "@alexandre",
+      text: "O Supremo Tribunal Federal reafirma seu compromisso inegociável com a democracia, a soberania nacional e a estrita observância da Constituição. #STF",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      media: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&auto=format&fit=crop&q=80",
+      timestamp: "14:32 · 03 de set de 2026",
+      replies: "4.2K",
+      reposts: "12.8K",
+      likes: "45.1K",
+      verified: true
+    }
+  }
+};
+
+// ============================================================
+// LOGICA DE COMUNICAÇÃO E CONTROLE
+// ============================================================
+const iframe = document.getElementById("mockupFrame");
+const payloadEditor = document.getElementById("payloadEditor");
+const activeKindBadge = document.getElementById("activeKindBadge");
+const buttons = document.querySelectorAll(".btn-cue");
+let currentKind = "source";
+
+function dispatchUpdate(payload) {
+  // 1. Tenta envio direto se o script estiver carregado na mesma origem
+  try {
+    if (iframe.contentWindow && iframe.contentWindow.VDL_MOCKUP) {
+      iframe.contentWindow.VDL_MOCKUP.update(payload);
+    }
+  } catch(e) {}
+
+  // 2. Garante via postMessage
+  if (iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: "VDL_UPDATE", payload: payload }, "*");
+  }
+}
+
+function selectComponent(kind) {
+  currentKind = kind;
+  buttons.forEach(b => b.classList.toggle("active", b.dataset.kind === kind));
+  activeKindBadge.textContent = kind.toUpperCase();
+
+  const data = DEMO_PRESETS[kind] || DEMO_PRESETS.source;
+  payloadEditor.value = JSON.stringify(data, null, 2);
+  dispatchUpdate(data);
+}
+
+// Eventos dos botões de componente
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (timelineRunning) pauseTimeline();
+    selectComponent(btn.dataset.kind);
+  });
+});
+
+// Envio ao vivo do editor
+document.getElementById("btnSendLive").addEventListener("click", () => {
+  try {
+    const customData = JSON.parse(payloadEditor.value);
+    dispatchUpdate(customData);
+  } catch(err) {
+    alert("Erro no JSON: " + err.message);
+  }
+});
+
+// Seletor de Wallpaper
+document.getElementById("wallpaperSelect").addEventListener("change", (e) => {
+  const wallFile = `/wallpaper/${encodeURIComponent(e.target.value)}`;
+  dispatchUpdate({ wallpaper: wallFile });
+});
+
+// Alternar Painel Lateral
+const sideInspector = document.getElementById("sideInspector");
+document.getElementById("toggleInspector").addEventListener("click", () => {
+  sideInspector.classList.toggle("closed");
+});
+
+// Tela Cheia
+document.getElementById("toggleFullscreen").addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+});
+
+// ============================================================
+// SIMULADOR DE TIMELINE AUTOMÁTICA (ROTEIRO REAL DE VÍDEO)
+// ============================================================
+const TIMELINE_SCRIPT = [
+  { t: 0,  kind: "source",     label: "Abertura / Matéria Principal" },
+  { t: 12, kind: "quote",      label: "Declaração de Impacto (Cláudio Dantas)" },
+  { t: 24, kind: "document",   label: "Evidência / Decisão Judicial" },
+  { t: 36, kind: "chart",      label: "Impacto Econômico / Dados" },
+  { t: 48, kind: "comparison", label: "Confronto de Posições" },
+  { t: 58, kind: "source",     label: "Conclusão e Encerramento" }
+];
+const TOTAL_DURATION = 60; // 60 segundos
+let timelineRunning = false;
+let timelineSeconds = 0;
+let timelineInterval = null;
+
+const btnPlay = document.getElementById("btnPlayTimeline");
+const progressFill = document.getElementById("progressFill");
+const timerDisplay = document.getElementById("timerDisplay");
+
+function updateTimelineDisplay() {
+  const pct = Math.min(100, (timelineSeconds / TOTAL_DURATION) * 100);
+  progressFill.style.width = `${pct}%`;
+  const m = String(Math.floor(timelineSeconds / 60)).padStart(2, "0");
+  const s = String(Math.floor(timelineSeconds % 60)).padStart(2, "0");
+  timerDisplay.textContent = `${m}:${s} / 01:00`;
+}
+
+function startTimeline() {
+  timelineRunning = true;
+  btnPlay.textContent = "⏸";
+  btnPlay.classList.add("active");
+
+  timelineInterval = setInterval(() => {
+    timelineSeconds += 0.5;
+    if (timelineSeconds >= TOTAL_DURATION) {
+      pauseTimeline();
+      timelineSeconds = 0;
+      updateTimelineDisplay();
+      return;
+    }
+
+    // Checa se há corte de cena no segundo atual
+    const rounded = Math.floor(timelineSeconds);
+    const cue = TIMELINE_SCRIPT.find(c => c.t === rounded);
+    if (cue && cue.kind !== currentKind) {
+      selectComponent(cue.kind);
+    }
+    updateTimelineDisplay();
+  }, 500);
+}
+
+function pauseTimeline() {
+  timelineRunning = false;
+  btnPlay.textContent = "▶";
+  btnPlay.classList.remove("active");
+  clearInterval(timelineInterval);
+}
+
+btnPlay.addEventListener("click", () => {
+  if (timelineRunning) {
+    pauseTimeline();
+  } else {
+    startTimeline();
+  }
+});
+
+// Clique na barra de progresso para pular
+document.getElementById("progressTrack").addEventListener("click", (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const targetSec = (clickX / rect.width) * TOTAL_DURATION;
+  timelineSeconds = Math.max(0, Math.min(TOTAL_DURATION, targetSec));
+  updateTimelineDisplay();
+
+  // Acha o beat correspondente
+  let activeCue = TIMELINE_SCRIPT[0];
+  for (const c of TIMELINE_SCRIPT) {
+    if (timelineSeconds >= c.t) activeCue = c;
+  }
+  selectComponent(activeCue.kind);
+});
+
+// ============================================================
+// ESCALONAMENTO DO MONITOR 16:9 RESPONSIVO (FIT TO PARENT)
+// ============================================================
+function resizeMonitor() {
+  const container = document.getElementById("monitorContainer");
+  const iframeEl = document.getElementById("mockupFrame");
+  if (!container || !iframeEl) return;
+
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  const scaleX = w / 1920;
+  const scaleY = h / 1080;
+  const scale = Math.min(scaleX, scaleY);
+
+  iframeEl.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", resizeMonitor);
+
+// Inicialização após carregamento do iframe
+iframe.addEventListener("load", () => {
+  resizeMonitor();
+  selectComponent("source");
+});
+
+// Fallback de inicialização rápida
+setTimeout(() => {
+  resizeMonitor();
+  selectComponent("source");
+}, 400);
+
+</script>
+</body>
+</html>
