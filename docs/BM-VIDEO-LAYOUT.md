@@ -21,6 +21,48 @@ Pipeline oficial: mockup-browser + avatar Peter + lower third na frente + wallpa
 | Resolução | 1920×1080 |
 | FPS do avatar | 30 |
 | Áudio | o MP3 do episódio BM (−16 LUFS). **Ignorar** o áudio do loop do avatar |
+| HTML oficial | `references/youtube/mockup-browser/mockup-browser.html` |
+| Alias legado | `references/youtube/mockup-browser/mockup-brower.html` (cópia sincronizada; não é mais a fonte) |
+| Constante | `MOCKUP_HTML` em `scripts/bm_video/constants.py` — prioriza `mockup-browser.html` se existir |
+| Studio V2 | `references/youtube/mockup-browser/demo-broadcast-studio.html` — iframe no HTML oficial; `python scripts/abrir_demo_broadcast.py` (porta 8765) |
+
+### Componentes visuais reconhecidos pelo pipeline (`bm_scene_timeline.VisualComponent`)
+
+| Modo | `kind` / `visual_component` | Tela no canvas |
+|---|---|---|
+| 1 | `source` | Portal de notícias (browser + ticker) |
+| 2 | `quote` | Aspas editorial / Card Gold |
+| 3 | `document` | Documento oficial com zoom/grifo |
+| 4 | `timeline` | Linha do tempo |
+| 5 | `chart` | Big number / impacto econômico |
+| 6 | `comparison` | Split A × B |
+| 7 | `recorte` | Recorte impresso |
+| 8 | `x-post` (`x`, `tweet`) | Card do X — **operacional ponta a ponta** |
+
+Aliases de roteamento no engine (`VDL_MOCKUP.update`): kinds `x-post`, `x` e `tweet` chamam `transitionToX(payload)`.
+
+### Modo 8 — Card do X (`#xCard` / `.bcard-x-post`)
+
+- **Identidade:** avatar com fallback monograma SVG, nome de exibição, selo verificado, @handle.
+- **Corpo:** texto integral com destaques e links.
+- **Mídia:** `#xMediaBox` — fotos/gráficos `name=large` baixados para `/shots/x-media-{id}.jpg`.
+- **Métricas:** respostas, reposts, curtidas; micro-animação de coração `#f91880`.
+- **GSAP:** `transitionToX` desce `browserEl` e sobe o card (`y: 140→0`, `scale: 0.95→1`, elastic) + pop no like.
+- **Payload:** `_build_mockup_update_payload()` em `scripts/bm_video/state.py` (campo `xPost`).
+- **Regressão:** `tests/test_x_post_mockup_integration.py` (DOM, `transitionToX`, `MOCKUP_HTML`, payload).
+
+Fluxo (áudio → tela):
+
+```
+especial JSON / timeline
+    ↓ kind / visual_component
+_build_mockup_update_payload()
+    ↓ Playwright page.evaluate / postMessage
+VDL_MOCKUP.update()
+    ├─ source → browser + print
+    ├─ quote/document/timeline/chart/comparison/recorte → cards Light Editorial
+    └─ x-post|x|tweet → transitionToX(#xCard)
+```
 
 ## Avatar Peter (aprovado v6)
 
@@ -74,7 +116,8 @@ references/youtube/mockup-browser/wallpaper/
 - Extensões: `.jpg` `.jpeg` `.png` `.webp`. **Sem** `.gif`
 - Escolha: `md5(video_id) % n` — o mesmo episódio sempre pega o mesmo fundo
 - O mockup aplica em `#sceneWallpaper` (`object-fit: cover`)
-- HTML do mockup: `references/youtube/mockup-browser/mockup-brower.html` (typo no nome)
+- HTML do mockup (oficial): `references/youtube/mockup-browser/mockup-browser.html`
+- Alias legado (não editar só este): `mockup-brower.html`
 
 ## Captura das matérias
 

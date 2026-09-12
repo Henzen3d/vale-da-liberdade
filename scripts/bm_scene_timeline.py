@@ -28,7 +28,7 @@ SemanticRole = Literal[
     "transicao_broll",          # Clipes de respiro e ritmo visual
 ]
 
-# Componentes visuais suportados no mockup-brower.html
+# Componentes visuais suportados no mockup-browser.html
 VisualComponent = Literal[
     "source",           # Browser com matéria jornalística
     "x-post",           # Card interativo do X com animação de Like

@@ -29,7 +29,9 @@ Se um comando falhar com “No such file”, o path está errado. Não inventar 
 | Login Google | `public/js/supabase_client.js` (injeta `#auth-container`) |
 | Catálogo | `public/data/episodes.json` |
 | Teste background (sem OAuth) | `public/player-test.html` |
-| Pipeline BM | `scripts/bm_*.py` |
+| Pipeline BM | `scripts/bm_*.py` + `scripts/bm_video/` |
+| Canvas BM 1080p | `references/youtube/mockup-browser/mockup-browser.html` (alias `mockup-brower.html`) |
+| Studio V2 | `references/youtube/mockup-browser/demo-broadcast-studio.html` (`abrir_demo_broadcast.py:8765`) |
 | Composição HyperFrames | `references/youtube/prototype/bancada-render/build_episode_composition.py` |
 | Skill de produção | `~/.hermes/skills/content/web-jornal-production/SKILL.md` |
 | Índice de docs | `docs/INDEX.md` |

@@ -37,9 +37,30 @@
     "escolha": "md5(video_id) % n"
   },
   "mockup": {
-    "html": "references/youtube/mockup-browser/mockup-brower.html",
+    "html": "references/youtube/mockup-browser/mockup-browser.html",
+    "html_alias_legado": "references/youtube/mockup-browser/mockup-brower.html",
+    "constante": "scripts/bm_video/constants.py:MOCKUP_HTML",
+    "studio": "references/youtube/mockup-browser/demo-broadcast-studio.html",
+    "studio_porta": 8765,
     "param_wallpaper": "wallpaper",
-    "param_page_image": "pageImage"
+    "param_page_image": "pageImage",
+    "modos": {
+      "1": "source",
+      "2": "quote",
+      "3": "document",
+      "4": "timeline",
+      "5": "chart",
+      "6": "comparison",
+      "7": "recorte",
+      "8": "x-post"
+    },
+    "x_post": {
+      "dom": ["#xCard", ".bcard-x-post", "#xMediaBox", "#xLikeBtn"],
+      "engine": "VDL_MOCKUP.transitionToX",
+      "kinds": ["x-post", "x", "tweet"],
+      "like": "#f91880",
+      "media_local": "/shots/x-media-{id}.jpg"
+    }
   },
   "youtube": {
     "privacy": "public",

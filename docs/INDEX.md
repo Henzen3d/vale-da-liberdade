@@ -16,10 +16,10 @@ Leia `CANONICAL.md` e `../AGENT_GUIDE.md` antes de qualquer outro doc.
 | `SKILL.md` | Regras de **voz e roteiro do diário** (Peter/Ricardo, quadros, checklist). **Não** é cópia nem espelho de `~/.hermes/skills/content/web-jornal-production/`. Essa skill Hermes descreve o pipeline operacional de produção; `SKILL.md` na raiz é só editorial do episódio diário. |
 | `pipelines/brasil_e_mundo/SKILL_BRASIL_E_MUNDO.md` | Regras do especial (um narrador, isolado do diário) |
 | `LESSONS_LEARNED.md` | Incidentes e decisões (inclui ago/2026) |
-| `DESIGN.md` | Decisões de design de UI/UX do site (menus, abas, hero, player, tokens, regras anti-regressão) — editável manualmente |
+| `DESIGN.md` | Decisões de design: UI/UX do site **e** Light Editorial Broadcast (canvas `mockup-browser.html`, Modos 1–8 / x-post) |
 | `presenters/peter.md` / `presenters/ricardo.md` | Fichas dos apresentadores |
 | `docs/ROTEIRO-NATURALIDADE-MULTILOCUTOR.md` | Relatório + diagramas do pipeline de roteiro/TTS para análise externa (naturalidade + multi-locutor) |
-| `docs/BM-VIDEO-LAYOUT.md` | Layout oficial do vídeo BM (avatar v6, wallpaper, thumbnail, descrição). Restaurar daqui se o compositor sumir. JSON: `docs/bm-video-layout.json` |
+| `docs/BM-VIDEO-LAYOUT.md` | Layout oficial do vídeo BM (canvas `mockup-browser.html`, Modos 1–8 incluso x-post, avatar v6, wallpaper, thumbnail). JSON: `docs/bm-video-layout.json` |
 | `docs/BM-EPISODE-PACING.md` | Ritmo, duração (4–5 min / 680–900 palavras), fontes extras, sync de cenas, captura educada e b-roll |
 
 Skills Hermes (fora deste repo; não duplicar aqui):
@@ -34,7 +34,7 @@ Não mexer nestes fluxos sem teste. Paths relativos à raiz do repo.
 | Subsistema | Fluxo canônico | Arquivos principais |
 |---|---|---|
 | Diário (06:00 America/Sao_Paulo) | Coleta → Roteiro → TTS Multi → Publicação | `scripts/pipeline.py`, `scripts/news_collector.py`, `scripts/generate_roteiro_llm.py`, `scripts/generate_script.py`, `scripts/tts_preprocessor.py`, `scripts/generate_gemini_tts_multi.py`, `scripts/publish_site.py`, `scripts/upload_r2.py` |
-| Brasil & Mundo | Monitor RSS → Fila → Mockup vídeo → Upload YT | `scripts/bm_monitor.py`, `scripts/bm_pipeline.py`, `scripts/bm_condensador.py`, `scripts/bm_enrich_sources.py`, `scripts/bm_mockup_video.py`, `scripts/youtube_uploader.py` |
+| Brasil & Mundo | Monitor RSS → Fila → Mockup (`mockup-browser.html`, Modos 1–8 / x-post) → Upload YT | `scripts/bm_monitor.py`, `scripts/bm_pipeline.py`, `scripts/bm_condensador.py`, `scripts/bm_enrich_sources.py`, `scripts/bm_mockup_video.py`, `scripts/bm_video/`, `scripts/youtube_uploader.py` |
 | Screenshots jornalísticos | Motor modular + handlers por domínio. Cache `CAPTURE_CACHE_VERSION=handler-v3`. Handlers **antes** do Playwright genérico (não aninhar Sync API). Agência Brasil/EBC: `scripts/screenshots/sites/agenciabrasil.py`. Prints = Chromium headless nas URLs originais via `bm_mockup_video.try_handler_screenshot` — **não** via `blocked-page-recovery` (`recover_page.py` é só texto de pauta/roteiro). | `scripts/screenshots/base.py`, `scripts/screenshots/runner.py`, `scripts/screenshots/sites/`. Não existe `scripts/screenshots/core/`. |
 | Thumbnails | Papéis distintos, ambos vivos | Diário: `scripts/thumbnail_generator.py`. Produção BM: `scripts/youtube_thumbnail.py` (importado por `bm_mockup_video.find_episode_thumbnail` → `generate_youtube_thumbnail`). CLI manual/auxiliar: `scripts/hermes_youtube_thumbnail.py` (não é o import do mockup). |
 | Gatilhos oficiais | Wrappers de execução | `scripts/cron-wrapper.sh` (diário, job Hermes `no_agent`). `scripts/bm-hourly-pipeline.sh` (BM). |

@@ -44,6 +44,31 @@
                       └─────────────────────────────────┘
 ```
 
+### 1.1 Canvas BM (Broadcast Studio V2)
+
+```
+especial JSON ──► bm_scene_timeline (kind/visual_component)
+                      │
+                      ▼
+              _build_mockup_update_payload()
+                      │
+                      ▼
+         Playwright → VDL_MOCKUP.update()
+                      │
+     mockup-browser.html  (oficial 1080p)
+     mockup-brower.html   (alias legado, sincronizado)
+                      │
+      ┌───────────────┼────────────────────────┐
+      │1 source  2 quote  3 document  4 timeline│
+      │5 chart   6 comparison  7 recorte        │
+      │8 x-post  → #xCard / transitionToX       │
+      └─────────────────────────────────────────┘
+                      │
+         demo-broadcast-studio.html :8765
+```
+
+Pasta gitignored: `references/youtube/mockup-browser/`. Spec: `docs/BM-VIDEO-LAYOUT.md`. Design: `DESIGN.md` §8.
+
 ---
 
 ## 2. Mapa Completo de Scripts e Gatilhos
@@ -63,7 +88,9 @@
 | `scripts/bm_enrich_sources.py` | `bm_pipeline.py` / `bm_condensador.py` | Fontes YouTube / RSS / Tavily | Fontes estritamente relevantes com deduplicação | feedparser, Tavily API, Gemini |
 | `scripts/bm_scene_timeline.py` | `bm_mockup_video.py` | Cues de áudio / fontes | Timeline com gancho 15s e >=10 cenas/5min | Python nativo |
 | `scripts/bm_broll_fetcher.py` | `bm_mockup_video.py` / manual | Palavras-chave / tema | Clipes 1080p MP4 em `references/youtube/broll/` | Pexels API, Pixabay API, ffmpeg |
-| `scripts/bm_mockup_video.py` | `bm-hourly-pipeline.sh` | Especial BM (`especial-*.json`) + MP3 | MP4 1080p + Upload YouTube | Playwright, ffmpeg, YouTube API |
+| `scripts/bm_mockup_video.py` | `bm-hourly-pipeline.sh` | Especial BM (`especial-*.json`) + MP3 | MP4 1080p + Upload YouTube | Playwright, ffmpeg, YouTube API. Canvas: `mockup-browser.html` (alias `mockup-brower.html`). Modo 8 = `#xCard`. Studio: `abrir_demo_broadcast.py:8765`. |
+| `scripts/bm_video/constants.py` | importado por `bm_mockup_video` | — | `MOCKUP_HTML` | Prioriza `mockup-browser.html` |
+| `tests/test_x_post_mockup_integration.py` | CI / unittest | HTML + payload | regressão Modo 8 | DOM `#xCard`, `transitionToX`, constante |
 | `scripts/youtube_uploader.py` | `bm_mockup_video.py` | Arquivo MP4 + Metadados | Vídeo publicado no YouTube | `google-api-python-client` |
 | `scripts/thumbnail_generator.py` | `publish_site.py` / manual | Notícia principal / Episódio | `thumbnails/{date}/{id}.webp` | Pillow, DashScope / Imagen 4 |
 | `scripts/hermes_youtube_thumbnail.py` | `bm_mockup_video.py` / manual | Vídeo ID + Título + Highlight | Capa 1280x720 (Peter Presenter) | Playwright / HTML template |
