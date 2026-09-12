@@ -733,6 +733,16 @@ class BrandingIntroOutroTests(unittest.TestCase):
 class RecordMockupGotoTests(unittest.TestCase):
     """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""
 
+    def test_record_mockup_binds_split_helpers(self) -> None:
+        """1F9lpXrk5N0: NameError probe_duration_s após o split bm_video."""
+        import bm_video.capture as capmod
+
+        for name in ("probe_duration_s", "episode_date", "_normalize_beat_v2"):
+            self.assertTrue(
+                hasattr(capmod, name),
+                f"bm_video.capture precisa de {name} no módulo (record_mockup)",
+            )
+
     def test_record_mockup_goto_is_not_networkidle(self) -> None:
         import inspect
         import bm_mockup_video as m
