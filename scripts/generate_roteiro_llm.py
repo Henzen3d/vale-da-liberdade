@@ -22,14 +22,10 @@ import re
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SCRIPT_DIR = PROJECT_ROOT / "scripts"
-sys.path.insert(0, str(SCRIPT_DIR))
-
-load_dotenv(PROJECT_ROOT / ".env")
-load_dotenv(Path.home() / ".hermes" / ".env", override=False)
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+from _bootstrap import PROJECT_ROOT, SCRIPT_DIR  # noqa: E402
 
 
 def _read_env_file_keys(path: Path, prefix: str = "GEMINI_API_KEY") -> dict[str, str]:
@@ -103,11 +99,11 @@ OPENROUTER_MODELS = [
 ]
 
 GEMINI_MODELS = [
-    "gemini-3.6-flash",        # primário: melhor qualidade editorial e nuance
-    "gemini-3-flash-preview",  # fallback capaz e rápido
-    "gemini-3.5-flash-lite",   # alta velocidade / 500 RPD
-    "gemini-3.1-flash-lite",   # backup leve (15 RPM / 500 RPD)
-    "gemma-4-31b-it",          # backup aberto (30 RPM / alta cota)
+    "gemini-3.8-flash",        # primário: structured outputs + nuance editorial
+    "gemini-3.6-flash",        # fallback 1: estabilidade histórica
+    "gemini-3.5-flash-lite",   # fallback 2: alta cota (500 RPD)
+    "gemini-3.1-flash-lite",   # fallback 3: backup leve
+    "gemma-4-31b-it",          # fallback 4: contingência aberta
 ]
 
 
@@ -208,8 +204,9 @@ def _call_gemini(prompt: str) -> str:
                 contents=prompt,
                 config={
                     "temperature": 0.7,
-                    "max_output_tokens": 32768,
+                    "max_output_tokens": 16384,
                     "response_mime_type": "application/json",
+                    "response_schema": RoteiroCompleto,
                 },
             )
             text = getattr(resp, "text", None) or ""

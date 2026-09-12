@@ -43,12 +43,13 @@ if not log.handlers:
 DEFAULT_LIMITS = {
     # Limites REAIS (máximos) da chave AI Studio do web-jornal (tabela do usuário, 2026-07-25).
     # Formato: <usado> / <limite> — usamos o LIMITE (máximo).
-    # flash: gemini-3.6/2.5/3/3.5-flash = 5 RPM / 250K TPM / 20 RPD.
+    # flash: gemini-3.8/3.6/2.5/3/3.5-flash = 5 RPM / 250K TPM / 20 RPD.
     "flash": {
         "rpm": 5,
         "rpd": 20,
         "tpm": 250000,
     },
+
     # lite: gemini-3.5/3.1-flash-lite = 15 RPM / 250K TPM / 500 RPD.
     "lite": {
         "rpm": 15,
@@ -64,9 +65,22 @@ DEFAULT_LIMITS = {
 }
 
 
+MODEL_ALIASES = {
+    "gemini-flash": "gemini-3.8-flash",
+    "gemini-flash-latest": "gemini-3.8-flash",
+    "gemini-flash-lite-latest": "gemini-3.5-flash-lite",
+}
+
+
+def resolve_model_name(model_name: str) -> str:
+    """Apelidos genéricos resolvem para o Flash canônico da conta."""
+    key = (model_name or "").strip().lower()
+    return MODEL_ALIASES.get(key, model_name)
+
+
 def _get_model_category(model_name: str) -> str:
     """Classifica o modelo para determinar os limites apropriados."""
-    model_lower = model_name.lower()
+    model_lower = resolve_model_name(model_name).lower()
     if "tts" in model_lower:
         return "tts"
     elif "lite" in model_lower:
@@ -541,8 +555,10 @@ class GeminiClient:
         não metralha 5× com backoff de 2s.
         Erros 503 (server overload) recebem até 3 retries com delay mais longo (15-30s).
         """
+        model = resolve_model_name(model)
         estimated_tokens = _estimate_tokens(contents)
         reserved_at = self._enforce_rate_limit(model, estimated_tokens)
+
         last_exception = None
         call_succeeded = False
         base_delay = 2.0

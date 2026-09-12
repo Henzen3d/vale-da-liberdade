@@ -163,5 +163,17 @@ class EnforceRateLimitTests(unittest.TestCase):
             self.assertIn("Limite diário atingido", str(ctx.exception))
 
 
+class ModelAliasTests(unittest.TestCase):
+    def test_flash_aliases_resolve_to_38(self):
+        self.assertEqual(gc.resolve_model_name("gemini-flash"), "gemini-3.8-flash")
+        self.assertEqual(gc.resolve_model_name("gemini-flash-latest"), "gemini-3.8-flash")
+        self.assertEqual(gc.resolve_model_name("gemini-flash-lite-latest"), "gemini-3.5-flash-lite")
+        self.assertEqual(gc.resolve_model_name("gemini-3.8-flash"), "gemini-3.8-flash")
+
+    def test_alias_flash_is_flash_category(self):
+        self.assertEqual(gc._get_model_category("gemini-flash"), "flash")
+        self.assertEqual(gc._get_model_category("gemini-flash-lite-latest"), "lite")
+
+
 if __name__ == "__main__":
     unittest.main()

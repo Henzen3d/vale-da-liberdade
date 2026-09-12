@@ -236,7 +236,7 @@ Responda SOMENTE com JSON válido:
         raw = ""
         for key in keys:
             client = genai.Client(api_key=key)
-            for model in ("gemini-flash-latest", "gemini-flash-lite-latest"):
+            for model in ("gemini-3.8-flash", "gemini-3.5-flash-lite"):
                 try:
                     resp = client.models.generate_content(model=model, contents=prompt)
                     raw = (resp.text or "").strip()
