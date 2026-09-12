@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import json
+import re
+import subprocess
+import sys
 from pathlib import Path
 
 from bm_video.constants import *  # noqa: F403
-from bm_video.state import load_state
+from bm_video.state import _unescape, load_episode, load_state
 
 def set_youtube_thumbnail(yt_id: str, image: Path) -> bool:
     cmd = [

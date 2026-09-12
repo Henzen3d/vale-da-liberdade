@@ -128,6 +128,7 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
     l3_path = work / "lower-third.webm"
     try:
         from faceless_lower_third import clip_payload, date_from_audio, render_lower_third
+        from bm_video.state import _unescape, episode_date, one_line_subhead, ticker_headlines
 
         title = _unescape(episode.get("titulo") or "Brasil e Mundo")
         subhead = one_line_subhead(episode)

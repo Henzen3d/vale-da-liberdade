@@ -733,7 +733,19 @@ class BrandingIntroOutroTests(unittest.TestCase):
 class RecordMockupGotoTests(unittest.TestCase):
     """FNTK1AJegxI: pageVideo em loop + CDN nunca ociam. networkidle estoura 45s."""
 
-    def test_record_mockup_binds_split_helpers(self) -> None:
+    def test_split_modules_bind_runtime_names(self) -> None:
+        """1F9lpXrk5N0: NameError sys/_unescape após o split (upload e lower-third)."""
+        import bm_video.youtube as yt
+        import bm_video.render as rnd
+        import inspect
+
+        self.assertTrue(hasattr(yt, "sys"))
+        self.assertTrue(hasattr(yt, "subprocess"))
+        self.assertTrue(hasattr(yt, "re"))
+        self.assertTrue(hasattr(yt, "_unescape"))
+        src = inspect.getsource(rnd.compose_presenter)
+        self.assertIn("from bm_video.state import _unescape", src)
+
         """1F9lpXrk5N0: NameError probe_duration_s após o split bm_video."""
         import bm_video.capture as capmod
 
