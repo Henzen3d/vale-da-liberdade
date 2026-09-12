@@ -11,6 +11,8 @@ from unittest.mock import patch
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
+from bm_video import capture as cap
+from bm_video import render as rnd
 from bm_mockup_video import (
     MAX_PER_HOST,
     MAX_SCENES,
@@ -557,11 +559,11 @@ class HandlerCaptureOrderTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             shot_dir = Path(td)
             with (
-                patch.object(m, "try_handler_screenshot", fake_handler),
-                patch.object(m, "get_cached_screenshot", return_value=None),
-                patch.object(m, "save_cached_screenshot", return_value=None),
-                patch.object(m, "_shot_looks_blank", fake_blank),
-                patch.object(m, "_open_sync_playwright", boom),
+                patch.object(cap, "try_handler_screenshot", fake_handler),
+                patch.object(cap, "get_cached_screenshot", return_value=None),
+                patch.object(cap, "save_cached_screenshot", return_value=None),
+                patch.object(cap, "_shot_looks_blank", fake_blank),
+                patch.object(cap, "_open_sync_playwright", boom),
             ):
                 out = m.capture_sources(scenes, shot_dir)
 
@@ -641,7 +643,7 @@ class BrandingIntroOutroTests(unittest.TestCase):
             fake_composed = work / "outro_ep_custom.mp4"
             fake_composed.write_bytes(b"x" * 60_000)
 
-            with patch.object(m, "compose_outro_for_episode", return_value=fake_composed) as mock_compose:
+            with patch.object(rnd, "compose_outro_for_episode", return_value=fake_composed) as mock_compose:
                 out = m.resolve_outro_video(video_id="ep_custom", wallpaper=wp, work=work)
                 self.assertEqual(out, fake_composed)
                 self.assertTrue(mock_compose.called)
@@ -655,7 +657,7 @@ class BrandingIntroOutroTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             fake_audio = Path(td) / "audio.mp3"
             fake_audio.write_bytes(b"dummy")
-            with patch.object(m, "find_intro_audio", return_value=None):
+            with patch.object(rnd, "find_intro_audio", return_value=None):
                 res = m.prepare_audio_with_intro(fake_audio, Path(td))
                 self.assertEqual(res, fake_audio)
 
