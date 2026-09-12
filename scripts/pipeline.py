@@ -32,18 +32,15 @@ import json
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 
-# Adicionar diretório de scripts ao path para imports
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-sys.path.insert(0, str(SCRIPT_DIR))
-
-# Carregar variáveis de ambiente do .env do projeto
-from dotenv import load_dotenv
-load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+from _bootstrap import PROJECT_ROOT, SCRIPT_DIR  # noqa: E402
 
 from tts_preprocessor import (
     extract_manchetes,
@@ -914,45 +911,30 @@ def cmd_full(
     # Sempre validar estrutura do JSON (política C). MD "rico" não autoriza skip.
     ensure_roteiro_json(date, force=force_roteiro)
 
-    # 2.5. Título otimizado (skill youtube-journalistic-title-optimizer) — NÃO bloqueia
-    print("\n🎯 Etapa 2.5/8 — Título otimizado do episódio")
-    try:
-        title_script = SCRIPT_DIR / "title_optimizer.py"
-        if title_script.exists():
-            tr = subprocess.run(
-                [sys.executable, str(title_script), "--date", date],
-                capture_output=True, text=True,
-                env=os.environ.copy(), cwd=str(PROJECT_ROOT),
-            )
-            if tr.stdout:
-                lines = [l for l in tr.stdout.splitlines() if l.strip()]
-                print("\n".join(lines[-30:]))
-            if tr.returncode != 0:
-                print(f"⚠️  title_optimizer exit {tr.returncode} (não bloqueia): {(tr.stderr or '')[-300:]}")
-        else:
-            print("  (title_optimizer.py não encontrado, pulando)")
-    except Exception as e:
-        print(f"⚠️  title_optimizer falhou (não bloqueia): {e}")
+    # 2.5 + 2.6. Título ∥ descrição (Gemini flock no cliente; não bloqueia o full)
+    print("\n🎯📝 Etapa 2.5–2.6/8 — Título e descrição em paralelo")
 
-    # 2.6. Descrição otimizada (skill descricoes-vale-liberdade) — NÃO bloqueia
-    print("\n📝 Etapa 2.6/8 — Descrição otimizada do episódio")
-    try:
-        desc_script = SCRIPT_DIR / "description_optimizer.py"
-        if desc_script.exists():
-            dr = subprocess.run(
-                [sys.executable, str(desc_script), "--date", date],
-                capture_output=True, text=True,
-                env=os.environ.copy(), cwd=str(PROJECT_ROOT),
-            )
-            if dr.stdout:
-                lines = [l for l in dr.stdout.splitlines() if l.strip()]
-                print("\n".join(lines[-20:]))
-            if dr.returncode != 0:
-                print(f"⚠️  description_optimizer exit {dr.returncode} (não bloqueia): {(dr.stderr or '')[-300:]}")
-        else:
-            print("  (description_optimizer.py não encontrado, pulando)")
-    except Exception as e:
-        print(f"⚠️  description_optimizer falhou (não bloqueia): {e}")
+    def _title_step():
+        print("[title] início")
+        _run_subprocess_step(
+            SCRIPT_DIR / "title_optimizer.py",
+            ["--date", date],
+            label="title_optimizer",
+        )
+
+    def _desc_step():
+        print("[desc] início")
+        _run_subprocess_step(
+            SCRIPT_DIR / "description_optimizer.py",
+            ["--date", date],
+            label="description_optimizer",
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        ft = pool.submit(_title_step)
+        fd = pool.submit(_desc_step)
+        ft.result()
+        fd.result()
 
     # 3. Processar (render MD se template + TTS + metadados)
     print("\n📝 Etapa 3/7 — Processamento do roteiro (MD + TTS)")
@@ -1003,12 +985,11 @@ def cmd_full(
         except Exception as e:
             print(f"⚠️  thumbnail falhou (não bloqueia): {e}")
 
-    from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=2) as pool:
         fa = pool.submit(_ads_step)
-        ft = pool.submit(_thumb_step)
+        fth = pool.submit(_thumb_step)
         fa.result()
-        ft.result()
+        fth.result()
 
     # 6. Atualizar arquivo
     print("\n📁 Etapa 6/8 — Atualização do índice")

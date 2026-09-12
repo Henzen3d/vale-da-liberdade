@@ -71,9 +71,11 @@ def _keyword_overlap_score(text_a: str, text_b: str) -> float:
 # Desabilitar avisos de SSL inseguro (comum em portais locais)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Configuração de caminhos
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
+# Configuração de caminhos (bootstrap opt-in — plano 09)
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+from _bootstrap import PROJECT_ROOT, SCRIPT_DIR  # noqa: E402
 SOURCES_JSON = PROJECT_ROOT / "sources" / "sources.json"
 CACHE_JSON = PROJECT_ROOT / "sources" / "cache.json"
 
