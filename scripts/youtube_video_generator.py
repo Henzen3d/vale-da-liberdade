@@ -47,8 +47,8 @@ def run(cmd: list, tag: str) -> None:
         raise SystemExit(f"[youtube-video] FALHOU em: {tag}")
 
 
-def resolve_assets(date: str):
-    """Resolve áudio + thumbnail + título do episódio diário."""
+def resolve_assets(date: str, return_description: bool = False):
+    """Resolve áudio + thumbnail + título (+ opcional descrição) do episódio diário."""
     audio = ROOT / "public" / "audio" / f"{date}.mp3"
     if not audio.exists():
         # tenta o WAV completo como fallback
@@ -89,6 +89,14 @@ def resolve_assets(date: str):
     if not title:
         title = f"Vale da Liberdade — Edição de {date}"
 
+    # descrição otimizada (description_optimizer.py escreve episodes/{date}-description.txt)
+    description = ""
+    dpath = ROOT / "episodes" / f"{date}-description.txt"
+    if dpath.exists():
+        description = dpath.read_text(encoding="utf-8").strip()
+
+    if return_description:
+        return audio, thumb, title, description
     return audio, thumb, title
 
 
@@ -172,16 +180,19 @@ def main():
     args = ap.parse_args()
 
     if args.date:
-        audio, thumb, title = resolve_assets(args.date)
+        audio, thumb, title, description = resolve_assets(args.date, return_description=True)
         out = args.out or f"/tmp/vld_yt_{args.date}.mp4"
     else:
         if not args.audio or not args.thumbnail:
             raise SystemExit("[youtube-video] Use --date OU --audio+--thumbnail")
         audio, thumb = Path(args.audio), Path(args.thumbnail)
         title = ""
+        description = ""
         out = args.out or "/tmp/vld_yt_episodio.mp4"
 
     print(f"[youtube-video] título: {title}")
+    if args.date:
+        print(f"[youtube-video] desc:    {'OK (' + str(len(description)) + ' chars)' if description else 'não gerada'}")
     print(f"[youtube-video] áudio:   {audio}")
     print(f"[youtube-video] thumb:   {thumb}")
     print(f"[youtube-video] intro:   {'SIM' if INTRO.exists() else 'não (pulando)'}")

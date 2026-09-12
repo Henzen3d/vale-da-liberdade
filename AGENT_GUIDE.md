@@ -54,6 +54,12 @@ Formato mínimo do handoff:
 - Fase 2.5 incorporada: `x_engagement_score()` adicionado para tweets do X e ranking de relevância com pesos explícitos (`RELEVANCE_WEIGHTS`).
 - Nota: a integração do X já está ativa, mas os dados de engajamento são usados apenas quando o cache contém tweets válidos. A calibração do ranking foi feita com dados simulados para não bloquear o pipeline real.
 
+## Otimização de Metadados YouTube (Título & Descrição)
+
+- **Título (Etapa 2.5):** `scripts/title_optimizer.py` aplica a skill `youtube-journalistic-title-optimizer` e grava `episodes/{date}-title.txt` (40-60 chars, keyword-first, sem alarde).
+- **Descrição (Etapa 2.6):** `scripts/description_optimizer.py` aplica a skill `descricoes-vale-liberdade` e grava `episodes/{date}-description.txt` (gancho nas primeiras 2-3 linhas, SEO natural, sem URLs do ANCAPSU, link canônico do app PWA `https://news.mob.tec.br` e até 3 hashtags).
+- **Prompt canônico e guia do Hermes Agent:** Ver `prompts/hermes_agent_description_prompt.md`.
+
 ## Dicas para testes ponta-a-ponta
 
 - Use `episodes/roteiro-template.json` como base.
