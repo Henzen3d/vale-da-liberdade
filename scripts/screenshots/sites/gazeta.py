@@ -93,9 +93,16 @@ _CLEANUP_GAZETA_JS = """() => {
     removed.push('floating-share-bar');
   });
 
-  // 4. Configurar cabeçalho como static para não sobrepor o H1
-  document.querySelectorAll('header, #header-gp-sticky, [class*="headerGp"]').forEach(el => {
+  // 4. Remover cabeçalho clone sticky duplicado e sentinela (evita barra dupla sobreposta e espaço em branco)
+  document.querySelectorAll('#header-gp-sticky, [class*="header-sticky"], [class*="headerSentinel"]').forEach(el => {
+    el.remove();
+    removed.push('header-sticky-clone');
+  });
+
+  // 4.1 Garantir que o cabeçalho principal institucional (#header-gp) fique estático e sem vão antes do menu
+  document.querySelectorAll('#header-gp, header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
+    el.style.setProperty('margin', '0px', 'important');
   });
 
   // 5. Forçar carregamento das fotos da matéria

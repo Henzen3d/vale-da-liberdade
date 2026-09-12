@@ -131,7 +131,13 @@ _CLEANUP_FOLHA_JS = """() => {
     removed.push('floating-widget');
   });
 
-  // 8. Garantir que o cabeçalho institucional (.l-header) fique estático, visível e no topo
+  // 8. Remover o espaçador elástico dinâmico (.js-c-elastic-header) que causa o enorme vão em branco
+  document.querySelectorAll('.js-c-elastic-header, [class*="elastic-header"] + div:empty').forEach(el => {
+    el.remove();
+    removed.push('elastic-header-spacer');
+  });
+
+  // 8.1 Garantir que o cabeçalho institucional (.l-header) fique estático, visível e no topo
   document.querySelectorAll('.l-header, header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
     el.style.setProperty('display', 'block', 'important');
@@ -139,10 +145,17 @@ _CLEANUP_FOLHA_JS = """() => {
     el.style.setProperty('opacity', '1', 'important');
     el.style.setProperty('height', 'auto', 'important');
     el.style.setProperty('top', '0px', 'important');
+    el.style.setProperty('margin', '0px', 'important');
   });
-  document.querySelectorAll('.js-c-elastic-header').forEach(el => {
-    el.style.setProperty('height', 'auto', 'important');
-  });
+
+  // 8.2 Resetar margens e paddings de topo deixados pela barra UOL
+  document.documentElement.style.setProperty('padding-top', '0px', 'important');
+  document.documentElement.style.setProperty('margin-top', '0px', 'important');
+  if (document.body) {
+    document.body.style.setProperty('padding-top', '0px', 'important');
+    document.body.style.setProperty('margin-top', '0px', 'important');
+    document.body.classList.remove('l-page--barra-uol');
+  }
 
   // 9. Destravar scroll no html e body
   const force = (el, prop, val) => el && el.style.setProperty(prop, val, 'important');
@@ -164,6 +177,27 @@ _CLEANUP_FOLHA_JS = """() => {
 
   return {removed, count: removed.length};
 }"""
+
+
+# ---------------------------------------------------------------------------
+# CSS complementar para neutralizar o espaçador elástico dinâmico
+# ---------------------------------------------------------------------------
+
+_FOLHA_EXTRA_CSS = """
+.js-c-elastic-header,
+[class*="elastic-header"] + div:empty {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+body.l-page--barra-uol,
+body {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+"""
 
 
 # ---------------------------------------------------------------------------
@@ -193,6 +227,7 @@ class FolhaScraper(BaseScraper):
     def cleanup(self, page: Any) -> dict:
         """Remoção cirúrgica de paywall, banners e barras flutuantes da Folha."""
         try:
+            page.add_style_tag(content=_FOLHA_EXTRA_CSS)
             result = page.evaluate(_CLEANUP_FOLHA_JS)
             return {"handler": "folha", **result}
         except Exception as exc:
@@ -201,7 +236,10 @@ class FolhaScraper(BaseScraper):
     def _scroll_to_title(self, page: Any) -> dict:
         """Na Folha, posiciona no topo absoluto (y = 0) para preservar o logotipo icônico e a autoria."""
         try:
-            page.evaluate("window.scrollTo(0, 0)")
+            page.evaluate("""() => {
+                document.querySelectorAll('.js-c-elastic-header, [class*="elastic-header"] + div:empty').forEach(el => el.remove());
+                window.scrollTo(0, 0);
+            }""")
             return {"found": True, "y": 0, "header_preserved": True}
         except Exception as exc:
             return {"found": False, "error": str(exc)}

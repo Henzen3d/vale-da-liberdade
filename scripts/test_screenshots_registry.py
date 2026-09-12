@@ -47,6 +47,7 @@ REQUIRED_DOMAINS = (
     "infomoney.com.br",
     "intercept.com.br",
     "jota.info",
+    "jovempan.com.br",
     "metropoles.com",
     "noticias.uol.com.br",
     "nytimes.com",
