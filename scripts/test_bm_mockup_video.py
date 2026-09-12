@@ -604,6 +604,26 @@ class HandlerCaptureOrderTests(unittest.TestCase):
             self.assertTrue(called)
             self.assertTrue(result.get("ok"))
 
+    def test_handler_import_works_when_path0_is_scripts_dir(self) -> None:
+        """Produção: python3 scripts/bm_mockup_video.py — path[0]=scripts/."""
+        import sys
+        from pathlib import Path
+
+        import bm_mockup_video as m
+
+        root = Path(__file__).resolve().parent.parent
+        scripts_dir = str(root / "scripts")
+        old = list(sys.path)
+        try:
+            sys.path[:] = [scripts_dir] + [
+                p for p in old if p not in ("", str(root), scripts_dir)
+            ]
+            fn = m._import_screenshot_capture()
+            self.assertIsNotNone(fn)
+            self.assertTrue(callable(fn))
+        finally:
+            sys.path[:] = old
+
 
 class BrandingIntroOutroTests(unittest.TestCase):
     def test_find_intro_audio_detects_file(self):

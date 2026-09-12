@@ -35,6 +35,22 @@ from bm_video.state import (
     ticker_headlines,
 )
 
+def _import_screenshot_capture():
+    """`python3 scripts/bm_mockup_video.py` põe scripts/ em path[0]; sem o
+    ROOT do repo `from scripts.screenshots` quebra e o print cai no
+    Playwright cru (paywall Folha em xauvz73KEpA / 99MaNTs-qZg).
+    """
+    root = str(ROOT)
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    try:
+        from scripts.screenshots.runner import capture as clean_capture
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  screenshots.runner indisponível: {type(exc).__name__}: {exc}")
+        return None
+    return clean_capture
+
+
 def try_handler_screenshot(url: str, dest: Path, viewport: dict[str, int] | None = None) -> dict | None:
     """Captura via runner: handler dedicado ou BaseScraper (CSS/SPA).
 
@@ -42,9 +58,8 @@ def try_handler_screenshot(url: str, dest: Path, viewport: dict[str, int] | None
     exclusivo NÃO cai no Playwright cru — isso imprimia SPA (Polymarket)
     antes do CSS (6lZdp_xTADA).
     """
-    try:
-        from scripts.screenshots.runner import capture as clean_capture
-    except Exception:
+    clean_capture = _import_screenshot_capture()
+    if clean_capture is None:
         return None
     return clean_capture(
         url,
