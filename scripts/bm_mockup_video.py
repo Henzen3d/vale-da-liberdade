@@ -23,11 +23,24 @@ from bm_video import youtube as _youtube
 from bm_video.cli import main
 
 _this = _sys.modules[__name__]
-for _mod in (_constants, _state, _server, _capture, _render, _youtube, _cli):
+_submods = (_constants, _state, _server, _capture, _render, _youtube, _cli)
+for _mod in _submods:
     for _k, _v in vars(_mod).items():
         if _k.startswith("__"):
             continue
         setattr(_this, _k, _v)
+
+
+class _FacadeModule(_this.__class__):
+    def __setattr__(self, name: str, value: object) -> None:
+        super().__setattr__(name, value)
+        if not name.startswith("__"):
+            for mod in _submods:
+                if hasattr(mod, name):
+                    setattr(mod, name, value)
+
+
+_this.__class__ = _FacadeModule
 
 if __name__ == "__main__":
     raise SystemExit(main())

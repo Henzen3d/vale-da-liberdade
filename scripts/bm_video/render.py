@@ -1,7 +1,10 @@
 """FFmpeg, VA-API lock, intro/outro e muxing do vídeo BM."""
 from __future__ import annotations
 
-import fcntl
+try:
+    import fcntl
+except ImportError:  # Windows / hosts sem flock
+    fcntl = None
 import hashlib
 import json
 import os
@@ -32,12 +35,14 @@ def vaapi_encode_lock():
     class _Lock:
         def __enter__(self):
             self.f = open(VAAPI_LOCK_PATH, "w")
-            fcntl.flock(self.f.fileno(), fcntl.LOCK_EX)
+            if fcntl is not None:
+                fcntl.flock(self.f.fileno(), fcntl.LOCK_EX)
             return self
 
         def __exit__(self, *_exc):
             try:
-                fcntl.flock(self.f.fileno(), fcntl.LOCK_UN)
+                if fcntl is not None:
+                    fcntl.flock(self.f.fileno(), fcntl.LOCK_UN)
             finally:
                 self.f.close()
 
@@ -331,6 +336,8 @@ def compose_outro_for_episode(video_id: str, take: Path, wallpaper: Path | None,
         return None
 
     music = find_music_outro()
+    from bm_video.state import pick_wallpaper
+
     wp = wallpaper if (wallpaper and wallpaper.is_file()) else pick_wallpaper(video_id)
     if not wp or not wp.is_file():
         return None

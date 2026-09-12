@@ -743,8 +743,10 @@ class RecordMockupGotoTests(unittest.TestCase):
         self.assertTrue(hasattr(yt, "subprocess"))
         self.assertTrue(hasattr(yt, "re"))
         self.assertTrue(hasattr(yt, "_unescape"))
-        src = inspect.getsource(rnd.compose_presenter)
-        self.assertIn("from bm_video.state import _unescape", src)
+        src_pres = inspect.getsource(rnd.compose_presenter)
+        self.assertIn("from bm_video.state import _unescape", src_pres)
+        src_outro = inspect.getsource(rnd.compose_outro_for_episode)
+        self.assertIn("pick_wallpaper", src_outro)
 
         """1F9lpXrk5N0: NameError probe_duration_s após o split bm_video."""
         import bm_video.capture as capmod
