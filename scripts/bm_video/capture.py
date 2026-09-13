@@ -913,8 +913,16 @@ def record_mockup(
             }
             if first_xpost:
                 init_payload["xPost"] = first_xpost
+            # Injeta payload no runtime antes da renderização do HTML para
+            # evitar qualquer flash de placeholder de exemplo no frame zero.
+            page.add_init_script(
+                """(data) => {
+                  window.__VDL_INITIAL_DATA__ = data;
+                }""",
+                init_payload,
+            )
             # Query string no HTML estoura 404 no http.server (xauvz73KEpA).
-            # Estado vai via VDL_MOCKUP.update depois do goto limpo.
+            # Estado vai via add_init_script + VDL_MOCKUP.update.
             # pageVideo+CDN: nunca networkidle (FNTK1AJegxI).
             resp = page.goto(url, wait_until="domcontentloaded", timeout=45000)
             status = getattr(resp, "status", None)

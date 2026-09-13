@@ -28,11 +28,12 @@ _WAIT_CNN_CONTENT_JS = """() => {
     'h1.post__title',
     'h1.news__title',
     'article h1',
+    'main h1',
+    'h1',
     '.single-content',
     '.post__content',
     '.content__body',
     'article',
-    'h1',
   ];
   for (const s of sels) {
     const el = document.querySelector(s);
@@ -92,17 +93,22 @@ _CLEANUP_CNN_JS = """() => {
     removed.push('header-ads-slot-explicit');
   });
 
-  // Remover wrappers de anúncio com imagem de fundo ad-bg.png (barra cinza texturizada)
-  document.querySelectorAll('div, section, aside').forEach(el => {
-    if (el.querySelector('article, h1, .single-content, .post__content, .content__body')) return;
-    const bg = window.getComputedStyle(el).backgroundImage || '';
-    if (bg.includes('ad-bg.png')) {
+  // 2. Remover sidebar "Mais Lidas" e widgets laterais não relacionados
+  document.querySelectorAll('aside, [class*="sidebar"], [class*="mais-lidas"], [class*="trending-topics"]').forEach(el => {
+    if (el.querySelector('h1, article p, .single-content p')) return;
+    el.remove();
+    removed.push('sidebar-mais-lidas');
+  });
+
+  // Remover botões de expansão de imagem (ícone de zoom vermelho ↗, .fullScreenButton)
+  document.querySelectorAll('button:has(svg), .fullScreenButton, [class*="fullScreenButton"], [class*="expand-button"], [class*="enlarge-image"]').forEach(el => {
+    if (el.closest('figure, picture, .featuredImage, [class*="featuredImage"]') || el.classList.contains('fullScreenButton')) {
       el.remove();
-      removed.push('ad-bg-image');
+      removed.push('image-expand-icon');
     }
   });
 
-  // 2. Remover players de vídeo flutuantes/sticky, modais e banners LGPD
+  // 3. Remover players de vídeo flutuantes/sticky, modais e banners LGPD
   const floatingSelectors = [
     '.floating-player',
     '.video-sticky',
@@ -123,14 +129,13 @@ _CLEANUP_CNN_JS = """() => {
     });
   });
 
-  // 3. Tornar o cabeçalho institucional (logo CNN Brasil) estático e visível
-  document.querySelectorAll('header, .header, .site-header, .cnn-header, nav').forEach(el => {
+  // 4. Tornar o cabeçalho institucional (logo CNN Brasil) estático preservando flexbox
+  document.querySelectorAll('header, .header, .site-header, .cnn-header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
-    el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
   });
 
-  // 4. Destravar scroll, alturas e overflow no html e body
+  // 5. Destravar scroll, alturas e overflow no html e body
   const force = (el, prop, val) => el && el.style.setProperty(prop, val, 'important');
   force(document.documentElement, 'overflow', 'auto');
   force(document.documentElement, 'position', 'static');
@@ -141,7 +146,7 @@ _CLEANUP_CNN_JS = """() => {
     force(document.body, 'height', 'auto');
   }
 
-  // 5. Garantir que parágrafos, fotos e assinaturas estejam 100% visíveis
+  // 6. Garantir que parágrafos, fotos e assinaturas estejam 100% visíveis
   document.querySelectorAll('article *, .single-content *, .post__content *, .content__body *').forEach(el => {
     if (el.style.filter && el.style.filter !== 'none') el.style.filter = 'none';
     if (el.style.opacity && el.style.opacity !== '1') el.style.opacity = '1';
@@ -152,14 +157,23 @@ _CLEANUP_CNN_JS = """() => {
     }
   });
 
-  // 6. Forçar imagens da matéria com eager loading
+  // 7. Forçar imagens da matéria com eager loading
   document.querySelectorAll('img').forEach(img => {
     img.loading = 'eager';
-    if (img.dataset.src && (!img.src || img.src.startsWith('data:'))) {
-      img.src = img.dataset.src;
+    const ds = img.dataset.src || img.getAttribute('data-pagespeed-lazy-src') || img.getAttribute('data-original');
+    if (ds && (!img.src || img.src.startsWith('data:'))) {
+      img.src = ds;
     }
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('visibility', 'visible', 'important');
+  });
+
+  // 8. Legenda proporcional para CNN Brasil
+  document.querySelectorAll('figcaption, .featuredImage--caption, [class*="caption"]').forEach(cap => {
+    cap.style.setProperty('font-size', '13px', 'important');
+    cap.style.setProperty('line-height', '1.4', 'important');
+    cap.style.setProperty('color', '#737373', 'important');
+    cap.style.setProperty('margin-top', '6px', 'important');
   });
 
   return {removed, count: removed.length};

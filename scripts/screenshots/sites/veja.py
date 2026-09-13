@@ -41,13 +41,38 @@ _WAIT_VEJA_CONTENT_JS = """() => {
 
 
 # ---------------------------------------------------------------------------
-# JS cirúrgico de limpeza para Veja
-# ---------------------------------------------------------------------------
-
 _CLEANUP_VEJA_JS = """() => {
   const removed = [];
 
-  // 1. Remover modais, wrappers e overlays de paywall e assinatura (Abril/Piano)
+  // 1. Remover barra superior multimarca da Abril (#abril-nav-brands, .abril-brands, .brands-menu)
+  const abrilBrandSelectors = [
+    '#abril-nav-brands',
+    '.abril-brands',
+    '.brands-bar',
+    '.sub-nav-brands',
+    '.header-brands',
+    '[class*="brands-bar"]',
+    '.brands-menu',
+    '.brands-menu__swiper-container',
+    '.brands-menu__swiper',
+    'nav.brands-menu',
+    '.abril-nav',
+    '.subnav-brands',
+    '.brands-wrapper',
+    '.tree-brand',
+    '#menu-sites-abril',
+    '#ip_abril',
+    '#injected-paywall_cards',
+  ];
+
+  abrilBrandSelectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.remove();
+      removed.push(sel);
+    });
+  });
+
+  // 2. Remover modais, wrappers e overlays de paywall e assinatura (Abril/Piano)
   const paywallSelectors = [
     '#paywall-wrapper',
     '.paywall-wrapper',
@@ -57,7 +82,7 @@ _CLEANUP_VEJA_JS = """() => {
     '[data-paywall-wrapper]',
     '.piano-offer',
     '[id*="piano"]',
-    '[class*="piano-"]',
+    '[class*="piano"]',
     '.modal-paywall',
     '.c-subscribe-barrier',
     '.c-offer',
@@ -70,6 +95,7 @@ _CLEANUP_VEJA_JS = """() => {
     '#onetrust-banner-sdk',
     '#onetrust-consent-sdk',
     '.banner-lgpd',
+    '.abril-paywall',
   ];
 
   paywallSelectors.forEach(sel => {
@@ -81,7 +107,7 @@ _CLEANUP_VEJA_JS = """() => {
     });
   });
 
-  // 2. Remover anúncios, banners e widgets de publicidade/taboola
+  // 3. Remover anúncios, banners e widgets de publicidade/taboola
   const adSelectors = [
     '.c-ad',
     '[class*="ad-container"]',
@@ -110,7 +136,7 @@ _CLEANUP_VEJA_JS = """() => {
     });
   });
 
-  // 3. Remover barras flutuantes, toolbars de compartilhamento e footers fixos
+  // 4. Remover barras flutuantes, toolbars de compartilhamento e footers fixos
   const floatingSelectors = [
     '.c-floating-bar',
     '.floating-bar',
@@ -129,14 +155,14 @@ _CLEANUP_VEJA_JS = """() => {
     });
   });
 
-  // 4. Garantir que o cabeçalho institucional (logo Veja) fique estático e visível
-  document.querySelectorAll('header, .header, .site-header, .main-header, .c-header, nav').forEach(el => {
+  // 5. Garantir que o cabeçalho institucional (logo Veja) fique estático, centralizado e visível
+  document.querySelectorAll('header, .header, .site-header, .main-header, .c-header').forEach(el => {
     el.style.setProperty('position', 'static', 'important');
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
   });
 
-  // 5. Destravar scroll, alturas e overflow no html, body e containers
+  // 6. Destravar scroll, alturas e overflow no html, body e containers
   const force = (el, prop, val) => el && el.style.setProperty(prop, val, 'important');
   force(document.documentElement, 'overflow', 'auto');
   force(document.documentElement, 'position', 'static');
@@ -147,7 +173,7 @@ _CLEANUP_VEJA_JS = """() => {
     force(document.body, 'height', 'auto');
   }
 
-  // 6. Remover filtros de blur, restrições de max-height ou opacidade nos textos
+  // 7. Remover filtros de blur, restrições de max-height ou opacidade nos textos
   document.querySelectorAll('article *, .article-content *, .entry-content *, #content *, .content *').forEach(el => {
     if (el.style.filter && el.style.filter !== 'none') el.style.filter = 'none';
     if (el.style.opacity && el.style.opacity !== '1') el.style.opacity = '1';
@@ -160,14 +186,17 @@ _CLEANUP_VEJA_JS = """() => {
     }
   });
 
-  // 7. Forçar imagens da matéria com eager loading
+  // 8. Forçar imagens da matéria com eager loading
   document.querySelectorAll('img').forEach(img => {
     img.loading = 'eager';
-    if (img.dataset.src && (!img.src || img.src.startsWith('data:'))) {
-      img.src = img.dataset.src;
+    const ds = img.dataset.src || img.getAttribute('data-pagespeed-lazy-src') || img.getAttribute('data-original');
+    if (ds && (!img.src || img.src.startsWith('data:'))) {
+      img.src = ds;
     }
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('visibility', 'visible', 'important');
+    img.style.setProperty('max-width', '100%', 'important');
+    img.style.setProperty('height', 'auto', 'important');
   });
 
   return {removed, count: removed.length};

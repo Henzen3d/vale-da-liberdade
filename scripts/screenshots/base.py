@@ -168,30 +168,45 @@ _FIND_TITLE_JS = """() => {
 
 # JS para forçar lazy-load de imagens (dispara IntersectionObserver).
 _FORCE_LAZY_JS = """async () => {
-  // Substituir data-src / data-pagespeed-lazy-src / data-src-retina → src
+  // 1. Atualizar <picture> <source> lazy
+  document.querySelectorAll('source').forEach(s => {
+    const dss = s.dataset.srcset || s.getAttribute('data-lazy-srcset');
+    if (dss && !s.srcset) {
+      s.srcset = dss;
+    }
+  });
+
+  // 2. Substituir data-src / data-pagespeed-lazy-src / data-src-retina / data-original / data-src-full → src
   document.querySelectorAll('img').forEach(img => {
     const ds = img.dataset.src ||
                img.getAttribute('data-pagespeed-lazy-src') ||
                img.getAttribute('data-src-retina') ||
-               img.getAttribute('data-original');
+               img.getAttribute('data-original') ||
+               img.getAttribute('data-src-full') ||
+               img.getAttribute('data-lazy-src');
+    const dss = img.dataset.srcset || img.getAttribute('data-lazy-srcset');
+    if (dss && !img.srcset) {
+      img.srcset = dss;
+    }
     if (ds && (!img.src || img.src.startsWith('data:'))) {
       img.src = ds;
     }
     img.loading = 'eager';
     img.decoding = 'sync';
   });
-  // Scroll rápido para disparar observers, volta ao topo
-  const max = Math.min(document.body.scrollHeight, 2400);
+
+  // 3. Scroll rápido para disparar IntersectionObservers e voltar ao topo
+  const max = Math.min(document.body ? document.body.scrollHeight : 2400, 2400);
   for (let y = 0; y < max; y += 600) {
     window.scrollTo(0, y);
   }
   window.scrollTo(0, 0);
 
-  // Aguarda decodificação de imagens do topo da página
+  // 4. Aguarda decodificação de imagens do topo da página
   try {
     const topImgs = Array.from(document.querySelectorAll('img')).filter(im => {
       const r = im.getBoundingClientRect();
-      return r.top < 1400 && im.src && !im.src.startsWith('data:');
+      return r.top < 1500 && im.src && !im.src.startsWith('data:');
     });
     await Promise.all(topImgs.map(im => (im.decode ? im.decode().catch(() => {}) : Promise.resolve())));
   } catch (e) {}
@@ -207,10 +222,13 @@ _CLEAN_PLACEHOLDERS_JS = """() => {
   };
 
   // 1. Placeholders de mídia vazios (hero cinza/branco sem imagem carregada)
-  // Segurança: se contiver uma tag img com src válido que não seja data:, NÃO esconde
+  // Segurança: se contiver uma tag img válida ou estiver dentro de article/main, NUNCA esconde
   document.querySelectorAll(
     'figure, picture, [data-testid="image"], [data-component="image-block"], .content-media, .content-featured-image, [class*="media-container"], [class*="hero-image"]'
   ).forEach(el => {
+    if (el.closest('article, [role="main"], .c-news__body, .article-content, .entry-content, .post__content')) {
+      return;
+    }
     const img = el.tagName === 'IMG' ? el : el.querySelector('img');
     const r = el.getBoundingClientRect();
     const hasValidSrc = img && img.src && !img.src.startsWith('data:') && img.src.length > 15;
@@ -468,8 +486,8 @@ class BaseScraper:
     def _wait_for_styles(self, page: Any, timeout_ms: int = 15000) -> bool:
         """Garante que stylesheets e fontes foram carregadas antes de capturar.
 
-        SPA (Polymarket) injeta CSS via JS depois do load: styleSheets vazio
-        no HTML cru não basta — também olha getComputedStyle(body).
+        SPA (Polymarket/Next.js) injeta CSS via JS depois do load: styleSheets vazio
+        no HTML cru não basta — também olha getComputedStyle(body) e document.fonts.
         """
         _WAIT_CSS_JS = """() => {
           const body = document.body;
@@ -499,7 +517,7 @@ class BaseScraper:
             page.evaluate("() => (document.fonts && document.fonts.ready) || true")
         except Exception:
             pass
-        page.wait_for_timeout(400)
+        page.wait_for_timeout(500)
         return True
 
     def _take_screenshot(self, page: Any, dest: Path) -> Path:
@@ -554,31 +572,28 @@ class BaseScraper:
                 )
                 result["http_status"] = resp.status if resp else None
 
-                # 1.1 Garantir que CSS/fontes foram carregados antes de inspecionar conteúdo
-                self._wait_for_styles(page)
-
                 # 2. Esperar conteúdo renderizar (site-specific)
                 content_ok = self.wait_for_content(page)
                 result["meta"]["content_found"] = content_ok
 
-                # 3. Fechar cookies
+                # 3. Garantir que CSS/fontes foram carregados antes de inspecionar layout
+                self._wait_for_styles(page)
+
+                # 4. Fechar cookies
                 cookie_sel = self._dismiss_cookies(page)
                 result["meta"]["cookie_dismissed"] = cookie_sel
 
-                # 4. Injetar CSS genérico
+                # 5. Injetar CSS genérico
                 self._inject_cleanup_css(page)
 
-                # 5. Limpeza específica do site (paywall, ads, overlays)
+                # 6. Forçar imagens lazy ANTES de limpar placeholders (evita race condition)
+                self._force_lazy_images(page)
+
+                # 7. Limpeza específica do site (paywall, ads, overlays, barras)
                 cleanup_info = self.cleanup(page)
                 result["meta"]["cleanup"] = cleanup_info
 
-                # 6. Limpeza de placeholders vazios e ads órfãos
-                self._clean_placeholders(page)
-
-                # 7. Forçar imagens lazy
-                self._force_lazy_images(page)
-
-                # 8. Re-executar limpeza de placeholders pós-lazy
+                # 8. Limpeza de placeholders vazios e ads órfãos
                 self._clean_placeholders(page)
 
                 # 9. Posicionar no título
@@ -586,7 +601,7 @@ class BaseScraper:
                 result["meta"]["title"] = title_info
 
                 # 10. Pausa final para renderização
-                page.wait_for_timeout(500)
+                page.wait_for_timeout(600)
 
                 # 11. Capturar
                 self._take_screenshot(page, dest)

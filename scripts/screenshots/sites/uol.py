@@ -102,11 +102,16 @@ _CLEANUP_UOL_JS = """() => {
     });
   });
 
-  // 3. Remover barras flutuantes, vídeos sticky e footers promocionais
+  // 3. Remover barras flutuantes, vídeos sticky, widgets de áudio/player e footers promocionais
   const floatingSelectors = [
     '.c-floating-video',
     '.floating-video',
     '.c-floating-bar',
+    '.c-floating-widget',
+    '[class*="floating-widget"]',
+    '[class*="floating-player"]',
+    '[class*="floating-audio"]',
+    '[class*="audio-player--floating"]',
     '.c-share-bar--floating',
     '.c-bottom-fixed',
     '[class*="bottom-bar"]',
@@ -152,14 +157,39 @@ _CLEANUP_UOL_JS = """() => {
     }
   });
 
-  // 7. Forçar imagens da matéria com eager loading
+  // 7. Forçar imagens da matéria com eager loading e suporte a srcset
+  document.querySelectorAll('article figure, .c-news__body figure, figure').forEach(fig => {
+    fig.style.setProperty('display', 'block', 'important');
+    fig.style.setProperty('visibility', 'visible', 'important');
+    fig.style.setProperty('margin', '0 0 16px 0', 'important');
+  });
+
   document.querySelectorAll('img').forEach(img => {
     img.loading = 'eager';
-    if (img.dataset.src && (!img.src || img.src.startsWith('data:'))) {
-      img.src = img.dataset.src;
+    const ds = img.dataset.src || img.getAttribute('data-src-full') || img.getAttribute('data-pagespeed-lazy-src');
+    if (ds && (!img.src || img.src.startsWith('data:'))) {
+      img.src = ds;
+    }
+    const dss = img.dataset.srcset || img.getAttribute('data-lazy-srcset');
+    if (dss && !img.srcset) {
+      img.srcset = dss;
     }
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('visibility', 'visible', 'important');
+    img.style.setProperty('max-width', '100%', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+  });
+
+  // 8. Ajustar legendas e créditos de fotos para tipografia proporcional (12px/13px discreto)
+  document.querySelectorAll('figcaption, .c-news__caption, .caption, figure span, [class*="caption"]').forEach(cap => {
+    if (cap.closest('article, .c-news__body, .text, figure')) {
+      cap.style.setProperty('font-size', '13px', 'important');
+      cap.style.setProperty('line-height', '1.4', 'important');
+      cap.style.setProperty('color', '#64748b', 'important');
+      cap.style.setProperty('font-weight', '400', 'important');
+      cap.style.setProperty('margin-top', '6px', 'important');
+      cap.style.setProperty('display', 'block', 'important');
+    }
   });
 
   return {removed, count: removed.length};

@@ -890,8 +890,8 @@ class MockupShotSwapTests(unittest.TestCase):
             / "references/youtube/mockup-browser/mockup-brower.html"
         ).read_text(encoding="utf-8")
         self.assertIn("_applyPageMedia", html)
-        self.assertIn("pre.onload", html)
-        self.assertIn("news.mob.tec.br", html)
+        self.assertIn("__VDL_INITIAL_DATA__", html)
+        self.assertIn("initVDL", html)
 
     def test_usable_filter_retains_x_post_scene(self) -> None:
         """Cenas do X com x_post devem ser utilizáveis mesmo sem screenshot estático."""

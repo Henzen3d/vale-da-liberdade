@@ -79,7 +79,7 @@ MAX_PER_HOST = 2
 
 CACHE_MAX_AGE_HOURS = 36.0
 
-CAPTURE_CACHE_VERSION = "handler-v4"
+CAPTURE_CACHE_VERSION = "handler-v5"
 
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "

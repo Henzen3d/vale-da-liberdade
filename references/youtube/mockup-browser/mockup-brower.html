@@ -2215,7 +2215,7 @@ html, body {
 
         <div class="url-input-box">
           <span class="url-lock">🔒</span>
-          <span class="url-text" id="urlText">https://<b>valedaliberdade.com.br</b>/diario/blumenau-infraestrutura</span>
+          <span class="url-text" id="urlText"></span>
         </div>
       </div>
     </div>
@@ -3485,20 +3485,10 @@ const VDL_MOCKUP_ENGINE = {
       if (d.pageImage && (!pageVideo || !d.pageVideo)) {
         const src = d.pageImage;
         const current = pageShot.getAttribute("src") || "";
-        if (current === src || current.endsWith(src)) {
-          pageShot.hidden = false;
-          return;
+        if (current !== src && !current.endsWith(src)) {
+          pageShot.src = src;
         }
-        const pre = new Image();
-        pre.onload = () => {
-          pageShot.src = src;
-          pageShot.hidden = false;
-        };
-        pre.onerror = () => {
-          pageShot.src = src;
-          pageShot.hidden = false;
-        };
-        pre.src = src;
+        pageShot.hidden = false;
       } else if (!d.pageImage) {
         pageShot.removeAttribute("src");
         pageShot.hidden = true;
@@ -3670,8 +3660,15 @@ window.addEventListener("message", (event) => {
 });
 
 function initVDL() {
+  if (window.__VDL_INITIAL_DATA__) {
+    VDL_MOCKUP_ENGINE.data = Object.assign({}, VDL_MOCKUP_ENGINE.data, window.__VDL_INITIAL_DATA__);
+  }
   VDL_MOCKUP_ENGINE.loadFromURL();
-  VDL_MOCKUP_ENGINE.update();
+  if (window.__VDL_INITIAL_DATA__) {
+    VDL_MOCKUP_ENGINE.update(window.__VDL_INITIAL_DATA__);
+  } else {
+    VDL_MOCKUP_ENGINE.update();
+  }
 }
 
 if (document.readyState === "loading") {
