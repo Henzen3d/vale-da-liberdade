@@ -112,15 +112,20 @@ if [[ ! -x "$PROJECT_PY" ]]; then
 elif [[ "$LEFT" -lt "$MOCKUP_MIN_S" ]]; then
   echo "WARN: pulando mockup nesta rodada (restam ${LEFT}s < ${MOCKUP_MIN_S}s) — próximo tick" >&2
 else
-  set +e
-  timeout --kill-after=30s "${LEFT}s" \
-    "$PROJECT_PY" scripts/bm_mockup_video.py --pending --upload --privacy public --max 1 --days 2
-  VIDEO_RC=$?
-  set -e
-  if [[ "$VIDEO_RC" -eq 124 ]]; then
-    echo "WARN: bm_mockup_video parado no orçamento Hermes (fila audio rc=$QUEUE_RC)" >&2
-  elif [[ "$VIDEO_RC" -ne 0 ]]; then
-    echo "WARN: bm_mockup_video exit $VIDEO_RC (fila audio rc=$QUEUE_RC)" >&2
+  # GUARD: nunca rodar 2 mockups em paralelo (mesmo work dir/output → conflito de webm).
+  # Se um mockup manual ou do tick anterior ainda roda, pula e deixa o outro terminar.
+  if ! flock -n /tmp/vale-bm-mockup.lock -c "echo mockup-ok" >/dev/null 2>&1; then
+    echo "WARN: outro bm_mockup_video já em execução (lock /tmp/vale-bm-mockup.lock) — pulando nesta rodada" >&2
+  else
+    set +e
+    flock /tmp/vale-bm-mockup.lock -c "timeout --kill-after=30s ${LEFT}s \"$PROJECT_PY\" scripts/bm_mockup_video.py --pending --upload --privacy public --max 1 --days 2"
+    VIDEO_RC=$?
+    set -e
+    if [[ "$VIDEO_RC" -eq 124 ]]; then
+      echo "WARN: bm_mockup_video parado no orçamento Hermes (fila audio rc=$QUEUE_RC)" >&2
+    elif [[ "$VIDEO_RC" -ne 0 ]]; then
+      echo "WARN: bm_mockup_video exit $VIDEO_RC (fila audio rc=$QUEUE_RC)" >&2
+    fi
   fi
 fi
 
