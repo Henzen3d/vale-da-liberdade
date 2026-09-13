@@ -915,11 +915,13 @@ def record_mockup(
                 init_payload["xPost"] = first_xpost
             # Injeta payload no runtime antes da renderização do HTML para
             # evitar qualquer flash de placeholder de exemplo no frame zero.
+            # Playwright Python: add_init_script aceita UM único string —
+            # serializa o payload embutido no corpo do script (fb4958f bug).
+            import json as _json
             page.add_init_script(
-                """(data) => {
-                  window.__VDL_INITIAL_DATA__ = data;
-                }""",
-                init_payload,
+                "window.__VDL_INITIAL_DATA__ = "
+                + _json.dumps(init_payload, ensure_ascii=False)
+                + ";"
             )
             # Query string no HTML estoura 404 no http.server (xauvz73KEpA).
             # Estado vai via add_init_script + VDL_MOCKUP.update.
