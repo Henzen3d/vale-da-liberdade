@@ -320,5 +320,43 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 
 ---
 
-*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-09-03*
+## [2026-09-13] Captura de telas da Bloomberg bloqueada por WAF PerimeterX — Handler dedicado com bypass via leitor HTML
+
+- **Contexto:** Matérias da Bloomberg (`bloomberg.com`) falhavam na captura de screenshot com erro `HTTP 403` no `runner.py` e no pipeline de vídeo Brasil & Mundo (`try_handler_screenshot`).
+- **O que aconteceu:** A Bloomberg utiliza WAF PerimeterX (HUMAN Security) na CDN Fastly, que barra acessos headless diretos exibindo a tela de desafio *"Are you a robot? / Pressione e Segure"*. Além disso, o site injeta paywall Fortress (`#fortress-container-root`), modal de consentimento (`#cmp-consent-modal`), barra duplicada mobile/desktop e `--leaderboard-ad-height: 320px` no `<html>`.
+- **Causa raiz:** Requisições Playwright padrão e curl caem no bloqueio WAF da Bloomberg. Spoofar User-Agent no leitor causa mismatch de fingerprint TLS contra Cloudflare Turnstile.
+- **Solução aplicada:**
+  1. Criado o handler cirúrgico dedicado `scripts/screenshots/sites/bloomberg.py` decorado com `@register("bloomberg.com")`.
+  2. Implementado fallback de resgate via Jina Reader (`https://r.jina.ai/<url>` com header `X-Return-Format: html` e sem UA forçado), obtendo o HTML autêntico da matéria com estilos e imagens oficiais de `assets.bwbx.io`.
+  3. Remoção de `<script>`s para prevenir congelamento de rede e reativação do paywall no browser local.
+  4. Limpeza cirúrgica: remoção do Fortress paywall, `#cmp-consent-modal`, `.nav-ui-Nav__mobile__TmF2X`, destravamento de scroll no `<html>`/`<body>` e posicionamento preciso no H1 com respiro institucional.
+  5. Adicionado `bloomberg.com` aos `REQUIRED_DOMAINS` em `scripts/test_screenshots_registry.py` com teste unitário aprovado (13/13).
+- **Como evitar/repetir no futuro:** O Hermes Agent pode selecionar e indicar URLs da Bloomberg (`bloomberg.com`) em pautas e roteiros com garantia de captura limpa e em alta definição via `try_handler_screenshot`.
+
+---
+
+## [2026-09-13] Captura de telas do The Economist bloqueada por Cloudflare & DataDome — Handler dedicado com resgate de espelho de alta fidelidade
+
+- **Contexto:** Matérias do The Economist (`economist.com`) falhavam na captura de screenshot com erro `HTTP 403` no `runner.py` e `try_handler_screenshot`.
+- **O que aconteceu:** O site utiliza dupla proteção WAF (Cloudflare Turnstile *"Just a moment..."* + DataDome *"Please enable JS and disable any ad blocker"*), barrando tanto acessos Playwright headless diretos quanto chamadas genéricas de leitores automatizados.
+- **Causa raiz:** O WAF barra requisições automatizadas diretas. No entanto, espelhos de preservação digital de alta fidelidade (Archive.today / Archive.ph) preservam a árvore DOM real, folhas de estilo e imagens completas da matéria.
+- **Solução aplicada:**
+  1. Criado o handler cirúrgico dedicado `scripts/screenshots/sites/economist.py` decorado com `@register("economist.com")`.
+  2. Implementado resgate automatizado via espelho digital (`archive.ph`/`archive.today`/`archive.is`), extraindo o HTML com todos os estilos originais em `requests` com TLS nativo.
+  3. Injeção de `<base href="https://archive.ph/">` e remoção de `<script>`s para garantir que vetores/imagens (como a clássica caixa vermelha com o logo The Economist) carreguem instantaneamente sem travar a navegação.
+  4. Higienização cirúrgica: remoção de `#HEADER`, `#DIVSHARE`, `#hashtags`, normalização do container `#CONTENT` (eliminando bordas cinzas do arquivo e expandindo o grid editorial com fundo `#FFFFFF`) e enquadramento ideal no H1.
+  5. Adicionado `economist.com` aos `REQUIRED_DOMAINS` em `scripts/test_screenshots_registry.py` com testes unitários (14/14 PASS).
+- **Como evitar/repetir no futuro:** O Hermes Agent pode utilizar links de `economist.com` para análises de economia global e tecnologia com renderização broadcast impecável.
+
+## Incidente 13/09 — `exit 2` no cron BM (falso alarme): cp in-place durante tick em execução
+
+- **O que apareceu:** ticker do cron `web-jornal-brasil-mundo-hourly` (tick 22:00 UTC / 19h BRT) reportou "Script exited with code 2" + `bm-hourly-pipeline.sh: line 110: syntax error near unexpected token '('`.
+- **Efeito real:** nenhum — o vídeo daquele tick publicou normalmente (`cYrvOiQ-5Ow`, 19:33:28 BRT), offloads de HD e tudo. O filho `bm_mockup_video.py` virou órfão ao abortar o bash, mas completou o trabalho.
+- **Causa raiz:** as ~19:10 BRT, `cp scripts/bm-hourly-pipeline.sh ~/.hermes/scripts/bm-hourly-pipeline.sh` (o guard `flock`, +439 bytes) rodou **enquanto o tick 19:00 ainda estava ativo** — o bash lê script incrementalmente por byte offset; quando o mockup terminou e o shell tentou ler as linhas seguintes, o arquivo já era a versão maior → offset no meio do token `(` → syntax error → `exit "$QUEUE_RC"` = 2.
+- **Como evitar:** editar a cópia de `~/.hermes/scripts/` **só com tick ocioso** (`pgrep -f bm_mockup_video.py` vazio). Se precisar trocar em execução: escrever em arquivo temporário + `mv` (swap atômico de link, sem resize no meio da leitura) — na prática, `mv` também confere, porque o bash já alocou o buffer; mas a regra segura é: **nunca `cp` sobre arquivo que o cron está executando agora**.
+- **Reforço:** o guard `flock /tmp/vale-bm-mockup.lock` (commit `36d8557`) já impede 2 mockups em paralelo; a fila de vídeo do cron agora pula a etapa se um lote manual segurar o lock.
+
+---
+
+*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-09-13*
 
