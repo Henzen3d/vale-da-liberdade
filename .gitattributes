@@ -1,3 +1,10 @@
 # Shell no cron Linux: shebang com CRLF vira "cannot execute: required file not found" (exit 127).
 # Incidente 2026-09-10: scripts/cron-wrapper.sh e scripts/tts_fallback_edge.sh.
 *.sh text eol=lf
+
+# Python: normalizar para LF na checkout para impedir churn de CRLF quando o
+# editor dev (VSCode Windows/macOS em modo CRLF) salva no working tree.
+# Incidente 2026-09-13: estadao.py/test_screenshots_registry.py voltaram em
+# CRLF sob o diff (churn 1843 linhas) e capture.py (regressão add_init_script
+# 2-arg + CRLF); git diff -w só escondia a metade.
+*.py text eol=lf

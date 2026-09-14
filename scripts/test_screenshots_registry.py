@@ -22,6 +22,7 @@ REQUIRED_DOMAINS = (
     "bbc.co.uk",
     "bbc.com",
     "blogdobg.com.br",
+    "bloomberg.com",
     "brasil247.com",
     "brasildefato.com.br",
     "cartacapital.com.br",
@@ -34,6 +35,7 @@ REQUIRED_DOMAINS = (
     "diariodocentrodomundo.com.br",
     "diariodopoder.com.br",
     "economia.uol.com.br",
+    "economist.com",
     "educacao.uol.com.br",
     "estadao.com.br",
     "folha.com.br",
@@ -137,6 +139,26 @@ class RegistryTests(unittest.TestCase):
         self.assertIsNotNone(kalshi)
         assert kalshi is not None
         self.assertEqual(kalshi.name, "kalshi")
+
+    def test_bloomberg_has_handler(self):
+        scraper = get_scraper("bloomberg.com")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "bloomberg")
+        sub_scraper = get_scraper("www.bloomberg.com")
+        self.assertIsNotNone(sub_scraper)
+        assert sub_scraper is not None
+        self.assertEqual(sub_scraper.name, "bloomberg")
+
+    def test_economist_has_handler(self):
+        scraper = get_scraper("economist.com")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "economist")
+        sub_scraper = get_scraper("www.economist.com")
+        self.assertIsNotNone(sub_scraper)
+        assert sub_scraper is not None
+        self.assertEqual(sub_scraper.name, "economist")
 
     def test_base_scraper_waits_for_styles_and_never_aborts_css(self):
         from scripts.screenshots.base import BaseScraper, _should_block
