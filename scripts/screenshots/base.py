@@ -391,19 +391,12 @@ class BaseScraper:
             locale="pt-BR",
             user_agent=USER_AGENT,
             timezone_id="America/Sao_Paulo",
-            extra_http_headers={
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-                "Sec-Ch-Ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-                "Sec-Ch-Ua-Mobile": "?0",
-                "Sec-Ch-Ua-Platform": '"Windows"',
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Site": "none",
-                "Sec-Fetch-User": "?1",
-                "Upgrade-Insecure-Requests": "1",
-            },
         )
+        # Atenção: NÃO injetar headers (Sec-Fetch-*, Sec-Ch-Ua-*, Accept) no context.
+        # extra_http_headers de context contamina TODOS os subrecursos (CSS/fontes/
+        # imagens herdam Sec-Fetch-Site: none → rejeitados com ERR_INVALID_ARGUMENT,
+        # prints saem sem CSS — evidência jDB1eEHhmO8/5b630845a7e849d8, 83+ falhas).
+        # Headers de navegação reais (UA coerente) já estão via user_agent/locale.
         # Bloqueia ads/trackers na camada de rede, mas NUNCA bloqueia CSS ou fontes
         def _route_filter(route):
             try:
@@ -418,6 +411,46 @@ class BaseScraper:
 
         ctx.route("**/*", _route_filter)
         return browser, ctx
+
+    def _open_page_safe(self, browser: Any, ctx: Any) -> Any:
+        """Abre a page; se o contexto revalidar timezone e falhar (Chromium
+        flaky sob carga), reconstrói o contexto SEM timezone_id e retenta.
+
+        O timezone_id não é crítico para screenshots de notícia (o conteúdo
+        já tá em pt-BR/locale fixo); remover ele preserva a captura.
+        Não afeta o CSS: o bug de prints sem estilo era o extra_http_headers
+        (Sec-Fetch-*), já removido acima — este método é só blindagem flaky.
+        """
+        try:
+            return ctx.new_page()
+        except Exception as exc:
+            if "timezone" not in str(exc).lower():
+                raise
+            try:
+                fallback = browser.new_context(
+                    viewport=self.viewport,
+                    locale="pt-BR",
+                    user_agent=USER_AGENT,
+                )
+                # Replica o filtro de rota do contexto original (ads/paywall),
+                # sem headers e sem timezone, para manter o mesmo comportamento.
+                def _route_filter(route):
+                    try:
+                        req = route.request
+                        if req.resource_type in ("stylesheet", "font"):
+                            return route.continue_()
+                        if _should_block(req.url):
+                            return route.abort()
+                    except Exception:
+                        pass
+                    return route.continue_()
+
+                fallback.route("**/*", _route_filter)
+                self._fallback_ctx = fallback
+                return fallback.new_page()
+            except Exception:
+                # Não conseguiu reconstruir — deixa o erro original subir.
+                raise exc
 
     def _apply_stealth(self, page: Any) -> None:
         """Aplica playwright-stealth se disponível e habilitado."""
@@ -558,7 +591,7 @@ class BaseScraper:
         try:
             with sync_playwright() as pw:
                 browser, ctx = self._launch_context(pw)
-                page = ctx.new_page()
+                page = self._open_page_safe(browser, ctx)
                 self._apply_stealth(page)
 
                 # 0. Preparação pré-navegação (se necessária)

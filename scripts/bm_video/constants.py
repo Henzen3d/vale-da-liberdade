@@ -79,7 +79,11 @@ MAX_PER_HOST = 2
 
 CACHE_MAX_AGE_HOURS = 36.0
 
-CAPTURE_CACHE_VERSION = "handler-v5"
+# handler-v6: remove extra_http_headers (Sec-Fetch-*) do BaseScraper._launch_context.
+# O header context estava contaminando CSS/fontes/imagens → prints sem estilo
+# (evidência jDB1eEHhmO8/cYrvOiQ-5Ow e os 3 prints sem CSS de Poder360/Brasil247).
+# Bump invalida a cache v5 (prints quebrados congelados sob handler-v5).
+CAPTURE_CACHE_VERSION = "handler-v6"
 
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "

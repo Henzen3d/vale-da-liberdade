@@ -667,10 +667,6 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     "image/avif,image/webp,image/apng,*/*;q=0.8"
                 ),
                 "Upgrade-Insecure-Requests": "1",
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Site": "none",
-                "Sec-Fetch-User": "?1",
             },
         )
         last_domain = ""
