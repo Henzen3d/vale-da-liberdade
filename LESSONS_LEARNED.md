@@ -358,5 +358,14 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 
 ---
 
-*Mantido por: Hermes Agent / Antigravity | Última atualização: 2026-09-13*
+## [2026-09-16] Modo 8 — calibração final do Modelo 3 + tradução automática de tweets estrangeiros
+
+- **Contexto:** o Modo 8 (X-Post) foi reescrito no layout **Modelo 3 — Cinematic Prime 3D Glass** e precisou de calibração de geometria, tipografia e tradução de posts estrangeiros antes do uso em produção.
+- **O que foi feito:**
+  1. Card travado: `width: 1250px` / `height: 720px` (min/max idem) em `top: 44px` dentro de `#broadcastStage` (`top: 36px`) — faixa de tela **Y 80 → Y 800**. Invariante de segurança: `36 + 44 + 720 ≤ 890` (safe zone do palco), de modo que o card nunca invade o Lower Third (**Y 880–1080**). Mídia do tweet em altura fixa 350px + Ken Burns (`scale: 1.05`, 10s).
+  2. Tipografia adaptativa `.is-text-only`: sem mídia, `.x-body` centraliza (`flex: 1`) e a fonte escala por contagem de caracteres — 56px (≤90), 50px (≤160), 44px (≤260), 38px (≤380), 33px (>380).
+  3. `scripts/bm_video/translation.py`: `is_portuguese()` heurística (stopwords PT/EN/ES + caracteres exclusivos `ã/õ/ê/ô/ç` vs `ñ/¿/¡`) preserva posts locais sem latência; tradução via `youtube_captions._gemini_text` (cascade `gemini-3.1-flash-lite` → `gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash-lite` → `gemma-4-31b-it`), cache sha256 em `output/brasil_e_mundo/x_translations_cache.json` (`.gitignore`), preservando `original_text` e `is_translated`. Integrado em `capture.py` (`fetch_x_post_data`) e `state.py` (`_enrich_x_post_speaker`), ambas envoltas em `try/except` — falha de tradução nunca aborta a gravação.
+- **Causa raiz dos bugs corrigidos no commit:** a suíte de regressão estava **stale** — esperava `top: 24px` e mídia `380px` (valores da versão anterior do Modelo 3, HEAD tinha `width: 1040px`), enquanto o mockup já estava calibrado com `top: 44px` / `350px` / `1250px`. **Lição:** após qualquer calibração visual, sincronizar os asserts de geometria no mesmo commit — senão a suíte passa a falsa-falha e ninguém confia nela.
+- **Como evitar/repetir no futuro:** Mudar a geometria do card? Atualizar junto (a) `docs/BM-VIDEO-LAYOUT.md` § Modo 8, (b) os asserts de `test_modelo3_css_geometry` e (c) manter a paridade byte a byte `mockup-browser.html` ≡ `mockup-brower.html`. Commits de calibração visual sem esses 3 passos criam drift silencioso entre mockup, testes e docs.
+- **Commit:** `bc676a7` (branch `feat/evolucao-visual-broadcast`). Suíte: 25/25 aprovados.
 

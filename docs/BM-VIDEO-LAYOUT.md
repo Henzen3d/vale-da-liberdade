@@ -43,13 +43,57 @@ Aliases de roteamento no engine (`VDL_MOCKUP.update`): kinds `x-post`, `x` e `tw
 
 ### Modo 8 — Card do X (`#xCard` / `.bcard-x-post`)
 
+**Layout: Modelo 3 — Cinematic Prime 3D Glass** (referência `mockup-x-modelo3.html`).
+
+Estrutura do stage: `#xStageRoot` (raiz, fundo diagonal + luz ambiente) e `#xCard` são **siblings** dentro de `#broadcastStage` — o card *não* é filho do stage root. O speaker VIP (`#xSpeakerBox`, quadrante superior esquerdo, avatar 300px + selo verificado) também é filho do stage root.
+
+#### Geometria calibrada do card
+
+| Propriedade | Valor | Por quê |
+|---|---|---|
+| `width` | `1250px` | card ampliado do Modelo 3 |
+| `height` | `720px` (+ `min-height`/`max-height` idem) | **altura travada** — não deforma com ou sem mídia |
+| `top` | `44px` (dentro de `#broadcastStage` em `top: 36px`) | faixa de tela **Y 80 → Y 800** |
+| `right` | `44px` | alinhado à direita |
+| `transform` | `rotateY(-1.8deg) rotateX(1deg)` | perspectiva 3D do vidro |
+| `z-index` | `32` | à frente das diagonais (stage root = 30) |
+
+**Clearances:** 80px livres do topo da tela e 90px livres acima da safe zone **Y 890** do palco (`bottom: 190px` do stage). Lower Third ocupa **Y 880–1080** — o card nunca o invade. Invariante: `36 + 44 + 720 ≤ 890`.
+
+Mídia do tweet: `#xMediaBox` com altura fixa **350px** + Ken Burns suave (`scale: 1.05` em 10s). Texto base: 38px.
+
+#### Tipografia adaptativa sem imagem (`.is-text-only`)
+
+Quando o post não tem mídia, `transitionToX` adiciona a classe `.is-text-only`: `.x-body` ganha `flex: 1` e centraliza verticalmente no card, e a fonte é escalada por contagem de caracteres:
+
+| Texto | Fonte | line-height | Peso |
+|---|---|---|---|
+| ≤ 90 chars | `56px` | 1.32 | 700 |
+| 91–160 | `50px` | 1.34 | 600 |
+| 161–260 | `44px` | 1.36 | 600 |
+| 261–380 | `38px` | 1.38 | 600 |
+| > 380 | `33px` | 1.40 | 500 |
+
+Com mídia, a fonte volta ao padrão editorial 38px e `.x-body` é limitado a `max-height: 160px`.
+
+#### Pipeline de tradução automática
+
+`scripts/bm_video/translation.py` garante que posts estrangeiros cheguem em português ao card:
+
+1. **Detecção:** `is_portuguese()` heurística (stopwords PT/EN/ES + caracteres exclusivos como `ã/õ/ê/ô/ç` vs `ñ/¿/¡`) — posts locais não geram requisição.
+2. **Cascade LLM:** `youtube_captions._gemini_text` → `gemini-3.1-flash-lite` → `gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash-lite` → `gemma-4-31b-it`, com tom jornalístico pt-BR.
+3. **Cache persistente:** sha256 do texto em `output/brasil_e_mundo/x_translations_cache.json` (já coberto por `.gitignore`).
+4. **Preservação:** `text` traduzido + `original_text` original + `is_translated: True`.
+
+Integrado em dois pontos de entrada: `fetch_x_post_data()` (`capture.py`) e `_enrich_x_post_speaker()` (`state.py`, dentro de `_build_mockup_update_payload`). Ambos envolvem a chamada em `try/except` — falha de tradução nunca aborta a gravação.
+
 - **Identidade:** avatar com fallback monograma SVG, nome de exibição, selo verificado, @handle.
 - **Corpo:** texto integral com destaques e links.
 - **Mídia:** `#xMediaBox` — fotos/gráficos `name=large` baixados para `/shots/x-media-{id}.jpg`.
 - **Métricas:** respostas, reposts, curtidas; micro-animação de coração `#f91880`.
 - **GSAP:** `transitionToX` desce `browserEl` e sobe o card (`y: 140→0`, `scale: 0.95→1`, elastic) + pop no like.
 - **Payload:** `_build_mockup_update_payload()` em `scripts/bm_video/state.py` (campo `xPost`).
-- **Regressão:** `tests/test_x_post_mockup_integration.py` (DOM, `transitionToX`, `MOCKUP_HTML`, payload).
+- **Regressão:** `tests/test_x_post_mockup_integration.py` — 25 testes (DOM, geometria, tipografia adaptativa, tradução, `transitionToX`, `MOCKUP_HTML`, payload).
 
 Fluxo (áudio → tela):
 
@@ -117,7 +161,7 @@ references/youtube/mockup-browser/wallpaper/
 - Escolha: `md5(video_id) % n` — o mesmo episódio sempre pega o mesmo fundo
 - O mockup aplica em `#sceneWallpaper` (`object-fit: cover`)
 - HTML do mockup (oficial): `references/youtube/mockup-browser/mockup-browser.html`
-- Alias legado (não editar só este): `mockup-brower.html`
+- Alias legado: `mockup-brower.html` — **deve ser mantido 100% idêntico byte a byte** ao oficial (o teste `test_mockup_browser_files_exist_and_in_sync` barra divergência). Editar sempre o oficial e copiar por cima; nunca editar só o alias.
 
 ## Captura das matérias
 
