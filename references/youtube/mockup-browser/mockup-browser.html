@@ -2004,134 +2004,356 @@ html, body {
 /* ------------------------------------------------------------
    7. X-POST CARD (Publicação do X / Redes Sociais)
    ------------------------------------------------------------ */
-.bcard-x-post {
-  width: 1040px;
-  max-width: 90vw;
-  max-height: 720px;
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 28px 36px 24px;
-  box-shadow: 
-    0 35px 85px rgba(15, 23, 42, 0.22),
-    0 8px 24px rgba(15, 23, 42, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.06);
-  color: #0f1419;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(212, 160, 23, 0.35);
-  font-family: var(--font-body);
-}
-
-.x-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-  position: relative;
-}
-
-.x-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #e2e8f0;
-  flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+.broadcast-stage {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  right: 0;
+  bottom: 190px; /* Safe zone: 1080 - 190 = Y 890 (livre acima do LT) */
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 30;
+  pointer-events: none;
+  perspective: 1400px;
 }
 
-.x-avatar img {
+/* ============================================================
+   MODO 8 • X-POST (Modelo 3 — Cinematic Prime 3D Glass)
+   Painel diagonal duplo + Speaker VIP + Card 3D ampliado.
+   Geometria calibrada p/ o stage 1920x1080 do mockup:
+   top:36 / bottom:190 → área livre Y 36..890.
+   - Speaker: quadrante sup. esquerdo, avatar 300px (cabeça
+     termina ~Y 450; Peter ocupa a faixa Y 686..1080).
+   - Card: top 24, width 1250, mídia 380px → base ~Y 828,
+     respiro de ~52px acima do Lower Third (Y 880).
+   ============================================================ */
+
+/* --- Camada de fundo do modo X (stage inteiro 1920x1080) --- */
+.x-stage-root {
+  position: absolute;
+  top: -36px;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  z-index: 30;
+  pointer-events: none;
+  display: none;
+  perspective: 1400px;
+  background: 
+    radial-gradient(circle at 78% 30%, rgba(59, 130, 246, 0.12) 0%, transparent 48%),
+    radial-gradient(circle at 20% 80%, rgba(212, 160, 23, 0.08) 0%, transparent 45%),
+    linear-gradient(135deg, #f8fafc 0%, #edf2f7 50%, #e2e8f0 100%);
+  overflow: hidden;
+  box-shadow: 0 0 120px rgba(0, 0, 0, 0.75);
+}
+
+.x-stage-root.is-active {
+  display: block;
+}
+
+.x-ambient-light {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  right: 5%;
+  top: -10%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.14), transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* Camada 1: Sombra/Acento Traseiro translúcido */
+.diagonal-sublayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(219, 234, 254, 0.7), rgba(191, 219, 254, 0.4));
+  clip-path: polygon(0 0, 100% 0, 52% 100%, 0 100%);
+  filter: drop-shadow(15px 0 35px rgba(59, 130, 246, 0.15));
+}
+
+/* Camada 2: Painel Branco Puro com chanfro suave */
+.diagonal-main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 38%;
+  height: 100%;
+  z-index: 2;
+  filter: drop-shadow(25px 0 50px rgba(15, 23, 42, 0.12));
+}
+
+.diagonal-main-shape {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  clip-path: polygon(0 0, 100% 0, 46% 100%, 0 100%);
+  position: relative;
+}
+
+/* --- Speaker VIP (quadrante superior esquerdo) --- */
+.x-speaker-box {
+  position: absolute;
+  top: 44px;
+  left: 54px;
+  width: 340px;
+  z-index: 34;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.x-speaker-avatar-card {
+  position: relative;
+  padding: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 28px 70px rgba(15, 23, 42, 0.18),
+    0 10px 22px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.x-speaker-avatar {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: block;
+  background: #e2e8f0;
+}
+
+.x-speaker-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.x-avatar-fallback {
+.x-speaker-avatar .x-avatar-fallback {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 88px;
+  color: #334155;
+  letter-spacing: -1px;
+}
+
+/* Selo oficial de verificado flutuante no próprio círculo */
+.x-speaker-vip-badge {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.x-speaker-text {
+  margin-top: 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.x-speaker-name {
+  font-family: var(--font-body);
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  color: #090d16;
+  line-height: 1.1;
+}
+
+.x-speaker-handle {
+  margin-top: 4px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a73e8;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Card do X ampliado, em perspectiva 3D (altura fixa 720px perfeitamente centralizada entre topo e LT) --- */
+.bcard-x-post {
+  position: absolute;
+  top: 44px;
+  right: 44px;
+  width: 1250px;
+  max-width: 1250px;
+  height: 720px;
+  min-height: 720px;
+  max-height: 720px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow:
+    0 40px 100px rgba(15, 23, 42, 0.16),
+    0 15px 35px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  padding: 22px 36px 18px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 32;
+  transform: rotateY(-1.8deg) rotateX(1deg);
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  font-family: var(--font-body);
+  color: #0f1419;
+}
+
+.x-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.x-author-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.x-avatar img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: block;
+  background: #e2e8f0;
+}
+
+.x-avatar-fallback {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 24px;
   color: #475569;
 }
 
 .x-user-info {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  line-height: 1.25;
+  gap: 2px;
 }
 
 .x-name-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .x-display-name {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 800;
-  color: #0f1419;
-  letter-spacing: -0.2px;
+  color: #090d16;
+  letter-spacing: -0.5px;
 }
 
 .x-badge svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: block;
 }
 
 .x-handle {
-  font-size: 16px;
+  font-size: 21px;
   font-weight: 500;
   color: #536471;
 }
 
 .x-logo {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 28px;
-  height: 28px;
+  position: static;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
 }
 
 .x-logo svg {
-  width: 28px;
-  height: 28px;
-  fill: #0f1419;
+  width: 32px;
+  height: 32px;
+  fill: #000;
 }
 
+/* Texto com destaque editorial — adaptativo e responsivo */
 .x-body {
-  font-size: 24px;
-  font-weight: 400;
-  color: #0f1419;
-  line-height: 1.44;
-  margin-bottom: 16px;
+  font-size: 38px;
+  line-height: 1.40;
+  font-weight: 600;
+  color: #090d16;
+  letter-spacing: -0.4px;
   word-break: break-word;
+  transition: font-size 0.2s ease, line-height 0.2s ease;
 }
 
-.x-body a, .x-body .highlight {
+.x-body strong {
+  font-weight: 800;
+  color: #000000;
+}
+
+.x-body a, .x-body .highlight, .x-body .hashtag {
   color: #1d9bf0;
+  font-weight: 800;
   text-decoration: none;
-  font-weight: 500;
+  display: inline-block;
+  margin-top: 2px;
 }
 
+/* Quando não tem mídia (text-only): o body expande e centraliza o texto no card */
+.bcard-x-post.is-text-only .x-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 0;
+  min-height: 0;
+}
+
+.bcard-x-post:not(.is-text-only) .x-body {
+  max-height: 160px;
+  overflow: hidden;
+}
+
+/* Mídia com altura calibrada (350px) + Ken Burns suave */
 .x-media-box {
   width: 100%;
-  max-height: 330px;
-  border-radius: 16px;
+  height: 350px;
+  min-height: 350px;
+  flex-shrink: 0;
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid #cfd9de;
-  margin-bottom: 16px;
-  background: #f7f9f9;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #000;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2140,42 +2362,62 @@ html, body {
 .x-media-img {
   width: 100%;
   height: 100%;
-  max-height: 330px;
+  max-height: none;
   object-fit: cover;
   display: block;
+  transform-origin: center center;
 }
 
 .x-timestamp {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 500;
   color: #536471;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eff3f4;
-  margin-bottom: 12px;
 }
 
 .x-metrics-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .x-metric {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #536471;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.x-metric.liked {
+  color: #f91880;
 }
 
 .x-metric-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 25px;
+  height: 25px;
   fill: #536471;
   display: block;
 }
+
+img[hidden],
+.x-avatar img[hidden],
+.x-speaker-avatar img[hidden] {
+  display: none !important;
+}
+
+/* Elementos do Modelo 3 so ficam ocultos fora do Modo 8.
+   Em .is-active eles partem visiveis (GSAP faz a entrada animada e,
+   no freeze-shot sem GSAP, aparecem estaticamente sem flash). */
+.x-stage-root:not(.is-active) .diagonal-sublayer,
+.x-stage-root:not(.is-active) .diagonal-main,
+.x-stage-root:not(.is-active) .x-speaker-box {
+  opacity: 0;
+  visibility: hidden;
+}
+
 </style>
 </head>
 <body>
@@ -2565,25 +2807,58 @@ html, body {
       <div class="recorte-torn-edge-bottom"></div>
     </div>
 
-    <!-- 7. X-POST CARD (Publicação do X / Redes Sociais) -->
+    <!-- 7. X-POST CARD — Modelo 3 (Cinematic Prime 3D Glass) -->
+    <div id="xStageRoot" class="x-stage-root" aria-hidden="true">
+      <div class="x-ambient-light"></div>
+
+      <!-- Dupla Camada Diagonal (Profundidade) -->
+      <div class="diagonal-sublayer" id="xSublayer"></div>
+      <div class="diagonal-main" id="xMainDiagonal">
+        <div class="diagonal-main-shape"></div>
+      </div>
+
+      <!-- Speaker VIP (quadrante superior esquerdo) -->
+      <div class="x-speaker-box" id="xSpeakerBox">
+        <div class="x-speaker-avatar-card" id="xSpeakerAvatarCard">
+          <div class="x-speaker-avatar">
+            <img id="xSpeakerAvatarImg" src="" alt="Speaker" hidden>
+            <div id="xSpeakerAvatarFallback" class="x-avatar-fallback">VDL</div>
+          </div>
+          <div class="x-speaker-vip-badge" id="xSpeakerVerifiedBadge">
+            <svg viewBox="0 0 22 22" width="34" height="34">
+              <circle cx="11" cy="11" r="9" fill="#ffffff"/>
+              <path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1D9BF0"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="x-speaker-text" id="xSpeakerText">
+          <div class="x-speaker-name" id="xSpeakerName">Alexandre de Moraes</div>
+          <div class="x-speaker-handle" id="xSpeakerHandle">@alexandre</div>
+        </div>
+      </div>
+    </div>
+
     <div id="xCard" class="vdl-bcard bcard-x-post">
       <!-- Header -->
       <div class="x-header">
-        <div class="x-avatar">
-          <img id="xAvatarImg" src="" alt="Avatar" hidden>
-          <div id="xAvatarFallback" class="x-avatar-fallback">VDL</div>
-        </div>
-        <div class="x-user-info">
-          <div class="x-name-row">
-            <span class="x-display-name" id="xAuthorName">Alexandre de Moraes</span>
-            <span class="x-badge" id="xVerifiedBadge">
-              <svg viewBox="0 0 22 22" fill="none">
-                <circle cx="11" cy="11" r="11" fill="#1d9bf0" />
-                <path d="M9.5 14.25L6.25 11l1.06-1.06 2.19 2.19 4.69-4.69L15.25 8.5 9.5 14.25z" fill="#fff" />
-              </svg>
-            </span>
+        <div class="x-author-left">
+          <div class="x-avatar">
+            <img id="xAvatarImg" src="" alt="Avatar" hidden>
+            <div id="xAvatarFallback" class="x-avatar-fallback">VDL</div>
           </div>
-          <span class="x-handle" id="xHandle">@alexandre</span>
+          <div class="x-user-info">
+            <div class="x-name-row">
+              <span class="x-display-name" id="xAuthorName">Alexandre de Moraes</span>
+              <span class="x-badge" id="xVerifiedBadge">
+                <svg viewBox="0 0 22 22" fill="none">
+                  <circle cx="11" cy="11" r="11" fill="#1d9bf0" />
+                  <path d="M9.5 14.25L6.25 11l1.06-1.06 2.19 2.19 4.69-4.69L15.25 8.5 9.5 14.25z" fill="#fff" />
+                </svg>
+              </span>
+            </div>
+            <span class="x-handle" id="xHandle">@alexandre</span>
+          </div>
         </div>
         <div class="x-logo">
           <svg viewBox="0 0 24 24">
@@ -2758,6 +3033,12 @@ const VDL_MOCKUP_ENGINE = {
         el.style.opacity = "0";
       }
     });
+    // Desliga a camada de fundo do Modo 8 (diagonais + speaker + ambient)
+    const xRoot = document.getElementById("xStageRoot");
+    if (xRoot) {
+      xRoot.classList.remove("is-active");
+      xRoot.setAttribute("aria-hidden", "true");
+    }
   },
 
   /**
@@ -3323,13 +3604,28 @@ const VDL_MOCKUP_ENGINE = {
   },
 
   /**
+   * Helper: iniciais de um nome (fallback de avatar).
+   */
+  initialsOf(name = "") {
+    const parts = String(name).split(/\s+/).filter(Boolean);
+    if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return (parts[0] ? parts[0].slice(0, 2) : "X").toUpperCase();
+  },
+
+  /**
    * Transição 7: X-POST (Publicação do X / Redes Sociais)
+   * Layout Modelo 3 — Cinematic Prime 3D Glass:
+   *   - Painel diagonal duplo (.diagonal-sublayer + .diagonal-main)
+   *   - Speaker VIP no quadrante superior esquerdo (avatar 300px + selo)
+   *   - Card do tweet ampliado em perspectiva 3D (rotateY -1.8deg)
+   *   - Ken Burns suave na mídia do tweet
    */
   transitionToX(payload = {}) {
     this.currentMode = "x-post";
     const browserEl = document.getElementById("browserMockup");
     const stageEl = document.getElementById("broadcastStage");
     const cardEl = document.getElementById("xCard");
+    const rootEl = document.getElementById("xStageRoot");
     if (!cardEl || !stageEl) return;
 
     // Extrai payload com suporte a payload direto ou aninhado em visual_payload / x_post / xPost
@@ -3346,7 +3642,15 @@ const VDL_MOCKUP_ENGINE = {
     const likes = xp.likes || "45.1K";
     const verified = xp.verified !== false;
 
-    // Popula DOM
+    // --- Speaker da matéria (fallback para o próprio autor do tweet) ---
+    const speakerName = xp.speaker_name || xp.speaker || author;
+    let speakerHandle = xp.speaker_handle || "";
+    if (!speakerHandle) speakerHandle = handle;
+    if (!speakerHandle.startsWith("@")) speakerHandle = `@${speakerHandle}`;
+    const speakerAvatar = xp.speaker_avatar || xp.speaker_avatar_url || avatar;
+    const speakerVerified = xp.speaker_verified !== false && verified;
+
+    // Popula DOM do card
     document.getElementById("xAuthorName").textContent = author;
     document.getElementById("xHandle").textContent = handle;
     document.getElementById("xBodyText").textContent = text;
@@ -3360,33 +3664,112 @@ const VDL_MOCKUP_ENGINE = {
     const badge = document.getElementById("xVerifiedBadge");
     if (badge) badge.style.display = verified ? "inline-block" : "none";
 
-    // Avatar
+    // Avatar do autor do tweet
     const imgEl = document.getElementById("xAvatarImg");
     const fallbackEl = document.getElementById("xAvatarFallback");
     if (avatar) {
       imgEl.src = avatar;
       imgEl.hidden = false;
+      imgEl.style.display = "block";
       fallbackEl.style.display = "none";
       imgEl.onerror = () => {
         imgEl.hidden = true;
+        imgEl.style.display = "none";
         fallbackEl.style.display = "flex";
+        fallbackEl.textContent = this.initialsOf(author);
       };
     } else {
       imgEl.hidden = true;
+      imgEl.style.display = "none";
       fallbackEl.style.display = "flex";
-      const parts = author.split(/\s+/).filter(Boolean);
-      fallbackEl.textContent = (parts.length > 1 ? (parts[0][0] + parts[1][0]) : (parts[0] ? parts[0].slice(0, 2) : "X")).toUpperCase();
+      fallbackEl.textContent = this.initialsOf(author);
     }
 
-    // Mídia (Foto do Tweet)
+    // Speaker VIP (quadrante superior esquerdo)
+    document.getElementById("xSpeakerName").textContent = speakerName;
+    document.getElementById("xSpeakerHandle").textContent = speakerHandle;
+
+    const spkBadge = document.getElementById("xSpeakerVerifiedBadge");
+    if (spkBadge) spkBadge.style.display = speakerVerified ? "flex" : "none";
+
+    const spkImg = document.getElementById("xSpeakerAvatarImg");
+    const spkFallback = document.getElementById("xSpeakerAvatarFallback");
+    if (speakerAvatar) {
+      spkImg.src = speakerAvatar;
+      spkImg.hidden = false;
+      spkImg.style.display = "block";
+      spkFallback.style.display = "none";
+      spkImg.onerror = () => {
+        spkImg.hidden = true;
+        spkImg.style.display = "none";
+        spkFallback.style.display = "flex";
+        spkFallback.textContent = this.initialsOf(speakerName);
+      };
+    } else {
+      spkImg.hidden = true;
+      spkImg.style.display = "none";
+      spkFallback.style.display = "flex";
+      spkFallback.textContent = this.initialsOf(speakerName);
+    }
+
+    // Mídia (Foto do Tweet) e Tipografia Adaptativa
     const mediaBox = document.getElementById("xMediaBox");
     const mediaImg = document.getElementById("xMediaImg");
+    const bodyTextEl = document.getElementById("xBodyText");
+
     if (media) {
+      cardEl.classList.remove("is-text-only");
       mediaImg.src = media;
       mediaBox.style.display = "flex";
+      if (bodyTextEl) {
+        bodyTextEl.style.fontSize = "38px";
+        bodyTextEl.style.lineHeight = "1.40";
+        bodyTextEl.style.letterSpacing = "-0.4px";
+        bodyTextEl.style.fontWeight = "600";
+      }
     } else {
+      cardEl.classList.add("is-text-only");
       mediaBox.style.display = "none";
-      mediaImg.removeAttribute("src");
+      if (bodyTextEl) {
+        // Sem imagem: amplia tipografia proporcionalmente para ocupar o card de 760px com elegância
+        const len = (text || "").length;
+        let fSize = "44px";
+        let lHeight = "1.36";
+        let lSpacing = "-0.5px";
+        let fWeight = "600";
+
+        if (len <= 90) {
+          fSize = "56px";
+          lHeight = "1.32";
+          lSpacing = "-0.8px";
+          fWeight = "700";
+        } else if (len <= 160) {
+          fSize = "50px";
+          lHeight = "1.34";
+          lSpacing = "-0.6px";
+          fWeight = "600";
+        } else if (len <= 260) {
+          fSize = "44px";
+          lHeight = "1.36";
+          lSpacing = "-0.5px";
+          fWeight = "600";
+        } else if (len <= 380) {
+          fSize = "38px";
+          lHeight = "1.38";
+          lSpacing = "-0.4px";
+          fWeight = "600";
+        } else {
+          fSize = "33px";
+          lHeight = "1.40";
+          lSpacing = "-0.3px";
+          fWeight = "500";
+        }
+
+        bodyTextEl.style.fontSize = fSize;
+        bodyTextEl.style.lineHeight = lHeight;
+        bodyTextEl.style.letterSpacing = lSpacing;
+        bodyTextEl.style.fontWeight = fWeight;
+      }
     }
 
     // Reset like heart
@@ -3397,49 +3780,121 @@ const VDL_MOCKUP_ENGINE = {
     if (heartFilled) heartFilled.style.opacity = "0";
 
     this._hideAllCards();
+    // Ativa a camada de fundo do modo X (diagonais + speaker + ambient)
+    if (rootEl) {
+      rootEl.classList.add("is-active");
+      rootEl.setAttribute("aria-hidden", "false");
+    }
     stageEl.style.display = "flex";
     stageEl.style.visibility = "visible";
     stageEl.style.opacity = "1";
     cardEl.style.display = "flex";
     cardEl.style.visibility = "visible";
+    cardEl.style.transform = "rotateY(-1.8deg) rotateX(1deg)";
 
     if (window.gsap && !this.isFreezeShot()) {
       if (this.activeTimeline) this.activeTimeline.kill();
       const tl = gsap.timeline();
       this.activeTimeline = tl;
 
+      // Elementos do Modelo 3
+      const sub = document.getElementById("xSublayer");
+      const mainDiag = document.getElementById("xMainDiagonal");
+      const spkCard = document.getElementById("xSpeakerAvatarCard");
+      const spkText = document.getElementById("xSpeakerText");
+
+      // Reset de estado
+      gsap.set(sub, { x: -800, opacity: 0 });
+      gsap.set(mainDiag, { x: -600, opacity: 0 });
+      gsap.set(spkCard, { scale: 0.6, opacity: 0, rotation: 10 });
+      gsap.set(spkText, { y: 30, opacity: 0 });
+      gsap.set(cardEl, { opacity: 0, x: 140, rotateY: 15 });
+      gsap.set(mediaImg, { scale: 1 });
+
       if (browserEl && browserEl.style.display !== "none") {
         tl.to(browserEl, {
-          y: 90,
+          y: 60,
           opacity: 0,
-          scale: 0.96,
-          duration: 0.55,
+          scale: 0.97,
+          duration: 0.35,
           ease: "power2.inOut",
           onComplete: () => { browserEl.style.display = "none"; }
         });
       }
 
-      tl.fromTo(cardEl,
-        { opacity: 0, y: 140, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" },
-        "-=0.2"
-      );
+      // 1. Subcamada de luz (inicia imediatamente no tempo 0)
+      tl.to(sub, {
+        x: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out"
+      }, 0);
 
-      // Micro-animação de like pop aos +0.5s
-      if (likeBtn && heartFilled && heartOutline) {
-        tl.to(likeBtn, { scale: 0.82, duration: 0.12, ease: "power2.out" }, "+=0.5");
-        tl.to(likeBtn, { scale: 1, duration: 0.35, ease: "elastic.out(1, 0.4)" });
-        tl.set(heartOutline, { opacity: 0 }, "<");
-        tl.set(heartFilled, { opacity: 1 }, "<");
-        tl.to(likeCountEl, {
-          color: "#f91880",
-          duration: 0.1
-        }, "<");
+      // 2. Diagonal principal (painel branco)
+      tl.to(mainDiag, {
+        x: 0,
+        opacity: 1,
+        duration: 0.7,
+        ease: "power3.out"
+      }, "-=0.6");
+
+      // 3. Avatar VIP do speaker (entrada elástica)
+      tl.to(spkCard, {
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.85,
+        ease: "elastic.out(1, 0.45)"
+      }, "-=0.45");
+
+      // 4. Nome + @handle do speaker
+      tl.to(spkText, {
+        y: 0,
+        opacity: 1,
+        duration: 0.45,
+        ease: "power2.out"
+      }, "-=0.45");
+
+      // 5. Card 3D (volta à perspectiva final -1.8deg)
+      tl.to(cardEl, {
+        x: 0,
+        rotateY: -1.8,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.4");
+
+      // 6. Efeito Ken Burns na imagem do tweet
+      tl.to(mediaImg, {
+        scale: 1.05,
+        duration: 10,
+        ease: "none"
+      }, "-=0.2");
+
+      // 7. Micro-pulse no like (exatamente aos 0.5s do Ken Burns, idêntico ao modelo3 de referência)
+      if (likeBtn) {
+        tl.to(likeBtn, {
+          scale: 1.35,
+          duration: 0.18,
+          ease: "power2.out"
+        }, "-=9.5");
+        if (heartOutline && heartFilled) {
+          tl.set(heartOutline, { opacity: 0 }, "<");
+          tl.set(heartFilled, { opacity: 1 }, "<");
+        }
+        if (likeCountEl) {
+          tl.to(likeCountEl, { color: "#f91880", duration: 0.1 }, "<");
+        }
+        tl.to(likeBtn, {
+          scale: 1,
+          duration: 0.35,
+          ease: "elastic.out(1.2, 0.3)"
+        }, "-=9.3");
       }
     } else {
       if (browserEl) browserEl.style.display = "none";
       cardEl.style.opacity = "1";
-      cardEl.style.transform = "none";
+      cardEl.style.transform = "rotateY(-1.8deg) rotateX(1deg)";
     }
   },
 
@@ -3505,7 +3960,10 @@ const VDL_MOCKUP_ENGINE = {
 
     // Roteamento inteligente de modos visuais
     const kind = (newData.kind || newData.visual_component || "").toLowerCase();
-    const payload = Object.assign({}, newData.visual_payload || newData);
+    const hasVisualPayload = newData.visual_payload && typeof newData.visual_payload === "object" && Object.keys(newData.visual_payload).length > 0;
+    const payload = Object.assign({}, hasVisualPayload ? newData.visual_payload : newData);
+    if (newData.xPost) payload.xPost = newData.xPost;
+    if (newData.x_post) payload.x_post = newData.x_post;
     if (newData.visual_variant) {
       this.data.visual_variant = newData.visual_variant;
       payload.visual_variant = newData.visual_variant;

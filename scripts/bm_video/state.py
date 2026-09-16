@@ -715,9 +715,42 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
     url = _omnibox_url(beat_v2.get("url"))
     if url:
         payload["url"] = url
-    if x_post:
-        payload["xPost"] = x_post
+    # kind x-post sempre carrega xPost (mesmo vazio) — o enrich cobre os defaults
+    if x_post or kind == "x-post":
+        payload["xPost"] = _enrich_x_post_speaker(x_post or {})
     return payload
+
+
+def _enrich_x_post_speaker(x_post: dict) -> dict:
+    """Garante que o x_post carregue os dados do speaker da matéria.
+
+    O layout Modelo 3 mostra um Speaker VIP no quadrante superior esquerdo.
+    Sem speaker secundário explícito, o próprio autor do tweet é o speaker.
+    """
+    xp = dict(x_post or {})
+    author = xp.get("author_name") or xp.get("author") or ""
+    handle = xp.get("handle") or xp.get("screen_name") or ""
+    avatar = xp.get("avatar") or xp.get("avatar_url") or xp.get("profile_image_url") or ""
+    verified = xp.get("verified", True)
+
+    if not xp.get("speaker_name"):
+        xp["speaker_name"] = author or "Autoridade"
+    if not xp.get("speaker_handle"):
+        xp["speaker_handle"] = handle
+    if not xp.get("speaker_avatar"):
+        xp["speaker_avatar"] = avatar
+    # False explícito é intencional — só preenche se a chave estiver ausente
+    if "speaker_verified" not in xp:
+        xp["speaker_verified"] = verified
+
+    # Garante que textos em idioma estrangeiro sejam traduzidos para português
+    try:
+        from .translation import enrich_x_post_translation
+        xp = enrich_x_post_translation(xp)
+    except Exception as exc:
+        pass
+
+    return xp
 
 
 def _safe_mockup_update(page: Any, payload: dict, *, label: str = "") -> None:

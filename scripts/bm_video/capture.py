@@ -295,7 +295,7 @@ def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
         except Exception:
             media_rel = media_url
 
-    return {
+    post_data = {
         "author_name": author_name,
         "handle": handle,
         "avatar": avatar_rel,
@@ -307,6 +307,14 @@ def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
         "likes": likes,
         "verified": True,
     }
+
+    try:
+        from .translation import enrich_x_post_translation
+        post_data = enrich_x_post_translation(post_data)
+    except Exception as exc:
+        print(f"  ⚠️  falha ao verificar/traduzir x_post: {exc}")
+
+    return post_data
 
 
 def _find_ytdlp() -> str:
