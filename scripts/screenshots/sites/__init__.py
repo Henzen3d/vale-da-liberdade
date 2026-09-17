@@ -21,6 +21,10 @@ _REGISTRY: dict[str, type] = {}
 def register(*domains: str):
     """Decorador que registra uma classe de scraper para um ou mais domínios.
 
+    Marca ``is_dedicated_handler = True`` — assim a camada genérica de
+    paywall/ads sabe que NÃO deve rodar para este site (ele tem limpeza
+    cirúrgica própria e funcional).
+
     Uso::
 
         @register("g1.globo.com", "globo.com")
@@ -30,6 +34,8 @@ def register(*domains: str):
     def _decorator(cls: type) -> type:
         for d in domains:
             _REGISTRY[d.lower().removeprefix("www.")] = cls
+        # Handler dedicado: suprime a camada genérica de paywall/ads.
+        cls.is_dedicated_handler = True
         return cls
     return _decorator
 

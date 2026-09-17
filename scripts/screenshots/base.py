@@ -23,6 +23,12 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from scripts.screenshots.paywall import (
+    _GENERIC_PAYWALL_JS,
+    detect_block,
+    record_capture_telemetry,
+)
+
 
 # ---------------------------------------------------------------------------
 # Constantes
@@ -328,6 +334,11 @@ class BaseScraper:
     domains: tuple[str, ...] = ()
     # Permite desabilitar stealth se causar distorção de layout (ex.: Claudio Dantas)
     stealth_enabled: bool = True
+    # True quando é um handler dedicado de site (subclasse de sites/*.py).
+    # A camada genérica de paywall/ads só roda quando isto é False, ou seja,
+    # só atende sites SEM handler dedicado — handlers exclusivos e funcionais
+    # fazem sua própria limpeza cirúrgica.
+    is_dedicated_handler: bool = False
 
     def __init__(
         self,
@@ -345,9 +356,20 @@ class BaseScraper:
         """Lógica de limpeza específica do site (paywall, ads, etc.).
 
         Retorna dict com metadados do que foi removido.
-        A implementação base aplica apenas o CSS genérico e dismiss de cookies.
+        A implementação base aplica a camada genérica de paywall/anúncios
+        (``_GENERIC_PAYWALL_JS``) por cima do CSS injetado — assim qualquer
+        domínio, inclusive sem handler dedicado, ganhe tratamento de
+        overlays de assinatura, modais e ads órfãos.
         """
-        return {"handler": "generic"}
+        return self._generic_paywall_cleanup(page)
+
+    def _generic_paywall_cleanup(self, page: Any) -> dict:
+        """Aplica a camada genérica de paywall/ads (segunda linha)."""
+        try:
+            result = page.evaluate(_GENERIC_PAYWALL_JS)
+            return {"handler": "generic", **result}
+        except Exception as exc:
+            return {"handler": "generic", "error": str(exc)[:300]}
 
     def prepare_page(self, page: Any, url: str) -> None:
         """Hook para inicialização pré-navegação (ex: pré-aquecer cookies de sessão)."""
@@ -588,6 +610,7 @@ class BaseScraper:
             result["error"] = f"playwright não instalado: {e}"
             return result
 
+        _t0 = time.time()
         try:
             with sync_playwright() as pw:
                 browser, ctx = self._launch_context(pw)
@@ -604,6 +627,18 @@ class BaseScraper:
                     timeout=self.timeout_ms,
                 )
                 result["http_status"] = resp.status if resp else None
+
+                # 1.1. Detecção de bloqueio WAF/bot-wall/paywall duro
+                #      (Akamai/PerimeterX/DataDome rende PNG de ~28 KB que
+                #       passa nos filtros de tamanho/branco e virava cena)
+                block_marker = detect_block(page, result["http_status"])
+                if block_marker:
+                    result["error"] = f"bloqueio detectado ({block_marker})"
+                    result["meta"]["blocked"] = block_marker
+                    page.close()
+                    ctx.close()
+                    browser.close()
+                    return result
 
                 # 2. Esperar conteúdo renderizar (site-specific)
                 content_ok = self.wait_for_content(page)
@@ -626,6 +661,13 @@ class BaseScraper:
                 cleanup_info = self.cleanup(page)
                 result["meta"]["cleanup"] = cleanup_info
 
+                # 7.1. Camada genérica de paywall/ads — ATENÇÃO:
+                #      roda SOMENTE para sites SEM handler dedicado (fallback
+                #      genérico). Handlers exclusivos e funcionais fazem sua
+                #      própria limpeza cirúrgica e podem suprimir esta camada
+                #      retornando {"skip_generic": True} no cleanup().
+                if not self.is_dedicated_handler:
+                    result["meta"]["generic_layer"] = self._generic_paywall_cleanup(page)
                 # 8. Limpeza de placeholders vazios e ads órfãos
                 self._clean_placeholders(page)
 
@@ -660,4 +702,5 @@ class BaseScraper:
             if dest.exists() and dest.stat().st_size > MIN_SHOT_BYTES:
                 result["path"] = str(dest)
 
+        record_capture_telemetry(result, time.time() - _t0)
         return result

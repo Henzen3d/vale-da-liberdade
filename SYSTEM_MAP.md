@@ -94,6 +94,10 @@ Pasta gitignored: `references/youtube/mockup-browser/`. Spec: `docs/BM-VIDEO-LAY
 | `scripts/youtube_uploader.py` | `bm_mockup_video.py` | Arquivo MP4 + Metadados | Vídeo publicado no YouTube | `google-api-python-client` |
 | `scripts/thumbnail_generator.py` | `publish_site.py` / manual | Notícia principal / Episódio | `thumbnails/{date}/{id}.webp` | Pillow, DashScope / Imagen 4 |
 | `scripts/hermes_youtube_thumbnail.py` | `bm_mockup_video.py` / manual | Vídeo ID + Título + Highlight | Capa 1280x720 (Peter Presenter) | Playwright / HTML template |
+| `scripts/screenshots/runner.py` | `try_handler_screenshot` / CLI manual | URL da matéria (`--url`) | Screenshot limpo PNG em `output/screenshots/<domain>/` | Playwright, Chromium headless; despacha para handler dedicado em `scripts/screenshots/sites/` (Bloomberg, The Economist, FT, WSJ, Antagonista, Estadão, Folha, G1, NYT etc.) ou cai no `BaseScraper` genérico |
+| `scripts/screenshots/paywall.py` | `BaseScraper.capture()` / `WafRecoveryMixin` | Página renderizada + status HTTP | Bloqueios detectados e página recuperada | `detect_block()` (WAF/bot-wall/paywall duro), escada Archive.today→Archive.li/md→Jina Reader reutilizável, `record_capture_telemetry()`. Camada genérica de paywall/ads (`_GENERIC_PAYWALL_JS`) = segunda linha: só roda em sites **sem** handler dedicado (`is_dedicated_handler`) |
+| `scripts/screenshots/sites/ft.py` | `runner.py` (domínio `ft.com`, `www.ft.com`) | URL de matéria do FT | Screenshot limpo PNG com identidade institucional | Contorno de paywall duro via espelhos de alta fidelidade (DOM de ~1,4 MB); higienização cirúrgica de barras do archive, `#DIVSHARE`, `#article-progress` e botões de assinatura; fundo uniformizado `#fff1e5` |
+| `scripts/bm_video/capture.py` | `bm_mockup_video.py` (Modo 8) | URL de post do X | JSON com texto, autor, avatar, mídia e métricas | Cadeia Twitter Syndication CDN API (`cdn.syndication.twimg.com`) → oEmbed → widget Playwright (fallback); `html.unescape` e limpeza de `pic.twitter.com`/`t.co` |
 
 
 ---

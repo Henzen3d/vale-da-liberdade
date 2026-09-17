@@ -39,6 +39,7 @@ REQUIRED_DOMAINS = (
     "educacao.uol.com.br",
     "estadao.com.br",
     "folha.com.br",
+    "ft.com",
     "folha.uol.com.br",
     "g1.globo.com",
     "gazetadopovo.com.br",
@@ -76,6 +77,10 @@ REQUIRED_DOMAINS = (
     "kalshi.com",
     "folhadoestado.com.br",
     "terrabrasilnoticias.com",
+    "wsj.com",
+    "online.wsj.com",
+    "oantagonista.com.br",
+    "antagonista.com.br",
 )
 
 
@@ -160,6 +165,16 @@ class RegistryTests(unittest.TestCase):
         assert sub_scraper is not None
         self.assertEqual(sub_scraper.name, "economist")
 
+    def test_ft_has_handler(self):
+        scraper = get_scraper("ft.com")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "ft")
+        sub_scraper = get_scraper("www.ft.com")
+        self.assertIsNotNone(sub_scraper)
+        assert sub_scraper is not None
+        self.assertEqual(sub_scraper.name, "ft")
+
     def test_base_scraper_waits_for_styles_and_never_aborts_css(self):
         from scripts.screenshots.base import BaseScraper, _should_block
         import inspect
@@ -181,6 +196,24 @@ class RegistryTests(unittest.TestCase):
         src = inspect.getsource(runner.capture)
         self.assertIn("BaseScraper", src)
         self.assertIn("get_scraper", src)
+
+    def test_wsj_registered(self):
+        scraper = get_scraper("wsj.com")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "wsj")
+        online_scraper = get_scraper("online.wsj.com")
+        self.assertIsNotNone(online_scraper)
+        assert online_scraper is not None
+    def test_antagonista_registered(self):
+        scraper = get_scraper("oantagonista.com.br")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "antagonista")
+        sub_scraper = get_scraper("antagonista.com.br")
+        self.assertIsNotNone(sub_scraper)
+        assert sub_scraper is not None
+        self.assertEqual(sub_scraper.name, "antagonista")
 
 
 if __name__ == "__main__":

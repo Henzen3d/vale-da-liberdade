@@ -743,6 +743,21 @@ def _enrich_x_post_speaker(x_post: dict) -> dict:
     if "speaker_verified" not in xp:
         xp["speaker_verified"] = verified
 
+    # Sanitização defensiva de texto e nomes (remove &quot;, links finais pic.twitter.com/t.co)
+    import html
+    if xp.get("text"):
+        xp["text"] = html.unescape(str(xp["text"]))
+        xp["text"] = re.sub(
+            r"(?:https?://)?(?:pic\.(?:twitter|x)\.com/\S+|t\.co/\S+)\s*$",
+            "",
+            xp["text"],
+            flags=re.IGNORECASE,
+        ).strip()
+    if xp.get("author_name"):
+        xp["author_name"] = html.unescape(str(xp["author_name"]))
+    if xp.get("speaker_name"):
+        xp["speaker_name"] = html.unescape(str(xp["speaker_name"]))
+
     # Garante que textos em idioma estrangeiro sejam traduzidos para português
     try:
         from .translation import enrich_x_post_translation

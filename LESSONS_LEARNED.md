@@ -369,3 +369,29 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 - **Como evitar/repetir no futuro:** Mudar a geometria do card? Atualizar junto (a) `docs/BM-VIDEO-LAYOUT.md` § Modo 8, (b) os asserts de `test_modelo3_css_geometry` e (c) manter a paridade byte a byte `mockup-browser.html` ≡ `mockup-brower.html`. Commits de calibração visual sem esses 3 passos criam drift silencioso entre mockup, testes e docs.
 - **Commit:** `bc676a7` (branch `feat/evolucao-visual-broadcast`). Suíte: 25/25 aprovados.
 
+## [2026-09-17] Syndication CDN API no X vs oEmbed & widget — captura instantânea sem headless
+
+- **Contexto:** o Modo 8 (`fetch_x_post_data` em `scripts/bm_video/capture.py`) extraía texto/avatar/mídia em duas etapas — oEmbed (`publish.twitter.com/oembed`) para texto + widget Playwright (`platform.twitter.com/embed/Tweet.html`) para avatar e mídia. O widget exigia `page.goto` + `wait_for_timeout(2000)` dentro do headless: lento, sujeito a rate-limit e às vezes travava a captura.
+- **O que foi feito:** priorizar a **Twitter Syndication CDN API** (`cdn.syndication.twimg.com/tweet-result?id=<id>&lang=pt&token=4`) — endpoint público, sem auth, resposta JSON em ~50ms com `user.profile_image_url_https`, `mediaDetails[].media_url_https` e contadores. Avatar em 400x400 (`_normal.` → `_400x400.`), mídia em tamanho original. O widget Playwright virou só fallback (roda somente se ainda faltar avatar ou mídia), e o oEmbed virou complementar (preenche texto se Sindication não trouxer).
+- **Escape de HTML:** oEmbed e Syndication entregam `&quot;`, `&#39;`, `&amp;` literais no texto — o card renderizava aspas escapadas na tela. Corrigido com `html.unescape()` (Python) no `capture.py` e no `_enrich_x_post_speaker` (`state.py`), mais helper `_unescapeHtml()` no mockup (JS) como última camada antes do DOM.
+- **Lições:**
+  1. Ordem importa: Syndication → oEmbed → widget. A cadeia completa continua funcionando se a CDN cair (fallback preservado).
+  2. Baixar as imagens para o `shot_dir` local permanece essencial — a captura é offline e não engasga com revalidação de CDN no meio do render.
+  3. Limpeza de links residuais de foto anexada (`pic.twitter.com/\S+`, `t.co/\S+`) tem que ser **incondicional** no fim do texto, não condicional a `if media_url` — o item de mídia pode chegar vazio da CDN mesmo com o link no texto.
+- **Suíte:** `tests/test_x_post_mockup_integration.py` — 26/26 aprovados (incl. `test_transition_to_x_html_unescape_and_link_cleaning`, `test_enrich_x_post_speaker_unescapes_entities_and_strips_photo_links` e paridade byte a byte `mockup-browser.html` ≡ `mockup-brower.html`).
+
+---
+
+## [2026-09-17] Financial Times (ft.com) — paywall duro contornado via espelhos de alta fidelidade
+
+- **Contexto:** o FT tem um dos paywalls mais rígidos da web: navegação direta rende a barreira modal (`#barrier-content`, `.barrier`, `[data-trackable="barrier"]`) ou HTTP 401/403, e o corpo da matéria (DOM de ~1,4 MB com tipografia Financier/Metric e estilos inline) fica indisponível. Sem handler, o `BaseScraper` genérico produzia screenshot da própria parede de assinatura.
+- **O que foi feito:**
+  1. Novo handler `scripts/screenshots/sites/ft.py` (`FTScraper`, `@register("ft.com")`) — detecção de paywall via `detect_block()` (nova utilidade em `scripts/screenshots/paywall.py`); ao detectar barreira, sobe a escada de espelhos de alta fidelidade (`archive.li` / `archive.md` / Archive.today / Jina Reader) via `WafRecoveryMixin.fetch_recovered_html()`, que preservam o DOM integral, CSS e imagens editoriais autênticas.
+  2. Higienização cirúrgica do espelho: remove réguas e cabeçalhos do archive, toolbars de compartilhamento (`#DIVSHARE`, `#article-progress`), botões supérfluos (*Subscribe*, *Sign In*, *Add to myFT*, *Save*), injeta `<base href>` e neutraliza scripts executáveis — padronizando o fundo institucional salmão/pêssego (`#fff1e5`) e enquadramento do cabeçalho, chapéu, título, fotografia e créditos.
+  3. `scripts/screenshots/paywall.py`: extração da lógica genérica de WAF/paywall para módulo próprio — `detect_block()`, `WafRecoveryMixin` (escada Archive→Jina reutilizável) e `record_capture_telemetry()`, consumidos por `base.py` e por handlers dedicados.
+  4. `base.py`: a camada genérica de paywall/ads (`_GENERIC_PAYWALL_JS`) agora é **segunda linha** — roda apenas para sites **sem** handler dedicado (flag `is_dedicated_handler` setada por `@register`), então handlers exclusivos e funcionais (FT, Bloomberg, Economist) não têm sua limpeza cirúrgica sobrescrita. Também adicionado `detect_block()` pós-navegação: WAF/bot-walls que rendem PNG de ~28 KB passavam nos filtros de tamanho/branco e viravam cena — agora abortam cedo.
+- **Lições:**
+  1. Espelho de archive não é screenshot pronto: a réguas/toolbars do próprio archive precisam ser removidas cirurgicamente, senão o enquadramento editorial fica contaminado pela chrome do espelho.
+  2. Fundo institucional (`#fff1e5`) tem que ser reforçado depois de limpar os elementos — o archive deixa áreas transparentes/escuras que desvirtuam a identidade visual do veículo.
+  3. Fatorar a escada de recuperação (`WafRecoveryMixin`) fora dos handlers é o que torna o bypass reutilizável — FT, Economist e futuros paywalls duros compartilham a mesma infra.
+- **Suíte:** `scripts/test_screenshots_registry.py` — 17/17 aprovados (ft.com + www.ft.com resolvem para o handler `ft`).

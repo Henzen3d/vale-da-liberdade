@@ -184,6 +184,7 @@ def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
     o widget oficial do X para extrair imagem de mídia, avatar e contadores.
     Baixa imagens para o shot_dir local para exibição offline sem engasgo de rede.
     """
+    import html
     import urllib.request
 
     m = re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url or "")
@@ -195,26 +196,6 @@ def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
     author_name = url_handle
     handle = f"@{url_handle}"
     text = ""
-
-    # 1. Obter texto limpo e autor via oEmbed oficial (rápido, sem truncamento)
-    try:
-        oembed_url = f"https://publish.twitter.com/oembed?url=https://x.com/{url_handle}/status/{tid}"
-        req = urllib.request.Request(oembed_url, headers={"User-Agent": UA})
-        with urllib.request.urlopen(req, timeout=6) as r:
-            oembed_data = json.loads(r.read().decode("utf-8"))
-            if oembed_data.get("author_name"):
-                author_name = oembed_data["author_name"]
-            raw_html = oembed_data.get("html", "")
-            p_match = re.search(r"<p[^>]*>(.*?)</p>", raw_html, re.DOTALL)
-            if p_match:
-                p_text = re.sub(r"<a[^>]*>(.*?)</a>", r"\1", p_match.group(1))
-                p_text = re.sub(r"<br\s*/?>", "\n", p_text)
-                text = p_text.strip()
-    except Exception as exc:
-        print(f"  ⚠️  x-oembed ({tid}): {exc}")
-
-    # 2. Carregar o widget público via Playwright para extrair avatar, mídia e métricas
-    embed_url = f"https://platform.twitter.com/embed/Tweet.html?id={tid}&theme=light&lang=pt"
     media_url = ""
     avatar_url = ""
     timestamp = ""
@@ -222,53 +203,109 @@ def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
     reposts = "45"
     likes = "120"
 
+    # 1. Tentar Syndication API oficial do X (rápida, direta e sem bloqueios)
     try:
-        page.goto(embed_url, wait_until="load", timeout=15000)
-        page.wait_for_timeout(2000)
-        extracted = page.evaluate("""() => {
-            const bodyText = document.body.innerText || "";
-            const lines = bodyText.split('\\n').map(s => s.trim()).filter(Boolean);
-            
-            const imgs = Array.from(document.querySelectorAll('img')).map(i => i.src);
-            const av = imgs.find(s => s.includes('profile_images')) || "";
-            const media = imgs.filter(s => s.includes('/media/')).map(s => s.replace(/name=[a-z0-9_]+/i, 'name=large'));
-
-            let likesCount = "120";
-            const likesMatch = bodyText.match(/([0-9.,]+(?:\\s*mil|K|M)?)\\s*(?:curtidas|likes)/i) ||
-                               bodyText.match(/([0-9.,]+(?:\\s*mil|K|M)?)\\s*\\n\\s*Responder/i);
-            if (likesMatch) likesCount = likesMatch[1];
-
-            const timeEl = document.querySelector('time');
-            const timeStr = timeEl ? timeEl.innerText.trim() : "";
-
-            return {
-                lines,
-                avatar: av,
-                mediaImgs: media,
-                timeStr,
-                likes: likesCount
-            };
-        }""")
-
-        if not text and extracted.get("lines"):
-            lines = extracted["lines"]
-            if len(lines) > 2:
-                text = lines[2]
-
-        avatar_url = extracted.get("avatar") or ""
-        media_urls = extracted.get("mediaImgs") or []
-        if media_urls:
-            media_url = media_urls[0]
-        timestamp = extracted.get("timeStr") or ""
-        if extracted.get("likes"):
-            likes = extracted["likes"]
-
+        syn_url = f"https://cdn.syndication.twimg.com/tweet-result?id={tid}&lang=pt&token=4"
+        req = urllib.request.Request(syn_url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            syn_data = json.loads(r.read().decode("utf-8"))
+            if syn_data.get("user"):
+                u = syn_data["user"]
+                if u.get("name"):
+                    author_name = u["name"]
+                if u.get("screen_name"):
+                    handle = f"@{u['screen_name'].lstrip('@')}"
+                if u.get("profile_image_url_https"):
+                    avatar_url = u["profile_image_url_https"].replace("_normal.", "_400x400.")
+            if syn_data.get("mediaDetails"):
+                m0 = syn_data["mediaDetails"][0]
+                if m0.get("media_url_https"):
+                    media_url = m0["media_url_https"]
+            elif syn_data.get("photos"):
+                p0 = syn_data["photos"][0]
+                if p0.get("url"):
+                    media_url = p0["url"]
+            if syn_data.get("text"):
+                text = html.unescape(syn_data["text"]).strip()
+            if syn_data.get("favorite_count"):
+                fc = syn_data["favorite_count"]
+                likes = f"{fc/1000:.1f}K" if fc >= 10000 else (f"{fc/1000:.1f}K" if fc >= 1000 else str(fc))
+            if syn_data.get("conversation_count"):
+                replies = str(syn_data["conversation_count"])
     except Exception as exc:
-        print(f"  ⚠️  x-embed dom ({tid}): {exc}")
+        print(f"  ⚠️  x-syndication ({tid}): {exc}")
 
-    # Remove t.co e pic.twitter.com do final do texto se houver foto anexada
-    if media_url and text:
-        text = re.sub(r"https?://t\.co/\S+|pic\.twitter\.com/\S+", "", text).strip()
+    # 2. Obter texto limpo e autor via oEmbed oficial (se ainda não tiver texto)
+    try:
+        oembed_url = f"https://publish.twitter.com/oembed?url=https://x.com/{url_handle}/status/{tid}"
+        req = urllib.request.Request(oembed_url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            oembed_data = json.loads(r.read().decode("utf-8"))
+            if oembed_data.get("author_name") and not author_name:
+                author_name = oembed_data["author_name"]
+            raw_html = oembed_data.get("html", "")
+            p_match = re.search(r"<p[^>]*>(.*?)</p>", raw_html, re.DOTALL)
+            if p_match:
+                p_text = re.sub(r"<a[^>]*>(.*?)</a>", r"\1", p_match.group(1))
+                p_text = re.sub(r"<br\s*/?>", "\n", p_text)
+                clean_p = html.unescape(p_text).strip()
+                if not text or len(clean_p) > len(text):
+                    text = clean_p
+    except Exception as exc:
+        print(f"  ⚠️  x-oembed ({tid}): {exc}")
+
+    # 3. Fallback: widget público via Playwright se ainda faltar avatar ou mídia
+    if not avatar_url or not media_url:
+        embed_url = f"https://platform.twitter.com/embed/Tweet.html?id={tid}&theme=light&lang=pt"
+        try:
+            page.goto(embed_url, wait_until="load", timeout=12000)
+            page.wait_for_timeout(1500)
+            extracted = page.evaluate("""() => {
+                const bodyText = document.body.innerText || "";
+                const lines = bodyText.split('\\n').map(s => s.trim()).filter(Boolean);
+                
+                const imgs = Array.from(document.querySelectorAll('img')).map(i => i.src);
+                const av = imgs.find(s => s.includes('profile_images')) || "";
+                const media = imgs.filter(s => s.includes('/media/')).map(s => s.replace(/name=[a-z0-9_]+/i, 'name=large'));
+
+                let likesCount = "120";
+                const likesMatch = bodyText.match(/([0-9.,]+(?:\\s*mil|K|M)?)\\s*(?:curtidas|likes)/i) ||
+                                   bodyText.match(/([0-9.,]+(?:\\s*mil|K|M)?)\\s*\\n\\s*Responder/i);
+                if (likesMatch) likesCount = likesMatch[1];
+
+                const timeEl = document.querySelector('time');
+                const timeStr = timeEl ? timeEl.innerText.trim() : "";
+
+                return {
+                    lines,
+                    avatar: av,
+                    mediaImgs: media,
+                    timeStr,
+                    likes: likesCount
+                };
+            }""")
+
+            if not text and extracted.get("lines"):
+                lines = extracted["lines"]
+                if len(lines) > 2:
+                    text = html.unescape(lines[2]).strip()
+
+            if not avatar_url and extracted.get("avatar"):
+                avatar_url = extracted["avatar"].replace("_normal.", "_400x400.")
+            media_urls = extracted.get("mediaImgs") or []
+            if not media_url and media_urls:
+                media_url = media_urls[0]
+            if not timestamp and extracted.get("timeStr"):
+                timestamp = extracted["timeStr"]
+            if extracted.get("likes") and likes == "120":
+                likes = extracted["likes"]
+        except Exception as exc:
+            print(f"  ⚠️  x-embed dom ({tid}): {exc}")
+
+    # 4. Higienização do texto: desescapa HTML e SEMPRE remove links finais de fotos (pic.twitter.com, pic.x.com, t.co)
+    if text:
+        text = html.unescape(text)
+        text = re.sub(r"(?:https?://)?(?:pic\.(?:twitter|x)\.com/\S+|t\.co/\S+)\s*$", "", text, flags=re.IGNORECASE).strip()
 
     # 3. Baixar imagens localmente no shot_dir para funcionar 100% offline
     avatar_rel = ""

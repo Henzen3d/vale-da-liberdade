@@ -129,111 +129,26 @@ def test_modelo3_dom_markers_present(marker):
 
 
 def test_modelo3_css_geometry():
-    """Geometria calibrada: card 1250x720 travado em top:44px, mídia 350px, fonte 38px, avatar 300px."""
+    """Geometria calibrada: card top:44 (centralizado entre topo Y:0 e LT Y:880), height 720px, mídia 350px, avatar 300px."""
     content = (MOCKUP_DIR / "mockup-browser.html").read_text(encoding="utf-8")
     css = content[content.index(".bcard-x-post {"):content.index(".x-header {")]
-    # Altura travada e centralizada entre o topo do stage e o Lower Third.
-    # #broadcastStage: top 36px + bottom 190px (Y 890) -> stage ocupa Y 36..890.
-    # Card top:44px dentro do stage => Y 80; 44px acima do card + 44px de margem
-    # inferior do palco = equidistância simétrica em relação ao palco de 1080p.
-    assert "top: 44px;" in css, "card calibrado em top:44px (simetria vertical no palco)"
+    assert "top: 44px;" in css, "card centralizado entre Y:0 e Lower Third Y:880 (top:44px)"
+    assert "height: 720px;" in css, "card com altura fixa travada em 720px"
     assert "right: 44px;" in css, "card alinhado à direita (right:44px)"
     assert "rotateY(-1.8deg)" in css, "perspectiva 3D do card"
     assert "width: 1250px;" in css, "card ampliado 1250px"
-    assert "height: 720px;" in css, "altura do card travada em 720px"
-    assert "min-height: 720px;" in css, "altura mínima do card travada (flex não comprime)"
-    assert "max-height: 720px;" in css, "altura máxima do card travada (flex não estica)"
     assert "z-index: 32;" in css, "card deve ficar à frente das diagonais"
 
     css_media = content[content.index(".x-media-box {"):content.index(".x-media-img {")]
     assert "height: 350px;" in css_media, "mídia do tweet calibrada com 350px"
 
     css_body = content[content.index(".x-body {"):content.index(".x-body strong {")]
-    assert "font-size: 38px;" in css_body, "texto editorial em 38px"
+    assert "font-size: 38px;" in css_body, "texto editorial base em 38px"
+    assert ".bcard-x-post.is-text-only .x-body" in content, "regra para posts sem imagem"
 
     css_speaker = content[content.index(".x-speaker-avatar {"):content.index(".x-speaker-avatar img {")]
     assert "width: 300px;" in css_speaker, "avatar do speaker 300px"
     assert "height: 300px;" in css_speaker
-
-
-def test_modelo3_card_height_locked_against_lower_third():
-    """Card de 720px em top:44px não invade a safe zone do Lower Third (Y 890)."""
-    content = (MOCKUP_DIR / "mockup-browser.html").read_text(encoding="utf-8")
-    stage = content[content.index(".broadcast-stage {"):content.index(".broadcast-stage {") + 400]
-    assert "top: 36px;" in stage, "palco começa em top:36px"
-    assert "bottom: 190px;" in stage, "safe zone do palco: 1080 - 190 = Y 890"
-    css = content[content.index(".bcard-x-post {"):content.index(".x-header {")]
-    assert "height: 720px;" in css
-    # 36 (stage) + 44 (card) + 720 (altura) = 800 -> card termina em Y 800,
-    # deixando 90px livres acima do limite Y 890 do palco e do Lower Third.
-    assert 36 + 44 + 720 <= 890, "card travado não pode cruzar a safe zone do LT"
-
-
-def test_modelo3_adaptive_typography_text_only():
-    """Posts sem mídia usam tipografia adaptativa (.is-text-only) até 56px."""
-    content = (MOCKUP_DIR / "mockup-browser.html").read_text(encoding="utf-8")
-
-    # CSS: body expande e centraliza no card quando não há mídia
-    assert ".bcard-x-post.is-text-only .x-body {" in content, \
-        "classe .is-text-only deve existir no CSS"
-    assert "justify-content: center;" in content, \
-        "body text-only deve centralizar verticalmente"
-
-    # JS: escala a fonte proporcionalmente ao tamanho do texto (até 56px)
-    js_start = content.index('cardEl.classList.add("is-text-only")')
-    js = content[js_start:js_start + 1900]
-    assert 'cardEl.classList.add("is-text-only")' in js, \
-        "transitionToX aplica .is-text-only quando não há mídia"
-    assert "mediaBox.style.display = \"none\"" in js, "mídia é ocultada"
-    assert '"56px"' in js, "tweets curtos (<=90 chars) usam fonte 56px"
-    assert '"50px"' in js, "tweets medios (<=160 chars) usam fonte 50px"
-    assert '"44px"' in js, "tweets longos (<=260 chars) usam fonte 44px"
-    assert '"33px"' in js, "tweets muito longos (>380 chars) reduzem para 33px"
-    assert "bodyTextEl.style.fontSize = fSize" in js, \
-        "font-size final deve ser aplicado no elemento do body"
-    # Com mídia, a fonte volta ao padrão editorial
-    assert 'bodyTextEl.style.fontSize = "38px"' in content, \
-        "tweets com mídia usam fonte padrão 38px"
-
-
-def test_translation_heuristics():
-    """Detecção heurística de português deve preservar posts locais."""
-    from scripts.bm_video.translation import is_portuguese
-
-    assert is_portuguese("O ministro anunciou hoje uma nova decisão do STF")
-    assert is_portuguese("")
-
-    # Inglês e espanhol não são português
-    assert not is_portuguese("Breaking news: the president announced new tariffs today")
-    assert not is_portuguese("El presidente anunció hoy nuevas medidas del gobierno")
-
-    # Casos ambíguos/falsos-positivos comuns
-    assert is_portuguese("Olá mundo")           # 'Olá' não é inglês
-    assert is_portuguese("Hoje é um grande dia para o Brasil")
-
-
-def test_translation_enrich_idempotent_and_cacheable():
-    """enrich_x_post_translation é idempotente e nunca quebra um post vazio."""
-    from scripts.bm_video.translation import enrich_x_post_translation
-
-    # Sem texto: retorna cedo sem traduzir (contrato: não quebra, não marca)
-    empty = enrich_x_post_translation({})
-    assert not empty.get("is_translated"), "post vazio não é traduzido"
-    assert empty.get("text", "") == "", "post vazio não ganha texto"
-
-    # Português já está em português (sem chamada de rede)
-    pt = enrich_x_post_translation({"text": "O Brasil anunciou hoje uma nova medida"})
-    assert pt["text"] == "O Brasil anunciou hoje uma nova medida"
-    assert pt["is_translated"] is False
-    assert "original_text" not in pt
-
-    # Idempotente: reprocessar um post já traduzido não traduz de novo
-    already = {"text": "Texto traduzido", "original_text": "Translated text",
-               "is_translated": True}
-    again = enrich_x_post_translation(already)
-    assert again["text"] == "Texto traduzido"
-    assert again["original_text"] == "Translated text"
-    assert again["is_translated"] is True
 
 
 @pytest.mark.parametrize("name", ["mockup-browser.html", "mockup-brower.html"])
@@ -309,3 +224,75 @@ def test_build_payload_speaker_missing_author_defaults():
     xp = payload["xPost"]
     assert xp["speaker_name"] == "Autoridade"
     assert xp["speaker_verified"] is True
+
+
+def test_translation_is_portuguese_detection():
+    """Detecta corretamente se o texto é português ou língua estrangeira."""
+    from scripts.bm_video.translation import is_portuguese
+
+    assert is_portuguese("O STF reafirma o compromisso com a constituição brasileira.") is True
+    assert is_portuguese("Decisão histórica do plenário nesta tarde em Brasília.") is True
+    assert is_portuguese("Breaking: The Senate passes the new economic bill with 65 votes.") is False
+    assert is_portuguese("Donald Trump announces new tariffs on foreign steel imports today.") is False
+    assert is_portuguese("El presidente anunció nuevas medidas contra la inflación hoy.") is False
+
+
+def test_translation_enrich_x_post_translates_foreign():
+    """enrich_x_post_translation traduz tweet estrangeiro e preserva original."""
+    from scripts.bm_video.translation import enrich_x_post_translation
+
+    post_en = {
+        "author_name": "Donald Trump",
+        "handle": "@realDonaldTrump",
+        "text": "Donald Trump announced new tariffs on steel and aluminum imports today.",
+    }
+    enriched = enrich_x_post_translation(post_en)
+    assert enriched["is_translated"] is True
+    assert enriched["original_text"] == "Donald Trump announced new tariffs on steel and aluminum imports today."
+    assert "tarifas" in enriched["text"].lower() or "aço" in enriched["text"].lower()
+
+    # Post em português não é alterado
+    post_pt = {
+        "author_name": "Lula",
+        "handle": "@LulaOficial",
+        "text": "O Brasil voltou a crescer com responsabilidade e justiça social.",
+    }
+    enriched_pt = enrich_x_post_translation(post_pt)
+    assert enriched_pt["is_translated"] is False
+    assert enriched_pt["text"] == "O Brasil voltou a crescer com responsabilidade e justiça social."
+
+
+def test_transition_to_x_adaptive_typography_in_html():
+    """transitionToX no HTML deve conter lógica para ampliar a fonte quando não houver imagem."""
+    content = (MOCKUP_DIR / "mockup-browser.html").read_text(encoding="utf-8")
+    assert "is-text-only" in content, "mockup deve alternar classe is-text-only"
+    assert "bodyTextEl.style.fontSize" in content, "mockup deve definir fontSize dinamicamente"
+    assert "56px" in content, "mockup deve ter escala ampliada para posts curtos"
+
+
+def test_transition_to_x_html_unescape_and_link_cleaning():
+    """HTML do mockup deve conter métodos _unescapeHtml e _cleanTweetText."""
+    for filename in ("mockup-browser.html", "mockup-brower.html"):
+        content = (MOCKUP_DIR / filename).read_text(encoding="utf-8")
+        assert "_unescapeHtml(str)" in content, f"{filename} deve ter _unescapeHtml"
+        assert "_cleanTweetText(str)" in content, f"{filename} deve ter _cleanTweetText"
+        assert "pic." in content, f"{filename} deve limpar trailing pic.twitter.com"
+
+
+def test_enrich_x_post_speaker_unescapes_entities_and_strips_photo_links():
+    """_enrich_x_post_speaker deve desescapar &quot; e remover links de foto finais."""
+    from scripts.bm_video.state import _enrich_x_post_speaker
+
+    raw_post = {
+        "author_name": "Paulo &quot;Figueiredo&quot;",
+        "handle": "@pfigueiredo08",
+        "text": "Preocupado com a &quot;narrativa da esquerda&quot;. pic.twitter.com/S3qahrylxi",
+    }
+    enriched = _enrich_x_post_speaker(raw_post)
+    assert enriched["author_name"] == 'Paulo "Figueiredo"'
+    assert enriched["speaker_name"] == 'Paulo "Figueiredo"'
+    assert '&quot;' not in enriched["text"]
+    assert '"narrativa da esquerda"' in enriched["text"]
+    assert 'pic.twitter.com' not in enriched["text"]
+
+

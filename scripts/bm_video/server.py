@@ -14,18 +14,22 @@ class _Handler(SimpleHTTPRequestHandler):
 
     def translate_path(self, path: str) -> str:
         rel = path.split("?", 1)[0].lstrip("/")
+        candidates = [rel]
+        if rel.startswith("shots/"):
+            candidates.append(rel[6:])
         for base in self._directories:
-            cand = (base / rel).resolve()
-            try:
-                cand.relative_to(base.resolve())
-            except ValueError:
-                continue
-            if cand.is_file():
-                return str(cand)
-            if cand.is_dir():
-                index = cand / "index.html"
-                if index.exists():
-                    return str(index)
+            for c in candidates:
+                cand = (base / c).resolve()
+                try:
+                    cand.relative_to(base.resolve())
+                except ValueError:
+                    continue
+                if cand.is_file():
+                    return str(cand)
+                if cand.is_dir():
+                    index = cand / "index.html"
+                    if index.exists():
+                        return str(index)
         return str((self._directories[0] / "missing").resolve())
 
     def log_message(self, format, *args):
