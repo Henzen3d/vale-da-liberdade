@@ -336,5 +336,13 @@ OUTRO_FADEOUT_S = 4.0
 
 OUTRO_MIX_TAG = "v2"
 
+# Música de encerramento começa a entrar (fade-in) OUTRO_MUSIC_LEAD_S segundos
+# ANTES do fim do episódio, cruzando por cima da fala. Evita o corte seco
+# entre o final do episódio e o início do vídeo de encerramento.
+OUTRO_MUSIC_LEAD_S = 8.0
+
+# Volume da música durante o trecho de cruzamento (ducking sob a fala).
+OUTRO_LEAD_VOL = 0.25
+
 # Star-imports precisam dos nomes _privados (regex/JS) usados em capture/state.
 __all__ = [k for k in list(globals()) if not k.startswith("__")]

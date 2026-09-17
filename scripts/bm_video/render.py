@@ -479,13 +479,76 @@ def _concat_demux(clip_a: Path, clip_b: Path, dest: Path, work: Path) -> bool:
     return r.returncode == 0 and dest.is_file() and dest.stat().st_size > 50_000
 
 
+def _mix_outro_music_lead(base_mp4: Path, work: Path) -> Path | None:
+    """Re-mistura o episódio com a música de encerramento entrando no final.
+
+    A música começa OUTRO_MUSIC_LEAD_S antes do fim, sobe de 0 até OUTRO_LEAD_VOL
+    e mantém-se sob a fala (ducking). Retorna None se não houver música ou se
+    o episódio for muito curto — nesse caso o concat segue sem crossfade.
+    """
+    music = find_music_outro()
+    if not music or not music.is_file():
+        return None
+
+    dur = probe_duration_s(base_mp4)
+    if dur <= OUTRO_MUSIC_LEAD_S + 1.0:
+        return None  # episódio curto demais: não há espaço para o cruzamento
+
+    start = dur - OUTRO_MUSIC_LEAD_S
+    fade_s = min(OUTRO_MUSIC_LEAD_S * 0.5, 4.0)
+
+    # volume(t): 0 antes de start; rampa linear 0→OUTRO_LEAD_VOL em fade_s; hold
+    vol = (
+        f"if(lt(t,{start:.3f}),0,"
+        f"if(lt(t,{start + fade_s:.3f}),{OUTRO_LEAD_VOL:.3f}*(t-{start:.3f})/{fade_s:.3f},"
+        f"{OUTRO_LEAD_VOL:.3f}))"
+    )
+    fc = (
+        f"[1:a]atrim=start={start:.3f},asetpts=PTS-STARTPTS,"
+        f"volume='{vol}':eval=frame[bgm];"
+        f"[0:a]volume=1.0,apad=pad_dur=0[a];"
+        f"[a][bgm]amix=inputs=2:duration=first:normalize=0[aout]"
+    )
+    dest = work / f"{base_mp4.stem}-lead.mp4"
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(base_mp4),
+        "-stream_loop", "-1", "-i", str(music),
+        "-filter_complex", fc,
+        "-map", "0:v", "-map", "[aout]",
+        "-c:v", "copy",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
+        "-movflags", "+faststart",
+        str(dest),
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+        if r.returncode == 0 and dest.is_file() and dest.stat().st_size > 50_000:
+            print(f"  🎵 Música de encerramento cruzando nos últimos {OUTRO_MUSIC_LEAD_S:.0f}s")
+            return dest
+        print(f"  ⚠️  lead-mix falhou, seguindo sem crossfade: {(r.stderr or '')[-300:]}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  lead-mix exceção, seguindo sem crossfade: {exc}")
+    return None
+
+
 def append_outro_video(base_mp4: Path, outro_mp4: Path, work: Path) -> Path:
-    """Concatena o encerramento. Falha = RuntimeError (não sobe sem outro)."""
+    """Concatena o encerramento. Falha = RuntimeError (não sobe sem outro).
+
+    Se a trilha musical de encerramento existir, ela começa a entrar
+    OUTRO_MUSIC_LEAD_S segundos ANTES do fim do episódio (fade-in sob a fala),
+    cruzando por cima da locução para evitar um corte seco.
+    """
     if not outro_mp4 or not outro_mp4.is_file():
         raise RuntimeError("encerramento obrigatório: arquivo de outro ausente")
 
     dest = base_mp4.with_name(base_mp4.stem + "-outro.mp4")
     print(f"  🎬 Concatenando encerramento: {outro_mp4.name}...")
+
+    # Pré-mixa o episódio com a música entrando nos últimos segundos (opcional).
+    # Em caso de falha, segue para o concat simples (comportamento anterior).
+    lead_mp4 = _mix_outro_music_lead(base_mp4, work)
+    base_for_concat = lead_mp4 if lead_mp4 else base_mp4
 
     fc = (
         "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,"
@@ -498,7 +561,7 @@ def append_outro_video(base_mp4: Path, outro_mp4: Path, work: Path) -> Path:
     )
     cmd = [
         "ffmpeg", "-y",
-        "-i", str(base_mp4),
+        "-i", str(base_for_concat),
         "-i", str(outro_mp4),
         "-filter_complex", fc,
         "-map", "[v]", "-map", "[a]",
