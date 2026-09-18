@@ -10,12 +10,25 @@ from pathlib import Path
 from bm_video.constants import *  # noqa: F403
 from bm_video.state import _unescape, load_episode, load_state
 
+
+def _vid_flag(yt_id: str) -> list[str]:
+    """Argumento --video-id imune a IDs que começam com hífen.
+
+    IDs do YouTube podem começar com '-' (ex.: -IHilCTystk). Passado como
+    token separado ('--video-id', '-IHilCTystk'), o argparse do
+    youtube_uploader.py trata o valor como uma flag e aborta com
+    'argument --video-id: expected one argument'. A forma --flag=valor é
+    sempre interpretada como valor, haja ou não hífen inicial.
+    """
+    return [f"--video-id={yt_id}"]
+
+
 def set_youtube_thumbnail(yt_id: str, image: Path) -> bool:
     cmd = [
         sys.executable,
         str(SCRIPT_DIR / "youtube_uploader.py"),
         "thumbnail",
-        "--video-id", yt_id,
+        *_vid_flag(yt_id),
         "--image", str(image),
     ]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
@@ -99,7 +112,7 @@ def post_channel_cross_comment(yt_id: str, prev: dict) -> bool:
         sys.executable,
         str(SCRIPT_DIR / "youtube_uploader.py"),
         "comment",
-        "--video-id", yt_id,
+        *_vid_flag(yt_id),
         "--text", text,
     ]
     try:
@@ -123,7 +136,7 @@ def sync_dynamic_playlist_action(yt_id: str) -> bool:
         sys.executable,
         str(SCRIPT_DIR / "youtube_uploader.py"),
         "sync-dynamic-playlist",
-        "--video-id", yt_id,
+        *_vid_flag(yt_id),
     ]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
