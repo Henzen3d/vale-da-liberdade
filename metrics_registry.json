@@ -204,6 +204,75 @@
         "performance_mobile": 34,
         "note": "Comparado ao run 2026-08-02T12:07 (LCP 3661, perf 63). ATENCAO: delta acumula tambem PERF-014/015/016 (fixes de LCP/Supabase do dia); evidencias deste item = NENHUMA regressao de LCP (prerender da propria pagina nao podia ajudar LCP da entrada)."
       }
+    },
+    {
+      "run_id": "2026-09-13T15:04",
+      "trigger": "cron-web-jornal-perf-monitor-semanal",
+      "model_used": "agnes-2.5-flash (UX audit)",
+      "lighthouse": {
+        "mobile": {
+          "performance": 44.0,
+          "accessibility": 94.0,
+          "best_practices": 96.0,
+          "seo": 100
+        },
+        "desktop": {
+          "performance": 71.0,
+          "accessibility": 94.0,
+          "best_practices": 96.0,
+          "seo": 100
+        }
+      },
+      "core_web_vitals": {
+        "LCP_ms_mobile": 6802.913,
+        "LCP_rating_mobile": "needs-improvement",
+        "CLS_mobile": 0,
+        "TBT_ms_mobile": 1372,
+        "FCP_ms_mobile": 2848.038,
+        "LCP_ms_desktop": 14292.28,
+        "CLS_desktop": 0.121
+      },
+      "deploy": "no deploy — run de monitoramento semanal",
+      "usability_notes": "Ver ux_audit_agnes.txt para auditoria completa",
+      "diff_vs_previous": {
+        "performance_mobile": -53.0,
+        "performance_desktop": -28.0
+      }
+    },
+    {
+      "run_id": "2026-09-13T15:07",
+      "trigger": "cron-web-jornal-perf-monitor-semanal",
+      "model_used": "agnes-2.5-flash (UX audit)",
+      "lighthouse": {
+        "mobile": {
+          "performance": 33.0,
+          "accessibility": 94.0,
+          "best_practices": 96.0,
+          "seo": 100
+        },
+        "desktop": {
+          "performance": 93.0,
+          "accessibility": 94.0,
+          "best_practices": 96.0,
+          "seo": 100
+        }
+      },
+      "core_web_vitals": {
+        "LCP_ms_mobile": 5389.834,
+        "LCP_rating_mobile": "needs-improvement",
+        "CLS_mobile": 0.411,
+        "TBT_ms_mobile": 1038.074,
+        "FCP_ms_mobile": 2776.617,
+        "LCP_ms_desktop": 1151.621,
+        "CLS_desktop": 0.121,
+        "TBT_ms_desktop": 45.5
+      },
+      "deploy": "no deploy — run de monitoramento semanal (2ª captura)",
+      "usability_notes": "Ver ux_audit_agnes.txt para auditoria completa",
+      "diff_vs_previous": {
+        "performance_mobile": -11.0,
+        "performance_desktop": 22.0
+      }
     }
   ],
   "backlog": [
