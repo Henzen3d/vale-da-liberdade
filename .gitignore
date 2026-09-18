@@ -120,6 +120,14 @@ archive/index.md
 moss-tts-nano/
 thumbnail-generetor/
 scripts/x-twitter/
+work/
+
+# Prototypes/render local (quadros, takes, generated) — não versionar
+references/youtube/prototype/generated/
+references/youtube/prototype/quadros-*.json
+references/youtube/prototype/bancada-render/assets/
+references/youtube/prototype/bancada-render/project*/
+references/youtube/prototype/bancada-render/project-*/
 
 # Snapshots/rascunhos locais da reorganização cirúrgica (não spec)
 archive/backup_pre_cirurgico/
