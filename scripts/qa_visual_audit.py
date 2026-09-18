@@ -4,7 +4,7 @@
 Protocolo: youtube/Evolucao-Visual/05_VISUAL_QA_E_METRICAS.md
 Contrato:  youtube/Evolucao-Visual/02_SCHEMAS_E_CONTRATOS.md
 
-Pré-render (<1s): schema SceneBeatV2, timings 8–22s, assets, higiene de payload.
+Pré-render (<1s): schema SceneBeatV2, timings 4–18s, assets, higiene de payload.
 Pós-render (~3s): 4–6 frames FFmpeg + luminância/contraste (Pillow).
 Sem re-render pesado. Fallback gracioso: componente inválido → source.
 """
