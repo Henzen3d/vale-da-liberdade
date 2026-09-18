@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from datetime import datetime, timedelta
@@ -120,6 +121,23 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
 
     # Recalcula timeline só com as cenas que têm imagem/vídeo de verdade
     timeline_beats = build_scene_timeline(episode, dur, usable, BROLL_INDEX)
+
+    # FASE 4 (opcional) — sincronia fina por word-timestamps do Whisper.
+    # Só ativa via BM_WHISPER_ALIGN=1; precisa do mp3 final do episódio.
+    if os.environ.get("BM_WHISPER_ALIGN") == "1":
+        from bm_whisper_align import align_beats_to_audio
+
+        block_texts = [
+            (b.get("texto") or b.get("text") or "")
+            for b in (
+                (episode.get("abertura") or [])
+                + (episode.get("desenvolvimento") or [])
+                + (episode.get("fechamento") or [])
+            )
+        ]
+        timeline_beats = align_beats_to_audio(
+            timeline_beats, Path(audio), block_texts, cache_dir=work
+        )
     raw = record_mockup(video_id, episode, audio, usable, work, wallpaper=wallpaper, timeline_beats=timeline_beats)
     mp4 = VIDEOS_OUT / f"especial-{video_id}-mockup.mp4"
     mux_video(raw, audio, mp4)
