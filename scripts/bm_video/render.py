@@ -159,7 +159,7 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
     vf_avatar = (
         f"[1:v]crop={AVATAR_CROP},format=rgba,"
         f"colorkey=0x007E00:0.10:0.03,lut=a='if(lt(val\\,230)\\,0\\,255)',"
-        f"scale={AVATAR_SCALE}:flags=lanczos,"
+        f"scale={AVATAR_SCALE}:flags=bilinear,"
         f"tpad=start_duration={AVATAR_START_DELAY_S}:start_mode=clone[av];"
         f"[0:v][av]overlay={AVATAR_OVERLAY}:format=auto:shortest=1"
     )
