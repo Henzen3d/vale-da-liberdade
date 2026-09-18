@@ -415,7 +415,7 @@ RESUMO DO COMENTÁRIO:
 4. PERGUNTA DE FECHAMENTO + CTA (1 parágrafo): Pergunta forte de engajamento para a seção de comentários seguida de chamada breve para inscrição conectada ao tema do canal (ex.: "Inscreva-se para mais análises sobre economia e liberdade").
 
 === SUGESTÕES DE TÍTULO (3 OPÇÕES, ATÉ ~70 CARACTERES) ===
-- Estilo do canal: direto, chamativo, com 1–2 palavras de impacto em CAIXA ALTA (ex.: "FACHIN bota ORDEM no STF").
+- Estilo do canal: direto, chamativo, com 1–3 palavras de forte impacto em CAIXA ALTA (nomes de pessoas, órgãos, verbos de choque, ex.: "VORCARO AMEAÇA EXPOR o SUPREMO", "FACHIN bota ORDEM no STF"). Conectivos em minúsculas.
 - Opção 1: Mais factual
 - Opção 2: Mais provocativa / irônica
 - Opção 3: Com pergunta ou tensão
@@ -461,7 +461,7 @@ DESTAQUES DOS QUADROS:
 4. PERGUNTA DE FECHAMENTO + CTA (1 parágrafo): Pergunta provocativa para movimentar os comentários seguida de chamada para inscrição/app.
 
 === SUGESTÕES DE TÍTULO (3 OPÇÕES, ATÉ ~70 CARACTERES) ===
-- Estilo do canal: direto, chamativo, com 1–2 palavras de impacto em CAIXA ALTA.
+- Estilo do canal: direto, chamativo, com 1–3 palavras de forte impacto em CAIXA ALTA (nomes, órgãos, verbos de choque). Conectivos em minúsculas.
 - Opção 1: Mais factual
 - Opção 2: Mais provocativa / irônica
 - Opção 3: Com pergunta ou tensão

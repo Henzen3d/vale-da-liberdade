@@ -8,7 +8,9 @@ optimizer":
   - palavra-chave/entidade no início (nome, órgão, tema)
   - tensão/contraste, especificidade numérica, tradução de jargão
   - compliance: sem acusação como fato consumado, sem clickbait enganoso,
-    sem alarmismo em eventos sensíveis, sem CAIXA ALTA/!!!, sem pilha de emojis
+    sem alarmismo em eventos sensíveis, sem "!!!" repetido, sem pilha de emojis
+  - estilo editorial: uso estratégico de CAIXA ALTA em palavras-chave de alto impacto
+    (nomes, verbos de choque, órgãos centrais — padrão Vale da Liberdade)
 
 Prioridade de backend:
   1) Gemini (GEMINI_API_KEY) via GeminiClient
@@ -115,12 +117,12 @@ def _read_raw_headlines(date: str) -> list[str]:
     return out
 
 
-def clean_youtube_title(raw: str, preserve_case: bool = False) -> str:
+def clean_youtube_title(raw: str, preserve_case: bool = True) -> str:
     """Aplica as regras determinísticas de compliance + length.
 
-    preserve_case=True preserva a formatação mista de maiúsculas/minúsculas
-    (usado nos títulos dos especiais BM, que mantêm o estilo do vídeo original:
-    palavras-chave em MAIÚSCULAS + resto em minúsculas).
+    preserve_case=True preserva a formatação de maiúsculas/minúsculas
+    (estilo do canal Vale da Liberdade: palavras-chave de impacto em MAIÚSCULAS
+    + conectivos e complementos em minúsculas).
     """
     t = raw.strip()
     # wiki de acusação -> forma investigativa
@@ -131,8 +133,7 @@ def clean_youtube_title(raw: str, preserve_case: bool = False) -> str:
     # remover [!] repetido e "!!!" (aparência de spam)
     t = re.sub(r"!{2,}", "", t)
     t = re.sub(r"\s{2,}", " ", t).strip()
-    # se algo ficar gritando em MAIÚSCULAS inteiro, normalizar para Title Case
-    # (exceto quando preserve_case — título estilo YouTube com destaque em caps)
+    # se o título inteiro for 100% MAIÚSCULAS e preserve_case for False, normaliza para Title Case
     if not preserve_case and len(t) > 3 and t == t.upper() and " " in t:
         t = t.title()
     # truncar por palavra no teto
@@ -155,16 +156,14 @@ def _sanitize_accent(text: str) -> str:
     )
 
 
-def enforce_skill_title(title: str, preserve_case: bool = False) -> str:
+def enforce_skill_title(title: str, preserve_case: bool = True) -> str:
     """Aplica as regras da skill de otimização de títulos a um título dado.
 
-    Usado como rede de segurança pós-LLM (ex.: títulos dos especiais BM gerados
-    pelo bm_condensador): limpa acusação como fato consumado, alarmismo, CAIXA
-    ALTA e corta o excesso de caracteres, seguindo as mesmas regras de
-    _clean_title. Retorna o título limpo (sem truncar o significado).
+    Usado como rede de segurança pós-LLM: limpa acusação como fato consumado,
+    alarmismo e corta o excesso de caracteres.
 
-    preserve_case=True mantém o estilo misto de maiúsculas/minúsculas do título
-    original (títulos estilo YouTube dos especiais BM).
+    preserve_case=True mantém o estilo com palavras-chave em CAIXA ALTA
+    característico do Vale da Liberdade.
     """
     return _clean_title(title, preserve_case=preserve_case)
 
@@ -249,16 +248,24 @@ OPENROUTER_MODELS = [
 ]
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-TITLE_PROMPT = """Você é o otimizador de títulos do webjornal "Vale da Liberdade" (canais de notícias locais/SC, economia, mundo).
+TITLE_PROMPT = """Você é o otimizador de títulos do canal e webjornal "Vale da Liberdade" (canais de notícias de política, economia, Brasil e mundo).
 
 Regras OBRIGATÓRIAS:
-1. Comprimento: 40 a 60 caracteres (sem acentos ~1:1 com com acento). NUNCA passar de 70.
-2. Palavra-chave/entidade no INÍCIO (nome, órgão, tema, cidade). Informação decisiva nos 40 primeiros caracteres.
-3. Gerar curiosidade com gap (não entregue o desfecho) — mas NUNCA prometa fato/twist que o episódio não entrega.
+1. Comprimento: 40 a 60 caracteres (70 = teto absoluto para não cortar no YouTube). Informação decisiva nos 40 primeiros caracteres.
+2. Palavra-chave/entidade no INÍCIO (nome, órgão, tema, cidade).
+3. Gerar curiosidade com gap e tensão (não entregue o desfecho) — mas NUNCA prometa fato/twist que o episódio não entrega.
 4. Especificidade numérica quando houver (R$, %, anos, valores).
-5. PROIBIDO: acusação como fato consumado (roubou, farsa, desviou) -> use "no caso", "sob suspeita", "o escândalo de...".
-6. PROIBIDO alarmismo em evento sensível (guerra, tragédia, catástrofe): tom informativo, não sensacionalista.
-7. PROIBIDO CAIXA ALTA no título inteiro, "!!!", e emojis empilhados (máx. 1 opcional).
+5. PROIBIDO: acusação como fato consumado (roubou, farsa, desviou) -> use "sob suspeita", "no caso", "o escândalo de...".
+6. PROIBIDO alarmismo em evento sensível (guerra, tragédia, catástrofe): tom informativo e contundente, não sensacionalismo barato.
+7. ESTILO EDITORIAL COM CAIXA ALTA: É RECOMENDADO e desejável usar CAIXA ALTA em 1 a 3 palavras-chave de forte impacto (nomes de pessoas envolvidas, órgãos, verbos de ação fortes, termos centrais de choque/tensão). Deixe conectivos e termos secundários em minúsculas ("de", "o", "se", "no", "pelo", "em", "sobre", "com").
+   Exemplos reais do estilo do canal:
+   - "VORCARO AMEAÇA EXPOR o SUPREMO se o PAI NÃO FOR SOLTO"
+   - "DATAFOLHA CORRIGIDA pelo PNAD mostra FLÁVIO 5 PONTOS a FRENTE"
+   - "GILMAR MENDES transforma o DIREITO em PICADEIRO: SOMOS TODOS PALHAÇOS"
+   - "FLÁVIO levanta RISCO de GOLPE de LULA: DESESPERO com DERROTA"
+   - "EDITORIAL do ESTADÃO DESTRÓI LULA: PROBLEMA do LULA é o LULA MESMO"
+   - "FACHIN bota ORDEM no STF"
+   PROIBIDO apenas: pontuação repetida ("!!!") e emojis empilhados (máx. 1 opcional).
 8. Português do Brasil. Sem aspas desnecessárias. Voz ativa.
 
 Manchetes do episódio de hoje (use estes fatos como matéria-prima, NÃO copie verbatim):

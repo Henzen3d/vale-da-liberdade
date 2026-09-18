@@ -125,4 +125,19 @@ Fontes:
 
 ---
 
+## 7. Checklist Rápido Pré-Publicação (Mental Sanity Check)
+
+Antes de entregar a descrição ou gravá-la em disco, execute esta verificação mental rápida de 10 segundos:
+
+- [ ] **Gancho funciona sozinho?** O espectador entende o tema nos primeiros 2 segundos antes de clicar em "mostrar mais"?
+- [ ] **Sem clichês de abertura?** A descrição começa direto no fato sem "Olá pessoal", "Fala galera" ou saudações temporais?
+- [ ] **Zero URLs do ANCAPSU?** Não há nenhuma menção a `@ancap_su`, `ancap.su` ou links do canal?
+- [ ] **Link do App presente?** `https://news.mob.tec.br` está no corpo?
+- [ ] **Hashtags adequadas?** Máximo de 3 hashtags sem espaços internos (`#BrasilEMundo`) e sem poluição visual?
+- [ ] **Capítulos narrativos sem loop?** Títulos curtos e temáticos (3–6 palavras), sem nomes de veículos de imprensa (`G1`, `Folha`, etc.) e com intervalo mínimo de 25s?
+- [ ] **Títulos com impacto em CAIXA ALTA?** As opções usam CAIXA ALTA em 1–3 palavras de choque/impacto (nomes, verbos fortes), mantendo conectivos em minúsculas e teto de 70 caracteres?
+- [ ] **Extensão controlada?** A descrição está na faixa de 350 a 800 caracteres totais?
+
+---
+
 *Mantido pelo sistema Hermes Agent & Antigravity IDE*

@@ -164,7 +164,13 @@ Regras práticas:
 ## Sugestão de título
 
 Inclua sempre, no final da entrega, uma seção **SUGESTÕES DE TÍTULO** com 3 opções:
-- Estilo do canal: direto, chamativo, às vezes com CAIXA ALTA em 1–2 palavras de impacto (ex.: "FACHIN bota ORDEM no STF").
+- Estilo do canal: direto, chamativo, com CAIXA ALTA em 1 a 3 palavras-chave de forte impacto (nomes de envolvidos, órgãos, verbos fortes, termos de tensão), mantendo conectivos e complementos em minúsculas. Exemplos reais do padrão do canal:
+  - "VORCARO AMEAÇA EXPOR o SUPREMO se o PAI NÃO FOR SOLTO"
+  - "DATAFOLHA CORRIGIDA pelo PNAD mostra FLÁVIO 5 PONTOS a FRENTE"
+  - "GILMAR MENDES transforma o DIREITO em PICADEIRO: SOMOS TODOS PALHAÇOS"
+  - "FLÁVIO levanta RISCO de GOLPE de LULA: DESESPERO com DERROTA pode LEVAR a..."
+  - "EDITORIAL do ESTADÃO DESTRÓI LULA: PROBLEMA do LULA é o LULA MESMO"
+  - "FACHIN bota ORDEM no STF"
 - Refletem com precisão o fato central — nunca inventam acontecimento não presente no material.
 - Curtos o suficiente para não cortar no YouTube (idealmente até ~70 caracteres).
 - Variam a abordagem: uma mais factual, uma mais provocativa/irônica, uma com pergunta ou tensão.
