@@ -11,9 +11,11 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 from bm_scene_timeline import (
     MIN_SCENE_DURATION_S,
+    TARGET_MIN_BEATS_5MIN,
     SceneBeat,
     build_scene_timeline,
     count_words,
+    detect_visual_opportunities,
 )
 
 
@@ -252,6 +254,77 @@ class SceneTimelineTests(unittest.TestCase):
         beats = [SceneBeat(t0=0.0, t1=10.0, url="https://cnn.com/a", veiculo="CNN", kind="source")]
         out = align_beats_to_audio(beats, "/tmp/inexistente.mp3", ["texto qualquer"])
         self.assertEqual(out, beats)
+
+    # ---------- FRENTE 2 VISUAL: Pacing, Multi-Shot & X-Card ----------
+    def test_5min_episode_generates_at_least_18_beats(self):
+        """Em vídeos de 5 min (300s), garante densidade dinâmica de pelo menos 18 beats."""
+        episode = {
+            "titulo": "Escândalo no Congresso",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura com gancho inicial relevante. " * 15}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": f"Parágrafo {i} com detalhes do caso factual para preencher o tempo. " * 10}
+                for i in range(1, 8)
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fechamento provocador e sintético. " * 10}],
+        }
+        scenes = [
+            {"veiculo": "VEJA", "url": "https://veja.abril.com.br/1", "shot": "src-00.png"},
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/2", "shot": "src-01.png"},
+            {"veiculo": "G1", "url": "https://g1.globo.com/3", "shot": "src-02.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        self.assertGreaterEqual(len(beats), TARGET_MIN_BEATS_5MIN,
+                                f"Deveria ter pelo menos {TARGET_MIN_BEATS_5MIN} beats, teve {len(beats)}")
+        self.assertEqual(beats[0].t0, 0.0)
+        self.assertEqual(beats[-1].t1, 300.0)
+
+    def test_sub_beats_cycle_visual_variants(self):
+        """Sub-beats gerados de cenas longas devem ciclar variantes ópticas (hero, zoom, scroll, highlight)."""
+        episode = {
+            "titulo": "Matéria Longa em Bloco Único",
+            "abertura": [{"speaker": "Peter", "texto": "Início da cobertura de hoje."}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Análise detalhada e contínua do tema principal com dezenas de palavras para estender a duração da fala. " * 30}
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fim da cobertura."}],
+        }
+        scenes = [
+            {"veiculo": "Gazeta", "url": "https://gazeta.com/noticia", "shot": "gazeta.png"},
+            {"veiculo": "Poder360", "url": "https://poder360.com.br/noticia", "shot": "poder.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=120.0, scenes=scenes)
+        # Deve ter gerado variantes visuais como portal_zoom ou portal_scroll
+        variants = [b.visual_variant for b in beats if b.visual_component == "source"]
+        self.assertTrue(any(v in ("portal_zoom", "portal_scroll", "portal_highlight") for v in variants),
+                        f"Deveria conter variantes dinâmicas de câmera: {variants}")
+
+    def test_x_post_opportunity_detection(self):
+        """Detecta citação a post no X e recomenda componente x-post com variante x_card."""
+        text = "Em postagem no X, o ministro afirmou: 'A regulação digital é indispensável para a soberania do país'."
+        opp = detect_visual_opportunities(text, url="https://g1.globo.com/noticia", veiculo="G1")
+        self.assertEqual(opp["chosen_component"], "x-post")
+        x_cands = [c for c in opp["detected_opportunities"] if c["recommended_component"] == "x-post"]
+        self.assertTrue(len(x_cands) > 0)
+        self.assertEqual(x_cands[0]["recommended_variant"], "x_card")
+        self.assertIn("A regulação digital", x_cands[0]["extracted_data"].get("text", ""))
+
+    def test_x_post_in_timeline_generation(self):
+        """Texto citando @handle ou post no X gera beat nativo de x-post com payload estruturado."""
+        episode = {
+            "titulo": "Repercussão nas Redes",
+            "abertura": [{"speaker": "Peter", "texto": "Veja a manifestação oficial."}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "O presidente publicou no X que não aceitará interferências externas na política tarifária."}
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Até a próxima análise."}],
+        }
+        scenes = [{"veiculo": "G1", "url": "https://g1.globo.com/post", "shot": "g1.png"}]
+        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+        x_beats = [b for b in beats if b.visual_component == "x-post" or b.kind == "x-post"]
+        self.assertTrue(len(x_beats) > 0, "Deveria ter gerado beat de x-post")
+        self.assertEqual(x_beats[0].visual_variant, "x_card")
+        self.assertEqual(x_beats[0].semantic_role, "repercussao_social")
+        self.assertIsNotNone(x_beats[0].x_post)
 
 
 if __name__ == "__main__":

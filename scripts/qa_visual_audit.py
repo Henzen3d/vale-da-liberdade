@@ -38,8 +38,8 @@ if str(SCRIPT_DIR) not in sys.path:
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-MIN_BEAT_S = 8.0
-MAX_BEAT_S = 22.0
+MIN_BEAT_S = 4.0
+MAX_BEAT_S = 18.0
 MIN_ASSET_BYTES = 8 * 1024
 MIN_QUOTE_CHARS = 20
 LUMINANCE_STDDEV_MIN = 12.0

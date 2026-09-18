@@ -245,6 +245,13 @@ _OFFICIAL_DOMAIN_RE = re.compile(
     re.I,
 )
 
+X_POST_PATTERNS = [
+    re.compile(r'\b(?:no\s+x|no\s+twitter|pelo\s+x|pelo\s+twitter)\b', re.I | re.U),
+    re.compile(r'\b(?:tuitou|twitou|publicou\s+no\s+x|postou\s+no\s+x|escreveu\s+no\s+x)\b', re.I | re.U),
+    re.compile(r'em\s+(?:publicação|postagem|post)\s+no\s+(?:x|twitter)', re.I | re.U),
+    re.compile(r'(@[a-zA-Z0-9_]{3,20})', re.I),
+]
+
 _VARIANT_BY_COMPONENT = {
     "quote": "card_gold",
     "document": "highlight_zoom",
@@ -252,6 +259,7 @@ _VARIANT_BY_COMPONENT = {
     "timeline": "progressive_nodes",
     "comparison": "split_screen",
     "source": "portal_clean",
+    "x-post": "x_card",
 }
 
 _BASE_SCORE = {
@@ -261,6 +269,7 @@ _BASE_SCORE = {
     "timeline": 0.65,
     "comparison": 0.70,
     "source": 0.50,
+    "x-post": 0.82,
 }
 
 _OPPORTUNITY_TYPE = {
@@ -270,6 +279,7 @@ _OPPORTUNITY_TYPE = {
     "timeline": "chronology",
     "comparison": "confrontation",
     "source": "source_context",
+    "x-post": "social_post",
 }
 
 
@@ -360,6 +370,9 @@ def detect_visual_opportunities(
         author = _extract_quote_author(paragraph, quote_m.span())
         if author or _AUTHORITY_RE.search(paragraph):
             score = _clamp01(score + 0.15)
+        # Se for menção explícita ao X/Twitter, a citação pertence ao card social
+        if _collect_pattern_hits(X_POST_PATTERNS, paragraph):
+            score = _clamp01(score - 0.20)
         candidates["quote"] = {
             "opportunity_type": _OPPORTUNITY_TYPE["quote"],
             "score": round(score, 2),
@@ -451,6 +464,48 @@ def detect_visual_opportunities(
             "extracted_data": {"match_count": len(comparison_hits)},
         }
 
+    # --- x-post (social / X / Twitter) ---
+    x_hits = _collect_pattern_hits(X_POST_PATTERNS, paragraph)
+    is_x_url = bool(url_s and ("twitter.com" in url_s.lower() or "x.com" in url_s.lower()))
+    if x_hits or is_x_url:
+        score = _BASE_SCORE["x-post"]
+        if is_x_url:
+            score = _clamp01(score + 0.10)
+        extracted_x: dict[str, Any] = {
+            "source_name": "X (antigo Twitter)",
+            "match_count": len(x_hits),
+        }
+        handle_m = re.search(r'(@[a-zA-Z0-9_]{3,20})', paragraph)
+        if handle_m:
+            extracted_x["handle"] = handle_m.group(1)
+        auth = _extract_quote_author(paragraph)
+        if auth:
+            extracted_x["author_name"] = auth
+            extracted_x["speaker_name"] = auth
+        elif veiculo_s and "twitter" not in veiculo_s.lower() and veiculo_s.lower().strip() != "x":
+            extracted_x["author_name"] = veiculo_s
+            extracted_x["speaker_name"] = veiculo_s
+        else:
+            extracted_x["author_name"] = "Autoridade"
+            extracted_x["speaker_name"] = "Autoridade"
+
+        if auth or handle_m or _AUTHORITY_RE.search(paragraph):
+            score = _clamp01(score + 0.10)
+
+        quote_m = _first_quote_match(paragraph)
+        if quote_m:
+            extracted_x["text"] = (quote_m.group(1) or "").strip().strip('"“”')
+        else:
+            extracted_x["text"] = paragraph[:280]
+
+        candidates["x-post"] = {
+            "opportunity_type": _OPPORTUNITY_TYPE["x-post"],
+            "score": round(score, 2),
+            "recommended_component": "x-post",
+            "recommended_variant": _VARIANT_BY_COMPONENT["x-post"],
+            "extracted_data": extracted_x,
+        }
+
     ranked = sorted(
         candidates.values(),
         key=lambda c: (-float(c["score"]), str(c["recommended_component"])),
@@ -503,10 +558,11 @@ def detect_visual_opportunities(
     return result
 
 
-MIN_SCENE_DURATION_S = 8.0
-MAX_SCENE_DURATION_S = 22.0
+MIN_SCENE_DURATION_S = 5.0
+MAX_SCENE_DURATION_S = 12.0
 DEFAULT_BROLL_DUR_S = 1.2
-TARGET_MIN_BEATS_5MIN = 10
+TARGET_MIN_BEATS_5MIN = 18
+_PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll", "portal_highlight"]
 
 
 def count_words(text: str) -> int:
@@ -596,7 +652,10 @@ def build_scene_timeline(
             b["fonte_url"] = _last_fonte
             _inherited += 1
     if _inherited:
-        print(f"  🔗 fonte_url herdada por {_inherited} bloco(s)")
+        try:
+            print(f"  🔗 fonte_url herdada por {_inherited} bloco(s)")
+        except UnicodeEncodeError:
+            print(f"  [fonte_url] herdada por {_inherited} bloco(s)")
 
     # 2. Mapeamento de cenas por URL e por domínio (cascata de matching)
     scene_by_url = {s["url"]: s for s in scenes if s.get("url")}
@@ -687,6 +746,7 @@ def build_scene_timeline(
                 "timeline": "contexto_cronologico",
                 "chart": "impacto_economico",
                 "comparison": "confronto_posicoes",
+                "x-post": "repercussao_social",
                 "source": "apresentacao_fato",
             }
             semantic_role = role_map.get(chosen_comp, "apresentacao_fato")
@@ -703,11 +763,11 @@ def build_scene_timeline(
             "t1": round(t_end, 2),
             "url": scene_item.get("url") or "",
             "veiculo": scene_item.get("veiculo") or "Fonte",
-            "kind": "x-post" if is_x_post else (scene_item.get("kind") or (chosen_comp if chosen_comp in _LEGACY_KINDS else "source")),
+            "kind": "x-post" if (is_x_post or chosen_comp == "x-post") else (scene_item.get("kind") or (chosen_comp if chosen_comp in _LEGACY_KINDS else "source")),
             "shot": scene_item.get("shot"),
             "video": scene_item.get("video"),
             "broll_file": None,
-            "x_post": scene_item.get("x_post"),
+            "x_post": scene_item.get("x_post") or (payload if (is_x_post or chosen_comp == "x-post") else None),
             "semantic_role": semantic_role,
             "visual_component": chosen_comp,
             "visual_variant": variant,
@@ -720,14 +780,17 @@ def build_scene_timeline(
             scene_ptr += 1
         current_t = t_end
 
-    # 4. Agregação e aplicação de piso mínimo de 8.0s por cena de fonte
+    # 4. Agregação e aplicação de piso mínimo de duração por cena de fonte
     # Diagnóstico FASE 2 — termômetro da sincronia: quantos blocos casaram
     # em cada nível da cascata. "round_robin" alto = cobertura de fonte
     # ainda baixa; a Fase 0.2 (herança) deve reduzir esse número.
     if match_stats:
         total_blocks = sum(match_stats.values())
         parts = ", ".join(f"{k}={v}" for k, v in sorted(match_stats.items()))
-        print(f"  🎯 sincronia de fonte: {parts} ({total_blocks} blocos)")
+        try:
+            print(f"  🎯 sincronia de fonte: {parts} ({total_blocks} blocos)")
+        except UnicodeEncodeError:
+            print(f"  [sincronia] fonte: {parts} ({total_blocks} blocos)")
     final_beats: list[SceneBeat] = []
     i = 0
     while i < len(raw_beats):
@@ -846,18 +909,16 @@ def build_scene_timeline(
     for b in final_beats:
         b.abertura_fim = round(abertura_fim, 2)
 
-    # 6. Dinamismo: quebra beats longos (> 22s) mantendo a fonte sincronizada
-    # ANTES este passo alternava para a próxima cena da fila a cada sub-beat,
-    # o que sobrescrevia a sincronia fonte→bloco resolvida pela cascata e
-    # produzia a alternância visual "matéria errada" (CNN/Reuters/CNN...).
-    # Agora o sub-beat preserva a fonte do beat; só troca de cena quando ela
-    # é a mesma fonte (multi-shot hero/detail do mesmo veículo).
+    # 6. Dinamismo: quebra beats longos (> MAX_SCENE_DURATION_S) mantendo a fonte sincronizada
+    # O sub-beat preserva a fonte do beat e cicla variantes visuais
+    # (portal_hero -> portal_zoom -> portal_scroll -> portal_highlight), criando
+    # cortes ópticos dinâmicos de câmera de telejornalismo a cada 6-10s mesmo com 1 print.
     expanded_beats: list[SceneBeat] = []
     cycle_ptr = 1
     for beat in final_beats:
         dur = beat.t1 - beat.t0
         if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
-            num_sub = int(dur // 15.0) + 1
+            num_sub = max(2, int(dur // 9.0) + 1)
             step = dur / num_sub
             sub_t0 = beat.t0
             # candidatos alternativos SÓ da mesma fonte (multi-shot)
@@ -875,6 +936,11 @@ def build_scene_timeline(
                     alt_scene = {"url": beat.url, "veiculo": beat.veiculo,
                                  "kind": beat.kind, "shot": beat.shot,
                                  "video": beat.video, "x_post": beat.x_post}
+
+                sub_variant = _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+                sub_roles = ["apresentacao_fato", "detalhe_factual", "leitura_contexto", "destaque_editorial"]
+                sub_role = sub_roles[s_idx % len(sub_roles)]
+
                 expanded_beats.append(SceneBeat(
                     t0=round(sub_t0, 2),
                     t1=round(sub_t1, 2),
@@ -885,31 +951,28 @@ def build_scene_timeline(
                     video=alt_scene.get("video") or beat.video,
                     broll_file=None,
                     x_post=alt_scene.get("x_post") or beat.x_post,
-                    semantic_role=beat.semantic_role,
+                    semantic_role=sub_role,
                     visual_component=beat.visual_component,
-                    visual_variant=beat.visual_variant,
+                    visual_variant=sub_variant,
                     visual_payload=beat.visual_payload,
                 ))
                 sub_t0 = sub_t1
         else:
             expanded_beats.append(beat)
 
-    # 7. Garantia de Piso de Telas: assegura pelo menos 10 beats em vídeos longos (>= 180s)
-    # O corte alternado divide o beat ao meio, mas a segunda metade ANTES
-    # trocava para a próxima cena da fila, sobrescrevendo a sincronia
-    # fonte→bloco resolvida pela cascata. Agora ambas as metades mantêm a
-    # fonte do beat original (o ritmo de telas é preservado, a fonte certa
-    # também). Detalhe/multi-shot do mesmo veículo fica como variação visual.
+    # 7. Garantia de Piso de Telas: assegura pelo menos TARGET_MIN_BEATS_5MIN beats em vídeos longos (>= 180s)
+    # O corte divide o beat ao meio, mantendo a fonte e alternando variantes visuais
     if total_dur >= 180.0 and len(expanded_beats) < TARGET_MIN_BEATS_5MIN and len(scene_queue) > 1:
         while len(expanded_beats) < TARGET_MIN_BEATS_5MIN:
             longest_idx = max(range(len(expanded_beats)), key=lambda idx: (expanded_beats[idx].t1 - expanded_beats[idx].t0))
             b_target = expanded_beats[longest_idx]
             b_dur = b_target.t1 - b_target.t0
-            if b_dur < 12.0:
+            if b_dur < 10.0:
                 break
             half = round(b_target.t0 + b_dur / 2.0, 2)
             alt_scene = scene_queue[cycle_ptr % len(scene_queue)]
             cycle_ptr += 1
+            b1_variant = b_target.visual_variant or "portal_hero"
             b1 = SceneBeat(
                 t0=b_target.t0,
                 t1=half,
@@ -922,17 +985,15 @@ def build_scene_timeline(
                 x_post=b_target.x_post,
                 semantic_role=b_target.semantic_role,
                 visual_component=b_target.visual_component,
-                visual_variant=b_target.visual_variant,
+                visual_variant=b1_variant,
                 visual_payload=b_target.visual_payload,
             )
             alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
-            # Segunda metade: troca de cena só se for a mesma fonte do beat
-            # (multi-shot do mesmo veículo) ou cena nativa do X. Caso
-            # contrário, preserva a fonte casada pela cascata.
             same_source = bool(alt_scene.get("url")) and alt_scene.get("url") == b_target.url
             b2_url = (alt_scene.get("url") or b_target.url) if (alt_is_x or same_source) else b_target.url
             b2_veic = (alt_scene.get("veiculo") or b_target.veiculo) if (alt_is_x or same_source) else b_target.veiculo
             b2_shot = (alt_scene.get("shot") or b_target.shot) if same_source else b_target.shot
+            b2_variant = "x_card" if alt_is_x else ("portal_zoom" if b1_variant in ("portal_hero", "portal_clean") else "portal_scroll")
             b2 = SceneBeat(
                 t0=half,
                 t1=b_target.t1,
@@ -943,9 +1004,10 @@ def build_scene_timeline(
                 video=alt_scene.get("video") or b_target.video,
                 broll_file=None,
                 x_post=alt_scene.get("x_post") or b_target.x_post,
-                semantic_role="repercussao_social" if alt_is_x else b_target.semantic_role,
+                semantic_role="repercussao_social" if alt_is_x else ("detalhe_factual" if b2_variant == "portal_zoom" else b_target.semantic_role),
                 visual_component="x-post" if alt_is_x else b_target.visual_component,
-                visual_variant="x_card" if alt_is_x else b_target.visual_variant,
+                visual_variant=b2_variant,
+                visual_payload=b_target.visual_payload,
             )
             expanded_beats[longest_idx:longest_idx + 1] = [b1, b2]
 

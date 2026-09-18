@@ -351,6 +351,54 @@ html, body {
   object-position: top center;
   z-index: 4;
   background: #fff;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), object-position 0.8s ease;
+  transform-origin: center 25%;
+  will-change: transform, object-position;
+}
+
+/* Variantes Multi-Shot para Notícia / Portal */
+.portal-page-shot.variant-portal-clean,
+.portal-page-shot.variant-portal-hero {
+  transform: scale(1.0);
+  object-position: top center;
+}
+
+.portal-page-shot.variant-portal-zoom {
+  transform: scale(1.18);
+  object-position: center 28%;
+}
+
+.portal-page-shot.variant-portal-scroll {
+  transform: scale(1.08);
+  object-position: center 65%;
+}
+
+.portal-page-shot.variant-portal-highlight {
+  transform: scale(1.14);
+  object-position: center 32%;
+}
+
+/* Overlay de Marca-Texto Editorial / Highlight */
+.portal-highlight-overlay {
+  position: absolute;
+  left: 6%;
+  top: 32%;
+  width: 82%;
+  height: 96px;
+  background: linear-gradient(90deg, rgba(212, 160, 23, 0.35) 0%, rgba(212, 160, 23, 0.15) 100%);
+  border-left: 5px solid #d4a017;
+  border-radius: 4px;
+  box-shadow: 0 0 30px rgba(212, 160, 23, 0.28);
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.portal-highlight-overlay.is-active {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 /* Vídeo do X em pé: caber inteiro. Horizontal continua cover (tela cheia). */
@@ -2466,6 +2514,7 @@ img[hidden],
     <div class="portal-viewport">
       <img id="pageShot" class="portal-page-shot" alt="" hidden>
       <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
+      <div id="portalHighlightOverlay" class="portal-highlight-overlay" hidden></div>
       <nav class="portal-navbar">
         <div class="portal-brand">
           <span class="portal-brand-badge">VDL</span>
@@ -3039,13 +3088,18 @@ const VDL_MOCKUP_ENGINE = {
       xRoot.classList.remove("is-active");
       xRoot.setAttribute("aria-hidden", "true");
     }
+    const highlightOverlay = document.getElementById("portalHighlightOverlay");
+    if (highlightOverlay) {
+      highlightOverlay.classList.remove("is-active");
+      highlightOverlay.hidden = true;
+    }
   },
 
   /**
-   * Transição: Volta para o Navegador do Site
+   * Transição: Volta para o Navegador do Site (com suporte a variantes e micro-motion)
    */
-  transitionToBrowser() {
-    if (this.currentMode === "browser") return;
+  transitionToBrowser(payload = {}) {
+    const wasAlreadyBrowser = this.currentMode === "browser";
     this.currentMode = "browser";
 
     const browserEl = document.getElementById("browserMockup");
@@ -3054,6 +3108,11 @@ const VDL_MOCKUP_ENGINE = {
 
     browserEl.style.display = "flex";
     browserEl.style.visibility = "visible";
+
+    const variant = payload.visual_variant || this.data.visual_variant || "portal_clean";
+    this._applyVisualVariant(variant);
+
+    if (wasAlreadyBrowser) return;
 
     if (window.gsap && !this.isFreezeShot()) {
       if (this.activeTimeline) this.activeTimeline.kill();
@@ -3089,6 +3148,80 @@ const VDL_MOCKUP_ENGINE = {
       this._hideAllCards();
       browserEl.style.opacity = "1";
       browserEl.style.transform = "none";
+    }
+  },
+
+  /**
+   * Aplica variante visual ao frame de notícia (hero, zoom, scroll, highlight)
+   * e executa micro-motion Broadcast contínuo (Ken Burns)
+   */
+  _applyVisualVariant(variant) {
+    const pageShot = document.getElementById("pageShot");
+    const highlightOverlay = document.getElementById("portalHighlightOverlay");
+    if (!pageShot) return;
+
+    const raw = (variant || "portal_clean").toLowerCase();
+    const cleanVar = raw.replace(/_/g, "-");
+
+    pageShot.classList.remove(
+      "variant-portal-clean",
+      "variant-portal-hero",
+      "variant-portal-zoom",
+      "variant-portal-scroll",
+      "variant-portal-highlight"
+    );
+    pageShot.classList.add(`variant-${cleanVar}`);
+
+    // Destaque tipo marca-texto editorial
+    if (highlightOverlay) {
+      if (cleanVar === "portal-highlight") {
+        highlightOverlay.hidden = false;
+        requestAnimationFrame(() => {
+          highlightOverlay.classList.add("is-active");
+        });
+      } else {
+        highlightOverlay.classList.remove("is-active");
+        setTimeout(() => {
+          if (!highlightOverlay.classList.contains("is-active")) {
+            highlightOverlay.hidden = true;
+          }
+        }, 350);
+      }
+    }
+
+    // Micro-motion broadcast: suave push-in / pan Ken Burns
+    // Elimina 100% o aspecto de tela estática congelada
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this._pageShotTween) {
+        this._pageShotTween.kill();
+        this._pageShotTween = null;
+      }
+
+      let startScale = 1.0;
+      let targetScale = 1.025;
+      let targetY = 0;
+
+      if (cleanVar === "portal-zoom") {
+        startScale = 1.15;
+        targetScale = 1.185;
+      } else if (cleanVar === "portal-scroll") {
+        startScale = 1.05;
+        targetScale = 1.08;
+        targetY = -12;
+      } else if (cleanVar === "portal-highlight") {
+        startScale = 1.12;
+        targetScale = 1.145;
+      }
+
+      this._pageShotTween = gsap.fromTo(pageShot,
+        { scale: startScale, y: 0 },
+        {
+          scale: targetScale,
+          y: targetY,
+          duration: 9.0,
+          ease: "sine.out"
+        }
+      );
     }
   },
 
@@ -4017,7 +4150,9 @@ const VDL_MOCKUP_ENGINE = {
     } else if (kind === "x-post" || kind === "x" || kind === "tweet") {
       this.transitionToX(payload);
     } else if (kind === "source" || (!kind && this.currentMode !== "browser")) {
-      this.transitionToBrowser();
+      this.transitionToBrowser(payload);
+    } else if (this.currentMode === "browser") {
+      this._applyVisualVariant(newData.visual_variant || this.data.visual_variant);
     }
 
     // Portal / Notícia
