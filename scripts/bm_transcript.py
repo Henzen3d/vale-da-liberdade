@@ -259,6 +259,9 @@ KNOWN_VEICULOS = {
     "bbc.com": "BBC",
     "bbc.co.uk": "BBC",
     "reuters.com": "Reuters",
+    "ft.com": "Financial Times",
+    "bnews.com.br": "BNews",
+    "brasildefato.com.br": "Brasil de Fato",
     "apnews.com": "AP",
     "dw.com": "DW",
     "aljazeera.com": "Al Jazeera",
@@ -365,6 +368,51 @@ def extract_source_urls(description: str) -> list[str]:
     return urls[:10]  # Limitar a 10 fontes
 
 
+def sanitize_source_title(title: str) -> str:
+    """Sanitiza entidades HTML e espaços em branco."""
+    if not title:
+        return ""
+    import html as _html
+    t = _html.unescape(title).strip()
+    if "&" in t and (";" in t or "#" in t):
+        t = _html.unescape(t).strip()
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def is_valid_source_title(title: str) -> bool:
+    """Valida se o título/nome de fonte extraído é legítimo ou lixo/erro."""
+    if not title:
+        return False
+    t = sanitize_source_title(title)
+    low = t.lower()
+
+    # 1. Erros HTTP, bloqueios e bots
+    error_markers = (
+        "403", "forbidden", "401", "unauthorized", "access denied",
+        "you don't have permission", "attention required", "just a moment",
+        "are you a robot", "cloudflare", "perimeterx", "edgesuite",
+        "request blocked", "bad request", "not found", "internal server error",
+        "service unavailable", "error 40", "error 50", "temporarily offline",
+        "security check", "level access to our",
+    )
+    if any(m in low for m in error_markers):
+        return False
+
+    # 2. Textos curtos demais ou fragmentos sem contexto (< 3 caracteres)
+    if len(t) < 3:
+        return False
+
+    # 3. Pedaços de dias da semana resultantes de split em hífen
+    if low in ("feira", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado", "domingo"):
+        return False
+
+    # 4. Cortes no meio da frase ou tweet truncado
+    if t.endswith("…") or t.endswith("...") or re.search(r"/\s*x\s*$", low):
+        return False
+
+    return True
+
+
 def fetch_source_name(url: str) -> str:
     """Best-effort: tenta capturar o nome do veículo via <title> da página ou blocked-page-recovery."""
     try:
@@ -376,6 +424,7 @@ def fetch_source_name(url: str) -> str:
             BROWSER_HEADERS = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
             }
+    cand_title = ""
     try:
         req = urllib.request.Request(
             url,
@@ -385,30 +434,33 @@ def fetch_source_name(url: str) -> str:
             html = resp.read(8192).decode("utf-8", errors="ignore")
             match = re.search(r"<title[^>]*>([^<]+)</title>", html, re.I)
             if match:
-                title = match.group(1).strip()
-                # Verificar se não é página de erro/bloqueio
-                low = title.lower()
-                if not any(k in low for k in ("access denied", "403", "forbidden", "cloudflare", "perimeterx", "attention required")):
-                    parts = re.split(r"\s*[|—–-]\s*", title)
-                    if len(parts) >= 2:
-                        return parts[-1].strip()[:60]
-                    return title[:60]
+                cand_title = match.group(1).strip()
     except Exception:
         pass
 
-    # Fallback: tentar recuperar via blocked-page-recovery
-    try:
-        from recover_page import recover_page
-        rec = recover_page(url, timeout=8.0, try_direct_first=False)
-        if rec.success and rec.title:
-            parts = re.split(r"\s*[|—–-]\s*", rec.title)
-            if len(parts) >= 2:
-                return parts[-1].strip()[:60]
-            return rec.title[:60]
-    except Exception:
-        pass
+    if not is_valid_source_title(cand_title):
+        try:
+            from recover_page import recover_page
+            rec = recover_page(url, timeout=8.0, try_direct_first=False)
+            if rec.success and rec.title:
+                cand_title = rec.title.strip()
+        except Exception:
+            pass
 
-    return ""
+    if not is_valid_source_title(cand_title):
+        return ""
+
+    cand_title = sanitize_source_title(cand_title)
+    parts = re.split(r"\s*[|—–-]\s*", cand_title)
+    if len(parts) >= 2:
+        suffix = parts[-1].strip()
+        if is_valid_source_title(suffix):
+            return suffix[:60]
+        prefix = parts[0].strip()
+        if is_valid_source_title(prefix):
+            return prefix[:60]
+
+    return cand_title[:60] if is_valid_source_title(cand_title) else ""
 
 
 
@@ -675,10 +727,12 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
     source_urls = extract_source_urls(meta.get("description", ""))
     sources: list[dict] = []
     for i, src_url in enumerate(source_urls[:8]):
+        name = ""
         if i < 5:
-            name = fetch_source_name(src_url) or veiculo_from_url(src_url)
-        else:
+            name = fetch_source_name(src_url)
+        if not is_valid_source_title(name):
             name = veiculo_from_url(src_url)
+        name = sanitize_source_title(name)
         sources.append({"url": src_url, "veiculo": name[:60]})
         print(f"   📰 Fonte: {name} — {src_url}")
 

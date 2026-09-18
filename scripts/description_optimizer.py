@@ -141,6 +141,41 @@ def strip_forbidden_urls(text: str) -> str:
     return "\n".join(lines)
 
 
+def strip_keyword_stuffing(text: str) -> str:
+    """Remove blocos soltos de palavras-chave empilhadas (keyword stuffing)."""
+    lines = []
+    for line in text.splitlines():
+        l_str = line.strip()
+        if not l_str:
+            lines.append(line)
+            continue
+        # Linhas com 4+ palavras soltas sem pontuação de frase
+        words = l_str.split()
+        if len(words) >= 4 and not any(p in l_str for p in (".", ",", "!", "?", ":", ";", "—", "-")):
+            low = l_str.lower()
+            tag_hits = sum(
+                1
+                for w in (
+                    "valedaliberdade", "noticias", "notícias", "comentario",
+                    "comentário", "politica", "política", "corrupcao",
+                    "corrupção", "economia", "brasil", "mundo", "liberdade",
+                )
+                if w in low
+            )
+            if tag_hits >= 3:
+                continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def sanitize_hashtag(tag: str) -> str:
+    """Garante hashtag estritamente válida para o YouTube (sem espaços ou pontuação interna)."""
+    t = tag.strip().lstrip("#")
+    t = re.sub(r"\s+", "", t)
+    t = re.sub(r"[^\w]", "", t)
+    return f"#{t}" if t else ""
+
+
 def clean_youtube_description(
     raw_desc: str,
     sources: list[str] | None = None,
@@ -149,13 +184,19 @@ def clean_youtube_description(
 ) -> str:
     """Higieniza o texto gerado e monta o formato institucional padronizado."""
     body = _html.unescape(raw_desc).strip()
+    if "&" in body and (";" in body or "#" in body):
+        body = _html.unescape(body).strip()
 
     # Remove títulos markdown repetidos gerados por LLM
     body = re.sub(r"^###\s*DESCRIÇÃO\s*", "", body, flags=re.IGNORECASE).strip()
+    body = re.sub(r"###\s*SUGESTÕES DE TÍTULO[\s\S]*$", "", body, flags=re.IGNORECASE).strip()
     body = re.sub(r"###\s*HASHTAGS[\s\S]*$", "", body, flags=re.IGNORECASE).strip()
 
     # Remove URLs proibidas do ANCAPSU
     body = strip_forbidden_urls(body)
+
+    # Remove blocos de keyword stuffing
+    body = strip_keyword_stuffing(body)
 
     # Remove saudações proibidas no início
     cliche_pattern = r"^(?:olá pessoal|sejam bem-vindos(?: ao canal)?|no vídeo de hoje(?: vamos falar)?|fala galera|bom dia|boa tarde|boa noite)[,!.\s-]*"
@@ -169,24 +210,23 @@ def clean_youtube_description(
     # Rodapé institucional com link canônico
     app_line = f"📱 Ouça a edição completa no app: {APP_CANONICAL_URL}"
 
-    # Fontes legítimas
+    # Fontes legítimas (sanitizadas)
     valid_sources = []
     if sources:
         for s in sources:
             s_clean = strip_forbidden_urls(s).strip()
+            s_clean = _html.unescape(s_clean)
             if s_clean and s_clean.startswith("http"):
                 valid_sources.append(f"- {s_clean}")
             elif s_clean and not s_clean.startswith("http") and "ancap" not in s_clean.lower():
                 valid_sources.append(f"- {s_clean}")
 
-    # Hashtags (máximo 3)
+    # Hashtags (máximo 3, NUNCA com espaço)
     clean_tags: list[str] = []
     default_tags = ["#BrasilEMundo", "#Economia", "#Liberdade"] if is_bm else ["#Webjornal", "#ValedaLiberdade", "#Noticias"]
     tag_pool = hashtags or default_tags
     for tag in tag_pool:
-        t = tag.strip()
-        if not t.startswith("#"):
-            t = f"#{t.replace(' ', '')}"
+        t = sanitize_hashtag(tag)
         if t and t.lower() not in [x.lower() for x in clean_tags]:
             clean_tags.append(t)
         if len(clean_tags) >= 3:
@@ -361,24 +401,41 @@ def build_description_prompt(context: dict[str, Any]) -> str:
     if is_bm:
         resumo = context.get("resumo", "")
         return f"""Você é o redator do canal YouTube "Vale da Liberdade" (viés libertário/anarcocapitalista).
-Sua tarefa é escrever a DESCRIÇÃO para o vídeo especial de análise do Peter Albuquerque.
+Sua tarefa é escrever a DESCRIÇÃO em 4 parágrafos e 3 SUGESTÕES DE TÍTULO para o vídeo especial de análise do Peter Albuquerque.
 
 === DADOS DO VÍDEO ===
 TÍTULO: {title}
 RESUMO DO COMENTÁRIO:
 {resumo}
 
-=== REGRAS DE REDAÇÃO (OBRIGATÓRIO) ===
-1. GANCHO INICIAL (2-3 linhas): comece direto no conflito central e impacto do tema. Sem saudações clichês ("Olá pessoal", "Sejam bem-vindos").
-2. CONTEXTO: apresente o que aconteceu e quem está envolvido de forma clara e imparcial.
-3. ANÁLISE LIBERTÁRIA: Peter analisa os incentivos, custos ocultos para o cidadão e a ineficiência ou coerção estatal envolvida. Tom direto, crítico e inteligente (sarcasmo nível 2-3 de 5).
-4. ENCERRAMENTO: termine com uma pergunta instigante convidando a responder nos comentários.
-5. TAMANHO: 350 a 600 caracteres de texto principal.
-6. REGRA RÍGIDA: NUNCA mencione nem inclua links do canal ANCAPSU.
-7. Português do Brasil, voz ativa, sem prolixidade.
+=== ESTRUTURA OBRIGATÓRIA DA DESCRIÇÃO (EXATAMENTE 4 PARÁGRAFOS SEPARADOS) ===
+1. MANCHETE (1–2 frases, prioridade máxima): Afirme o fato central com termos do título e crie um gancho de curiosidade tipo "Entenda a conexão com X" ou "Veja o que está por trás disso". NUNCA use saudações clichês ("Olá pessoal", "Sejam bem-vindos", "Fala galera", "No vídeo de hoje").
+2. CONTEXTO + ANÁLISE (1 parágrafo): O que aconteceu, quem está envolvido e a leitura crítica do canal (liberdade, incentivos, custos ocultos no bolso, coerção estatal, burocracia). Frases curtas e declarativas.
+3. "NESTE VÍDEO, ANALISAMOS..." (1 parágrafo): Inicie com "Neste vídeo, analisamos..." e resuma o que o vídeo cobre usando a primeira pessoa do plural ("analisamos", "mostramos"). Não nomeie o apresentador a menos que o nome esteja explícito no material.
+4. PERGUNTA DE FECHAMENTO + CTA (1 parágrafo): Pergunta forte de engajamento para a seção de comentários seguida de chamada breve para inscrição conectada ao tema do canal (ex.: "Inscreva-se para mais análises sobre economia e liberdade").
+
+=== SUGESTÕES DE TÍTULO (3 OPÇÕES, ATÉ ~70 CARACTERES) ===
+- Estilo do canal: direto, chamativo, com 1–2 palavras de impacto em CAIXA ALTA (ex.: "FACHIN bota ORDEM no STF").
+- Opção 1: Mais factual
+- Opção 2: Mais provocativa / irônica
+- Opção 3: Com pergunta ou tensão
+
+=== REGRAS DE COMPLIANCE E QUALIDADE ===
+- 🚫 NUNCA mencione nem inclua links ou URLs do canal ANCAPSU (@ancap_su, ancap.su).
+- 🚫 NUNCA faça keyword stuffing ou empilhamento de palavras soltas.
+- Hashtags: exatamente 3, SEM ESPAÇO dentro de cada tag (ex.: #BrasilEMundo #Economia #Liberdade).
+- Se houver alegação criminal grave contra pessoa nomeada sem fonte comprovada, use tom neutro ou investigativo.
 
 Responda APENAS com um JSON válido, sem markdown:
-{{"descricao": "texto da descrição em 3 ou 4 parágrafos curtos", "hashtags": ["#BrasilEMundo", "#Economia", "#Liberdade"]}}"""
+{{
+  "descricao": "Parágrafo 1\\n\\nParágrafo 2\\n\\nNeste vídeo, analisamos...\\n\\nPergunta? Inscreva-se para análises sobre economia e liberdade.",
+  "hashtags": ["#BrasilEMundo", "#Economia", "#Liberdade"],
+  "titulos_sugeridos": [
+    "Título factual com DESTAQUE",
+    "Título provocativo e IRÔNICO",
+    "Pergunta com TENSÃO sobre o fato?"
+  ]
+}}"""
 
     # Contexto do Diário
     manchetes = "\n".join(f"- {m}" for m in context.get("manchetes", [])[:6])
@@ -387,7 +444,7 @@ Responda APENAS com um JSON válido, sem markdown:
         quadros_txt += f"* {q['quadro']}: {q['destaque']}\n"
 
     return f"""Você é o redator do podcast e canal YouTube "Webjornal Vale da Liberdade" (viés libertário/anarcocapitalista).
-Sua tarefa é escrever a DESCRIÇÃO do episódio diário apresentado por Peter Albuquerque e Ricardo Souto.
+Sua tarefa é escrever a DESCRIÇÃO em 4 parágrafos e 3 SUGESTÕES DE TÍTULO para o episódio diário apresentado por Peter Albuquerque e Ricardo Souto.
 
 === DADOS DO EPISÓDIO ===
 TÍTULO: {title}
@@ -397,17 +454,33 @@ MANCHETES DO DIA:
 DESTAQUES DOS QUADROS:
 {quadros_txt}
 
-=== REGRAS DE REDAÇÃO (OBRIGATÓRIO) ===
-1. GANCHO INICIAL (2-3 linhas): comece direto no fato mais impactante ou na contradição estatal do dia. Sem saudações ("Olá pessoal", "Bom dia", "Fala galera").
-2. CONTEXTO DO EPISÓDIO: sintetize as principais pautas discutidas por Peter e Ricardo (notícias locais de SC, contas públicas, liberdade e economia) sem copiar a lista de manchetes verbatim.
-3. ANÁLISE LIBERTÁRIA: destaque o impacto no bolso do cidadão, a ineficiência burocrática e a visão crítica do canal.
-4. ENCERRAMENTO: faça uma pergunta provocativa e sincera sobre uma das decisões públicas do dia para movimentar os comentários.
-5. TAMANHO: 400 a 700 caracteres de texto principal.
-6. REGRA RÍGIDA: NUNCA mencione nem inclua links do canal ANCAPSU. O apresentador é Peter Albuquerque.
-7. Português do Brasil, direto e instigante.
+=== ESTRUTURA OBRIGATÓRIA DA DESCRIÇÃO (EXATAMENTE 4 PARÁGRAFOS SEPARADOS) ===
+1. MANCHETE (1–2 frases, prioridade máxima): Afirme o fato mais quente com termos do título e gancho de curiosidade. NUNCA comece com saudações ("Olá pessoal", "Bom dia", "Fala galera").
+2. CONTEXTO DO EPISÓDIO (1 parágrafo): Sintetize as principais pautas discutidas por Peter e Ricardo (notícias locais de SC, contas públicas, impostos, infraestrutura) sem copiar a lista de manchetes verbatim.
+3. "NESTE VÍDEO, ANALISAMOS..." (1 parágrafo): Inicie com "Neste vídeo, analisamos..." e resuma os temas abordados, impactos fiscais e reflexos no bolso do pagador de impostos na primeira pessoa do plural.
+4. PERGUNTA DE FECHAMENTO + CTA (1 parágrafo): Pergunta provocativa para movimentar os comentários seguida de chamada para inscrição/app.
+
+=== SUGESTÕES DE TÍTULO (3 OPÇÕES, ATÉ ~70 CARACTERES) ===
+- Estilo do canal: direto, chamativo, com 1–2 palavras de impacto em CAIXA ALTA.
+- Opção 1: Mais factual
+- Opção 2: Mais provocativa / irônica
+- Opção 3: Com pergunta ou tensão
+
+=== REGRAS DE COMPLIANCE E QUALIDADE ===
+- 🚫 NUNCA mencione nem inclua links do canal ANCAPSU.
+- 🚫 NUNCA faça keyword stuffing.
+- Hashtags: exatamente 3, SEM ESPAÇO dentro da tag (ex.: #Webjornal #ValedaLiberdade #Noticias).
 
 Responda APENAS com um JSON válido, sem markdown:
-{{"descricao": "texto da descrição em 3 ou 4 parágrafos curtos", "hashtags": ["#Webjornal", "#ValedaLiberdade", "#Noticias"]}}"""
+{{
+  "descricao": "Parágrafo 1\\n\\nParágrafo 2\\n\\nNeste vídeo, analisamos...\\n\\nPergunta? Inscreva-se para acompanhar nossa cobertura diária.",
+  "hashtags": ["#Webjornal", "#ValedaLiberdade", "#Noticias"],
+  "titulos_sugeridos": [
+    "Título factual com DESTAQUE",
+    "Título provocativo e IRÔNICO",
+    "Pergunta com TENSÃO sobre o fato?"
+  ]
+}}"""
 
 
 # ---------------------------------------------------------------------------
@@ -479,7 +552,7 @@ def _call_openrouter(prompt: str) -> str:
                             "content": (
                                 "Você é o redator do canal de notícias YouTube Vale da Liberdade. "
                                 "Escreva em português do Brasil com viés libertário, direto e analítico. "
-                                "Retorne apenas um objeto JSON com as chaves 'descricao' e 'hashtags'."
+                                "Retorne apenas um objeto JSON com as chaves 'descricao', 'hashtags' e 'titulos_sugeridos'."
                             ),
                         },
                         {"role": "user", "content": prompt},
@@ -521,7 +594,9 @@ def _call_openrouter(prompt: str) -> str:
     raise RuntimeError(f"OpenRouter falhou: {last_err}")
 
 
-def generate_description_via_llm(context: dict[str, Any]) -> tuple[str, list[str]] | None:
+def generate_description_via_llm(
+    context: dict[str, Any],
+) -> tuple[str, list[str], list[str]] | None:
     prompt = build_description_prompt(context)
     for name, fn in (("Gemini", _call_gemini), ("OpenRouter", _call_openrouter)):
         try:
@@ -531,41 +606,61 @@ def generate_description_via_llm(context: dict[str, Any]) -> tuple[str, list[str
                     data = extract_json_object(raw)
                     desc = str(data.get("descricao") or data.get("description") or "").strip()
                     tags = data.get("hashtags") or data.get("tags") or []
+                    titles = data.get("titulos_sugeridos") or data.get("titles") or []
                     if desc and len(desc) > 80:
-                        return desc, tags
+                        return desc, tags, titles
                 except Exception:
-                    # fallback se não veio JSON válido mas veio texto
                     clean_txt = re.sub(r"<think>[\s\S]*?</think>", "", raw).strip()
                     if len(clean_txt) > 80 and not clean_txt.startswith("{"):
-                        return clean_txt, []
+                        return clean_txt, [], []
         except Exception as exc:
             print(f"  ⚠ {name} falhou p/ descrição: {exc}")
     return None
 
 
 # ---------------------------------------------------------------------------
-# Fallback Determinístico de Alta Qualidade
+# Fallback Determinístico de Alta Qualidade (4 Parágrafos)
 # ---------------------------------------------------------------------------
+def deterministic_title_suggestions(title: str) -> list[str]:
+    """Gera 3 títulos alternativos seguindo o padrão do canal."""
+    t = _html.unescape(title).strip()
+    words = t.split()
+    first_two = " ".join(words[:2]).upper() if len(words) >= 2 else t.upper()
+    rest = " ".join(words[2:]) if len(words) > 2 else ""
+
+    opt1 = t[:70]
+    opt2 = f"{first_two}: {rest}".strip(": ")[:70] if rest else f"ALERTA: {t}"[:70]
+    opt3 = f"O que está por trás de {t}?"[:70]
+    return [opt1, opt2, opt3]
+
+
 def deterministic_description(context: dict[str, Any]) -> str:
-    """Gera uma descrição contextual rica e bem pontuada sem requisições de rede."""
+    """Gera uma descrição contextual em 4 parágrafos ricos seguindo a skill."""
     is_bm = context.get("is_bm", False)
-    title = context.get("title", "")
+    title = _html.unescape(context.get("title", "")).strip()
 
     if is_bm:
-        resumo = context.get("resumo", "")
-        p1 = f"Em mais uma análise contundente, Peter Albuquerque disseca os bastidores e os impactos reais de: {title}."
-        p2 = "Discutimos como as decisões estatais, arranjos de poder e o avanço regulatório atingem a liberdade individual e a economia de mercado. Porque quando o governo intervém, a conta sempre termina nas costas do cidadão comum."
-        p3 = "Qual é a sua visão sobre esse desdobramento? Acredita que haverá alguma reversão prática? Participe nos comentários."
-        return f"{p1}\n\n{p2}\n\n{p3}"
+        p1 = f"{title}. Entenda os bastidores dessa decisão e veja o que realmente está em jogo."
+        p2 = "Em meio ao avanço de medidas regulatórias e disputas de poder, as promessas estatais costumam esconder custos pesados. Analisamos como a intervenção governamental distorce os incentivos de mercado e descarrega a conta no bolso de quem produz e consome."
+        apresentador = context.get("apresentador")
+        if not apresentador and "peter albuquerque" in (str(context.get("resumo", "")) + " " + str(context.get("title", ""))).lower():
+            apresentador = "Peter Albuquerque"
+        if apresentador:
+            p3 = f"Neste vídeo, {apresentador} analisa a mecânica dessa medida na prática, quem são os reais beneficiados e quais as consequências diretas para a liberdade individual e o pagador de impostos."
+        else:
+            p3 = "Neste vídeo, analisamos a mecânica dessa medida na prática, quem são os reais beneficiados e quais as consequências diretas para a liberdade individual e o pagador de impostos."
+        p4 = "O que você acha dessa medida? Deixe sua opinião sincera nos comentários e inscreva-se para mais análises sobre economia e liberdade."
+        return f"{p1}\n\n{p2}\n\n{p3}\n\n{p4}"
 
     manchetes = context.get("manchetes", [])
     m_top = manchetes[:3] if manchetes else ["os principais acontecimentos de Santa Catarina e do Brasil"]
-    m_text = "; ".join(m_top)
+    m_text = "; ".join(_html.unescape(m).strip() for m in m_top)
 
-    p1 = f"Mais uma edição do Webjornal Vale da Liberdade com as notícias que movimentam Santa Catarina e o país, analisadas sem os filtros da imprensa tradicional."
-    p2 = f"Hoje, Peter Albuquerque e Ricardo Souto debatem os principais temas do dia: {m_text}. Avaliamos os mecanismos fiscais, os atrasos de infraestrutura e como cada nova medida estatal interfere diretamente na sua vida prática."
-    p3 = "Diante de tudo isso: o pagador de impostos ainda tem fôlego para bancar essa estrutura? Deixe sua opinião sincera nos comentários."
-    return f"{p1}\n\n{p2}\n\n{p3}"
+    p1 = f"Mais uma edição do Webjornal Vale da Liberdade trazendo os fatos que movimentam Santa Catarina e o país, sem os filtros da imprensa tradicional."
+    p2 = f"Peter Albuquerque e Ricardo Souto debatem os principais temas do dia: {m_text}. Avaliamos os mecanismos fiscais, os atrasos crônicos em obras públicas e como cada nova determinação burocrática interfere na sua vida prática."
+    p3 = "Neste vídeo, analisamos os desdobramentos de cada medida, as contradições dos discursos oficiais e o impacto direto na rotina do cidadão comum."
+    p4 = "O pagador de impostos ainda tem fôlego para bancar essa estrutura? Deixe sua opinião nos comentários e inscreva-se para acompanhar nossa cobertura diária."
+    return f"{p1}\n\n{p2}\n\n{p3}\n\n{p4}"
 
 
 # ---------------------------------------------------------------------------
@@ -588,7 +683,8 @@ def generate_daily_description(date: str, force: bool = False, dry_run: bool = F
         print("  → tentando LLM (Gemini/OpenRouter)...")
         llm_res = generate_description_via_llm(context)
         if llm_res:
-            raw_body, llm_tags = llm_res
+            raw_body = llm_res[0]
+            llm_tags = llm_res[1]
             print("  ✓ LLM respondeu com sucesso")
         else:
             print("  ⚠ LLM indisponível — usando fallback determinístico")
@@ -621,7 +717,8 @@ def generate_bm_description(video_id: str, dry_run: bool = False) -> str:
         print("  → tentando LLM (Gemini/OpenRouter)...")
         llm_res = generate_description_via_llm(context)
         if llm_res:
-            raw_body, llm_tags = llm_res
+            raw_body = llm_res[0]
+            llm_tags = llm_res[1]
             print("  ✓ LLM respondeu com sucesso")
         else:
             print("  ⚠ LLM indisponível — usando fallback determinístico")

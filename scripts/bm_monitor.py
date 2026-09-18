@@ -187,13 +187,28 @@ def enqueue_video(
     """Adiciona vídeo à fila se não for duplicata."""
     vid = video["video_id"]
 
-    # Já visto?
+    # Já visto por ID?
     if vid in seen.get("videos", {}):
         return False
 
-    # Já na fila?
+    # Já na fila por ID?
     if any(item["video_id"] == vid for item in queue):
         return False
+
+    # Checagem de duplicata por título (Issue 8: evita vídeos duplicados como 'LULA confisca CELULAR de VORCARO')
+    try:
+        from bm_dedup import check_video_duplicate
+        is_dup, reason = check_video_duplicate(
+            video.get("title", ""),
+            seen_videos=seen,
+            queue=queue,
+            current_video_id=vid,
+        )
+        if is_dup:
+            print(f"  ⚠️  Duplicata detectada ({reason}) — ignorando vídeo {vid}")
+            return False
+    except Exception as exc:
+        print(f"  ⚠️  Falha na verificação de dedup: {exc}")
 
     queue.append(
         {

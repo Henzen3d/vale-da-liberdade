@@ -90,14 +90,14 @@ UA = (
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 
-FIXED_TAGS = ("Brasil e Mundo", "Vale da Liberdade", "notícias", "comentário")
+FIXED_TAGS = ("BrasilEMundo", "ValedaLiberdade")
 
 DESC_TEMPLATE = (
     "{summary}\n\n"
     "Ouça no app: {app}\n\n"
     "{assista}"
     "Fontes:\n{refs}\n\n"
-    "#BrasilEMundo #{tags}\n"
+    "{hashtags}\n"
 )
 
 ASSISTA_TAMBEM_N = 2

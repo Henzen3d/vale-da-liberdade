@@ -241,7 +241,7 @@ def fetch_x_post_data(page, url: str, shot_dir: Path) -> dict | None:
         req = urllib.request.Request(oembed_url, headers={"User-Agent": UA})
         with urllib.request.urlopen(req, timeout=6) as r:
             oembed_data = json.loads(r.read().decode("utf-8"))
-            if oembed_data.get("author_name") and not author_name:
+            if oembed_data.get("author_name") and (not author_name or author_name == url_handle):
                 author_name = oembed_data["author_name"]
             raw_html = oembed_data.get("html", "")
             p_match = re.search(r"<p[^>]*>(.*?)</p>", raw_html, re.DOTALL)

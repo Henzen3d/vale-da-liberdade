@@ -200,53 +200,129 @@ def _clip_line(text: str, limit: int) -> str:
     return s[:limit].rsplit(" ", 1)[0].rstrip(",;:") + "…"
 
 
+NARRATIVE_FALLBACKS = [
+    "O fato central e os bastidores",
+    "A mecânica e os incentivos",
+    "A corda arrebenta no poder",
+    "Cálculo político e sobrevivência",
+    "Impacto no bolso do cidadão",
+    "Atritos e contradições estatais",
+    "A estrutura do Leviatã",
+]
+
+KNOWN_OUTLET_NAMES = frozenset({
+    "g1", "globo", "o globo", "folha", "folha de s.paulo", "estadão",
+    "estadao", "metrópoles", "metropoles", "uol", "cnn", "cnn brasil",
+    "bbc", "bbc news", "reuters", "poder360", "poder 360", "veja",
+    "revista veja", "exame", "valor", "valor econômico", "jovem pan",
+    "band", "sbt", "r7", "record", "diário do poder", "diario do poder",
+    "bnews", "brasil de fato", "brasildefato", "gazeta do povo",
+    "o antagonista", "antagonista", "financial times", "ft",
+    "bloomberg", "infomoney", "revista oeste", "terra", "ig",
+})
+
+
+def _is_outlet_name(label: str) -> bool:
+    """Detecta se o label é nome de veículo de imprensa em vez de título narrativo."""
+    if not label:
+        return True
+    low = label.lower().strip()
+    if low in KNOWN_OUTLET_NAMES:
+        return True
+    if any(low == f"fonte: {o}" or low == f"no {o}" or low.startswith(f"{o} ") for o in KNOWN_OUTLET_NAMES):
+        return True
+    return False
+
+
 def highlight_from_script(text: str, limit: int = 48) -> str:
-    """Ponto alto do roteiro para capítulo YouTube — não o nome do veículo."""
+    """Ponto alto narrativo do roteiro para capítulo YouTube — nunca o nome do veículo."""
     s = _unescape(text or "").strip()
     s = re.sub(r"^\s*peter:\s*", "", s, flags=re.I)
     if not s or _CTA_RE.search(s):
         return ""
+
+    # Remove saudações e aberturas conversacionais típicas
+    conv_leads = (
+        r"^vamos aos fatos e [àa]\s+",
+        r"^vamos aos fatos[,:\s-]*",
+        r"^é a regra básica (?:de|da|do)?\s*",
+        r"^reparem (?:no|na|em)?\s*",
+        r"^o fato é que\s*",
+        r"^não se enganem[,:\s-]*",
+        r"^para piorar a situação(?: do| da)?\s*",
+        r"^para coroar o espetáculo(?: de| do| da)?\s*",
+        r"^a verdade é que\s*",
+        r"^o recado institucional é que\s*",
+        r"^a imprensa tenta vender que\s*",
+    )
+    for pat in conv_leads:
+        s = re.sub(pat, "", s, flags=re.I).strip()
+
     sent = s
     for sep in (". ", "! ", "? ", "; "):
         i = s.find(sep)
-        if 18 <= i <= 160:
+        if 16 <= i <= 140:
             sent = s[:i].strip()
             break
+
     sent = _OUTLET_PREFIX_RE.sub("", sent).strip()
     sent = re.sub(
-        r"^(?:traz(?: os bastidores)?|mostra|aponta|relata|informa)(?: que)?\s+",
+        r"^(?:traz(?: os bastidores)?|mostra|aponta|relata|informa|explica)(?: que)?\s+",
         "",
         sent,
         flags=re.I,
     )
     sent = re.sub(r"\s+", " ", sent).strip(" ,;:—-")
+
     if len(sent) > limit:
         cut = sent[:limit]
-        for sep in (", ", " e ", " que ", " para ", " sobre "):
+        for sep in (", ", " e ", " que ", " para ", " sobre ", " contra "):
             j = cut.rfind(sep)
-            if j >= 18:
+            if j >= 16:
                 cut = cut[:j]
                 break
         else:
             cut = cut.rsplit(" ", 1)[0]
         sent = cut.strip(" ,;:—-")
-    if not sent:
+
+    if not sent or len(sent) < 4 or _is_outlet_name(sent):
         return ""
+
+    # Neutraliza termos graves sem sustentação
+    for k, v in (("roubou", "no escândalo"), ("desviou", "sob suspeita"), ("propina", "repasses suspeitos")):
+        sent = re.sub(rf"\b{k}\b", v, sent, flags=re.I)
+
     return sent[0].upper() + sent[1:]
 
 
 def _chapter_labels_from_episode(episode: dict, n: int) -> list[str]:
-    """N rótulos a partir do desenvolvimento (abertura só se faltar texto)."""
+    """N rótulos narrativos a partir do desenvolvimento (abertura só se faltar texto)."""
     if n <= 0 or not episode:
         return []
     labels: list[str] = []
     seen: set[str] = set()
-    for key in ("desenvolvimento", "abertura"):
+    desenv = episode.get("desenvolvimento") or []
+    for i, item in enumerate(desenv):
+        raw = item.get("texto") if isinstance(item, dict) else item
+        h = highlight_from_script(raw or "")
+        if not h or _is_outlet_name(h):
+            h = NARRATIVE_FALLBACKS[i % len(NARRATIVE_FALLBACKS)]
+        keyn = h.casefold()
+        if keyn in seen:
+            continue
+        seen.add(keyn)
+        labels.append(h)
+        if len(labels) >= n:
+            return labels
+
+    for key in ("abertura",):
         for item in episode.get(key) or []:
             raw = item.get("texto") if isinstance(item, dict) else item
             h = highlight_from_script(raw or "")
+            if not h or _is_outlet_name(h):
+                continue
             keyn = h.casefold()
-            if not h or keyn in seen:
+            if keyn in seen:
                 continue
             seen.add(keyn)
             labels.append(h)
@@ -284,6 +360,7 @@ def _bm_seo_description(
         "video_id": video_id,
         "title": title,
         "resumo": episode_summary(episode, limit=1200) or title,
+        "apresentador": episode.get("apresentador", ""),
         "is_bm": True,
     }
     raw_body = None
@@ -401,52 +478,95 @@ def build_chapters(
     timeline_beats: list[Any] | None = None,
     episode: dict | None = None,
 ) -> list[tuple[float, str]]:
-    """Timestamps das cenas; rótulos = pontos altos do roteiro, não o veículo do print."""
+    """Capítulos narrativos temáticos com cadência controlada (25–40s), nunca nomes de veículos."""
     entries: list[tuple[float, str]] = []
-    if timeline_beats:
+
+    # 1. Se temos o roteiro estruturado (desenvolvimento), geramos títulos narrativos proporcionais
+    desenvolvimento = (episode.get("desenvolvimento") or []) if episode else []
+
+    if desenvolvimento and dur > 30.0:
+        abertura = episode.get("abertura") or []
+        fechamento = episode.get("fechamento") or []
+        w_abertura = sum(
+            len((it.get("texto") if isinstance(it, dict) else it or "").split())
+            for it in abertura
+        )
+        w_fechamento = sum(
+            len((it.get("texto") if isinstance(it, dict) else it or "").split())
+            for it in fechamento
+        )
+        w_paras = [
+            len((it.get("texto") if isinstance(it, dict) else it or "").split())
+            for it in desenvolvimento
+        ]
+        total_words = max(1, w_abertura + sum(w_paras) + w_fechamento)
+
+        curr_words = w_abertura
+        for i, item in enumerate(desenvolvimento):
+            raw = item.get("texto") if isinstance(item, dict) else item
+            t_start = (curr_words / total_words) * dur
+            curr_words += w_paras[i]
+
+            label = highlight_from_script(raw or "")
+            if not label or _is_outlet_name(label):
+                label = NARRATIVE_FALLBACKS[i % len(NARRATIVE_FALLBACKS)]
+
+            entries.append((round(t_start), label))
+
+        t_concl = (curr_words / total_words) * dur
+        t_concl = max(t_concl, dur - min(30.0, dur * 0.15))
+        entries.append((round(t_concl), "Conclusão"))
+
+    elif timeline_beats:
+        last_t = 0.0
+        beat_idx = 0
         for beat in timeline_beats:
             b_dict = beat.to_dict() if hasattr(beat, "to_dict") else dict(beat)
             if b_dict.get("kind") == "broll":
                 continue
             t0 = float(b_dict.get("t0", 0.0))
-            label = (b_dict.get("veiculo") or "Fonte").strip()
-            if label and label.lower() not in {"transição", "introdução"}:
-                ts = t0 if t0 >= 10.0 else max(10.0, round(dur * 0.08))
-                entries.append((ts, label))
-        concl = max(entries[-1][0] + 10.0 if entries else 0.0, dur - min(20.0, dur * 0.15))
-        entries.append((concl, "Conclusão"))
+            if t0 - last_t >= 25.0:
+                label = NARRATIVE_FALLBACKS[beat_idx % len(NARRATIVE_FALLBACKS)]
+                entries.append((round(t0), label))
+                last_t = t0
+                beat_idx += 1
+        concl = max(entries[-1][0] + 25.0 if entries else 0.0, dur - min(25.0, dur * 0.15))
+        entries.append((round(concl), "Conclusão"))
     else:
-        n = max(len(scenes), 1)
-        per = max(8.0, dur / n)
-        t = 0.8
-        for s in scenes:
-            entries.append((t, (s.get("veiculo") or "Fonte").strip()))
-            t += per
-        concl = max(t, dur - min(20.0, dur * 0.15))
-        entries.append((concl, "Conclusão"))
+        concl = max(dur - 25.0, 30.0)
+        entries.append((round(concl), "Conclusão"))
 
-    highlight_slots = sum(1 for ts, label in entries if label != "Conclusão")
-    highlights = _chapter_labels_from_episode(episode or {}, highlight_slots)
-    if highlights:
-        hi = 0
-        rewritten: list[tuple[float, str]] = []
-        for ts, label in entries:
-            if label == "Conclusão":
-                rewritten.append((ts, label))
-                continue
-            rewritten.append((ts, highlights[hi] if hi < len(highlights) else label))
-            hi += 1
-        entries = rewritten
-
-    # normaliza: Introdução sempre em 0:00, timestamps crescentes, >=10s entre capítulos
+    # Normalização rigorosa:
+    # - 0:00 Introdução sempre
+    # - Mínimo de 25s entre capítulos (evita loops curtos)
+    # - Sem repetição consecutiva de títulos
+    # - Sem nomes de veículos
     out: list[tuple[float, str]] = [(0, "Introdução")]
+    prev_label = "Introdução"
+
     for ts, label in sorted(entries, key=lambda x: x[0]):
-        if label == "Introdução" or ts < 8.0:
+        if label.lower() in ("introdução", "transição") or ts < 12.0:
             continue
         ts = min(ts, max(dur - 1.0, 0.0))
-        if out and ts - out[-1][0] < 10.0:
+        if out and (ts - out[-1][0] < 25.0):
             continue
+        if label == "Conclusão":
+            out.append((round(ts), "Conclusão"))
+            break
+        if label.lower() == prev_label.lower():
+            continue
+        if _is_outlet_name(label):
+            continue
+
         out.append((round(ts), label))
+        prev_label = label
+
+    # Garante que Conclusão esteja presente
+    if dur > 60.0 and out and out[-1][1] != "Conclusão":
+        concl_t = max(out[-1][0] + 25.0, round(dur - min(25.0, dur * 0.15)))
+        if concl_t < dur - 5.0 and concl_t - out[-1][0] >= 20.0:
+            out.append((concl_t, "Conclusão"))
+
     return out
 
 
@@ -496,7 +616,6 @@ def build_assista_tambem(video_id: str, title: str, desc_for_playlist: str) -> s
         videos = load_state().get("videos", {})
     except Exception:  # noqa: BLE001
         videos = {}
-    # Ordena por published_at desc, exclui o vídeo atual e entradas sem yt_id.
     cands = [
         (vid, meta)
         for vid, meta in videos.items()
@@ -535,8 +654,8 @@ def build_metadata(
     refs_ok: list[str] = []
     for r in episode.get("fonte_referencias") or []:
         ru = _clean_url(r.get("url") or "")
-        rv = (r.get("veiculo") or "").strip()
-        if not ru or is_blocked_source_url(ru) or r.get("self"):
+        rv = _unescape((r.get("veiculo") or "").strip())
+        if not ru or is_blocked_source_url(ru) or r.get("self") or _is_outlet_name(rv) and rv.lower() in ("fonte", "fontes"):
             continue
         refs_ok.append(f"{rv}: {ru}" if rv else ru)
     ymd = episode_date(audio)
@@ -547,26 +666,37 @@ def build_metadata(
     assista = build_assista_tambem(video_id, title, summary)
     desc = _bm_seo_description(video_id, episode, title, refs_ok, tags)
     if not desc:
+        clean_tags_desc = " ".join(f"#{t.replace(' ', '')}" for t in tags if t)
         desc = DESC_TEMPLATE.format(
             summary=summary,
             app=APP_URL,
             assista=assista,
             refs="\n".join(refs_ok) if refs_ok else "—",
-            tags=" ".join(t.replace(" ", "") for t in tags if t),
+            hashtags=clean_tags_desc,
         )
     else:
         desc = _inject_assista(desc, assista)
-    if scenes or timeline_beats:
-        desc += chapters_block(
+
+    dur = probe_duration_s(audio) or 0.0
+    if scenes or timeline_beats or episode:
+        ch_str = chapters_block(
             scenes or [],
-            probe_duration_s(audio) or 0.0,
+            dur,
             timeline_beats=timeline_beats,
             episode=episode,
         )
+        if ch_str:
+            if "\n\n#" in desc:
+                idx = desc.rfind("\n\n#")
+                desc = desc[:idx] + "\n" + ch_str + desc[idx:]
+            else:
+                desc = desc.rstrip() + "\n" + ch_str
+
     seen: set[str] = set()
     uniq: list[str] = []
     for t in tags:
         t = _unescape(str(t)).strip()
+        t = re.sub(r"\s+", "", t).lstrip("#")
         if t and t.lower() not in seen:
             seen.add(t.lower())
             uniq.append(t)

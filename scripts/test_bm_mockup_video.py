@@ -328,6 +328,7 @@ class MetadataTests(unittest.TestCase):
             "titulo": "China culpa dono da Evergrande",
             "fonte_veiculo": "CNN Brasil",
             "tags": ["economia"],
+            "apresentador": "Peter Albuquerque",
             "abertura": [
                 {"speaker": "Peter", "texto": "O Estado chinês condenou o dono da Evergrande. A narrativa oficial é fraude."}
             ],
@@ -358,10 +359,12 @@ class MetadataTests(unittest.TestCase):
         chapters = build_chapters([], dur=100.0, timeline_beats=beats)
         labels = [c[1] for c in chapters]
         self.assertIn("Introdução", labels)
-        self.assertIn("G1", labels)
-        self.assertIn("Folha", labels)
+        self.assertNotIn("G1", labels)
+        self.assertNotIn("Folha", labels)
         self.assertNotIn("Transição", labels)
         self.assertIn("Conclusão", labels)
+        # Capítulos intermediários devem ser narrativos/temáticos
+        self.assertTrue(any("bastidores" in l.lower() or "fato" in l.lower() for l in labels))
 
     def test_chapters_use_script_highlights_not_outlet_names(self):
         ep = {

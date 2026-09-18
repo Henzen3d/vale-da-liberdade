@@ -95,6 +95,17 @@ def main():
         if any(item["video_id"] == video_id for item in queue):
             print(f"⚠️  Vídeo {video_id} já está na fila.")
             sys.exit(0)
+        if args.title:
+            from bm_dedup import check_video_duplicate
+            is_dup, reason = check_video_duplicate(
+                args.title,
+                seen_videos=seen,
+                queue=queue,
+                current_video_id=video_id,
+            )
+            if is_dup:
+                print(f"⚠️  Vídeo com título duplicado ({reason}). Use --force para reprocessar.")
+                sys.exit(0)
 
     # Remover entrada anterior se --force
     if args.force:

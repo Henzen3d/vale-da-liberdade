@@ -1,141 +1,127 @@
 # GUIA OPERACIONAL & PROMPT CANÔNICO PARA O HERMES AGENT
-## Skill: `descricoes-vale-liberdade` (Descrições YouTube do Vale da Liberdade)
+## Skill: `descricoes-vale-liberdade` (Descrições, Capítulos e Títulos YouTube)
 
-Este documento fornece as instruções e templates de prompt para o **Hermes Agent** gerar e integrar descrições otimizadas para o YouTube nos pipelines de produção do **Vale da Liberdade**.
+Este documento fornece as instruções e templates de prompt para o **Hermes Agent** gerar e integrar descrições em 4 parágrafos, capítulos narrativos e sugestões de títulos nos pipelines de produção do **Vale da Liberdade**.
 
 ---
 
 ## 1. Visão Geral e Papel do Hermes Agent
 
-O Hermes Agent atua como editor e orquestrador do canal. No fluxo diário de produção do podcast e no fluxo horário de vídeos Brasil & Mundo (BM), a descrição de cada vídeo no YouTube deve ser gerada automaticamente a partir dos fatos apurados no roteiro.
+O Hermes Agent atua como editor e orquestrador do canal. No fluxo diário de produção do podcast e no fluxo de vídeos Brasil & Mundo (BM), a descrição de cada vídeo no YouTube deve ser gerada automaticamente a partir dos fatos apurados no roteiro e higienizada rigorosamente antes da publicação.
 
 ### Onde a Skill Vive no Sistema
+- **Workspace Agent:** `.agent/skills/descricoes-vale-liberdade/SKILL.md`
 - **Árvore nativa do Hermes:** `.hermes/skills/content/descricoes-vale-liberdade/SKILL.md`
 - **Árvore do repositório:** `SKILLS/descricoes-vale-liberdade/SKILL.md`
 - **Motor Python automatizado:** `scripts/description_optimizer.py`
+- **Pipeline de Vídeo & Capítulos:** `scripts/bm_video/state.py`
+- **Deduplicação de Vídeos:** `scripts/bm_dedup.py`
 
 ---
 
-## 2. Instruções de Execução para o Hermes Agent
+## 2. Verificação de Qualidade dos Dados de Entrada (Antes de Escrever)
 
-### Cenário A: Execução Automática no Pipeline Diário (CLI / Subprocess)
-Durante o ciclo de produção diária (`pipeline.py full`), o Hermes Agent pode acionar o script diretamente:
+Antes de montar a descrição, capítulos ou títulos, o Hermes Agent deve aplicar esta checagem formal para eliminar lixo de scraping e dados corrompidos:
 
-```bash
-# Execução padrão para o dia:
-python3 scripts/description_optimizer.py --date YYYY-MM-DD
-
-# Modo dry-run (apenas inspecionar saída):
-python3 scripts/description_optimizer.py --date YYYY-MM-DD --dry-run
-
-# Forçar regreneração:
-python3 scripts/description_optimizer.py --date YYYY-MM-DD --force
-```
-
-O script lê `episodes/{date}-title.txt` e `episodes/roteiro-{date}.json` e grava o resultado final em:
-```
-episodes/{date}-description.txt
-```
+1. **Fontes ausentes:** Cruze cada item dos capítulos com a lista de Fontes. Se um capítulo referencia uma fonte sem link correspondente, não invente o link — use o nome sem link e sinalize em nota. Capítulos nunca devem ser nomes de veículos.
+2. **Texto corrompido ou truncado:** Títulos cortados ("level access to our… / X"), erros HTTP usados como fonte ("403 Forbidden", "Ft", "feira" solto) ou blocos de tweets cortados são falhas de scraping. Use rótulos narrativos descritivos e sinalize.
+3. **Entidades HTML:** Sempre sanitizar `&quot;`, `&ccedil;`, `&#039;`, `&atilde;`, `&#x27;`, `&amp;` para caracteres normais.
+4. **Keyword stuffing:** Bloqueie qualquer bloco solto de tags/palavras empilhadas (`ValedaLiberdade notícias comentário política corrupção economia`).
+5. **Hashtags com espaço:** Nunca use hashtags como `#Brasil e Mundo`. Normalize para `#BrasilEMundo`, sem espaço, máximo 3 tags.
+6. **Nomes e fatos divergentes:** Se nomes ou dados divergirem entre o roteiro e as matérias-fonte, adote a versão da fonte documental verificável e sinalize.
+7. **Alegações graves sem fonte correspondente:** Se o contexto trouxer acusações de crimes/propina/valores contra pessoas nomeadas sem fonte documental direta na lista, mantenha a abordagem neutra/institucional e alerte na nota final.
+8. **Duplicata:** Verifique duplicatas de título (ex.: "LULA confisca CELULAR de VORCARO") contra `seen_videos.json` e `queue.json` usando `bm_dedup.py`. Se idêntico, alerte em vez de reprocessar.
+9. **Fonte não-institucional tratada como fato consolidado:** Posts isolados em redes sociais ou blogs devem ser tratados como "segundo X" ou "análise aponta", nunca como fato consumado.
 
 ---
 
-### Cenário B: Geração Inline Direta pelo Hermes Agent (Prompt do Agente)
+## 3. Estrutura Canônica da Descrição (4 Parágrafos)
 
-Quando o Hermes Agent for solicitado a gerar a descrição diretamente durante uma sessão de chat ou tarefa autônoma, deve aplicar o **Prompt Canônico** abaixo.
+A descrição é composta por **4 parágrafos curtos e separados**, cada um com função clara:
 
-#### 🎙️ PROMPT 1: Episódio Diário do Webjornal (Peter & Ricardo)
+1. **Manchete (1–2 frases):** Fato central direto + gancho de curiosidade ("Entenda quem paga essa conta no final"). Deve incluir 1–2 termos-chave do título. Zero saudações clichês ("Olá pessoal", "Fala galera").
+2. **Contexto + Análise (1 parágrafo):** O que aconteceu, quem está envolvido, e a leitura do canal (liberdade, incentivos, coerção estatal, impostos, mercado). Frases declarativas curtas.
+3. **"Neste vídeo, analisamos..." (1 parágrafo):** Resumo dos pontos cobertos em 1ª pessoa do plural ("analisamos", "mostramos"). Só nomeie o apresentador ("Peter Albuquerque analisa...") se o nome vier explicitamente no material.
+4. **Pergunta de fechamento + CTA (1 parágrafo):** Pergunta provocativa preservando termos fortes do roteiro original + CTA específico ("Inscreva-se para análises sobre economia e liberdade").
+
+### Regra ANCAPSU
+- **NUNCA incluir a URL do canal ANCAPSU** (`@ancap_su`, `ancap.su`, links de YouTube do canal).
+- É permitido citar por texto: **Peter Turguniev** e **Visão Libertária** (link de VL só se fornecido: `pimentanocafe.com.br/visaolibertaria`).
+
+---
+
+## 4. Capítulos Narrativos (⏱ CAPÍTULOS)
+
+- **Estilo:** Curto (3–6 palavras), temático e narrativo, na voz do canal (ex.: `0:00 A auditoria que abalou Brasília`, `1:45 O padrão de autoproteção das elites`).
+- **Nunca:** Nomes de veículos ("G1", "Metrópoles"), nem trechos cortados de roteiro.
+- **Cadência:** Mínimo de 25–40 segundos entre marcações; consolidar loops de imagens repetidas.
+
+---
+
+## 5. Sugestões de Título (3 Opções)
+
+Sempre incluir 3 opções no final:
+1. **Opção 1:** Mais factual e direta.
+2. **Opção 2:** Mais provocativa/irônica (padrão com CAIXA ALTA em 1–2 palavras de impacto).
+3. **Opção 3:** Com pergunta ou tensão.
+Limite: até ~70 caracteres para não cortar no YouTube.
+
+---
+
+## 6. Prompt Canônico para o Hermes Agent
 
 ```markdown
-Você é o redator editorial do canal YouTube e podcast "Webjornal Vale da Liberdade" (viés libertário/anarcocapitalista).
-Sua tarefa é escrever a DESCRIÇÃO completa para o episódio diário publicado no YouTube.
+Você é o redator editorial do canal YouTube "Vale da Liberdade" (viés libertário/anarcocapitalista).
+Sua tarefa é gerar a DESCRIÇÃO em 4 parágrafos, a lista de CAPÍTULOS narrativos e 3 SUGESTÕES DE TÍTULO para o vídeo abaixo.
 
 DADOS DE ENTRADA:
-- Data da edição: [DATA]
-- Título do vídeo: [TÍTULO OTIMIZADO GERADO PELO TITLE_OPTIMIZER]
-- Manchetes do episódio: [LISTA DE 5 A 6 MANCHETES DE EPISODES/ROTEIRO-DATE.JSON]
-- Pautas dos quadros: [RESUMO DE SEGURANÇA, SAÚDE, EDUCAÇÃO, POLÍTICA, BRASIL, MUNDO]
+- TÍTULO: [TÍTULO DO VÍDEO]
+- CONTEXTO / ROTEIRO: [ROTEIRO OU RESUMO DO EPISÓDIO]
+- FONTES: [LISTA DE LINKS REAIS]
+- TIMESTAMP / DURAÇÃO: [SE HOUVER]
 
-DIRETRIZES OBRIGATÓRIAS (SKILL descricoes-vale-liberdade):
-1. GANCHO INICIAL (2-3 linhas, visíveis antes do 'mostrar mais'):
-   - Comece direto no assunto mais quente ou na contradição fiscal do dia.
-   - Responda rápido: sobre o que é o vídeo e por que isso afeta a vida do cidadão.
-   - NUNCA comece com: "Olá pessoal", "Sejam bem-vindos", "No vídeo de hoje", "Fala galera" ou saudações temporais.
-2. CONTEXTO E DESTAQUES:
-   - Sintetize os acontecimentos debatidos por Peter Albuquerque e Ricardo Souto.
-   - Destaque fatos e números concretos (valores em R$, porcentagens, projetos de lei, obras).
-3. ANÁLISE CRÍTICA:
-   - Enfoque libertário/econômico: incentivos distorcidos, ineficiência da gestão pública, custo no bolso de quem produz.
-   - Tom provocativo, inteligente e informal brasileiro (sarcasmo leve: nível 2-3 de 5).
-4. ENCERRAMENTO (PERGUNTA DE ENGAJAMENTO):
-   - Faça uma pergunta sincera e provocativa ao público para movimentar a seção de comentários.
-5. COMPLIANCE & LINKS OBRIGATÓRIOS:
-   - 🚫 NUNCA mencione nem inclua nenhuma URL do canal ANCAPSU (regra inegociável).
-   - Inclua sempre a chamada do aplicativo:
-     📱 Ouça no nosso app: https://news.mob.tec.br
-   - Nunca invente links de terceiros.
-6. TAMANHO:
-   - 400 a 700 caracteres de texto principal.
+ETAPAS OBRIGATÓRIAS:
+1. Realize a verificação de qualidade dos dados de entrada (sanitizar entidades HTML, rejeitar lixo de scraping, bloquear keyword stuffing, verificar alegações sem fonte).
+2. Escreva a descrição em exatamente 4 parágrafos:
+   - P1: Manchete direta + gancho (incluindo termos do título).
+   - P2: Contexto dos fatos + análise de incentivos/liberdade.
+   - P3: Inicie com "Neste vídeo, analisamos..." (só use o nome do apresentador se explícito no material).
+   - P4: Pergunta de fechamento com palavras fortes do roteiro + CTA.
+3. Gere os capítulos narrativos (⏱ CAPÍTULOS) com títulos temáticos curtos (3-6 palavras), nunca nomes de veículos, cadência mínima de 25s.
+4. Adicione 3 sugestões de título (factual, provocativa, pergunta/tensão).
+5. Proibido qualquer link do canal ANCAPSU.
 
 FORMATO DE SAÍDA:
 ### DESCRIÇÃO
-[Texto da descrição pronta para copiar]
+
+[Parágrafo 1]
+
+[Parágrafo 2]
+
+[Parágrafo 3]
+
+[Parágrafo 4]
 
 📱 Ouça a edição completa no app: https://news.mob.tec.br
 
-### HASHTAGS
-#Webjornal #ValedaLiberdade #Noticias
-```
-
----
-
-#### 🌐 PROMPT 2: Especial Brasil & Mundo (Peter Albuquerque Solo)
-
-```markdown
-Você é o redator editorial do canal YouTube "Vale da Liberdade".
-Sua tarefa é escrever a DESCRIÇÃO para o vídeo especial de análise do Peter Albuquerque (segmento Brasil e Mundo).
-
-DADOS DE ENTRADA:
-- Título do vídeo: [TÍTULO DO ESPECIAL BM]
-- Resumo da matéria / Pauta: [TEXTO DO ESPECIAL-{VIDEO_ID}.JSON]
-- Fontes jornalísticas citadas: [URLS DE FONTE_REFERENCIAS]
-
-DIRETRIZES OBRIGATÓRIAS:
-1. GANCHO INICIAL: 2 a 3 linhas diretas no conflito central da notícia nacional/geopolítica.
-2. ANÁLISE DO PETER: Traduzir a mecânica estatal de controle, privilégios fiscais ou interferência burocrática.
-3. PERGUNTA FINAL: Desafiar o espectador com uma pergunta provocativa.
-4. LINKS:
-   - Incluir as fontes jornalísticas fornecidas (ex: G1, Gazeta, CNN, etc.).
-   - 🚫 PROIBIDO incluir URLs do ANCAPSU.
-   - Incluir:
-     📱 Acompanhe as análises no app: https://news.mob.tec.br
-5. TAMANHO: 350 a 600 caracteres.
-6. 0 a 3 hashtags no formato #BrasilEMundo #Economia #Liberdade.
-
-FORMATO DE SAÍDA:
-### DESCRIÇÃO
-[Texto da descrição]
-
-📱 Acompanhe as análises no app: https://news.mob.tec.br
+🔥 ASSISTA TAMBÉM:
+[Links de vídeos recomendados, se houver]
 
 Fontes:
-[Lista de URLs de notícias reais fornecidas]
+[Fontes com link real]
+
+⏱ CAPÍTULOS:
+0:00 Introdução
+[Minutagens com títulos narrativos]
 
 ### HASHTAGS
 #BrasilEMundo #Economia #Liberdade
+
+### SUGESTÕES DE TÍTULO
+1. [Opção factual]
+2. [Opção provocativa / impacto]
+3. [Opção pergunta / tensão]
 ```
-
----
-
-## 3. Checklist de Validação Antes da Publicação
-
-Antes de entregar a descrição ou gravá-la em disco, execute a verificação mental rápida:
-
-- [ ] **Gancho funciona sozinho?** O espectador entende o tema antes de clicar em "mostrar mais"?
-- [ ] **Sem clichês de abertura?** A descrição começa direto no fato sem "Olá pessoal"?
-- [ ] **Zero URLs do ANCAPSU?** Não há nenhuma menção a `@ancap_su` ou `ancap.su`?
-- [ ] **Link do App presente?** `https://news.mob.tec.br` está no corpo?
-- [ ] **Hashtags adequadas?** Máximo de 3 hashtags sem poluição visual?
-- [ ] **Extensão controlada?** Está na faixa de 350 a 800 caracteres totais?
 
 ---
 

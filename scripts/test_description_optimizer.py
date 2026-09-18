@@ -91,9 +91,22 @@ class TestDescriptionOptimizer(unittest.TestCase):
             "is_bm": True,
         }
         desc = deterministic_description(ctx)
-        self.assertIn("Peter Albuquerque", desc)
         self.assertIn("Nova Taxa sobre Importações Aprovada", desc)
+        self.assertIn("Neste vídeo, analisamos", desc)
         self.assertIn("comentários", desc.lower())
+        paragraphs = [p for p in desc.split("\n\n") if p.strip()]
+        self.assertEqual(len(paragraphs), 4)
+
+        # Se apresentador for explícito, nomeia
+        ctx_com_apresentador = {
+            "video_id": "xyz123",
+            "title": "Nova Taxa sobre Importações Aprovada",
+            "resumo": "Discussão sobre o aumento de impostos alfandegários.",
+            "apresentador": "Peter Albuquerque",
+            "is_bm": True,
+        }
+        desc2 = deterministic_description(ctx_com_apresentador)
+        self.assertIn("Peter Albuquerque", desc2)
 
     def test_build_description_prompt_rules(self):
         ctx = {

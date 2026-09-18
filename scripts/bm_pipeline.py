@@ -423,6 +423,27 @@ def cmd_full(url: str, skip_audio: bool = False, force: bool = False) -> None:
         print("❌ FALHA na extração. Abortando.")
         sys.exit(2)
 
+    # Checagem de duplicata pós-extração de título (evita queimar tokens LLM em vídeo duplicado)
+    if not force:
+        raw_json = RAW_DIR / f"{video_id}.json"
+        if raw_json.exists():
+            try:
+                raw_data = json.loads(raw_json.read_text(encoding="utf-8"))
+                v_title = raw_data.get("title", "")
+                if v_title:
+                    from bm_dedup import check_video_duplicate
+                    seen_data = load_seen()
+                    is_dup, reason = check_video_duplicate(
+                        v_title,
+                        seen_videos=seen_data,
+                        current_video_id=video_id,
+                    )
+                    if is_dup:
+                        print(f"⚠️  Duplicata detectada ({reason}) — abortando pipeline para {video_id}. Use --force para reprocessar.")
+                        sys.exit(0)
+            except Exception as exc:
+                print(f"  ⚠️  Falha ao checar dedup: {exc}")
+
     # 2. Roteiro LLM
     print("\n🧠 Etapa 2/5 — Condensação LLM")
     if not step_roteiro(video_id, force=force):
