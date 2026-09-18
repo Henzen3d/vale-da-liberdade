@@ -7,6 +7,8 @@
 *.crt
 *.p12
 tokens*
+*client_secret*.json
+sources/*cookies*.json
 
 # Dependências
 node_modules/
@@ -40,10 +42,19 @@ metrics_registry.json
 output/
 persona_suggestions/
 
-# Arquivos de backup
+# Arquivos de backup e pacotes pesados locais
 *.bak
 *.bak-*
+*.bak_*
+*.backup*
 *.old
+*.rar
+*.zip
+*.psd
+BACKUP-*/
+patch_*.txt
+test_*.mp4
+teste_*.mp3
 
 # Sistema
 nul
@@ -62,6 +73,10 @@ kokoro_work/
 .hermes/
 .wrangler/
 scripts/.wrangler/
+.agent/
+.claude/
+.py_vendor/
+SKILLS/
 # Outputs de teste/experimentos
 test_output/
 voices/
@@ -131,5 +146,20 @@ references/youtube/prototype/bancada-render/project-*/
 
 # Snapshots/rascunhos locais da reorganização cirúrgica (não spec)
 archive/backup_pre_cirurgico/
+archive/audio_tests/
+archive/audit/
+archive/backup_plans_*/
+archive/legacy_scripts/
+archive/legacy_tests/
 YOUTUBE_PIPELINE_MAP.md
 plano-equipe-jornalistica.md
+
+# Assets locais de estúdio/design não rastreados
+references/youtube/Apresentadores/
+references/youtube/gerador-thumbnail/
+references/youtube/video-manual/
+references/youtube/mockup-browser/shots/
+references/youtube/mockup-browser/wallpaper/
+references/youtube/mockup-browser/assets/
+references/youtube/prototype/bancada-render/build_q02_composition.py
+references/youtube/AVATAR_LOOP_BRIEF.md
