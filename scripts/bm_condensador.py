@@ -464,6 +464,7 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4:30 a
    - PRIMEIROS 3 MINUTOS DE VÍDEO (toda a "abertura" e as primeiras 4-5 falas de "desenvolvimento" / primeiras ~480 palavras): LINGUAGEM 100% LIMPA. Terminantemente proibido o uso de termos chulos ou palavrões (como "merda"), por exigência estrita das políticas de monetização e algoritmo do YouTube para o início de vídeos.
    - APÓS OS 3 MINUTOS (final do "desenvolvimento" e "fechamento" / acima de 480 palavras): SE E SOMENTE SE o locutor original da transcrição tiver utilizado termos fortes como "merda", "palhaçada" ou desabafos indignados equivalentes, Peter PODE e DEVE refletir essa mesma espontaneidade e indignação de forma orgânica. Se o locutor original não usou tais palavras, NÃO invente nem force termos vulgares.
 7. Descartar: enrolação vazia, saudações repetidas e redundâncias da fala falada, mas PRESERVAR toda a riqueza argumentativa, retórica e factual.
+7b. DESLOP PT-BR (perfil jornalístico; não pasteurizar): sem gerundismo de SAC, sem ademais/outrossim/destarte, sem "no cenário atual"/"vale ressaltar que", sem "não é sobre X, é sobre Y", sem alavancar/orquestrar/rica tapeçaria, sem fechamento "o futuro já começou". PRESERVAR pergunta retórica, ironia, "né"/"pra"/hesitação. Não inventar fato, número ou nome.
 8. {fonte}
 9. SINCRONIZAÇÃO VISUAL: Ao citar ou comentar a matéria de um veículo, inclua no objeto da fala o campo opcional "fonte_url" com a URL correspondente.
 10. NOME DO NARRADOR (INEGOCIÁVEL): o apresentador é Peter Albuquerque. Se a transcrição disser Turguniev / Peter Turguniev / qualquer grafia parecida, SUBSTITUA por Albuquerque. NUNCA transcreva, cite ou deixe essa palavra no JSON, no título, no subtítulo ou nas falas. O áudio também nunca pode pronunciá-la.
@@ -801,6 +802,16 @@ def condense(video_id: str, force: bool = False) -> dict:
 
     # Guardrail de monetização YouTube: sanitizar palavrões no trecho < 3 min (< 480 palavras)
     data = enforce_profanity_3min_rule(data)
+
+    try:
+        from deslop_ptbr import log_audit
+        falas = []
+        for section in ("abertura", "desenvolvimento", "fechamento"):
+            for item in data.get(section) or []:
+                falas.append(item.get("texto") or "")
+        log_audit("BM", "\n".join(falas))
+    except Exception as exc:
+        print(f"   Deslop PT-BR (BM): skip ({exc})")
 
     # Atribuir referências enriquecidas ao JSON
     data["fonte_referencias"] = enriched_refs

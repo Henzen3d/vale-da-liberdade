@@ -259,6 +259,13 @@ ORDEM DOS QUADROS E LOCUTOR DE ABERTURA:
 O validador automático (`validate_naturalidade`) REPROVA aberturas de telejornal, falas com 4+ frases
 e EXCESSO de muletas de transição.
 
+=== DESLOP PT-BR (perfil jornalístico; não pasteurizar a voz da casa) ===
+Proibido: gerundismo de SAC ("vou estar enviando"); ademais/outrossim/destarte;
+"no cenário atual" / "vale ressaltar que"; "não é sobre X, é sobre Y";
+alavancar / orquestrar / rica tapeçaria; fechamento "o futuro já começou".
+Obrigatório preservar: pergunta retórica, ironia, "olha só", "né", "pra",
+hesitação, bordão da casa. Não inventar fato, número ou nome.
+
 === EXEMPLO BOM (imitate este ritmo — 1 notícia, 4 trocas curtas) ===
 Ricardo: Um jovem de 21 anos foi soterrado no Tribess por volta das 8h25.
 Peter: Vinte e um anos, Ricardo. Colega puxando gente da terra enquanto a fiscalização olha papel.

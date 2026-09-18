@@ -288,6 +288,13 @@ def validate_naturalidade(markdown_text: str) -> list[str]:
         if b in lower:
             issues.append(f"❌ Naturalidade: conector genérico proibido: \"{b.strip()}\"")
 
+    # --- 8) Deslop PT-BR (aviso; nunca bloqueia TTS) ---
+    try:
+        from deslop_ptbr import warnings_for_markdown
+        issues.extend(warnings_for_markdown(markdown_text))
+    except Exception:
+        pass
+
     return issues
 
 
