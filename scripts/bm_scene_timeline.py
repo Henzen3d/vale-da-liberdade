@@ -602,9 +602,9 @@ def build_scene_timeline(
     - Distribui o tempo total do áudio proporcionalmente à contagem de palavras de cada fala.
     - Se a fala tiver `fonte_url`, sincroniza com a cena correspondente.
     - Detecta oportunidades editoriais para componentes procedurais (quote, document, chart, etc.).
-    - Garante piso de pelo menos 8s por cena de fonte externa.
+    - Garante piso de pelo menos 5s por cena de fonte externa.
     - Insere transições de b-roll (0.8–1.5s) em mudanças de matéria se houver clipes disponíveis.
-    - Garante ritmo dinâmico com pelo menos 10 telas/beats em episódios de 5 minutos (~300s).
+    - Garante ritmo dinâmico com pelo menos 18 telas/beats em episódios de 5 minutos (~300s).
     """
     total_dur = max(total_duration_s, 10.0)
     if not scenes:

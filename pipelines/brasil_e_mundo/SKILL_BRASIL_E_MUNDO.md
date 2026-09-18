@@ -85,12 +85,15 @@
 
 ## Dinâmica Visual e Retenção do Telespectador (~5 Minutos)
 - **Gancho Visual Crítico (Primeiros 15 Segundos):** Os primeiros 15 segundos definem se o telespectador fica ou sai. A abertura deve ter pelo menos 3 trocas de quadro/cortes rápidos (ex.: 0-5s, 5-9s, 9-15s) entre manchete, close de parágrafo e B-roll.
-- **Mínimo de 10 Telas por Vídeo (Pacing):** Ao longo dos ~300 segundos, a tela de fundo deve alternar no mínimo 10 vezes (média de ~15 a 22s por tela). Nenhuma tela fica estática por mais de 22 segundos.
-- **Multi-Shot por Matéria:** Cada notícia capturada fornece múltiplos ângulos:
-  1. *Hero Shot:* Cabeçalho com manchete, imagem de capa e veículo.
-  2. *Detail/Body Shot:* Rolagem para parágrafo-chave, dados estatísticos ou gráficos.
-  Isso dobra o repertório visual sem precisar caçar fontes irrelevantes na internet.
-- **B-Rolls & Vídeos do X:** Inserções de clipes dinâmicos e B-rolls contextuais de alta resolução (Pexels / Pixabay / Twitter) quebrando a monotonia de capturas estáticas.
+- **Pacing Acelerado e Anti-Dropoff (Mínimo de 18 Telas por Episódio):** Ao longo dos ~300 segundos, a tela de fundo deve alternar no mínimo 18 vezes (média de 8 a 12s por tela). **Nenhuma tela fica estática por mais de 12 segundos** (`MAX_SCENE_DURATION_S = 12.0`, `MIN_SCENE_DURATION_S = 5.0`, `TARGET_MIN_BEATS_5MIN = 18`).
+- **Multi-Shot Óptico e Variantes de Enquadramento:** Sub-beats de uma mesma matéria ciclam proceduralmente entre 4 variantes de telejornalismo para criar cortes dinâmicos de câmera mesmo quando há apenas 1 screenshot:
+  1. *portal_hero:* Enquadramento geral com cabeçalho, manchete limpa e logo do veículo (scale 1.0x).
+  2. *portal_zoom:* Push-in óptico cinematográfico (scale 1.18x, foco a 28%) direto no lead ou parágrafo factual.
+  3. *portal_scroll:* Pan vertical suave (scale 1.08x, foco a 65%) simulando leitura contínua.
+  4. *portal_highlight:* Marca-texto editorial com sweep animado e brilho suave dourado (`#portalHighlightOverlay`).
+- **Micro-Motion Broadcast Contínuo (Ken Burns):** O browser mockup executa um drift contínuo via GSAP (escala 1.0 ➔ 1.025 ao longo do beat). O quadro **nunca fica 100% estático ou congelado**, eliminando a sensação de vídeo travado que derrubava a retenção aos 45–60s.
+- **Detecção e Roteamento de Posts no X (Twitter):** Citações a publicações no X/Twitter, tweets ou @handles geram automaticamente o componente `x-post` com a variante `x_card` (Modelo 3 3D procedural com speaker VIP e dados do post).
+- **B-Rolls & Vídeos do X:** Inserções de clipes dinâmicos e B-rolls contextuais de alta resolução (Pexels / Pixabay / Twitter) em transições entre matérias.
 - **Looping/Alternância:** Repetir matérias já mostradas com zoom ou recorte diferente na segunda metade do vídeo é perfeitamente válido e preferível a exibir matérias desconexas.
 
 ## Fases de Evolução do Pipeline

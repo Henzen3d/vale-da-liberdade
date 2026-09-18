@@ -78,8 +78,9 @@ Vídeos verticais/horizontais opinativos focados em um tema quente do dia, apres
 
 ### Motor Visual & Retenção do Telespectador:
 - **Gancho Inicial (Primeiros 15s):** 3 cortes rápidos de abertura (0-5s, 5-9s, 9-15s) combinando manchete, close de parágrafo e B-roll para prender a atenção e evitar abandono precoce do vídeo.
-- **Mínimo de 10 Telas por Episódio:** Timeline dinâmica que impede telas estáticas por mais de 22s.
-- **Multi-Shot por Matéria:** Captura dupla em Playwright (Hero da manchete + Detail rolado no parágrafo/gráfico), dobrando as telas reais sem precisar recorrer a links irrelevantes.
+- **Mínimo de 18 Telas por Episódio (Pacing Acelerado):** Timeline dinâmica que impede telas estáticas por mais de 12s (piso 5s, teto 12s, 18+ beats em 5 min).
+- **Multi-Shot Óptico & Variantes:** 4 enquadramentos de telejornalismo (`portal_hero`, `portal_zoom`, `portal_scroll`, `portal_highlight`), além de captura dupla em Playwright (Hero + Detail).
+- **Micro-Motion Ken Burns & X-Cards:** Animação de câmera sutil contínua no browser mockup e ativação procedural de cartões 3D para tweets e repercussões do X.
 - **B-Roll Footage:** Vídeos gratuitos em 1080p (Pexels / Pixabay) e tweets do X inseridos contextualmente.
 - **Relevância de Fontes (Qualidade > Quantidade):** Se a descrição do YouTube já contém fontes verificadas (>= 2), elas são suficientes. Fontes externas de RSS passam por filtro estrito de entidades (vetando termos genéricos e matérias com mais de 7 dias).
 
