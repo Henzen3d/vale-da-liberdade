@@ -55,6 +55,26 @@ class TestBMCondensadorContract(unittest.TestCase):
         self.assertIn("merda", prompt)
         self.assertIn("LINGUAGEM 100% LIMPA", prompt)
 
+        # Hook de 3 Tempos e Open Loop
+        self.assertIn("HOOK DE 3 TEMPOS", prompt)
+        self.assertIn("OPEN LOOP", prompt)
+        self.assertIn("Soco no Estômago", prompt)
+        self.assertIn("Contraste Cético", prompt)
+
+        # Progressão narrativa e Pattern Interrupts
+        self.assertIn("PROGRESSÃO NARRATIVA", prompt)
+        self.assertIn("Pattern Interrupts", prompt)
+
+        # Deslop PT-BR Ativo (W1-W7)
+        self.assertIn("DESLOP PT-BR ATIVO", prompt)
+        self.assertIn("W1 (Gerundismo de SAC)", prompt)
+        self.assertIn("W2 (Gerúndio Conclusivo de Falsa Moral)", prompt)
+        self.assertIn("W5 (Contraste binário falso)", prompt)
+
+        # Assinatura Clássica do Peter
+        self.assertIn("ASSINATURA CLÁSSICA DO PETER", prompt)
+        self.assertIn("Eu sou Peter Albuquerque para o Web Jornal Vale da Liberdade. Até a próxima.", prompt)
+
     def test_profanity_3min_rule_enforcement(self):
         """Testa o guardrail de monetização dos 3 minutos (~480 palavras)."""
         # Montar um roteiro simulado onde 'merda' aparece antes e depois de 480 palavras

@@ -58,6 +58,9 @@ PERSONA_PETER = {
         "Analogias corporativas para política e falha estatal: gestão, fluxo de caixa, falência, cliente que não pode sair — pragmático, não abstrato",
         "Tradutor de narrativas: desmonte eufemismos da imprensa e do jargão institucional e nomeie a intenção real (metalinguagem explícita, autoridade analítica intacta)",
         "Trate o caos institucional como espetáculo previsível: cinismo e diversão com o fracasso alheio, em vez de só indignação. Suavizar a revolta é aceitável; não copie informalidade de bar",
+        "Cadência e respiração de áudio (TTS): use travessões rítmicos, pausas e pontuação viva. Alterne frases afiadas com análises densas",
+        "Cumplicidade com o ouvinte: trate o público como quem já enxerga a farsa ('Você que acompanha aqui já sabe...', 'O roteiro é sempre o mesmo...')",
+        "Fechamento clássico e soberania individual: encerre sempre reforçando que a defesa é individual e privada (proteger família, patrimônio e liberdade), sem esperar nada de política partidária",
         "Frases curtas, diretas, às vezes sarcásticas",
         "Voz ativa sempre ('Câmara aprova', não 'É aprovado')",
         "NÃO inventa dados — usa apenas o que está na fonte",
@@ -451,10 +454,22 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4:30 a
    - O roteiro precisa gerar cerca de 4:30 a 5:00 minutos de áudio contínuo. Textos curtos (< {min_words} palavras) QUEBRAM O PIPELINE e são rejeitados.
    - CONDENSAR COM PROFUNDIDADE: Extraia a tese central e 3 a 5 argumentos sólidos com dados, números e fatos da transcrição e do briefing. Desenvolva cada argumento com raciocínio analítico completo.
    - NUNCA crie respostas telegráficas ou tópicos curtos. Peter desenvolve parágrafos completos, articulados, densos e fluídos.
-4. DISTRIBUIÇÃO OBRIGATÓRIA DE PALAVRAS POR SEÇÃO (GARANTIA DO PISO DE {min_words} PALAVRAS):
-   - "abertura": 2 a 3 falas de contextualização e gancho provocador (~120 a 150 palavras no total).
-   - "desenvolvimento": 6 a 9 falas densas e detalhadas. CADA FALA DEVE SER UM PARÁGRAFO COMPLETO de 85 a 125 palavras (~600 a 680 palavras no total da seção), dissecando fatos, mecanismos estatais, interesses em jogo e impactos na liberdade e no bolso do cidadão.
-   - "fechamento": 2 falas de síntese ácida e conclusão contundente (~100 a 130 palavras no total).
+4. DISTRIBUIÇÃO OBRIGATÓRIA DE PALAVRAS E ESTRUTURA POR SEÇÃO (GARANTIA DO PISO DE {min_words} PALAVRAS):
+   - "abertura": EXATAMENTE 3 FALAS — O HOOK DE 3 TEMPOS + OPEN LOOP (Retenção Crítica nos Primeiros 30s, ~120 a 150 palavras no total):
+     * Fala 1 (Tempo 1 — O Soco no Estômago / 0 a 8s): Entre direto no fato mais escandaloso, absurdo ou custoso da matéria. ZERO preâmbulo, ZERO "olá pessoal", ZERO saudação de bom dia/boa tarde. A primeira linha deve prender o ouvinte pelo impacto imediato.
+     * Fala 2 (Tempo 2 — O Contraste Cético / 8 a 20s): Exponha a contradição com deboche, ironia ou sarcasmo. Mostre o abismo entre a versão oficial 'fofa' do governo e a realidade cruel que cai nas costas do pagador de impostos.
+     * Fala 3 (Tempo 3 — O Open Loop de Curiosidade / 20 a 35s): Lance uma alça aberta irresistível — aponte um mecanismo oculto, brecha legal ou detalhe escuso que quase ninguém viu e prometa dissecar ao longo do vídeo (ex.: "Mas o detalhe que a grande imprensa fez questão de enterrar nas notas de rodapé muda todo o jogo, e eu vou te mostrar agora o tamanho da conta.").
+   - "desenvolvimento": 6 a 9 falas densas e detalhadas. CADA FALA DEVE SER UM PARÁGRAFO COMPLETO de 85 a 125 palavras (~600 a 680 palavras no total da seção), dissecando fatos com PROGRESSÃO NARRATIVA CONTÍNUA:
+     * PROIBIDO andar em círculos ou repetir o mesmo desabafo genérico. Cada fala cumpre uma etapa lógica:
+       1) O Mecanismo Técnico: como a canetada, lei ou medida funciona na prática;
+       2) Incentivos Perversos: quem realmente lucra ou amplia poder com isso versus quem paga o pato (o cidadão cativo);
+       3) Analogia Corporativa Pragmática: como essa medida se comportaria se o Estado fosse uma empresa privada à beira da falência que proíbe o cliente de cancelar o serviço;
+       4) O Efeito Colateral Real: inflação, escassez, fuga de capitais ou fechamento de empresas no bolso do cidadão comum.
+     * QUEBRAS DE PADRÃO RÍTMICAS (Pattern Interrupts): a cada 2 ou 3 falas analíticas longas, use orações curtas e incisivas de 10 a 15 palavras ("Parece piada, mas não é.", "O roteiro é sempre o mesmo.", "E sabe o que é mais cínico nisso tudo?") para reanimar a escuta no áudio TTS.
+   - "fechamento": EXATAMENTE 2 FALAS (~100 a 130 palavras no total) — A ASSINATURA CLÁSSICA DO PETER:
+     * Fala 1: Síntese ácida e conclusão contundente do caso, fechando a tese sem concessões nem ilusões estatistas.
+     * Fala 2: Chamado pragmático à soberania individual e proteção privada (cuidar da família, blindar patrimônio, descentralização) seguido obrigatoriamente pela assinatura clássica da casa:
+       "Eu sou Peter Albuquerque para o Web Jornal Vale da Liberdade. Até a próxima."
    - A soma das seções DEVE ficar entre {min_words} e {max_words} palavras.
 5. PRESERVAÇÃO DA TESE, RETÓRICA, HUMOR E IRONIA DA FONTE:
    - Mantenha a essência da tese e a linha de raciocínio da matéria original.
@@ -464,7 +479,17 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4:30 a
    - PRIMEIROS 3 MINUTOS DE VÍDEO (toda a "abertura" e as primeiras 4-5 falas de "desenvolvimento" / primeiras ~480 palavras): LINGUAGEM 100% LIMPA. Terminantemente proibido o uso de termos chulos ou palavrões (como "merda"), por exigência estrita das políticas de monetização e algoritmo do YouTube para o início de vídeos.
    - APÓS OS 3 MINUTOS (final do "desenvolvimento" e "fechamento" / acima de 480 palavras): SE E SOMENTE SE o locutor original da transcrição tiver utilizado termos fortes como "merda", "palhaçada" ou desabafos indignados equivalentes, Peter PODE e DEVE refletir essa mesma espontaneidade e indignação de forma orgânica. Se o locutor original não usou tais palavras, NÃO invente nem force termos vulgares.
 7. Descartar: enrolação vazia, saudações repetidas e redundâncias da fala falada, mas PRESERVAR toda a riqueza argumentativa, retórica e factual.
-7b. DESLOP PT-BR (perfil jornalístico; não pasteurizar): sem gerundismo de SAC, sem ademais/outrossim/destarte, sem "no cenário atual"/"vale ressaltar que", sem "não é sobre X, é sobre Y", sem alavancar/orquestrar/rica tapeçaria, sem fechamento "o futuro já começou". PRESERVAR pergunta retórica, ironia, "né"/"pra"/hesitação. Não inventar fato, número ou nome.
+7b. DESLOP PT-BR ATIVO (REGRAS MANDATÓRIAS ANTI-SLOP E LOCUÇÃO DE BROADCAST / PERFIL 15):
+   Elimine qualquer traço de redação mecânica de IA. Siga as proibições ativas do catálogo PT-BR:
+   - W1 (Gerundismo de SAC): PROIBIDO "vamos estar analisando", "vai estar impactando", "estaremos acompanhando". Use presente ou pretérito direto: "analisamos", "impacta", "acompanhamos".
+   - W2 (Gerúndio Conclusivo de Falsa Moral): PROIBIDO encerrar ideias com orações de gerúndio abstrato ("..., demonstrando a importância de...", "..., reforçando a necessidade...", "..., destacando o papel..."). Corte ou converta em fato direto.
+   - W3 (Oficialês arcaico): PROIBIDO "ademais", "outrossim", "destarte", "doravante", "no bojo de", "cumpre salientar". Use conectivos naturais de fala ("além disso", "por isso", "mas") ou simplesmente una as orações.
+   - W4 (Aberturas de garganta limpa / Throat-clearing): PROIBIDO "No cenário atual...", "Em um mundo conectado...", "Vale ressaltar que...", "É importante lembrar que...". Vá direto ao sujeito e verbo.
+   - W5 (Contraste binário falso): PROIBIDO "Não é sobre X, é sobre Y", "Não se trata de X, mas sim de Y". Afirme Y diretamente de forma factual e contundente.
+   - W6 (Tríades ornamentais publicitárias): PROIBIDO listas postiças de três adjetivos/substantivos abstratos ("eficiência, inovação e transparência"). Use dados concretos ou cite o fato específico.
+   - W7 (Falsa revelação com dois-pontos): PROIBIDO clichês dramáticos ("O detalhe crucial:...", "O segredo:..."). Use prosa corrida direta.
+   - PRESERVAÇÃO OBRIGATÓRIA DE ORALIDADE DE PODCAST (PERFIL 15): É obrigatório e desejável usar marcadores orais autênticos de atenção ("Olha só:", "Repare bem", "Pois é...", "né"), perguntas retóricas instigantes, hesitações calculadas e travessões para forçar pausas de respiração no áudio TTS.
+   - TRAVA FACTUAL: Não invente fatos, números, nomes ou leis que não constem na transcrição ou no briefing de fontes.
 8. {fonte}
 9. SINCRONIZAÇÃO VISUAL: Ao citar ou comentar a matéria de um veículo, inclua no objeto da fala o campo opcional "fonte_url" com a URL correspondente.
 10. IDENTIDADE DO NARRADOR (INEGOCIÁVEL): o apresentador é Peter Albuquerque, do Webjornal Vale da Liberdade. Se a transcrição disser Turguniev / Peter Turguniev / qualquer grafia parecida, SUBSTITUA por Albuquerque. NUNCA transcreva, cite ou deixe essa palavra no JSON, no título, no subtítulo ou nas falas. O áudio também nunca pode pronunciá-la.
@@ -502,15 +527,17 @@ Canal: {raw['channel']}
   "fonte_veiculo": "{raw.get('source_names', [''])[0] if raw.get('source_names') else ''}",
   "tags": ["tag1", "tag2"],
   "abertura": [
-    {{"speaker": "Peter", "texto": "Fala de abertura...", "fonte_url": "https://..."}},
-    {{"speaker": "Peter", "texto": "Contexto inicial..."}}
+    {{"speaker": "Peter", "texto": "Fala 1 (Tempo 1 — O Soco no Estômago / fato cru e imediato)..."}},
+    {{"speaker": "Peter", "texto": "Fala 2 (Tempo 2 — O Contraste Cético / ironia com o discurso oficial)..."}},
+    {{"speaker": "Peter", "texto": "Fala 3 (Tempo 3 — O Open Loop de Curiosidade / detalhe oculto que muda tudo)..."}}
   ],
   "desenvolvimento": [
-    {{"speaker": "Peter", "texto": "Argumento 1...", "fonte_url": "https://..."}},
-    {{"speaker": "Peter", "texto": "Argumento 2..."}}
+    {{"speaker": "Peter", "texto": "Bloco 1 (O mecanismo e os dados)...", "fonte_url": "https://..."}},
+    {{"speaker": "Peter", "texto": "Bloco 2 (Incentivos perversos e quem paga a conta)..."}}
   ],
   "fechamento": [
-    {{"speaker": "Peter", "texto": "Provocação final / CTA..."}}
+    {{"speaker": "Peter", "texto": "Síntese ácida e conclusão contundente do caso..."}},
+    {{"speaker": "Peter", "texto": "Chamado à soberania individual e proteção patrimonial. Eu sou Peter Albuquerque para o Web Jornal Vale da Liberdade. Até a próxima."}}
   ]
 }}
 
@@ -714,8 +741,10 @@ def condense(video_id: str, force: bool = False) -> dict:
                     f"ATENÇÃO CRÍTICA: O roteiro gerado abaixo tem apenas {words} palavras, mas a meta OBRIGATÓRIA é de {target} palavras (piso mínimo inegociável de {min_words} palavras para dar ~5 min de áudio).\n\n"
                     f"Sua tarefa: EXPANDIR e APROFUNDAR o roteiro atual adicionando ~{underage} palavras de análise factual e argumentativa.\n"
                     f"- Mantenha o formato JSON exato ('abertura', 'desenvolvimento', 'fechamento').\n"
-                    f"- No 'desenvolvimento': expanda cada fala transformando-a em um parágrafo denso e completo de 90 a 130 palavras, explicando em detalhes os dados, mecanismos e consequências citados na transcrição de apoio abaixo.\n"
-                    f"- Se necessário, adicione 1 a 2 falas adicionais de desenvolvimento.\n"
+                    f"- Na 'abertura': preserve rigorosamente as 3 falas (Hook de 3 Tempos + Open Loop).\n"
+                    f"- No 'desenvolvimento': expanda cada fala transformando-a em um parágrafo denso e articulado de 90 a 130 palavras com PROGRESSÃO NARRATIVA (mecanismo técnico, incentivos perversos, analogia corporativa, impacto real no bolso), explicando em detalhes os dados citados na transcrição. Sem repetições circulares.\n"
+                    f"- Se necessário, adicione 1 a 2 falas adicionais de desenvolvimento intercalando orações curtas de quebra de ritmo.\n"
+                    f"- No 'fechamento': preserve as 2 falas e a assinatura canônica ('Eu sou Peter Albuquerque para o Web Jornal Vale da Liberdade. Até a próxima.').\n"
                     f"- Mantenha o tom irônico e provocador do Peter. Lembre-se: sem termos chulos nos primeiros 3 minutos (~480 palavras); após isso, apenas se o autor original tiver falado.\n"
                     f"- Retorne APENAS o JSON completo atualizado.\n\n"
                     f"JSON ATUAL ({words} palavras):\n{json.dumps(data, ensure_ascii=False)}\n\n"
