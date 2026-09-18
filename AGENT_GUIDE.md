@@ -60,6 +60,18 @@ Formato mínimo do handoff:
 - **Descrição (Etapa 2.6):** `scripts/description_optimizer.py` aplica a skill `descricoes-vale-liberdade` e grava `episodes/{date}-description.txt` (gancho nas primeiras 2-3 linhas, SEO natural, sem URLs do ANCAPSU, link canônico do app PWA `https://news.mob.tec.br` e até 3 hashtags).
 - **Prompt canônico e guia do Hermes Agent:** Ver `prompts/hermes_agent_description_prompt.md`.
 
+## Sistema de Screenshots e Captura Visual (2026-09-13)
+
+- **Motor Modular (`scripts/screenshots/`):** Despachante automático por domínio via `scripts.screenshots.runner` e `try_handler_screenshot` no pipeline de vídeo.
+- **Handler Dedicado Bloomberg (`scripts/screenshots/sites/bloomberg.py`):**
+  - Bypass ativo do WAF PerimeterX (`HTTP 403 / Are you a robot?`) via leitor de alta fidelidade (`r.jina.ai` com `X-Return-Format: html`).
+  - Higienização cirúrgica de paywall Fortress, modais de consentimento e enquadramento do H1/lead photo com a identidade institucional da Bloomberg.
+- **Handler Dedicado The Economist (`scripts/screenshots/sites/economist.py`):**
+  - Bypass de WAF Cloudflare Turnstile + DataDome (`HTTP 403`) via resgate automatizado em espelhos de alta fidelidade (Archive.today / Archive.ph).
+  - Remoção de barras de controle, normalização de grid com fundo `#FFFFFF` e renderização da marca e ilustrações clássicas do The Economist.
+  - O Hermes Agent pode incluir matérias da `bloomberg.com` e `economist.com` na curadoria e roteiros com garantia de captura limpa.
+  - Ver handoff completo em `archive/handoffs/2026-09-13.md`.
+
 ## Dicas para testes ponta-a-ponta
 
 - Use `episodes/roteiro-template.json` como base.
@@ -73,4 +85,4 @@ Formato mínimo do handoff:
 - Cada documento tem um propósito — não concentre tudo no README
 
 ---
-*Mantido por: Hermes Agent | Última atualização: 2026-06-22*
+*Mantido por: Hermes Agent | Última atualização: 2026-09-13*

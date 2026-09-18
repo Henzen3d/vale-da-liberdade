@@ -1,6 +1,6 @@
 # Lista de Veículos de Notícias – Feeds RSS e Perfis no X (Twitter)
 
-Este documento centraliza as informações de feeds RSS e perfis oficiais no X (Twitter) de **16 veículos de notícias** para uso na curadoria e no pipeline do *Web Jornal Vale da Liberdade*.
+Este documento centraliza as informações de feeds RSS e perfis oficiais no X (Twitter) de **18 veículos de notícias** para uso na curadoria e no pipeline do *Web Jornal Vale da Liberdade*.
 
 ---
 
@@ -24,6 +24,8 @@ Este documento centraliza as informações de feeds RSS e perfis oficiais no X (
 | 14 | **Alexandre Garcia** | [alexandregarciaoficial.com.br](https://www.alexandregarciaoficial.com.br) | `https://www.alexandregarciaoficial.com.br/feed/` | [@alexgarcia1945](https://x.com/alexgarcia1945) | Não confirmado |
 | 15 | **Revista Oeste** | [revistaoeste.com](https://revistaoeste.com) | `https://revistaoeste.com/feed/` | [@RevistaOeste](https://x.com/RevistaOeste) | Confirmado |
 | 16 | **Jovem Pan** | [jovempan.com.br](https://jovempan.com.br) | `https://jovempan.com.br/feed/` | [@jovempanoficial](https://x.com/jovempanoficial) | Confirmado |
+| 17 | **Bloomberg** | [bloomberg.com](https://www.bloomberg.com) | Web / Jina Reader | [@business](https://x.com/business) | Handler ativo (`bloomberg.py`) |
+| 18 | **The Economist** | [economist.com](https://www.economist.com) | Web / Archive Mirror | [@TheEconomist](https://x.com/TheEconomist) | Handler ativo (`economist.py`) |
 
 ---
 
@@ -170,6 +172,18 @@ Este documento centraliza as informações de feeds RSS e perfis oficiais no X (
     *   *Notícias:* `https://jovempan.com.br/noticias/feed/`
     *   *Política:* `https://jovempan.com.br/noticias/politica/feed/`
 *   **Observações:** Feeds bem estruturados e ideais para monitoramento de notícias urgentes e política.
+
+### 17. Bloomberg
+*   **Site:** [bloomberg.com](https://www.bloomberg.com)
+*   **Contas no X:** [@business](https://x.com/business) / [@opinion](https://x.com/opinion)
+*   **Handler Visual:** `scripts/screenshots/sites/bloomberg.py` (com bypass de WAF PerimeterX e remoção cirúrgica de paywall Fortress).
+*   **Observações:** Totalmente homologado para curadoria internacional e de macroeconomia pelo Hermes Agent. Permite uso de URLs diretas no roteiro para renderização no broadcast mockup.
+
+### 18. The Economist
+*   **Site:** [economist.com](https://www.economist.com)
+*   **Conta no X:** [@TheEconomist](https://x.com/TheEconomist)
+*   **Handler Visual:** `scripts/screenshots/sites/economist.py` (com bypass de Cloudflare/DataDome via espelho Archive, injeção de `<base href>` para assets e limpeza de paywalls/anúncios).
+*   **Observações:** Homologado para curadoria global de geopolítica, macroeconomia, ciência e tecnologia pelo Hermes Agent. Permite captura visual em alta definição de colunas, capas e matérias completas.
 
 ---
 
