@@ -14,6 +14,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
 
 # Papéis semânticos editoriais
@@ -58,6 +59,8 @@ class SceneBeat:
     visual_component: VisualComponent = "source"
     visual_variant: str = ""
     visual_payload: dict[str, Any] = field(default_factory=dict)
+    abertura_fim: float = 0.0  # FASE 3 — t1 da abertura ampla; beats com t0 < abertura_fim são rotação livre
+    aligned_by: str = "proporcao"  # FASE 4 — "proporcao" | "whisper"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -510,6 +513,17 @@ def count_words(text: str) -> int:
     return len((text or "").split())
 
 
+def _host_of(url: str) -> str:
+    """Domínio normalizado para matching de fontes (strip www)."""
+    try:
+        netloc = urlsplit(url or "").netloc.lower()
+    except Exception:
+        return ""
+    if netloc.startswith("www."):
+        netloc = netloc[4:]
+    return netloc
+
+
 def load_broll_clips(broll_index_path: Path | None = None) -> list[dict]:
     if not broll_index_path or not broll_index_path.is_file():
         return []
@@ -565,10 +579,36 @@ def build_scene_timeline(
     total_words = sum(b["words"] for b in blocks)
     available_broll = load_broll_clips(broll_index_path)
 
-    # 2. Mapeamento de cenas por URL
+    # FASE 0.2 — Herança de fonte por janela
+    # O condensador marca fonte_url só no primeiro bloco de cada matéria (o
+    # prompt trata o campo como opcional). Blocos de transição/opinião que
+    # continuam comentando a mesma matéria chegam sem a marca e caíam no
+    # round-robin cego, mostrando a matéria errada no fundo.
+    # Regra: um bloco sem fonte herda a última fonte conhecida. O
+    # fechamento não herda (síntese/opinião final, não comenta a matéria).
+    _last_fonte = ""
+    _inherited = 0
+    for b in blocks:
+        fu = (b.get("fonte_url") or "").strip()
+        if fu:
+            _last_fonte = fu
+        elif _last_fonte and b.get("section") != "fechamento":
+            b["fonte_url"] = _last_fonte
+            _inherited += 1
+    if _inherited:
+        print(f"  🔗 fonte_url herdada por {_inherited} bloco(s)")
+
+    # 2. Mapeamento de cenas por URL e por domínio (cascata de matching)
     scene_by_url = {s["url"]: s for s in scenes if s.get("url")}
+    scene_by_host: dict[str, list[dict]] = {}
+    for s in scenes:
+        if s.get("url"):
+            scene_by_host.setdefault(_host_of(s["url"]), []).append(s)
     scene_queue = list(scenes)
     scene_ptr = 0
+
+    # FASE 2 — Log de diagnóstico: qual nível da cascata casou cada bloco
+    match_stats: dict[str, int] = {}
 
     # 3. Construção dos beats preliminares com detecção de oportunidades
     raw_beats: list[dict] = []
@@ -576,13 +616,25 @@ def build_scene_timeline(
 
     for idx, b in enumerate(blocks):
         dur_block = (b["words"] / total_words) * total_dur
-        target_url = b.get("fonte_url")
+        target_url = (b.get("fonte_url") or "").strip()
         scene_item = None
+        match_level = ""
 
+        # Nivel 1 — match exato de URL (mantem comportamento original)
         if target_url and target_url in scene_by_url:
             scene_item = scene_by_url[target_url]
+            match_level = "exato"
+        # Nivel 2 — match por dominio (cobre normalizacao de URL: www,
+        # parametros de tracking, paths diferentes do mesmo veiculo)
+        elif target_url and _host_of(target_url) in scene_by_host:
+            scene_item = scene_by_host[_host_of(target_url)][0]
+            match_level = "dominio"
+        # Nivel 3 — fallback: round-robin (apenas aqui, depois da cascata)
         else:
             scene_item = scene_queue[scene_ptr % len(scene_queue)]
+            match_level = "round_robin"
+
+        match_stats[match_level] = match_stats.get(match_level, 0) + 1
 
         t_end = min(total_dur, current_t + dur_block)
 
@@ -661,10 +713,21 @@ def build_scene_timeline(
             "visual_variant": variant,
             "visual_payload": payload,
         })
-        scene_ptr += 1
+        # O ponteiro do round-robin só avança quando o fallback é usado.
+        # Se a cascata casou (exato/domínio), rotacionar por bloco
+        # sobrescreveria a sincronia que acabamos de resolver.
+        if match_level == "round_robin":
+            scene_ptr += 1
         current_t = t_end
 
     # 4. Agregação e aplicação de piso mínimo de 8.0s por cena de fonte
+    # Diagnóstico FASE 2 — termômetro da sincronia: quantos blocos casaram
+    # em cada nível da cascata. "round_robin" alto = cobertura de fonte
+    # ainda baixa; a Fase 0.2 (herança) deve reduzir esse número.
+    if match_stats:
+        total_blocks = sum(match_stats.values())
+        parts = ", ".join(f"{k}={v}" for k, v in sorted(match_stats.items()))
+        print(f"  🎯 sincronia de fonte: {parts} ({total_blocks} blocos)")
     final_beats: list[SceneBeat] = []
     i = 0
     while i < len(raw_beats):
@@ -761,7 +824,34 @@ def build_scene_timeline(
             )
             final_beats[0:1] = [b0_a, b0_b, b0_c]
 
-    # 6. Dinamismo: quebra beats longos (> 22s) alternando entre cenas
+    # FASE 3 — Abertura ampla, corpo sincronizado
+    # Os primeiros segundos mantêm a rotação ampla de fontes (passo 5 acima é o
+    # gancho de retenção: 3 cortes rápidos 0→5→9→fim do primeiro beat). A
+    # cascata da Fase 2 só passa a valer a partir do primeiro bloco de
+    # desenvolvimento. Marcamos esse corte no campo `abertura_fim` de cada beat
+    # para que render.py e diagnósticos saibam que ali ainda é rotação livre.
+    abertura_fim = 0.0
+    if total_dur >= 120.0 and final_beats:
+        # abertura = duração do(s) beat(s) do início até o primeiro beat de
+        # desenvolvimento (semantic_role != apresentacao_fato) ou, no máximo,
+        # os ~15s do gancho visual.
+        for b in final_beats:
+            if b.semantic_role in ("apresentacao_fato", "gancho"):
+                abertura_fim = b.t1
+                if abertura_fim >= 15.0:
+                    break
+            else:
+                break
+        abertura_fim = min(abertura_fim, 15.0)
+    for b in final_beats:
+        b.abertura_fim = round(abertura_fim, 2)
+
+    # 6. Dinamismo: quebra beats longos (> 22s) mantendo a fonte sincronizada
+    # ANTES este passo alternava para a próxima cena da fila a cada sub-beat,
+    # o que sobrescrevia a sincronia fonte→bloco resolvida pela cascata e
+    # produzia a alternância visual "matéria errada" (CNN/Reuters/CNN...).
+    # Agora o sub-beat preserva a fonte do beat; só troca de cena quando ela
+    # é a mesma fonte (multi-shot hero/detail do mesmo veículo).
     expanded_beats: list[SceneBeat] = []
     cycle_ptr = 1
     for beat in final_beats:
@@ -770,12 +860,21 @@ def build_scene_timeline(
             num_sub = int(dur // 15.0) + 1
             step = dur / num_sub
             sub_t0 = beat.t0
+            # candidatos alternativos SÓ da mesma fonte (multi-shot)
+            same_src = [s for s in scene_queue
+                        if s.get("url") and s.get("url") == beat.url and s.get("shot") != beat.shot]
             for s_idx in range(num_sub):
                 sub_t1 = round(beat.t0 + (s_idx + 1) * step, 2)
                 if s_idx == num_sub - 1:
                     sub_t1 = beat.t1
-                alt_scene = scene_queue[cycle_ptr % len(scene_queue)]
-                cycle_ptr += 1
+                # alterna dentro do multi-shot da mesma fonte, se houver;
+                # senão mantém o próprio beat (fonte correta preservada)
+                if same_src:
+                    alt_scene = same_src[s_idx % len(same_src)]
+                else:
+                    alt_scene = {"url": beat.url, "veiculo": beat.veiculo,
+                                 "kind": beat.kind, "shot": beat.shot,
+                                 "video": beat.video, "x_post": beat.x_post}
                 expanded_beats.append(SceneBeat(
                     t0=round(sub_t0, 2),
                     t1=round(sub_t1, 2),
@@ -796,6 +895,11 @@ def build_scene_timeline(
             expanded_beats.append(beat)
 
     # 7. Garantia de Piso de Telas: assegura pelo menos 10 beats em vídeos longos (>= 180s)
+    # O corte alternado divide o beat ao meio, mas a segunda metade ANTES
+    # trocava para a próxima cena da fila, sobrescrevendo a sincronia
+    # fonte→bloco resolvida pela cascata. Agora ambas as metades mantêm a
+    # fonte do beat original (o ritmo de telas é preservado, a fonte certa
+    # também). Detalhe/multi-shot do mesmo veículo fica como variação visual.
     if total_dur >= 180.0 and len(expanded_beats) < TARGET_MIN_BEATS_5MIN and len(scene_queue) > 1:
         while len(expanded_beats) < TARGET_MIN_BEATS_5MIN:
             longest_idx = max(range(len(expanded_beats)), key=lambda idx: (expanded_beats[idx].t1 - expanded_beats[idx].t0))
@@ -822,19 +926,26 @@ def build_scene_timeline(
                 visual_payload=b_target.visual_payload,
             )
             alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
+            # Segunda metade: troca de cena só se for a mesma fonte do beat
+            # (multi-shot do mesmo veículo) ou cena nativa do X. Caso
+            # contrário, preserva a fonte casada pela cascata.
+            same_source = bool(alt_scene.get("url")) and alt_scene.get("url") == b_target.url
+            b2_url = (alt_scene.get("url") or b_target.url) if (alt_is_x or same_source) else b_target.url
+            b2_veic = (alt_scene.get("veiculo") or b_target.veiculo) if (alt_is_x or same_source) else b_target.veiculo
+            b2_shot = (alt_scene.get("shot") or b_target.shot) if same_source else b_target.shot
             b2 = SceneBeat(
                 t0=half,
                 t1=b_target.t1,
-                url=alt_scene.get("url") or b_target.url,
-                veiculo=alt_scene.get("veiculo") or b_target.veiculo,
-                kind="x-post" if alt_is_x else (alt_scene.get("kind") or "source"),
-                shot=alt_scene.get("shot") or b_target.shot,
+                url=b2_url,
+                veiculo=b2_veic,
+                kind="x-post" if alt_is_x else (b_target.kind if not same_source else (alt_scene.get("kind") or "source")),
+                shot=b2_shot,
                 video=alt_scene.get("video") or b_target.video,
                 broll_file=None,
                 x_post=alt_scene.get("x_post") or b_target.x_post,
-                semantic_role="repercussao_social" if alt_is_x else "apresentacao_fato",
-                visual_component="x-post" if alt_is_x else "source",
-                visual_variant="x_card" if alt_is_x else "portal_clean",
+                semantic_role="repercussao_social" if alt_is_x else b_target.semantic_role,
+                visual_component="x-post" if alt_is_x else b_target.visual_component,
+                visual_variant="x_card" if alt_is_x else b_target.visual_variant,
             )
             expanded_beats[longest_idx:longest_idx + 1] = [b1, b2]
 

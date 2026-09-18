@@ -135,5 +135,124 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertGreaterEqual(len(first_15s_beats), 2, "Deveria ter pelo menos 2 cortes nos primeiros 15s")
 
 
+
+
+    # ---------- FASE 0.2 + FASE 2: herança de fonte e cascata de matching ----------
+
+    def test_heranca_fonte_propaga_para_blocos_sem_fonte(self):
+        """Bloco sem fonte herda a última fonte conhecida (exceto fechamento)."""
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Teste Heranca",
+            "abertura": [{"speaker": "Peter", "texto": "Contexto inicial.", "fonte_url": "https://a.com/x"}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Argumento um detalhado o suficiente.", "fonte_url": "https://a.com/x"},
+                {"speaker": "Peter", "texto": "Continua o mesmo argumento sem fonte marcada."},
+                {"speaker": "Peter", "texto": "Mais desenvolvimento do mesmo tema sem fonte."},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Síntese final."}],
+        }
+        scenes = [{"veiculo": "A", "url": "https://a.com/x", "shot": "sa.png"}]
+        beats = build_scene_timeline(episode, total_duration_s=120.0, scenes=scenes)
+        # Desenvolvimento (blocos 1-3) casou com a cena A; fechamento não herda
+        urls = [b.url for b in beats if b.kind != "broll"]
+        self.assertTrue(all(u == "https://a.com/x" for u in urls),
+                        f"blocos deviam herdar a fonte A: {urls}")
+
+    def test_heranca_nao_aplica_se_nao_ha_fonte_previa(self):
+        """Episódio sem nenhuma marcação não inventa fonte (round-robin)."""
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Sem Fonte",
+            "abertura": [{"speaker": "Peter", "texto": "Contexto."}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Argumento sem fonte alguma aqui."}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fim."}],
+        }
+        scenes = [{"veiculo": "F1", "url": "https://f1.com", "shot": "s1.png"},
+                  {"veiculo": "F2", "url": "https://f2.com", "shot": "s2.png"}]
+        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+        self.assertTrue(all(b.url in {"https://f1.com", "https://f2.com", ""} for b in beats))
+
+    def test_match_por_dominio_cobre_normalizacao_de_url(self):
+        """URL do bloco com www/path diferente casa a cena pelo domínio."""
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Dominio",
+            "abertura": [{"speaker": "Peter", "texto": "Contexto.", "fonte_url": "https://www.cnn.com/2026/09/noticia"}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Desenvolvimento.", "fonte_url": "https://www.cnn.com/2026/09/noticia"}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fim."}],
+        }
+        # cena cadastrada com outro path do mesmo host
+        scenes = [{"veiculo": "CNN", "url": "https://cnn.com/artigo-diferente", "shot": "c.png"}]
+        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+        fontes = [b.url for b in beats if b.kind != "broll"]
+        self.assertTrue(all(u == "https://cnn.com/artigo-diferente" for u in fontes),
+                        f"match por domínio devia casar CNN: {fontes}")
+
+    def test_host_of_normaliza_www(self):
+        from bm_scene_timeline import _host_of
+        self.assertEqual(_host_of("https://www.cnn.com/a"), "cnn.com")
+        self.assertEqual(_host_of("https://cnn.com/a"), "cnn.com")
+        self.assertEqual(_host_of("https://WWW.Example.com"), "example.com")
+        self.assertEqual(_host_of(""), "")
+        self.assertEqual(_host_of("nao-e-url"), "")
+
+    def test_cascata_preferencia_exato_sobre_dominio(self):
+        """Match exato vence o de domínio quando ambos existem."""
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Preferencia",
+            "abertura": [{"speaker": "Peter", "texto": "Ctx.", "fonte_url": "https://cnn.com/exata"}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Dev.", "fonte_url": "https://cnn.com/exata"}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fim."}],
+        }
+        scenes = [
+            {"veiculo": "CNN exata", "url": "https://cnn.com/exata", "shot": "exata.png"},
+            {"veiculo": "CNN outra", "url": "https://cnn.com/outra", "shot": "outra.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+        fontes = [b.url for b in beats if b.kind != "broll"]
+        self.assertTrue(all(u == "https://cnn.com/exata" for u in fontes),
+                        f"match exato devia vencer: {fontes}")
+
+
+    # ---------- FASE 3: abertura ampla / corpo sincronizado ----------
+    def test_fase3_abertura_marcada(self):
+        """Vídeos longos marcam abertura_fim > 0 nos beats iniciais (rotação
+        livre); vídeos curtos não marcam (abertura_fim = 0)."""
+        episode = {
+            "titulo": "Abertura",
+            "abertura": [{"speaker": "Peter", "texto": "Boa noite, hoje temos três grandes histórias." * 6}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Desenvolvimento " * 12, "fonte_url": "https://cnn.com/a"}],
+            "fechamento": [{"speaker": "Peter", "texto": "Encerramos por aqui." * 4}],
+        }
+        scenes = [{"veiculo": "CNN", "url": "https://cnn.com/a", "shot": "a.png"},
+                  {"veiculo": "Reuters", "url": "https://reuters.com/b", "shot": "b.png"}]
+        beats = build_scene_timeline(episode, 300.0, scenes)
+        self.assertTrue(any(b.abertura_fim > 0 for b in beats))
+        # abertura limitada aos ~15s do gancho visual
+        self.assertLessEqual(max(b.abertura_fim for b in beats), 15.0 + 0.01)
+
+    def test_fase3_curto_sem_abertura(self):
+        episode = {"titulo": "Curto",
+                   "abertura": [{"speaker": "Peter", "texto": "Oi."}],
+                   "desenvolvimento": [{"speaker": "Peter", "texto": "Dev."}],
+                   "fechamento": [{"speaker": "Peter", "texto": "Fim."}]}
+        scenes = [{"veiculo": "CNN", "url": "https://cnn.com/a", "shot": "a.png"}]
+        beats = build_scene_timeline(episode, 60.0, scenes)
+        self.assertEqual(max((b.abertura_fim for b in beats), default=0.0), 0.0)
+
+    # ---------- FASE 4: word-timestamps (sem whisper, protege o guarda) ----------
+    def test_fase4_audio_inexistente_mantem_beats(self):
+        """Sem áudio, align_beats_to_audio devolve a lista intacta."""
+        import sys as _sys
+        _sys.path.insert(0, "scripts")
+        from bm_whisper_align import align_beats_to_audio
+        from bm_scene_timeline import SceneBeat
+        beats = [SceneBeat(t0=0.0, t1=10.0, url="https://cnn.com/a", veiculo="CNN", kind="source")]
+        out = align_beats_to_audio(beats, "/tmp/inexistente.mp3", ["texto qualquer"])
+        self.assertEqual(out, beats)
+
+
 if __name__ == "__main__":
     unittest.main()
