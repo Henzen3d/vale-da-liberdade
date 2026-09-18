@@ -623,6 +623,57 @@ def scrub_turguniev_tree(obj):
     return obj
 
 
+# Auto-apresentação do canal de origem — nunca vai para o áudio.
+# "aqui é Peter Turguniev do Ancapsu" / "do canal Ancapsu" → persona Vale.
+_ANCAPSU_CHANNEL_RE = re.compile(r"(?i)\b(?:canal\s+)?ancapsu\b|\@ancap_su|\bancap\.su\b")
+
+
+def scrub_ancapsu_channel(text: str) -> str:
+    """Reescreve a auto-apresentação do canal de origem e remove menções soltas.
+
+    "aqui é Peter Turguniev do Ancapsu" → "aqui é Peter Albuquerque do Vale da Liberdade".
+    Menções soltas ao canal (sem ser apresentação) viram "Vale da Liberdade";
+    o nome do canal concorrente nunca chega ao áudio.
+    """
+    if not text or "ancap" not in text.lower():
+        return text
+
+    # 1. Auto-apresentação: captura a frase de abertura até o nome do canal.
+    #    Group 1 = frase antes do "do Ancapsu"; normaliza o nome e reescreve por
+    #    inteiro, evitando trocas parciais/empilhadas.
+    intro = re.compile(
+        r"(?i)(aqui\s+(?:[\wà-ú]+\s+){0,4}?"
+        r"(?:peter\s+|piter\s+)?(turgun(?:ie|ee|e|i[eé])v|albuquerque))"
+        r"(?:\s+[\wà-ú]+){0,2}"
+        r"\s*(?:,)?\s*(?:do|do\s+canal|no)\s+(?:canal\s+)?ancapsu"
+    )
+
+    def _intro_repl(match: re.Match) -> str:
+        frase = match.group(1)
+        frase = _TURGUNIEV_RE.sub(lambda m: "Peter Albuquerque", frase)
+        return f"{frase} do Vale da Liberdade"
+
+    text = intro.sub(_intro_repl, text)
+
+    # 2. Menções restantes (solta, descrição, CTA): troca pelo nome do nosso canal.
+    #    O placeholder protege a frase reescrita acima de reprocessar.
+    text = text.replace(" do Vale da Liberdade", "\x00VALE\x00")
+    text = _ANCAPSU_CHANNEL_RE.sub("Vale da Liberdade", text)
+    text = text.replace("\x00VALE\x00", " do Vale da Liberdade")
+    return re.sub(r"[ \t]{2,}", " ", text)
+
+
+def scrub_ancapsu_tree(obj):
+    """Aplica scrub_ancapsu_channel em strings de dict/list (JSON do episódio)."""
+    if isinstance(obj, str):
+        return scrub_ancapsu_channel(obj)
+    if isinstance(obj, list):
+        return [scrub_ancapsu_tree(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: scrub_ancapsu_tree(v) for k, v in obj.items()}
+    return obj
+
+
 def _fix_peter_pronunciation(text: str) -> str:
     """Peter (nome) → Piter na fala; mantém rótulo 'Peter:' para o multi/turns."""
     # Proteger rótulos de locutor no início da linha
@@ -655,6 +706,9 @@ def preprocess_for_tts(markdown_text: str) -> str:
 
     # 0. Nunca sintetizar o sobrenome original do ANCAPSU
     text = scrub_turguniev(text)
+
+    # 0b. Nunca citar o canal de origem; auto-apresentação vira persona Vale
+    text = scrub_ancapsu_channel(text)
 
     # 1. Remover formatação markdown
     text = _strip_markdown(text)

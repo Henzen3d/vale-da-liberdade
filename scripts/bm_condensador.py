@@ -467,7 +467,9 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4:30 a
 7b. DESLOP PT-BR (perfil jornalístico; não pasteurizar): sem gerundismo de SAC, sem ademais/outrossim/destarte, sem "no cenário atual"/"vale ressaltar que", sem "não é sobre X, é sobre Y", sem alavancar/orquestrar/rica tapeçaria, sem fechamento "o futuro já começou". PRESERVAR pergunta retórica, ironia, "né"/"pra"/hesitação. Não inventar fato, número ou nome.
 8. {fonte}
 9. SINCRONIZAÇÃO VISUAL: Ao citar ou comentar a matéria de um veículo, inclua no objeto da fala o campo opcional "fonte_url" com a URL correspondente.
-10. NOME DO NARRADOR (INEGOCIÁVEL): o apresentador é Peter Albuquerque. Se a transcrição disser Turguniev / Peter Turguniev / qualquer grafia parecida, SUBSTITUA por Albuquerque. NUNCA transcreva, cite ou deixe essa palavra no JSON, no título, no subtítulo ou nas falas. O áudio também nunca pode pronunciá-la.
+10. IDENTIDADE DO NARRADOR (INEGOCIÁVEL): o apresentador é Peter Albuquerque, do Webjornal Vale da Liberdade. Se a transcrição disser Turguniev / Peter Turguniev / qualquer grafia parecida, SUBSTITUA por Albuquerque. NUNCA transcreva, cite ou deixe essa palavra no JSON, no título, no subtítulo ou nas falas. O áudio também nunca pode pronunciá-la.
+10b. APRESENTAÇÃO (INEGOCIÁVEL): o roteiro NUNCA pode citar o canal de origem. Se a transcrição trouxer uma auto-apresentação (ex.: "aqui é Peter Turguniev do Ancapsu", "do canal Ancapsu", "se inscreve no canal"), REESCREVA sempre como: "aqui é Peter Albuquerque do Vale da Liberdade". Sem exceção, mesmo em menções casuais, agradecimentos ou chamadas a ação.
+10c. ZERO MENÇÕES AO CANAL DE ORIGEM (INEGOCIÁVEL): proibido citar "Ancapsu", "ANCAPSU", "@ancap_su", "ancap.su" ou o nome de qualquer canal concorrente em título, subtítulo, falas, tags ou descrição. A única marca que existe no roteiro é "Vale da Liberdade".
 {briefing_block}
 === TAGS DISPONÍVEIS (escolha 1-3 para este episódio) ===
 {tags_str}
@@ -795,10 +797,10 @@ def condense(video_id: str, force: bool = False) -> dict:
     if data is None:
         raise RuntimeError("Condensador terminou sem roteiro (data=None)")
 
-    from tts_preprocessor import scrub_turguniev_tree
-    data = scrub_turguniev_tree(data)
+    from tts_preprocessor import scrub_turguniev_tree, scrub_ancapsu_tree
+    data = scrub_ancapsu_tree(scrub_turguniev_tree(data))
     if not isinstance(data, dict):
-        raise RuntimeError("scrub_turguniev_tree devolveu tipo inesperado")
+        raise RuntimeError("scrub devolveu tipo inesperado")
 
     # Guardrail de monetização YouTube: sanitizar palavrões no trecho < 3 min (< 480 palavras)
     data = enforce_profanity_3min_rule(data)

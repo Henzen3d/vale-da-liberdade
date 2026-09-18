@@ -205,6 +205,7 @@ ORDEM DOS QUADROS E LOCUTOR DE ABERTURA:
 - NÃO use saudação temporal (bom dia, boa tarde, etc.)
 - NÃO invente dados — use apenas o que está nas notícias abaixo
 - NUNCA escreva Turguniev (nem variantes). O apresentador é Peter Albuquerque; troque essa palavra por Albuquerque. Essa forma nunca vai para o áudio
+- ZERO MENÇÕES AO CANAL DE ORIGEM (INEGOCIÁVEL): proibido citar "Ancapsu", "ANCAPSU", "@ancap_su" ou "ancap.su" em título, subtítulo, falas ou descrição. Se a transcrição trouxer uma auto-apresentação (ex.: "aqui é Peter Turguniev do Ancapsu", "do canal Ancapsu"), REESCREVA sempre como "aqui é Peter Albuquerque do Vale da Liberdade". A única marca que existe no roteiro é "Vale da Liberdade"
 - Especificidade extrema: R$, %, datas, nomes, números exatos
 - Voz ativa sempre ("Câmara aprova" não "É aprovado")
 - Peter SEMPRE traz ângulo libertário/anti-estado — mas NÃO em toda fala com a mesma fórmula (ver 7.1)
