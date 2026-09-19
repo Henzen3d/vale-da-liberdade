@@ -96,12 +96,12 @@
     {
       "name": "small_studio_01",
       "file": "audio\\ambience\\prepared\\ir\\small_studio_01.wav",
-      "duration_s": 0.264
+      "duration_s": 0.242
     },
     {
       "name": "small_studio_02",
       "file": "audio\\ambience\\prepared\\ir\\small_studio_02.wav",
-      "duration_s": 0.306
+      "duration_s": 0.308
     }
   ]
 }

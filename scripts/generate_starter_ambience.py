@@ -46,30 +46,40 @@ def generate_pink_noise(num_samples: int) -> np.ndarray:
 
 
 def generate_room_tone(duration_s: float, hum_freq: float = 60.0, ac_noise: bool = True) -> np.ndarray:
-    """Gera ruído ambiente contínuo de estúdio de gravação."""
+    """Gera ruído ambiente contínuo de estúdio de gravação sem chiado agudo."""
     n_samples = int(SAMPLE_RATE * duration_s)
     t = np.arange(n_samples) / SAMPLE_RATE
 
-    # 1. Base térmica (ruído rosa suave)
-    noise = generate_pink_noise(n_samples) * 0.35
+    # 1. Base térmica filtrada (corte em 1500 Hz para remover qualquer chiado/sibilância)
+    white = np.random.randn(n_samples).astype(np.float32)
+    fft = np.fft.rfft(white)
+    freqs = np.fft.rfftfreq(n_samples, 1.0 / SAMPLE_RATE)
+    # Filtro passa-baixa suave (butterworth-like) em 1200 Hz
+    cutoff = 1200.0
+    lp_filter = 1.0 / (1.0 + (freqs / cutoff) ** 3)
+    # Roll-off extra de ruído rosa
+    freqs_safe = np.maximum(freqs, 20.0)
+    pink_scale = 1.0 / np.sqrt(freqs_safe)
+    pink_scale[0] = 0.0
 
-    # 2. Sopro de ar condicionado suave (filtro passa-faixa simulado)
+    fft_filtered = fft * pink_scale * lp_filter
+    noise = np.fft.irfft(fft_filtered, n=n_samples)
+    noise = noise / (np.max(np.abs(noise)) + 1e-9) * 0.25
+
+    # 2. Sopro de ar condicionado suave e grave
     if ac_noise:
-        # Modulação de ar lento
-        air_mod = 0.8 + 0.2 * np.sin(2 * np.pi * 0.08 * t)
+        air_mod = 0.85 + 0.15 * np.sin(2 * np.pi * 0.05 * t)
         noise = noise * air_mod
 
-    # 3. Zumbido elétrico residual ultra-sutil (60 Hz + harmônicos)
+    # 3. Zumbido elétrico residual ultra-sutil (60 Hz + harmônico 120 Hz)
     hum = (
-        0.008 * np.sin(2 * np.pi * hum_freq * t)
-        + 0.004 * np.sin(2 * np.pi * (hum_freq * 2) * t)
-        + 0.002 * np.sin(2 * np.pi * (hum_freq * 3) * t)
+        0.005 * np.sin(2 * np.pi * hum_freq * t)
+        + 0.002 * np.sin(2 * np.pi * (hum_freq * 2) * t)
     )
 
     combined = noise + hum
-    # Normalizar peak para ~0.4 (headroom)
     peak = np.max(np.abs(combined)) + 1e-9
-    return (combined / peak * 0.4).astype(np.float32)
+    return (combined / peak * 0.3).astype(np.float32)
 
 
 def generate_mouse_click(variation: int = 1) -> np.ndarray:
@@ -205,29 +215,29 @@ def generate_subtle_breath() -> np.ndarray:
     return (noise / peak * 0.4).astype(np.float32)
 
 
-def generate_studio_impulse_response(rt60: float = 0.22) -> np.ndarray:
-    """Gera Impulse Response sintética de estúdio de podcast tratado."""
-    duration_s = rt60 * 1.2
+def generate_studio_impulse_response(rt60: float = 0.09) -> np.ndarray:
+    """Gera Impulse Response ultra-seca de cabine vocal amortecida (sem eco perceptível)."""
+    duration_s = max(0.08, rt60 * 1.1)
     n = int(SAMPLE_RATE * duration_s)
     t = np.arange(n) / SAMPLE_RATE
 
-    # 1. Reflexões iniciais discretas (early reflections) de paredes próximas
+    # 1. Reflexões iniciais muito breves e atenuadas de cabine acústica
     early = np.zeros(n, dtype=np.float32)
-    delays_ms = [4.2, 7.8, 12.1, 16.5, 21.0, 26.3]
-    gains = [0.65, 0.45, 0.32, 0.22, 0.15, 0.10]
+    delays_ms = [2.5, 4.8, 7.2, 10.5]
+    gains = [0.22, 0.14, 0.08, 0.04]
     for d_ms, g in zip(delays_ms, gains):
         idx = int(SAMPLE_RATE * (d_ms / 1000.0))
         if idx < n:
             early[idx] = g * (1 if np.random.rand() > 0.5 else -1)
 
-    # 2. Cauda estocástica difusa com decaimento exponencial (-60 dB em RT60)
+    # 2. Cauda difusa com decaimento ultrarrápido
     decay_rate = 6.91 / rt60
-    tail = np.random.randn(n).astype(np.float32) * np.exp(-decay_rate * t)
+    tail = np.random.randn(n).astype(np.float32) * np.exp(-decay_rate * t) * 0.08
 
-    # Somar early reflections + cauda difusa
-    ir = early + tail * 0.25
-    peak = np.max(np.abs(ir)) + 1e-9
-    return (ir / peak * 0.5).astype(np.float32)
+    ir = early + tail
+    # Filtro passa-baixa no IR para evitar brilho metálico
+    ir_peak = np.max(np.abs(ir)) + 1e-9
+    return (ir / ir_peak * 0.35).astype(np.float32)
 
 
 def main() -> None:
