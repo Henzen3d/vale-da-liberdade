@@ -707,13 +707,15 @@ def _normalize_beat_v2(beat: Any) -> dict:
     """Normaliza SceneBeat / SceneBeatV2 / dict para dict V2 no recorder."""
     from bm_scene_timeline import SceneBeat, SceneBeatV2
 
-    _v2_kinds = frozenset({"source", "x-post", "quote", "document", "timeline", "chart", "comparison", "broll"})
+    _v2_kinds = frozenset({"source", "x-post", "quote", "document", "timeline", "chart", "comparison", "broll", "person-photo", "transition"})
     _role_map = {
         "quote": "declaracao_forte",
         "document": "evidencia_documental",
         "timeline": "contexto_cronologico",
         "chart": "impacto_economico",
         "comparison": "confronto_posicoes",
+        "person-photo": "destaque_editorial",
+        "transition": "transicao_bloco",
     }
 
     if beat is None:
@@ -774,6 +776,8 @@ def _normalize_beat_v2(beat: Any) -> dict:
             "url": d.get("url") or "",
             "veiculo": d.get("veiculo") or "",
             "shot": d.get("shot"),
+            "shot_long": d.get("shot_long"),
+            "highlight_box": d.get("highlight_box"),
             "video": d.get("video"),
             "broll_file": d.get("broll_file"),
         }
@@ -807,6 +811,10 @@ def _normalize_beat_v2(beat: Any) -> dict:
     out2 = SceneBeatV2.from_legacy(legacy, **overrides2).to_dict()
     out2["kind"] = kind_raw if kind_raw in _v2_kinds else (out2.get("visual_component") or "source")
     out2["visual_component"] = out2.get("visual_component") or out2["kind"]
+    if d.get("shot_long"):
+        out2["shot_long"] = d.get("shot_long")
+    if d.get("highlight_box"):
+        out2["highlight_box"] = d.get("highlight_box")
     if legacy.x_post:
         out2["x_post"] = legacy.x_post
     return out2
@@ -831,11 +839,15 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
     if x_post or kind in ("x-post", "x", "tweet"):
         kind = "x-post"
     page_image = f"/shots/{beat_v2['shot']}" if beat_v2.get("shot") else ""
+    shot_long = beat_v2.get("shot_long")
+    page_image_long = f"/shots/{shot_long}" if shot_long else page_image
     page_video = beat_v2.get("video") or ""
     if kind == "broll" and beat_v2.get("broll_file"):
         page_video = f"/broll/{_q(beat_v2['broll_file'])}"
     payload: dict = {
         "pageImage": page_image,
+        "shotLong": page_image_long,
+        "highlightBox": beat_v2.get("highlight_box") or {},
         "pageVideo": page_video,
         "kind": kind,
         "visual_component": kind,

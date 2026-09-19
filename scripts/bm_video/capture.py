@@ -115,6 +115,26 @@ def save_cached_screenshot(url: str, src_path: Path) -> Path | None:
         return None
 
 
+def stitch_screenshots(top_path: Path, bottom_path: Path, out_path: Path, crop_sticky_px: int = 75) -> Path | None:
+    """Combina dois screenshots verticalmente eliminando a barra de navegação duplicada."""
+    try:
+        from PIL import Image
+        if not top_path.exists() or not bottom_path.exists():
+            return None
+        top_im = Image.open(top_path).convert("RGB")
+        bot_im = Image.open(bottom_path).convert("RGB")
+        crop_y = min(crop_sticky_px, bot_im.height // 4)
+        bot_cropped = bot_im.crop((0, crop_y, bot_im.width, bot_im.height))
+        stitched = Image.new("RGB", (top_im.width, top_im.height + bot_cropped.height))
+        stitched.paste(top_im, (0, 0))
+        stitched.paste(bot_cropped, (0, top_im.height))
+        stitched.save(out_path, format="PNG", optimize=True)
+        return out_path
+    except Exception as exc:
+        print(f"  ⚠️  Falha ao concatenar screenshots: {exc}")
+        return None
+
+
 def is_uol_flash_url(url: str | None) -> bool:
     """UOL Flash (feed de clipes). Matéria uol.com.br/noticias NÃO entra."""
     if not url:
@@ -677,6 +697,11 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 item = dict(scene)
                 item["shot"] = dest.name
                 item["video"] = None
+                meta = handler_result.get("meta") or {}
+                if meta.get("shot_long"):
+                    item["shot_long"] = meta["shot_long"]
+                if meta.get("highlight_box"):
+                    item["highlight_box"] = meta["highlight_box"]
                 by_index[i] = item
                 print(
                     f"  📸 {scene['veiculo']}: {dest.name} "
@@ -844,21 +869,47 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                             prep["scrolledTo"] = f"past-adverts(+{res['scrolled']}px)"
                 except Exception:
                     pass
+
+                try:
+                    from scripts.screenshots.base import _EXTRACT_HIGHLIGHT_BOX_JS
+                    highlight_box = page.evaluate(_EXTRACT_HIGHLIGHT_BOX_JS)
+                except Exception:
+                    highlight_box = {"found": False, "x": 80, "y": 320, "w": 1000, "h": 70}
+
                 page.screenshot(path=str(dest), full_page=False)
                 if dest.exists() and dest.stat().st_size > MIN_SHOT_BYTES and not _shot_looks_blank(dest):
                     save_cached_screenshot(url, dest)
                     item = dict(scene)
                     item["shot"] = dest.name
+                    item["highlight_box"] = highlight_box
+
+                    # Versão longa (1800px) para simulação de rolagem real
+                    dest_long = shot_dir / f"src-{i:02d}-long.png"
+                    try:
+                        page.set_viewport_size({"width": 1400, "height": 1800})
+                        page.wait_for_timeout(350)
+                        page.screenshot(path=str(dest_long), full_page=False)
+                        if dest_long.exists() and dest_long.stat().st_size > MIN_SHOT_BYTES and not _shot_looks_blank(dest_long):
+                            item["shot_long"] = dest_long.name
+                            print(f"  📜 {scene['veiculo']} (longo): {dest_long.name} ({dest_long.stat().st_size // 1024} KB)")
+                    except Exception:
+                        pass
 
                     # Multi-Shot: captura detalhe intermediário (scroll no corpo da matéria)
                     dest_detail = shot_dir / f"src-{i:02d}-detail.png"
                     try:
+                        page.set_viewport_size({"width": 1400, "height": 900})
                         page.evaluate("window.scrollBy(0, window.innerHeight * 0.75);")
                         page.wait_for_timeout(350)
                         page.screenshot(path=str(dest_detail), full_page=False)
                         if dest_detail.exists() and dest_detail.stat().st_size > MIN_SHOT_BYTES and not _shot_looks_blank(dest_detail):
                             item["shot_detail"] = dest_detail.name
                             print(f"  📸 {scene['veiculo']} (detalhe): {dest_detail.name} ({dest_detail.stat().st_size // 1024} KB)")
+                            # Se dest_long falhou ou não existe, costura dest + dest_detail
+                            if not item.get("shot_long"):
+                                stitched = stitch_screenshots(dest, dest_detail, dest_long)
+                                if stitched:
+                                    item["shot_long"] = dest_long.name
                     except Exception:
                         pass
 
@@ -879,7 +930,20 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
             by_index[i] = item
         ctx.close()
         browser.close()
-    return _assemble_captured_scenes(scenes, by_index) or scenes
+    assembled = _assemble_captured_scenes(scenes, by_index) or scenes
+    try:
+        shots_meta = {}
+        for idx_k, itm in enumerate(assembled):
+            shots_meta[str(idx_k)] = {
+                "shot": itm.get("shot"),
+                "shot_long": itm.get("shot_long"),
+                "highlight_box": itm.get("highlight_box"),
+                "url": itm.get("url"),
+            }
+        (shot_dir / "_shots_meta.json").write_text(json.dumps(shots_meta, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+    return assembled
 
 
 def record_mockup(
@@ -945,6 +1009,8 @@ def record_mockup(
                 "liveText": "B&M", "brandSub": "B&M", "tag": "VALE DA LIBERDADE",
                 "ticker": ticker_items,
                 "pageImage": f"/shots/{first_shot}" if first_shot else "",
+                "shotLong": f"/shots/{fb_v2.get('shot_long')}" if fb_v2.get('shot_long') else (f"/shots/{first_shot}" if first_shot else ""),
+                "highlightBox": fb_v2.get("highlight_box") or {},
                 "pageVideo": first_vid or "",
                 "wallpaper": f"/wallpaper/{quote(wallpaper.name)}" if wallpaper else "",
                 "kind": first_kind,

@@ -39,9 +39,11 @@ VisualComponent = Literal[
     "chart",            # Big Number / Indicador / Gráfico vetorial
     "comparison",       # Split-Screen de confronto
     "broll",            # Vídeo curto de respiro
+    "person-photo",     # Foto editorial com efeito Ken Burns
+    "transition",       # Transição de corte / wipe broadcast
 ]
 
-_LEGACY_KINDS = frozenset({"source", "broll", "x-post"})
+_LEGACY_KINDS = frozenset({"source", "broll", "x-post", "person-photo", "transition"})
 
 
 @dataclass
@@ -52,6 +54,8 @@ class SceneBeat:
     veiculo: str
     kind: str  # "source" | "broll" | "x-post"
     shot: str | None = None
+    shot_long: str | None = None
+    highlight_box: dict | None = None
     video: str | None = None
     broll_file: str | None = None
     x_post: dict | None = None
@@ -77,6 +81,8 @@ class SceneBeatV2:
     url: str = ""                                  # URL de referência
     veiculo: str = ""                              # Nome do veículo/fonte
     shot: str | None = None                        # Screenshot estático (se houver)
+    shot_long: str | None = None                   # Screenshot longo estático (se houver)
+    highlight_box: dict | None = None              # Coordenadas do box de grifo
     video: str | None = None                       # Vídeo/clipe auxiliar (se houver)
     broll_file: str | None = None                  # Arquivo de b-roll local
     x_post: dict | None = None                     # Dados estruturados do post no X (Modo 8)
@@ -98,6 +104,8 @@ class SceneBeatV2:
             veiculo=self.veiculo,
             kind=kind,
             shot=self.shot,
+            shot_long=self.shot_long,
+            highlight_box=self.highlight_box,
             video=self.video,
             broll_file=self.broll_file,
             x_post=self.x_post,
@@ -141,6 +149,8 @@ class SceneBeatV2:
             "url": beat.url or "",
             "veiculo": beat.veiculo or "",
             "shot": beat.shot,
+            "shot_long": getattr(beat, "shot_long", None),
+            "highlight_box": getattr(beat, "highlight_box", None),
             "video": beat.video,
             "broll_file": beat.broll_file,
             "x_post": getattr(beat, "x_post", None),
@@ -260,6 +270,8 @@ _VARIANT_BY_COMPONENT = {
     "comparison": "split_screen",
     "source": "portal_clean",
     "x-post": "x_card",
+    "person-photo": "ken_burns",
+    "transition": "wipe_gold",
 }
 
 _BASE_SCORE = {
@@ -765,6 +777,8 @@ def build_scene_timeline(
             "veiculo": scene_item.get("veiculo") or "Fonte",
             "kind": "x-post" if (is_x_post or chosen_comp == "x-post") else (scene_item.get("kind") or (chosen_comp if chosen_comp in _LEGACY_KINDS else "source")),
             "shot": scene_item.get("shot"),
+            "shot_long": scene_item.get("shot_long"),
+            "highlight_box": scene_item.get("highlight_box"),
             "video": scene_item.get("video"),
             "broll_file": None,
             "x_post": scene_item.get("x_post") or (payload if (is_x_post or chosen_comp == "x-post") else None),
@@ -799,6 +813,8 @@ def build_scene_timeline(
         url = rb["url"]
         veic = rb["veiculo"]
         shot = rb["shot"]
+        shot_long = rb.get("shot_long")
+        highlight_box = rb.get("highlight_box")
         video = rb["video"]
         broll_file = rb["broll_file"]
         x_post = rb.get("x_post")
@@ -828,6 +844,8 @@ def build_scene_timeline(
             veiculo=veic,
             kind=kind,
             shot=shot,
+            shot_long=shot_long,
+            highlight_box=highlight_box,
             video=video,
             broll_file=broll_file,
             x_post=x_post,
@@ -852,6 +870,8 @@ def build_scene_timeline(
                 veiculo=old_first.veiculo,
                 kind="source",
                 shot=old_first.shot,
+                shot_long=old_first.shot_long,
+                highlight_box=old_first.highlight_box,
                 video=old_first.video,
                 x_post=old_first.x_post,
                 semantic_role="apresentacao_fato",
@@ -866,6 +886,8 @@ def build_scene_timeline(
                 veiculo=alt_scene.get("veiculo") or old_first.veiculo,
                 kind="x-post" if alt_is_x else (alt_scene.get("kind") or "source"),
                 shot=alt_scene.get("shot") or old_first.shot,
+                shot_long=alt_scene.get("shot_long") or old_first.shot_long,
+                highlight_box=alt_scene.get("highlight_box") or old_first.highlight_box,
                 video=alt_scene.get("video") or old_first.video,
                 x_post=alt_scene.get("x_post") or old_first.x_post,
                 semantic_role="repercussao_social" if alt_is_x else "apresentacao_fato",
@@ -879,6 +901,8 @@ def build_scene_timeline(
                 veiculo=old_first.veiculo,
                 kind="source",
                 shot=old_first.shot,
+                shot_long=old_first.shot_long,
+                highlight_box=old_first.highlight_box,
                 video=old_first.video,
                 x_post=old_first.x_post,
                 semantic_role="apresentacao_fato",
@@ -935,6 +959,8 @@ def build_scene_timeline(
                 else:
                     alt_scene = {"url": beat.url, "veiculo": beat.veiculo,
                                  "kind": beat.kind, "shot": beat.shot,
+                                 "shot_long": beat.shot_long,
+                                 "highlight_box": beat.highlight_box,
                                  "video": beat.video, "x_post": beat.x_post}
 
                 sub_variant = _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
@@ -948,6 +974,8 @@ def build_scene_timeline(
                     veiculo=alt_scene.get("veiculo") or beat.veiculo,
                     kind=alt_scene.get("kind") or "source",
                     shot=alt_scene.get("shot") or beat.shot,
+                    shot_long=alt_scene.get("shot_long") or beat.shot_long,
+                    highlight_box=alt_scene.get("highlight_box") or beat.highlight_box,
                     video=alt_scene.get("video") or beat.video,
                     broll_file=None,
                     x_post=alt_scene.get("x_post") or beat.x_post,
@@ -980,6 +1008,8 @@ def build_scene_timeline(
                 veiculo=b_target.veiculo,
                 kind=b_target.kind,
                 shot=b_target.shot,
+                shot_long=b_target.shot_long,
+                highlight_box=b_target.highlight_box,
                 video=b_target.video,
                 broll_file=b_target.broll_file,
                 x_post=b_target.x_post,
@@ -993,6 +1023,8 @@ def build_scene_timeline(
             b2_url = (alt_scene.get("url") or b_target.url) if (alt_is_x or same_source) else b_target.url
             b2_veic = (alt_scene.get("veiculo") or b_target.veiculo) if (alt_is_x or same_source) else b_target.veiculo
             b2_shot = (alt_scene.get("shot") or b_target.shot) if same_source else b_target.shot
+            b2_shot_long = (alt_scene.get("shot_long") or b_target.shot_long) if same_source else b_target.shot_long
+            b2_highlight_box = (alt_scene.get("highlight_box") or b_target.highlight_box) if same_source else b_target.highlight_box
             b2_variant = "x_card" if alt_is_x else ("portal_zoom" if b1_variant in ("portal_hero", "portal_clean") else "portal_scroll")
             b2 = SceneBeat(
                 t0=half,
@@ -1001,6 +1033,8 @@ def build_scene_timeline(
                 veiculo=b2_veic,
                 kind="x-post" if alt_is_x else (b_target.kind if not same_source else (alt_scene.get("kind") or "source")),
                 shot=b2_shot,
+                shot_long=b2_shot_long,
+                highlight_box=b2_highlight_box,
                 video=alt_scene.get("video") or b_target.video,
                 broll_file=None,
                 x_post=alt_scene.get("x_post") or b_target.x_post,
@@ -1012,6 +1046,97 @@ def build_scene_timeline(
             expanded_beats[longest_idx:longest_idx + 1] = [b1, b2]
 
     final_beats = expanded_beats
+
+    # 7.1 Inserção de Foto Editorial (Person-Photo com Ken Burns)
+    editorial_photo = episode.get("editorial_image") or episode.get("foto_editorial")
+    vid_cand = episode.get("video_id") or episode.get("id") or ""
+    if not editorial_photo and vid_cand:
+        try:
+            from episode_image_manifest import resolve_editorial_image
+            ep_img = resolve_editorial_image(vid_cand, allow_placeholder=True)
+            if ep_img and ep_img.exists():
+                editorial_photo = str(ep_img)
+        except Exception:
+            pass
+
+    if editorial_photo and len(final_beats) > 4:
+        # Encontra o beat mais longo do terço médio do vídeo para exibir a foto
+        mid_start = max(1, len(final_beats) // 4)
+        mid_end = min(len(final_beats) - 1, (len(final_beats) * 3) // 4)
+        best_cand_idx = -1
+        best_cand_dur = 0.0
+        for idx in range(mid_start, mid_end):
+            b = final_beats[idx]
+            b_dur = b.t1 - b.t0
+            if b.visual_component == "source" and b_dur > best_cand_dur:
+                best_cand_dur = b_dur
+                best_cand_idx = idx
+
+        if best_cand_idx >= 0 and best_cand_dur >= 6.0:
+            target = final_beats[best_cand_idx]
+            photo_dur = min(6.5, best_cand_dur * 0.5)
+            photo_t0 = round(target.t1 - photo_dur, 2)
+            target.t1 = photo_t0
+            p_name = Path(editorial_photo).name
+            photo_url = f"/thumbnails/{p_name}" if "thumbnails" in editorial_photo else f"/shots/{p_name}"
+            photo_beat = SceneBeat(
+                t0=photo_t0,
+                t1=round(photo_t0 + photo_dur, 2),
+                url=target.url,
+                veiculo=target.veiculo,
+                kind="person-photo",
+                shot=target.shot,
+                video=None,
+                broll_file=None,
+                x_post=None,
+                semantic_role="destaque_editorial",
+                visual_component="person-photo",
+                visual_variant="ken_burns",
+                visual_payload={
+                    "photo": photo_url,
+                    "name": episode.get("speaker_name") or episode.get("titulo", "")[:45],
+                    "veiculo": target.veiculo or "Registro Editorial Oficial",
+                    "tag": "PERSONAGEM EM FOCO",
+                },
+            )
+            final_beats.insert(best_cand_idx + 1, photo_beat)
+
+    # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
+    if total_dur >= 60.0 and len(final_beats) > 3:
+        trans_styles = ["wipe_gold", "dissolve_brand", "flash_cut"]
+        trans_count = 0
+        new_beats: list[SceneBeat] = []
+        for idx, b in enumerate(final_beats):
+            new_beats.append(b)
+            # Verifica se há transição de pauta no próximo beat (apenas fora do gancho inicial de 14s)
+            if idx < len(final_beats) - 1 and trans_count < 3 and b.t0 >= 14.0:
+                next_b = final_beats[idx + 1]
+                is_section_change = (b.t0 < 30.0 and next_b.t0 >= 20.0) or (next_b.t0 >= (total_dur * 0.78))
+                is_url_change = bool(b.url and next_b.url and b.url != next_b.url and b.visual_component == "source" and next_b.visual_component == "source")
+                if (is_section_change or is_url_change) and (b.t1 - b.t0) >= 4.5:
+                    t_trans = 0.8
+                    trans_start = round(b.t1 - t_trans, 2)
+                    b.t1 = trans_start
+                    trans_beat = SceneBeat(
+                        t0=trans_start,
+                        t1=round(trans_start + t_trans, 2),
+                        url=next_b.url,
+                        veiculo="Vale da Liberdade",
+                        kind="transition",
+                        shot=next_b.shot,
+                        shot_long=next_b.shot_long,
+                        highlight_box=next_b.highlight_box,
+                        video=None,
+                        broll_file=None,
+                        x_post=None,
+                        semantic_role="transicao_broll",
+                        visual_component="transition",
+                        visual_variant=trans_styles[trans_count % len(trans_styles)],
+                        visual_payload={},
+                    )
+                    new_beats.append(trans_beat)
+                    trans_count += 1
+        final_beats = [b for b in new_beats if b.t1 > b.t0 + 0.05]
 
     # 8. Ajustar continuidade estrita dos timestamps
     for j in range(len(final_beats) - 1):

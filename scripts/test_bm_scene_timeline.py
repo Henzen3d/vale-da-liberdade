@@ -326,6 +326,56 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertEqual(x_beats[0].semantic_role, "repercussao_social")
         self.assertIsNotNone(x_beats[0].x_post)
 
+    def test_timeline_propagates_shot_long_and_highlight_box(self):
+        """shot_long e highlight_box são propagados do input scenes para os beats."""
+        episode = {
+            "titulo": "Sincronia de Matéria com Scroll Longo",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura rápida com o fato principal da matéria."}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Aqui temos aprofundamento analítico que requer visualização do corpo do texto no portal."}
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Conclusão e encerramento da edição."}],
+        }
+        hl = {"found": True, "x": 60, "y": 320, "w": 1050, "h": 70}
+        scenes = [{
+            "veiculo": "Folha",
+            "url": "https://www1.folha.uol.com.br/noticia",
+            "shot": "src-00.png",
+            "shot_long": "src-00-long.png",
+            "highlight_box": hl,
+        }]
+        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+        source_beats = [b for b in beats if b.visual_component == "source"]
+        self.assertTrue(len(source_beats) > 0)
+        for sb in source_beats:
+            self.assertEqual(sb.shot_long, "src-00-long.png")
+            self.assertEqual(sb.highlight_box, hl)
+
+    def test_timeline_inserts_transitions_on_scene_change(self):
+        """Transições broadcast (wipe_gold, etc.) são inseridas em mudanças de cena após o gancho."""
+        episode = {
+            "titulo": "Transição de Pauta",
+            "abertura": [
+                {"speaker": "Peter", "texto": " ".join(["palavra"] * 25), "fonte_url": "https://portal1.com"}
+            ],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": " ".join(["palavra"] * 60), "fonte_url": "https://portal1.com"},
+                {"speaker": "Peter", "texto": " ".join(["palavra"] * 60), "fonte_url": "https://portal2.com"},
+            ],
+            "fechamento": [
+                {"speaker": "Peter", "texto": " ".join(["palavra"] * 20), "fonte_url": "https://portal2.com"}
+            ],
+        }
+        scenes = [
+            {"veiculo": "Portal 1", "url": "https://portal1.com", "shot": "src-00.png"},
+            {"veiculo": "Portal 2", "url": "https://portal2.com", "shot": "src-01.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=120.0, scenes=scenes)
+        trans_beats = [b for b in beats if b.visual_component == "transition" or b.kind == "transition"]
+        self.assertTrue(len(trans_beats) >= 1, "Deveria ter inserido pelo menos 1 transição broadcast")
+        self.assertIn(trans_beats[0].visual_variant, {"wipe_gold", "dissolve_brand", "flash_cut"})
+
 
 if __name__ == "__main__":
     unittest.main()
+

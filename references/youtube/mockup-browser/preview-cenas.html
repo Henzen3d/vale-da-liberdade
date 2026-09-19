@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview de Cenas — Vale da Liberdade Broadcast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN SYSTEM — PREVIEW DE CENAS
+   ============================================================ */
+:root {
+  --bg-primary: #0e1118;
+  --bg-secondary: #161b26;
+  --bg-card: #1c2233;
+  --bg-card-hover: #232b3e;
+  --bg-card-active: #2a3552;
+  --accent-gold: #d4a017;
+  --accent-amber: #b8860b;
+  --accent-blue: #3b82f6;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #2a3142;
+  --font-body: 'Inter', 'Plus Jakarta Sans', -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  gap: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  grid-column: 1 / -1;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  user-select: none;
+}
+
+.header-logo {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent-gold);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.header-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.header-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  grid-row: 2;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.sidebar-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 16px 16px 8px;
+}
+
+.beat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.beat-card:hover {
+  background: var(--bg-card-hover);
+}
+
+.beat-card.active {
+  background: var(--bg-card-active);
+  border-left-color: var(--accent-gold);
+}
+
+.beat-card.playing::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent-gold);
+  animation: beatProgress var(--beat-duration, 8s) linear forwards;
+}
+
+@keyframes beatProgress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.beat-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.beat-index[data-kind="source"] { background: #1e3a5f; color: #60a5fa; }
+.beat-index[data-kind="x-post"] { background: #1c1c2e; color: #a3a3d4; }
+.beat-index[data-kind="quote"] { background: #3b2d15; color: #fbbf24; }
+.beat-index[data-kind="document"] { background: #1e2d2d; color: #2dd4bf; }
+.beat-index[data-kind="timeline"] { background: #2d1e3b; color: #c084fc; }
+.beat-index[data-kind="chart"] { background: #1e3b24; color: #4ade80; }
+.beat-index[data-kind="comparison"] { background: #3b1e1e; color: #fb7185; }
+.beat-index[data-kind="broll"] { background: #2d2d1e; color: #a3e635; }
+.beat-index[data-kind="recorte"] { background: #3b2d2d; color: #fca5a5; }
+.beat-index[data-kind="transition"] { background: #2d1e2d; color: #e879f9; }
+.beat-index[data-kind="person-photo"] { background: #1e2d3b; color: #7dd3fc; }
+
+.beat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.beat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.beat-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  display: flex;
+  gap: 8px;
+}
+
+.beat-meta .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.beat-timing {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── STAGE ── */
+.stage {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-iframe {
+  width: 1920px;
+  height: 1080px;
+  border: none;
+  transform-origin: top left;
+}
+
+.stage-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.stage-badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: rgba(0,0,0,0.7);
+  color: var(--text-primary);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.stage-badge.kind { color: var(--accent-gold); }
+.stage-badge.variant { color: var(--accent-blue); }
+
+/* ── CONTROLS BAR ── */
+.controls {
+  grid-column: 1 / -1;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  user-select: none;
+}
+
+.ctrl-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  font-size: 16px;
+}
+.ctrl-btn:hover { background: var(--bg-card-hover); border-color: var(--accent-gold); }
+.ctrl-btn.active { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
+.ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.ctrl-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-card);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-gold);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progress-markers {
+  position: absolute;
+  inset: -3px 0;
+  pointer-events: none;
+}
+
+.progress-marker {
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 1px;
+  top: 0;
+}
+
+.ctrl-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 90px;
+  text-align: center;
+}
+
+.ctrl-speed {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 600;
+}
+.ctrl-speed:hover { border-color: var(--accent-gold); color: var(--text-primary); }
+
+/* ── LOADING ── */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  gap: 16px;
+  transition: opacity 0.4s ease;
+}
+
+.loading-screen.hidden { opacity: 0; pointer-events: none; }
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ── TOOLTIP ── */
+.detail-panel {
+  position: absolute;
+  bottom: 60px;
+  left: 360px;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+  display: none;
+  gap: 24px;
+  font-size: 12px;
+  z-index: 50;
+}
+
+.detail-panel.visible { display: flex; }
+
+.detail-group { display: flex; flex-direction: column; gap: 2px; }
+.detail-group label { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.detail-group span { color: var(--text-primary); font-weight: 500; }
+.detail-group .url-val { color: var(--accent-blue); font-size: 11px; word-break: break-all; max-width: 400px; }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Carregando episódio...</div>
+</div>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-logo">VDL</div>
+    <div class="header-divider"></div>
+    <div class="header-title" id="headerTitle">Preview de Cenas</div>
+    <div class="header-meta">
+      <span id="metaBeats">🎞️ -- cenas</span>
+      <span id="metaDuration">⏱️ --s</span>
+      <span id="metaDate">📅 --</span>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-section-title">Timeline de Cenas</div>
+  </div>
+
+  <!-- STAGE -->
+  <div class="stage" id="stage">
+    <iframe id="mockupFrame" class="stage-iframe" src="about:blank"></iframe>
+    <div class="stage-overlay">
+      <div class="stage-badge kind" id="badgeKind">source</div>
+      <div class="stage-badge variant" id="badgeVariant">portal_clean</div>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-group">
+      <label>Componente</label>
+      <span id="detailKind">-</span>
+    </div>
+    <div class="detail-group">
+      <label>Variante</label>
+      <span id="detailVariant">-</span>
+    </div>
+    <div class="detail-group">
+      <label>Papel Semântico</label>
+      <span id="detailRole">-</span>
+    </div>
+    <div class="detail-group">
+      <label>Veículo</label>
+      <span id="detailVeiculo">-</span>
+    </div>
+    <div class="detail-group">
+      <label>URL</label>
+      <span class="url-val" id="detailUrl">-</span>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="ctrl-btn" id="btnPrev" title="Cena anterior (←)">⏮</button>
+    <button class="ctrl-btn" id="btnPlay" title="Play/Pause (Espaço)">▶</button>
+    <button class="ctrl-btn" id="btnNext" title="Próxima cena (→)">⏭</button>
+    <div class="ctrl-divider"></div>
+    <div class="progress-track" id="progressTrack">
+      <div class="progress-fill" id="progressFill"></div>
+      <div class="progress-markers" id="progressMarkers"></div>
+    </div>
+    <div class="ctrl-time" id="ctrlTime">0:00 / 0:00</div>
+    <div class="ctrl-divider"></div>
+    <button class="ctrl-btn" id="btnDetail" title="Detalhes (D)">ℹ</button>
+    <button class="ctrl-speed" id="btnSpeed" title="Velocidade">1×</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   PREVIEW ENGINE — Navegação de Cenas do Broadcast
+   ============================================================ */
+const PreviewEngine = {
+  data: null,
+  currentBeat: 0,
+  isPlaying: false,
+  playTimer: null,
+  speed: 1,
+  speeds: [0.5, 1, 2, 4],
+  speedIdx: 1,
+  mockupReady: false,
+
+  async init() {
+    try {
+      const resp = await fetch("/_preview_data.json");
+      this.data = await resp.json();
+    } catch (e) {
+      document.getElementById("loadingScreen").querySelector(".loading-text").textContent =
+        "Erro ao carregar dados do episódio.";
+      return;
+    }
+
+    this.renderHeader();
+    this.renderSidebar();
+    this.renderProgressMarkers();
+    this.initMockup();
+    this.bindKeys();
+    this.bindControls();
+  },
+
+  renderHeader() {
+    const d = this.data;
+    document.getElementById("headerTitle").textContent = d.title;
+    document.getElementById("metaBeats").textContent = `🎞️ ${d.total_beats} cenas`;
+    document.getElementById("metaDuration").textContent = `⏱️ ${Math.round(d.estimated_duration)}s`;
+    document.getElementById("metaDate").textContent = `📅 ${d.date || "—"}`;
+    document.title = `Preview — ${d.title}`;
+  },
+
+  renderSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const beats = this.data.beats;
+
+    const kindIcons = {
+      source: "🌐", "x-post": "𝕏", quote: "💬", document: "📄",
+      timeline: "📊", chart: "📈", comparison: "⚖️", broll: "🎬",
+      recorte: "📰", transition: "✨", "person-photo": "👤"
+    };
+
+    const cards = beats.map((beat, i) => {
+      const card = document.createElement("div");
+      card.className = "beat-card";
+      card.dataset.index = i;
+
+      const icon = kindIcons[beat.kind] || "🔲";
+      const t0m = Math.floor(beat.t0 / 60);
+      const t0s = Math.floor(beat.t0 % 60);
+      const label = beat.veiculo || beat.kind;
+      const assets = [];
+      if (beat.has_shot) assets.push("📸");
+      if (beat.has_video) assets.push("🎞️");
+
+      card.innerHTML = `
+        <div class="beat-index" data-kind="${beat.kind}">${icon}</div>
+        <div class="beat-info">
+          <div class="beat-label">${label}</div>
+          <div class="beat-meta">
+            <span class="badge">${beat.kind}</span>
+            ${beat.visual_variant ? `<span class="badge">${beat.visual_variant}</span>` : ""}
+            ${assets.join(" ")}
+          </div>
+        </div>
+        <div class="beat-timing">${t0m}:${String(t0s).padStart(2, "0")} <br><small>${beat.duration.toFixed(1)}s</small></div>
+      `;
+
+      card.addEventListener("click", () => this.goToBeat(i));
+      return card;
+    });
+
+    // Keep section title
+    const title = sidebar.querySelector(".sidebar-section-title");
+    sidebar.innerHTML = "";
+    sidebar.appendChild(title);
+    cards.forEach(c => sidebar.appendChild(c));
+  },
+
+  renderProgressMarkers() {
+    const container = document.getElementById("progressMarkers");
+    const total = this.data.estimated_duration;
+    const beats = this.data.beats;
+    container.innerHTML = "";
+    beats.forEach(beat => {
+      const marker = document.createElement("div");
+      marker.className = "progress-marker";
+      marker.style.left = `${(beat.t0 / total) * 100}%`;
+      container.appendChild(marker);
+    });
+  },
+
+  initMockup() {
+    const frame = document.getElementById("mockupFrame");
+    const stage = document.getElementById("stage");
+
+    // Scale iframe to fit stage
+    const resizeFrame = () => {
+      const sw = stage.clientWidth;
+      const sh = stage.clientHeight;
+      const scale = Math.min(sw / 1920, sh / 1080);
+      frame.style.transform = `scale(${scale})`;
+      frame.style.width = "1920px";
+      frame.style.height = "1080px";
+    };
+    window.addEventListener("resize", resizeFrame);
+
+    frame.addEventListener("load", () => {
+      resizeFrame();
+      // Wait for VDL_MOCKUP to be ready
+      const check = setInterval(() => {
+        try {
+          if (frame.contentWindow && frame.contentWindow.VDL_MOCKUP) {
+            clearInterval(check);
+            this.mockupReady = true;
+            // Apply init payload
+            frame.contentWindow.VDL_MOCKUP.update(this.data.init_payload);
+            // Hide loading
+            setTimeout(() => {
+              document.getElementById("loadingScreen").classList.add("hidden");
+              this.goToBeat(0);
+            }, 400);
+          }
+        } catch (e) {
+          // Cross-origin, try postMessage
+          clearInterval(check);
+          this.mockupReady = true;
+          frame.contentWindow.postMessage({
+            type: "VDL_UPDATE",
+            payload: this.data.init_payload
+          }, "*");
+          setTimeout(() => {
+            document.getElementById("loadingScreen").classList.add("hidden");
+            this.goToBeat(0);
+          }, 400);
+        }
+      }, 100);
+    });
+
+    // Load mockup HTML
+    frame.src = "mockup-browser.html";
+  },
+
+  goToBeat(index) {
+    if (!this.data || index < 0 || index >= this.data.beats.length) return;
+    this.currentBeat = index;
+    const beat = this.data.beats[index];
+
+    // Update mockup
+    this.sendUpdate(beat.payload);
+
+    // Update sidebar active state
+    document.querySelectorAll(".beat-card").forEach((c, i) => {
+      c.classList.toggle("active", i === index);
+      c.classList.remove("playing");
+    });
+
+    // Scroll sidebar to active
+    const active = document.querySelector(".beat-card.active");
+    if (active) active.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    // Update badges
+    document.getElementById("badgeKind").textContent = beat.kind;
+    document.getElementById("badgeVariant").textContent = beat.visual_variant || "default";
+
+    // Update progress
+    const total = this.data.estimated_duration;
+    const pct = (beat.t0 / total) * 100;
+    document.getElementById("progressFill").style.width = `${pct}%`;
+
+    // Update time
+    const t0m = Math.floor(beat.t0 / 60);
+    const t0s = Math.floor(beat.t0 % 60);
+    const totm = Math.floor(total / 60);
+    const tots = Math.floor(total % 60);
+    document.getElementById("ctrlTime").textContent =
+      `${t0m}:${String(t0s).padStart(2, "0")} / ${totm}:${String(tots).padStart(2, "0")}`;
+
+    // Update detail panel
+    document.getElementById("detailKind").textContent = beat.kind;
+    document.getElementById("detailVariant").textContent = beat.visual_variant || "—";
+    document.getElementById("detailRole").textContent = beat.semantic_role || "—";
+    document.getElementById("detailVeiculo").textContent = beat.veiculo || "—";
+    document.getElementById("detailUrl").textContent = beat.url || "—";
+
+    // If playing, set timer for next beat
+    if (this.isPlaying) {
+      this.scheduleNext(beat.duration);
+    }
+  },
+
+  sendUpdate(payload) {
+    const frame = document.getElementById("mockupFrame");
+    if (!frame || !frame.contentWindow) return;
+    try {
+      if (frame.contentWindow.VDL_MOCKUP) {
+        frame.contentWindow.VDL_MOCKUP.update(payload);
+        return;
+      }
+    } catch (e) { /* cross-origin */ }
+    frame.contentWindow.postMessage({ type: "VDL_UPDATE", payload }, "*");
+  },
+
+  scheduleNext(duration) {
+    if (this.playTimer) clearTimeout(this.playTimer);
+    const card = document.querySelector(`.beat-card[data-index="${this.currentBeat}"]`);
+    if (card) {
+      card.classList.add("playing");
+      card.style.setProperty("--beat-duration", `${duration / this.speed}s`);
+    }
+    this.playTimer = setTimeout(() => {
+      if (this.currentBeat < this.data.beats.length - 1) {
+        this.goToBeat(this.currentBeat + 1);
+      } else {
+        this.togglePlay(); // Stop at end
+      }
+    }, (duration * 1000) / this.speed);
+  },
+
+  togglePlay() {
+    this.isPlaying = !this.isPlaying;
+    document.getElementById("btnPlay").textContent = this.isPlaying ? "⏸" : "▶";
+    document.querySelectorAll(".beat-card").forEach(c => c.classList.remove("playing"));
+
+    if (this.isPlaying) {
+      const beat = this.data.beats[this.currentBeat];
+      this.scheduleNext(beat.duration);
+    } else {
+      if (this.playTimer) clearTimeout(this.playTimer);
+    }
+  },
+
+  cycleSpeed() {
+    this.speedIdx = (this.speedIdx + 1) % this.speeds.length;
+    this.speed = this.speeds[this.speedIdx];
+    document.getElementById("btnSpeed").textContent = `${this.speed}×`;
+    // Reschedule if playing
+    if (this.isPlaying) {
+      const beat = this.data.beats[this.currentBeat];
+      this.scheduleNext(beat.duration);
+    }
+  },
+
+  toggleDetail() {
+    const panel = document.getElementById("detailPanel");
+    panel.classList.toggle("visible");
+    document.getElementById("btnDetail").classList.toggle("active");
+  },
+
+  bindKeys() {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        this.togglePlay();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (this.currentBeat < this.data.beats.length - 1) {
+          this.goToBeat(this.currentBeat + 1);
+        }
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (this.currentBeat > 0) {
+          this.goToBeat(this.currentBeat - 1);
+        }
+      } else if (e.key === "d" || e.key === "D") {
+        this.toggleDetail();
+      } else if (e.key === "Home") {
+        this.goToBeat(0);
+      } else if (e.key === "End") {
+        this.goToBeat(this.data.beats.length - 1);
+      }
+    });
+  },
+
+  bindControls() {
+    document.getElementById("btnPrev").addEventListener("click", () => {
+      if (this.currentBeat > 0) this.goToBeat(this.currentBeat - 1);
+    });
+    document.getElementById("btnNext").addEventListener("click", () => {
+      if (this.currentBeat < this.data.beats.length - 1) this.goToBeat(this.currentBeat + 1);
+    });
+    document.getElementById("btnPlay").addEventListener("click", () => this.togglePlay());
+    document.getElementById("btnSpeed").addEventListener("click", () => this.cycleSpeed());
+    document.getElementById("btnDetail").addEventListener("click", () => this.toggleDetail());
+
+    // Click on progress bar
+    document.getElementById("progressTrack").addEventListener("click", (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      const targetTime = pct * this.data.estimated_duration;
+      // Find closest beat
+      let closest = 0;
+      for (let i = 0; i < this.data.beats.length; i++) {
+        if (this.data.beats[i].t0 <= targetTime) closest = i;
+      }
+      this.goToBeat(closest);
+    });
+  }
+};
+
+// Boot
+PreviewEngine.init();
+</script>
+</body>
+</html>

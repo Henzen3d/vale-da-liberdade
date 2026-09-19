@@ -175,6 +175,57 @@ _FIND_TITLE_JS = """() => {
   return {found: true, y: Math.max(0, y), sticky};
 }"""
 
+# JS para detectar as coordenadas exatas do lead/subtítulo para o highlight broadcast.
+_EXTRACT_HIGHLIGHT_BOX_JS = """() => {
+  const article = document.querySelector('article, [role="main"], .c-news__body, .article-content, .entry-content, .post__content, main') || document.body;
+  let target = null;
+  const leadSelectors = [
+    '.c-content-head__subtitle',
+    '.c-main-headline__subtitle',
+    '.c-subheadline',
+    '.content-head__subtitle',
+    '.article__subtitle',
+    '.materia-subtitulo',
+    '.entry-subhead',
+    '.lead',
+    '[class*="subtitulo"]',
+    '[class*="subhead"]',
+    '[class*="lead"]',
+    'article h2',
+    'header h2'
+  ];
+  for (const sel of leadSelectors) {
+    const el = document.querySelector(sel);
+    if (el && (el.innerText || '').trim().length > 15) {
+      target = el;
+      break;
+    }
+  }
+  if (!target && article) {
+    const ps = Array.from(article.querySelectorAll('p')).filter(p => {
+      const t = (p.innerText || '').trim();
+      return t.length >= 35 && !t.startsWith('Foto:') && !t.startsWith('Crédito:');
+    });
+    if (ps.length > 0) target = ps[0];
+  }
+  if (!target) {
+    target = document.querySelector('article h1, [role="main"] h1, h1');
+  }
+  if (!target) {
+    return { found: false, x: 80, y: 320, w: 1000, h: 70 };
+  }
+  const r = target.getBoundingClientRect();
+  return {
+    found: true,
+    tag: target.tagName.toLowerCase(),
+    text: (target.innerText || '').trim().slice(0, 100),
+    x: Math.max(0, Math.round(r.left)),
+    y: Math.max(0, Math.round(r.top)),
+    w: Math.round(r.width),
+    h: Math.round(r.height)
+  };
+}"""
+
 # JS para forçar lazy-load de imagens (dispara IntersectionObserver).
 _FORCE_LAZY_JS = """async () => {
   // 1. Atualizar <picture> <source> lazy
@@ -533,6 +584,13 @@ class BaseScraper:
         except Exception as exc:
             return {"found": False, "error": str(exc)}
 
+    def _extract_highlight_box(self, page: Any) -> dict:
+        """Extrai coordenadas exatas do lead/subtítulo para destaque visual no broadcast."""
+        try:
+            return page.evaluate(_EXTRACT_HIGHLIGHT_BOX_JS)
+        except Exception as exc:
+            return {"found": False, "x": 80, "y": 320, "w": 1000, "h": 70, "error": str(exc)}
+
     def _force_lazy_images(self, page: Any) -> None:
         """Força carregamento de imagens lazy-loaded."""
         try:
@@ -678,11 +736,27 @@ class BaseScraper:
                 title_info = self._scroll_to_title(page)
                 result["meta"]["title"] = title_info
 
+                # 9.1. Extrair coordenadas do lead/subtítulo para o highlight broadcast
+                highlight_info = self._extract_highlight_box(page)
+                result["meta"]["highlight_box"] = highlight_info
+
                 # 10. Pausa final para renderização
                 page.wait_for_timeout(600)
 
-                # 11. Capturar
+                # 11. Capturar padrão (1400x900)
                 self._take_screenshot(page, dest)
+
+                # 11.1. Capturar versão longa (1400x1800) para simulação de rolagem real
+                dest_long = dest.parent / f"{dest.stem}-long{dest.suffix}"
+                try:
+                    cur_vp = self.viewport or dict(DEFAULT_VIEWPORT)
+                    page.set_viewport_size({"width": cur_vp.get("width", 1400), "height": 1800})
+                    page.wait_for_timeout(350)
+                    page.screenshot(path=str(dest_long), full_page=False, type="png")
+                    if dest_long.exists() and dest_long.stat().st_size > MIN_SHOT_BYTES and not _is_blank(dest_long):
+                        result["meta"]["shot_long"] = dest_long.name
+                except Exception:
+                    pass
 
                 page.close()
                 ctx.close()

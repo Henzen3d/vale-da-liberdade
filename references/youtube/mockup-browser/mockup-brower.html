@@ -342,53 +342,51 @@ html, body {
   position: relative;
 }
 
-.portal-page-shot {
+.portal-scroll-wrapper {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
+  transform-origin: top center;
+  will-change: transform;
+  z-index: 4;
+}
+
+.portal-page-shot {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: block;
+  object-fit: cover;
+  background: #fff;
+  will-change: transform;
+}
+
+video.portal-page-shot {
   height: 100%;
   object-fit: cover;
-  object-position: top center;
-  z-index: 4;
-  background: #fff;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), object-position 0.8s ease;
-  transform-origin: center 25%;
-  will-change: transform, object-position;
 }
 
 /* Variantes Multi-Shot para Notícia / Portal */
 .portal-page-shot.variant-portal-clean,
-.portal-page-shot.variant-portal-hero {
-  transform: scale(1.0);
-  object-position: top center;
-}
-
-.portal-page-shot.variant-portal-zoom {
-  transform: scale(1.18);
-  object-position: center 28%;
-}
-
-.portal-page-shot.variant-portal-scroll {
-  transform: scale(1.08);
-  object-position: center 65%;
-}
-
+.portal-page-shot.variant-portal-hero,
+.portal-page-shot.variant-portal-zoom,
+.portal-page-shot.variant-portal-scroll,
 .portal-page-shot.variant-portal-highlight {
-  transform: scale(1.14);
-  object-position: center 32%;
+  transform: scale(1.0);
 }
 
-/* Overlay de Marca-Texto Editorial / Highlight */
+/* Overlay de Marca-Texto Editorial / Highlight Posicional Dinâmico */
 .portal-highlight-overlay {
   position: absolute;
   left: 6%;
   top: 32%;
   width: 82%;
   height: 96px;
-  background: linear-gradient(90deg, rgba(212, 160, 23, 0.35) 0%, rgba(212, 160, 23, 0.15) 100%);
-  border-left: 5px solid #d4a017;
+  background: linear-gradient(90deg, rgba(212, 160, 23, 0.38) 0%, rgba(212, 160, 23, 0.16) 100%);
+  border-left: 6px solid #d4a017;
   border-radius: 4px;
-  box-shadow: 0 0 30px rgba(212, 160, 23, 0.28);
+  box-shadow: 0 0 35px rgba(212, 160, 23, 0.35);
   z-index: 6;
   pointer-events: none;
   opacity: 0;
@@ -399,6 +397,144 @@ html, body {
 .portal-highlight-overlay.is-active {
   opacity: 1;
   transform: scaleX(1);
+}
+
+/* Card 8: Foto Editorial / Person Photo com Ken Burns */
+.bcard-person-photo {
+  width: 90vw;
+  max-width: 1480px;
+  height: calc(100vh - 85px);
+  min-height: 580px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  position: relative;
+  background: #020617;
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.45);
+}
+
+.person-photo-viewport {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.person-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  will-change: transform;
+}
+
+.person-photo-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.15) 0%,
+    transparent 45%,
+    rgba(15, 23, 42, 0.75) 80%,
+    rgba(10, 14, 26, 0.95) 100%
+  );
+  pointer-events: none;
+}
+
+.person-photo-badge {
+  position: absolute;
+  bottom: 36px;
+  left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+.person-photo-name {
+  font-family: var(--font-title);
+  font-size: 38px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.5px;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.7);
+}
+
+.person-photo-source {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Transições Broadcast (Wipe, Dissolve, Flash) */
+.broadcast-transition-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.transition-wipe-beam {
+  position: absolute;
+  top: -30%;
+  left: -50%;
+  width: 200%;
+  height: 160%;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(212, 160, 23, 0.25) 42%,
+    rgba(212, 160, 23, 0.9) 49%,
+    rgba(255, 245, 210, 1.0) 51%,
+    rgba(212, 160, 23, 0.9) 53%,
+    rgba(212, 160, 23, 0.25) 60%,
+    transparent 72%
+  );
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.transition-flash-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 240, 190, 0.85) 0%, rgba(14, 17, 24, 0.7) 100%);
+  opacity: 0;
+}
+
+.transition-brand-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 28px;
+  background: rgba(14, 17, 24, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 160, 23, 0.5);
+  border-radius: 40px;
+  box-shadow: 0 0 40px rgba(212, 160, 23, 0.35);
+}
+
+.transition-brand-badge .brand-crest {
+  font-size: 24px;
+}
+
+.transition-brand-badge .brand-name {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.transition-brand-badge .brand-name span {
+  color: #d4a017;
 }
 
 /* Vídeo do X em pé: caber inteiro. Horizontal continua cover (tela cheia). */
@@ -2512,9 +2648,11 @@ img[hidden],
 
     <!-- PORTAL DE NOTÍCIAS INTERNO -->
     <div class="portal-viewport">
-      <img id="pageShot" class="portal-page-shot" alt="" hidden>
-      <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
-      <div id="portalHighlightOverlay" class="portal-highlight-overlay" hidden></div>
+      <div id="portalScrollWrapper" class="portal-scroll-wrapper">
+        <img id="pageShot" class="portal-page-shot" alt="" hidden>
+        <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
+        <div id="portalHighlightOverlay" class="portal-highlight-overlay" hidden></div>
+      </div>
       <nav class="portal-navbar">
         <div class="portal-brand">
           <span class="portal-brand-badge">VDL</span>
@@ -2974,6 +3112,19 @@ img[hidden],
       </div>
     </div>
 
+    <!-- 8. FOTO EDITORIAL COM KEN BURNS (Personagem / Foto da Matéria) -->
+    <div id="personPhotoCard" class="vdl-bcard bcard-person-photo" style="display:none; visibility:hidden;">
+      <div class="person-photo-viewport">
+        <img id="personPhotoImg" class="person-photo-img" src="" alt="">
+        <div class="person-photo-gradient"></div>
+        <div class="person-photo-badge">
+          <div class="bcard-pill"><span class="bcard-dot"></span><span id="personPhotoTag">IMAGEM EDITORIAL</span></div>
+          <div class="person-photo-name" id="personPhotoName">Personagem em Foco</div>
+          <div class="person-photo-source" id="personPhotoSource">Arquivo / Imprensa Oficial</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- LOWER THIRD BROADCAST OFICIAL (REBAIXADO E ESPAÇADO) -->
@@ -3072,7 +3223,7 @@ const VDL_MOCKUP_ENGINE = {
   _hideAllCards() {
     const cardIds = [
       "quoteCard", "documentCard", "timelineCard", 
-      "dataChartCard", "comparisonCard", "recorteCard", "xCard"
+      "dataChartCard", "comparisonCard", "recorteCard", "xCard", "personPhotoCard"
     ];
     cardIds.forEach(id => {
       const el = document.getElementById(id);
@@ -3155,9 +3306,10 @@ const VDL_MOCKUP_ENGINE = {
    * Aplica variante visual ao frame de notícia (hero, zoom, scroll, highlight)
    * e executa micro-motion Broadcast contínuo (Ken Burns)
    */
-  _applyVisualVariant(variant) {
+  _applyVisualVariant(variant, visualPayload = {}) {
     const pageShot = document.getElementById("pageShot");
     const highlightOverlay = document.getElementById("portalHighlightOverlay");
+    const scrollWrapper = document.getElementById("portalScrollWrapper") || pageShot;
     if (!pageShot) return;
 
     const raw = (variant || "portal_clean").toLowerCase();
@@ -3172,9 +3324,39 @@ const VDL_MOCKUP_ENGINE = {
     );
     pageShot.classList.add(`variant-${cleanVar}`);
 
-    // Destaque tipo marca-texto editorial
+    // Destaque tipo marca-texto editorial dinâmico
     if (highlightOverlay) {
       if (cleanVar === "portal-highlight") {
+        const d = this.data || {};
+        const box = visualPayload.highlightBox || d.highlightBox || (d.visual_payload && d.visual_payload.highlightBox);
+        const containerWidth = scrollWrapper.offsetWidth || 1540;
+        const scale = containerWidth / (pageShot.naturalWidth || 1400.0);
+
+        if (box && box.found) {
+          const pad = 8;
+          const leftPx = Math.max(12, Math.round(box.x * scale) - pad);
+          const topPx = Math.max(0, Math.round(box.y * scale) - pad);
+          const widthPx = Math.min(containerWidth - leftPx - 16, Math.round(box.w * scale) + (pad * 2));
+          const heightPx = Math.max(36, Math.round(box.h * scale) + (pad * 2));
+
+          highlightOverlay.style.left = `${leftPx}px`;
+          highlightOverlay.style.top = `${topPx}px`;
+          highlightOverlay.style.width = `${widthPx}px`;
+          highlightOverlay.style.height = `${heightPx}px`;
+
+          // Se a coordenada Y estiver abaixo do topo visível, rola suavemente para centralizar
+          if (topPx > 360 && window.gsap) {
+            const targetY = -Math.max(0, topPx - 220);
+            gsap.to(scrollWrapper, { y: targetY, duration: 1.2, ease: "power2.out" });
+          }
+        } else {
+          // Fallback editorial calibrado na área do subtítulo
+          highlightOverlay.style.left = "8%";
+          highlightOverlay.style.top = "290px";
+          highlightOverlay.style.width = "82%";
+          highlightOverlay.style.height = "76px";
+        }
+
         highlightOverlay.hidden = false;
         requestAnimationFrame(() => {
           highlightOverlay.classList.add("is-active");
@@ -3189,39 +3371,56 @@ const VDL_MOCKUP_ENGINE = {
       }
     }
 
-    // Micro-motion broadcast: suave push-in / pan Ken Burns
-    // Elimina 100% o aspecto de tela estática congelada
+    // Micro-motion broadcast contínuo e rolagem real
     if (window.gsap && !this.isFreezeShot()) {
       if (this._pageShotTween) {
         this._pageShotTween.kill();
         this._pageShotTween = null;
       }
 
-      let startScale = 1.0;
-      let targetScale = 1.025;
-      let targetY = 0;
-
       if (cleanVar === "portal-zoom") {
-        startScale = 1.15;
-        targetScale = 1.185;
+        this._pageShotTween = gsap.fromTo(scrollWrapper,
+          { scale: 1.10, y: 0 },
+          {
+            scale: 1.14,
+            y: -10,
+            duration: 9.0,
+            ease: "sine.out"
+          }
+        );
       } else if (cleanVar === "portal-scroll") {
-        startScale = 1.05;
-        targetScale = 1.08;
-        targetY = -12;
-      } else if (cleanVar === "portal-highlight") {
-        startScale = 1.12;
-        targetScale = 1.145;
-      }
+        const viewportHeight = document.querySelector(".portal-viewport")?.offsetHeight || 923;
+        const imgHeight = scrollWrapper.offsetHeight || 1400;
+        const maxScroll = Math.max(0, imgHeight - viewportHeight);
+        const scrollDist = maxScroll > 60 ? Math.min(maxScroll, 480) : 220;
 
-      this._pageShotTween = gsap.fromTo(pageShot,
-        { scale: startScale, y: 0 },
-        {
-          scale: targetScale,
-          y: targetY,
-          duration: 9.0,
+        this._pageShotTween = gsap.fromTo(scrollWrapper,
+          { scale: 1.0, y: 0 },
+          {
+            scale: 1.015,
+            y: -scrollDist,
+            duration: 8.5,
+            ease: "power1.inOut"
+          }
+        );
+      } else if (cleanVar === "portal-highlight") {
+        this._pageShotTween = gsap.to(scrollWrapper, {
+          scale: 1.02,
+          duration: 7.0,
           ease: "sine.out"
-        }
-      );
+        });
+      } else {
+        // portal-clean / portal-hero
+        this._pageShotTween = gsap.fromTo(scrollWrapper,
+          { scale: 1.0, y: 0 },
+          {
+            scale: 1.025,
+            y: 0,
+            duration: 9.0,
+            ease: "sine.out"
+          }
+        );
+      }
     }
   },
 
@@ -4061,6 +4260,99 @@ const VDL_MOCKUP_ENGINE = {
     }
   },
 
+  transitionToPersonPhoto(payload = {}) {
+    this.currentMode = "person-photo";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const cardEl = document.getElementById("personPhotoCard");
+    const imgEl = document.getElementById("personPhotoImg");
+    const nameEl = document.getElementById("personPhotoName");
+    const sourceEl = document.getElementById("personPhotoSource");
+    const tagEl = document.getElementById("personPhotoTag");
+
+    if (!stageEl || !cardEl) return;
+    this._hideAllCards();
+
+    const photoUrl = payload.photo || payload.image || payload.pageImage || payload.editorial_image || (this.data && this.data.editorial_image) || "";
+    if (imgEl && photoUrl) {
+      imgEl.src = photoUrl;
+    }
+    if (nameEl) nameEl.textContent = payload.speaker || payload.name || payload.title || "Personagem da Notícia";
+    if (sourceEl) sourceEl.textContent = payload.veiculo || payload.credit || "Registro Fotográfico Oficial";
+    if (tagEl) tagEl.textContent = payload.tag || "IMAGEM EDITORIAL";
+
+    if (browserEl) {
+      browserEl.style.display = "none";
+      browserEl.style.visibility = "hidden";
+    }
+    stageEl.style.display = "flex";
+    stageEl.style.visibility = "visible";
+    cardEl.style.display = "block";
+    cardEl.style.visibility = "visible";
+
+    if (window.gsap && imgEl) {
+      if (this._personPhotoTween) this._personPhotoTween.kill();
+      gsap.set(cardEl, { opacity: 0, scale: 0.96 });
+      gsap.to(cardEl, { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" });
+
+      this._personPhotoTween = gsap.fromTo(imgEl,
+        { scale: 1.0, x: 0, y: 0 },
+        {
+          scale: 1.10,
+          x: -25,
+          y: -10,
+          duration: 10.0,
+          ease: "sine.out"
+        }
+      );
+    }
+  },
+
+  playTransition(variant = "wipe_gold") {
+    const layer = document.getElementById("broadcastTransition");
+    const beam = document.getElementById("transitionWipeBeam");
+    const flash = document.getElementById("transitionFlash");
+    const badge = document.getElementById("transitionBrand");
+    if (!layer || !window.gsap) return;
+
+    layer.hidden = false;
+    const cleanVar = (variant || "wipe_gold").toLowerCase().replace(/-/g, "_");
+
+    if (cleanVar === "flash_cut") {
+      gsap.fromTo(flash,
+        { opacity: 0 },
+        {
+          opacity: 0.9,
+          duration: 0.12,
+          yoyo: true,
+          repeat: 1,
+          ease: "power2.inOut",
+          onComplete: () => { layer.hidden = true; }
+        }
+      );
+    } else if (cleanVar === "dissolve_brand") {
+      const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
+      tl.fromTo(flash, { opacity: 0 }, { opacity: 0.75, duration: 0.25, ease: "power2.in" })
+        .fromTo(badge, { opacity: 0, scale: 0.75 }, { opacity: 1, scale: 1.0, duration: 0.3, ease: "back.out(1.4)" }, "-=0.15")
+        .to(badge, { opacity: 0, scale: 1.05, duration: 0.3, ease: "power2.in" }, "+=0.15")
+        .to(flash, { opacity: 0, duration: 0.35, ease: "power2.out" }, "-=0.25");
+    } else {
+      // wipe_gold (padrão)
+      const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
+      tl.fromTo(beam,
+        { x: "-100%", opacity: 1 },
+        { x: "100%", opacity: 1, duration: 0.75, ease: "power2.inOut" }
+      ).fromTo(badge,
+        { opacity: 0, scale: 0.8 },
+        { opacity: 1, scale: 1.0, duration: 0.25, ease: "back.out(1.5)" },
+        "-=0.55"
+      ).to(badge,
+        { opacity: 0, scale: 1.08, duration: 0.25, ease: "power2.in" },
+        "-=0.25"
+      );
+    }
+  },
+
   _isValePlaceholderUrl(u) {
     const s = String(u || "").toLowerCase();
     return !s || s.includes("news.mob.tec.br") || s.includes("valedaliberdade.com.br");
@@ -4100,14 +4392,14 @@ const VDL_MOCKUP_ENGINE = {
       }
     }
     if (pageShot) {
-      if (d.pageImage && (!pageVideo || !d.pageVideo)) {
-        const src = d.pageImage;
+      const src = d.shotLong || d.pageImage;
+      if (src && (!pageVideo || !d.pageVideo)) {
         const current = pageShot.getAttribute("src") || "";
         if (current !== src && !current.endsWith(src)) {
           pageShot.src = src;
         }
         pageShot.hidden = false;
-      } else if (!d.pageImage) {
+      } else if (!src) {
         pageShot.removeAttribute("src");
         pageShot.hidden = true;
       }
@@ -4149,10 +4441,14 @@ const VDL_MOCKUP_ENGINE = {
       this.transitionToRecorte(payload);
     } else if (kind === "x-post" || kind === "x" || kind === "tweet") {
       this.transitionToX(payload);
+    } else if (kind === "person-photo" || kind === "photo" || kind === "person_photo") {
+      this.transitionToPersonPhoto(payload);
+    } else if (kind === "transition") {
+      this.playTransition(newData.visual_variant || payload.visual_variant || "wipe_gold");
     } else if (kind === "source" || (!kind && this.currentMode !== "browser")) {
       this.transitionToBrowser(payload);
     } else if (this.currentMode === "browser") {
-      this._applyVisualVariant(newData.visual_variant || this.data.visual_variant);
+      this._applyVisualVariant(newData.visual_variant || this.data.visual_variant, payload);
     }
 
     // Portal / Notícia
@@ -4300,6 +4596,15 @@ if (document.readyState === "loading") {
   initVDL();
 }
 </script>
+  <!-- Camada de Transição Broadcast (Wipe Gold, Dissolve Brand, Flash Cut) -->
+  <div id="broadcastTransition" class="broadcast-transition-layer" hidden>
+    <div class="transition-wipe-beam" id="transitionWipeBeam"></div>
+    <div class="transition-flash-overlay" id="transitionFlash"></div>
+    <div class="transition-brand-badge" id="transitionBrand">
+      <span class="brand-crest">⚜️</span>
+      <span class="brand-name">VALE DA <span>LIBERDADE</span></span>
+    </div>
+  </div>
 
 </body>
 </html>
