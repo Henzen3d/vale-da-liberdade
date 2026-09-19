@@ -420,6 +420,43 @@ def extract_json(text: str) -> dict:
         return json.loads(cleaned)
 
 
+# C0/C1 no lugar de acento (Á/ó → U+0016): lower third some o glyph → FLVIO, vitria.
+# Não reverter por tabela: U+0016 colapsa várias letras. Recusar e regenerar.
+_CORRUPT_CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
+
+
+def find_corrupt_controls(obj, path: str = "$") -> list[str]:
+    """Caminhos JSON cujo texto tem controle C0/C1 (exceto \\t \\n \\r)."""
+    hits: list[str] = []
+    if isinstance(obj, str):
+        if _CORRUPT_CTRL_RE.search(obj):
+            hits.append(path)
+        return hits
+    if isinstance(obj, dict):
+        for key, val in obj.items():
+            hits.extend(find_corrupt_controls(val, f"{path}.{key}"))
+        return hits
+    if isinstance(obj, list):
+        for idx, val in enumerate(obj):
+            hits.extend(find_corrupt_controls(val, f"{path}[{idx}]"))
+    return hits
+
+
+def roteiro_has_corrupt_controls(obj) -> bool:
+    return bool(find_corrupt_controls(obj))
+
+
+def assert_clean_controls(obj, *, where: str = "roteiro") -> None:
+    hits = find_corrupt_controls(obj)
+    if not hits:
+        return
+    raise ValueError(
+        f"{where}: caracteres de controle no lugar de acentos "
+        f"(FLÁVIO vira FL\\x16VIO / vitória vira vit\\x16ria). "
+        f"Campos: {', '.join(hits[:8])}"
+    )
+
+
 # ── Prompt ───────────────────────────────────────────────────────────────────
 
 def build_prompt(raw: dict, config: dict, skill_text: str, sources_briefing: str = "") -> str:
@@ -657,6 +694,7 @@ def _trim_to_max(data: dict, words: int, target: int, max_words: int) -> tuple[d
     )
     try:
         trimmed = extract_json(_call_llm(trim_prompt))
+        assert_clean_controls(trimmed, where="corte")
         trimmed_words = count_words_in_roteiro(trimmed)
         print(f"  Após corte: {trimmed_words} palavras")
         # Só aceita se de fato encurtou sem cair abaixo do alvo.
@@ -674,26 +712,32 @@ def condense(video_id: str, force: bool = False) -> dict:
 
     if json_out.exists() and not force:
         data = json.loads(json_out.read_text(encoding="utf-8"))
-        words = count_words_in_roteiro(data)
-        print(f"ℹ️  Roteiro já existe ({words} palavras): {json_out}")
-        # Auto-cura: especiais antigos (sem fonte_referencias) ganham as
-        # referências sem precisar de --force.
-        if not data.get("fonte_referencias"):
-            try:
-                raw = load_raw(video_id)
-                if enrich_referencias(data, raw, video_id):
-                    json_out.write_text(
-                        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
-                    )
-                    md_out.write_text(render_roteiro_md(data, video_id), encoding="utf-8")
-                    write_referencias_index()
-                    print(
-                        f"   📎 Referências retroativas adicionadas "
-                        f"({len(data['fonte_referencias'])})"
-                    )
-            except Exception as exc:
-                print(f"   ⚠️  Não foi possível adicionar referências: {exc}")
-        return data
+        if roteiro_has_corrupt_controls(data):
+            print(
+                "⚠️  Roteiro existente com acentos corrompidos "
+                "(controle C0 no lugar de Á/ó). Regenerando."
+            )
+        else:
+            words = count_words_in_roteiro(data)
+            print(f"ℹ️  Roteiro já existe ({words} palavras): {json_out}")
+            # Auto-cura: especiais antigos (sem fonte_referencias) ganham as
+            # referências sem precisar de --force.
+            if not data.get("fonte_referencias"):
+                try:
+                    raw = load_raw(video_id)
+                    if enrich_referencias(data, raw, video_id):
+                        json_out.write_text(
+                            json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+                        )
+                        md_out.write_text(render_roteiro_md(data, video_id), encoding="utf-8")
+                        write_referencias_index()
+                        print(
+                            f"   📎 Referências retroativas adicionadas "
+                            f"({len(data['fonte_referencias'])})"
+                        )
+                except Exception as exc:
+                    print(f"   ⚠️  Não foi possível adicionar referências: {exc}")
+            return data
 
     config    = load_config()
     skill     = load_skill()
@@ -726,6 +770,7 @@ def condense(video_id: str, force: bool = False) -> dict:
 
             response_text = _call_llm(current_prompt)
             data = extract_json(response_text)
+            assert_clean_controls(data)
             words = count_words_in_roteiro(data)
             print(f"  Tentativa {attempt}: {words} palavras geradas")
 
@@ -756,6 +801,7 @@ def condense(video_id: str, force: bool = False) -> dict:
                 try:
                     response_text = _call_llm(expand_prompt)
                     expanded_data = extract_json(response_text)
+                    assert_clean_controls(expanded_data, where="expansão")
                     expanded_words = count_words_in_roteiro(expanded_data)
                     print(f"  Após expansão com transcrição: {expanded_words} palavras")
                     if expanded_words >= words:
@@ -776,6 +822,7 @@ def condense(video_id: str, force: bool = False) -> dict:
                     try:
                         response_text = _call_llm(rescue_prompt)
                         rescued_data = extract_json(response_text)
+                        assert_clean_controls(rescued_data, where="expansão 2")
                         rescued_words = count_words_in_roteiro(rescued_data)
                         print(f"  Após segunda rodada: {rescued_words} palavras")
                         if rescued_words >= words:
@@ -825,6 +872,8 @@ def condense(video_id: str, force: bool = False) -> dict:
 
     if data is None:
         raise RuntimeError("Condensador terminou sem roteiro (data=None)")
+
+    assert_clean_controls(data, where="roteiro final")
 
     from tts_preprocessor import scrub_turguniev_tree, scrub_ancapsu_tree
     data = scrub_ancapsu_tree(scrub_turguniev_tree(data))

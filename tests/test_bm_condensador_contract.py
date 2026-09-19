@@ -11,6 +11,9 @@ from bm_condensador import (
     build_prompt,
     count_words_in_roteiro,
     enforce_profanity_3min_rule,
+    extract_json,
+    assert_clean_controls,
+    roteiro_has_corrupt_controls,
 )
 
 
@@ -116,6 +119,43 @@ class TestBMCondensadorContract(unittest.TestCase):
 
         # No fechamento (> 3 minutos), 'merda' também deve ser mantida!
         self.assertIn("merda", sanitized["fechamento"][0]["texto"].lower())
+
+    def test_extract_json_keeps_portuguese_accents(self):
+        """Á/ó no JSON do LLM não podem virar controle C0 (incidente iqKNeHH9QB8)."""
+        raw = (
+            '{"titulo": "FLÁVIO pode GANHAR no PRIMEIRO TURNO", '
+            '"subtitulo": "risco de vitória antecipada", '
+            '"abertura": [], "desenvolvimento": [], "fechamento": []}'
+        )
+        data = extract_json(raw)
+        self.assertIn("Á", data["titulo"])
+        self.assertEqual(data["titulo"], "FLÁVIO pode GANHAR no PRIMEIRO TURNO")
+        self.assertIn("ó", data["subtitulo"])
+        self.assertFalse(roteiro_has_corrupt_controls(data))
+        assert_clean_controls(data)
+
+    def test_syn_control_instead_of_acute_is_corruption(self):
+        """U+0016 no lugar do acento = FLVIO/vitria no lower third (glyph C0 invisível)."""
+        poisoned = {
+            "titulo": "FL\x16VIO pode GANHAR no PRIMEIRO TURNO",
+            "subtitulo": "risco de vit\x16ria antecipada",
+            "tags": ["elei\x16\x15es"],
+            "abertura": [{"texto": "O establishment pol\x16tico est\x16 em p\x16nico."}],
+        }
+        self.assertTrue(roteiro_has_corrupt_controls(poisoned))
+        with self.assertRaises(ValueError) as ctx:
+            assert_clean_controls(poisoned)
+        msg = str(ctx.exception)
+        self.assertIn("controle", msg.lower())
+        # Não é perda ASCII (FLVIO): o código ainda está lá, só some na renderização.
+        self.assertIn("FL\x16VIO", poisoned["titulo"])
+        self.assertNotIn("FLÁVIO", poisoned["titulo"])
+        self.assertNotEqual(poisoned["titulo"].replace("\x16", ""), "FLÁVIO pode GANHAR no PRIMEIRO TURNO")
+
+    def test_ascii_ignore_is_the_visible_symptom_not_the_fix(self):
+        """encode(ascii, ignore) apaga Á e ó — exatamente o que o viewer vê. Não usar como sanitizer."""
+        self.assertEqual("FLÁVIO".encode("ascii", "ignore").decode(), "FLVIO")
+        self.assertEqual("vitória".encode("ascii", "ignore").decode(), "vitria")
 
 
 if __name__ == "__main__":

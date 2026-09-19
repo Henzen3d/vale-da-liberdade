@@ -144,8 +144,20 @@ def step_roteiro(video_id: str, force: bool = False) -> bool:
     """Fase 3: Condensar transcrição em roteiro."""
     json_path = EPS_DIR / f"especial-{video_id}.json"
     if json_path.exists() and not force:
-        print(f"  ℹ️  Roteiro já existe: {json_path.name}")
-        return True
+        try:
+            from bm_condensador import roteiro_has_corrupt_controls
+            existing = json.loads(json_path.read_text(encoding="utf-8"))
+            if not roteiro_has_corrupt_controls(existing):
+                print(f"  ℹ️  Roteiro já existe: {json_path.name}")
+                return True
+            print(
+                f"  ⚠️  {json_path.name} com acentos corrompidos "
+                "(C0 no lugar de Á/ó). Regenerando."
+            )
+            force = True
+        except Exception:
+            print(f"  ⚠️  {json_path.name} ilegível. Regenerando.")
+            force = True
     # Passar video_id como valor de variável de ambiente para evitar problemas
     # com IDs que começam com '-' (ex: -G7PwtSmQ7Q)
     env = os.environ.copy()

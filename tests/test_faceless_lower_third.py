@@ -53,3 +53,11 @@ def test_overlay_filter_uses_chromakey():
     assert "yuva444p" in f
     assert "tpad" not in f
     assert "overlay=0:0" in f
+
+
+def test_clip_payload_keeps_acute_accent_in_title():
+    """Lower third precisa de FLÁVIO, não FLVIO (C0 U+0016 é invisível na fonte)."""
+    p = clip_payload({}, episode_title="FLÁVIO pode GANHAR no PRIMEIRO TURNO", kind="bm")
+    assert "FLÁVIO" in p["title"]
+    assert "Á" in p["title"]
+    assert "\x16" not in p["title"]

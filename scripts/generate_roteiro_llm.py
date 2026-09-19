@@ -184,6 +184,8 @@ def _validate_roteiro(data: dict) -> RoteiroCompleto:
         total_words += len(txt.split())
     if total_words < 800:
         raise ValueError(f"roteiro muito curto no JSON ({total_words} palavras, mínimo 800)")
+    from bm_condensador import assert_clean_controls
+    assert_clean_controls(data, where="roteiro diário")
     return RoteiroCompleto(**data)
 
 
