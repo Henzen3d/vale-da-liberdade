@@ -663,7 +663,7 @@ def main() -> int:
     args = parse_args()
     humanizer = StudioHumanizer()
 
-    if args.profile:
+    if getattr(args, "profile", None):
         humanizer.profile = args.profile
 
     if args.command == "prepare":

@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "sample_rate": 44100,
+  "room_tones": [
+    {
+      "name": "escritorio_ac_leve",
+      "file": "audio\\ambience\\prepared\\room-tones\\escritorio_ac_leve.wav",
+      "duration_s": 60.0
+    },
+    {
+      "name": "estudio_podcast_01",
+      "file": "audio\\ambience\\prepared\\room-tones\\estudio_podcast_01.wav",
+      "duration_s": 60.0
+    },
+    {
+      "name": "estudio_podcast_02",
+      "file": "audio\\ambience\\prepared\\room-tones\\estudio_podcast_02.wav",
+      "duration_s": 60.0
+    }
+  ],
+  "foley": [
+    {
+      "name": "cadeira_range_01",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\cadeira_range_01.wav",
+      "duration_s": 0.75
+    },
+    {
+      "name": "caneta_mesa_01",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\caneta_mesa_01.wav",
+      "duration_s": 0.1
+    },
+    {
+      "name": "gole_agua_01",
+      "category": "pause_transition",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\gole_agua_01.wav",
+      "duration_s": 0.55
+    },
+    {
+      "name": "limpar_garganta_01",
+      "category": "pause_transition",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\limpar_garganta_01.wav",
+      "duration_s": 0.35
+    },
+    {
+      "name": "mouse_click_01",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\mouse_click_01.wav",
+      "duration_s": 0.1
+    },
+    {
+      "name": "mouse_click_02",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\mouse_click_02.wav",
+      "duration_s": 0.12
+    },
+    {
+      "name": "mouse_click_03",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\mouse_click_03.wav",
+      "duration_s": 0.14
+    },
+    {
+      "name": "papel_vira_01",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\papel_vira_01.wav",
+      "duration_s": 0.6
+    },
+    {
+      "name": "respiracao_sutil_01",
+      "category": "pause_transition",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\respiracao_sutil_01.wav",
+      "duration_s": 0.5
+    },
+    {
+      "name": "teclado_curto_01",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\teclado_curto_01.wav",
+      "duration_s": 0.15
+    },
+    {
+      "name": "teclado_curto_02",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\teclado_curto_02.wav",
+      "duration_s": 0.18
+    },
+    {
+      "name": "teclado_longo_01",
+      "category": "speech_concurrent",
+      "file": "audio\\ambience\\prepared\\foley\\escritorio\\teclado_longo_01.wav",
+      "duration_s": 0.54
+    }
+  ],
+  "impulse_responses": [
+    {
+      "name": "small_studio_01",
+      "file": "audio\\ambience\\prepared\\ir\\small_studio_01.wav",
+      "duration_s": 0.264
+    },
+    {
+      "name": "small_studio_02",
+      "file": "audio\\ambience\\prepared\\ir\\small_studio_02.wav",
+      "duration_s": 0.306
+    }
+  ]
+}
