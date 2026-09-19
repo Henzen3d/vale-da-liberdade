@@ -444,8 +444,8 @@ class StudioHumanizer:
         ir_file = ir_files[0]
         sr, ir_data = self.read_wav(ir_file, self.sample_rate)
 
-        # Pre-delay
-        pre_delay_ms = float(r_cfg.get("pre_delay_ms", 10.0))
+        # Pre-delay (15-20ms afasta o reverb para eliminar comb filtering / som de lata)
+        pre_delay_ms = float(r_cfg.get("pre_delay_ms", 18.0))
         pre_delay_samples = int(sr * (pre_delay_ms / 1000.0))
         if pre_delay_samples > 0:
             ir_data = np.pad(ir_data, (pre_delay_samples, 0), mode="constant")
@@ -455,9 +455,12 @@ class StudioHumanizer:
             np.float32
         )
 
-        wet_mix = float(r_cfg.get("wet_mix", 0.04))
-        # Mix dry + wet
-        return ((1.0 - wet_mix) * voice + wet_mix * wet_signal).astype(np.float32)
+        # High-pass a 350Hz no sinal de reverb: impede cancelamento de fase nos graves da voz
+        wet_signal = self.apply_filters(wet_signal, sr, hpf_hz=350.0, lpf_hz=3500.0)
+
+        wet_mix = float(r_cfg.get("wet_mix", 0.015))
+        # Preserva 100% da voz original (peso, corpo e graves intactos) + toque sutil de cola
+        return (voice + (wet_mix * wet_signal)).astype(np.float32)
 
     def _schedule_foley(
         self,

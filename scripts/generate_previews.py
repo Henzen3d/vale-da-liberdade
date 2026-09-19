@@ -85,8 +85,8 @@ def main() -> None:
     ])
     print(f"  -> {out_02.name} (45s)")
 
-    # 2. Gerar Prévia 3: Voz com Humanização Completa
-    print("\n[2/4] Aplicando Studio Humanizer na locucao...")
+    # 2. Gerar Prévia 3: Voz com Humanização Completa (Cola difusa anti-lata + graves preservados)
+    print("\n[2/5] Aplicando Studio Humanizer (reverb difuso + graves preservados)...")
     tmp_humanized_wav = PREVIEW_DIR / "temp_humanized_45s.wav"
     humanizer.humanize(input_wav=tmp_voice_wav, output_wav=tmp_humanized_wav)
 
@@ -99,6 +99,23 @@ def main() -> None:
         str(out_03),
     ])
     print(f"  -> {out_03.name} (45s)")
+
+    # 2b. Gerar Prévia 3b: Voz com Ambiência pura (ZERO Reverb, 100% graves originais de estúdio)
+    print("\n[3/5] Gerando versao 3b (apenas Room Tone + Foley, ZERO Reverb)...")
+    humanizer_no_reverb = StudioHumanizer()
+    humanizer_no_reverb.cfg["reverb"]["enabled"] = False
+    tmp_no_reverb_wav = PREVIEW_DIR / "temp_no_reverb_45s.wav"
+    humanizer_no_reverb.humanize(input_wav=tmp_voice_wav, output_wav=tmp_no_reverb_wav)
+
+    out_03b = PREVIEW_DIR / "03b-voz-sem-reverb-apenas-fundo.mp3"
+    run_ffmpeg([
+        "ffmpeg", "-y",
+        "-i", str(tmp_no_reverb_wav),
+        "-c:a", "libmp3lame",
+        "-b:a", "192k",
+        str(out_03b),
+    ])
+    print(f"  -> {out_03b.name} (45s)")
 
     # 3. Gerar Prévia 1: Apenas o Fundo do Estúdio Isolado (60s)
     print("\n[3/4] Gerando ambiencia isolada do estudio (60s)...")
@@ -179,7 +196,7 @@ def main() -> None:
     print(f"  -> {out_04.name} (~60s)")
 
     # Limpeza dos WAVs temporários
-    for tmp in [tmp_voice_wav, tmp_humanized_wav, tmp_ambience_wav, tmp_ab_wav]:
+    for tmp in [tmp_voice_wav, tmp_humanized_wav, tmp_no_reverb_wav, tmp_ambience_wav, tmp_ab_wav]:
         if tmp.exists():
             tmp.unlink()
 

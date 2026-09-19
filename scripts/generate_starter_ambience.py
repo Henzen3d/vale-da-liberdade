@@ -215,29 +215,36 @@ def generate_subtle_breath() -> np.ndarray:
     return (noise / peak * 0.4).astype(np.float32)
 
 
-def generate_studio_impulse_response(rt60: float = 0.09) -> np.ndarray:
-    """Gera Impulse Response ultra-seca de cabine vocal amortecida (sem eco perceptível)."""
-    duration_s = max(0.08, rt60 * 1.1)
+def generate_studio_impulse_response(rt60: float = 0.08) -> np.ndarray:
+    """Gera Impulse Response difusa e suave de estúdio acústico profissional.
+
+    Elimina completamente reflexões pontuais curtas (<10ms) que causavam o efeito
+    de 'som de lata' (comb filtering) e cancelamento de graves.
+    """
+    duration_s = max(0.06, rt60 * 1.1)
     n = int(SAMPLE_RATE * duration_s)
     t = np.arange(n) / SAMPLE_RATE
 
-    # 1. Reflexões iniciais muito breves e atenuadas de cabine acústica
-    early = np.zeros(n, dtype=np.float32)
-    delays_ms = [2.5, 4.8, 7.2, 10.5]
-    gains = [0.22, 0.14, 0.08, 0.04]
-    for d_ms, g in zip(delays_ms, gains):
-        idx = int(SAMPLE_RATE * (d_ms / 1000.0))
-        if idx < n:
-            early[idx] = g * (1 if np.random.rand() > 0.5 else -1)
-
-    # 2. Cauda difusa com decaimento ultrarrápido
+    # 1. Cauda difusa estocástica com decaimento exponencial rápido
     decay_rate = 6.91 / rt60
-    tail = np.random.randn(n).astype(np.float32) * np.exp(-decay_rate * t) * 0.08
+    tail = np.random.randn(n).astype(np.float32) * np.exp(-decay_rate * t)
 
-    ir = early + tail
-    # Filtro passa-baixa no IR para evitar brilho metálico
-    ir_peak = np.max(np.abs(ir)) + 1e-9
-    return (ir / ir_peak * 0.35).astype(np.float32)
+    # 2. Ataque suave (fade-in de 6ms para evitar transiente seco de comb filter)
+    attack_samples = int(SAMPLE_RATE * 0.006)
+    if attack_samples < n:
+        fade_in = np.sin(np.linspace(0, np.pi / 2, attack_samples)) ** 2
+        tail[:attack_samples] *= fade_in
+
+    # 3. Filtragem passa-baixa no IR para absorver agudos metálicos
+    fft = np.fft.rfft(tail)
+    freqs = np.fft.rfftfreq(n, 1.0 / SAMPLE_RATE)
+    # Corte a partir de 2500 Hz (painéis de absorção acústica de alta eficiência)
+    damping = 1.0 / (1.0 + (freqs / 2500.0) ** 2)
+    fft_damped = fft * damping
+    tail = np.fft.irfft(fft_damped, n=n)
+
+    peak = np.max(np.abs(tail)) + 1e-9
+    return (tail / peak * 0.25).astype(np.float32)
 
 
 def main() -> None:
