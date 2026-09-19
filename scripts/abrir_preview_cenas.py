@@ -356,11 +356,17 @@ def main():
 
     webbrowser.open(url)
 
+    httpd.daemon_threads = True
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\n🛑 Preview encerrado.")
-        httpd.server_close()
+    finally:
+        try:
+            httpd.shutdown()
+            httpd.server_close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
