@@ -179,6 +179,11 @@ def _build_preview_data(video_id: str) -> dict:
     # Build timeline
     broll_index = BROLL_DIR / "_index.json"
     timeline_beats = build_scene_timeline(episode, dur, scenes, broll_index)
+    try:
+        from bm_video.capture import stage_person_photo_assets
+        stage_person_photo_assets(timeline_beats, work)
+    except Exception:
+        pass
 
     subhead = one_line_subhead(episode)
     ticker_items = ticker_headlines(episode, video_id)

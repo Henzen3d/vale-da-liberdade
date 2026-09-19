@@ -135,6 +135,34 @@ def stitch_screenshots(top_path: Path, bottom_path: Path, out_path: Path, crop_s
         return None
 
 
+def stage_person_photo_assets(beats: list, work: Path) -> None:
+    """Copia foto editorial para work/shots para o HTTP do mockup servir /shots/."""
+    shot_dir = work / "shots"
+    shot_dir.mkdir(parents=True, exist_ok=True)
+    for beat in beats or []:
+        payload = None
+        if isinstance(beat, dict):
+            kind = beat.get("visual_component") or beat.get("kind")
+            payload = beat.get("visual_payload")
+        else:
+            kind = getattr(beat, "visual_component", None) or getattr(beat, "kind", None)
+            payload = getattr(beat, "visual_payload", None)
+        if kind != "person-photo" or not isinstance(payload, dict):
+            continue
+        src = Path(str(payload.get("photo_src") or ""))
+        if not src.is_file():
+            payload["photo"] = ""
+            continue
+        dest = shot_dir / f"editorial-{src.name}"
+        try:
+            if not dest.exists() or dest.stat().st_size != src.stat().st_size:
+                shutil.copy2(src, dest)
+            payload["photo"] = f"/shots/{dest.name}"
+        except Exception as exc:
+            print(f"  ⚠️  Falha ao copiar foto editorial: {exc}")
+            payload["photo"] = ""
+
+
 def is_uol_flash_url(url: str | None) -> bool:
     """UOL Flash (feed de clipes). Matéria uol.com.br/noticias NÃO entra."""
     if not url:
@@ -976,6 +1004,7 @@ def record_mockup(
 
         if not timeline_beats:
             timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
+        stage_person_photo_assets(timeline_beats, work)
 
         url = f"http://127.0.0.1:{port}/{MOCKUP_HTML}"
         raw_webm: Path | None = None

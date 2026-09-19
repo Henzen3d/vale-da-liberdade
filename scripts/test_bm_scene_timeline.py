@@ -375,6 +375,73 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertTrue(len(trans_beats) >= 1, "Deveria ter inserido pelo menos 1 transição broadcast")
         self.assertIn(trans_beats[0].visual_variant, {"wipe_gold", "dissolve_brand", "flash_cut"})
 
+    def test_person_photo_skips_missing_and_placeholder(self):
+        """Foto editorial só entra com arquivo real; placeholder não é pedido."""
+        from unittest.mock import patch
+
+        episode = {
+            "id": "vidPH",
+            "titulo": "Sem foto real",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura com gancho inicial relevante. " * 15}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": f"Parágrafo {i} com detalhes do caso factual para preencher o tempo. " * 10}
+                for i in range(1, 8)
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fechamento provocador e sintético. " * 10}],
+        }
+        scenes = [
+            {"veiculo": "VEJA", "url": "https://veja.abril.com.br/1", "shot": "src-00.png"},
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/2", "shot": "src-01.png"},
+            {"veiculo": "G1", "url": "https://g1.globo.com/3", "shot": "src-02.png"},
+        ]
+        seen = {}
+
+        def fake_resolve(video_id, allow_placeholder=False):
+            seen["allow_placeholder"] = allow_placeholder
+            raise FileNotFoundError("placeholder recusado")
+
+        with patch("episode_image_manifest.resolve_editorial_image", side_effect=fake_resolve):
+            beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        self.assertEqual(seen.get("allow_placeholder"), False)
+        self.assertFalse(any(b.visual_component == "person-photo" or b.kind == "person-photo" for b in beats))
+
+        episode["editorial_image"] = "/tmp/nao-existe-editorial-vale.jpg"
+        beats_missing = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        self.assertFalse(
+            any(b.visual_component == "person-photo" or b.kind == "person-photo" for b in beats_missing)
+        )
+
+    def test_person_photo_keeps_local_source_path(self):
+        """Beat person-photo aponta para arquivo existente via photo_src, não /thumbnails/ solto."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as fh:
+            fh.write(b"\xff\xd8\xff\xd9")
+            src = Path(fh.name)
+        self.addCleanup(src.unlink, missing_ok=True)
+        episode = {
+            "titulo": "Com foto editorial",
+            "editorial_image": str(src),
+            "abertura": [{"speaker": "Peter", "texto": "Abertura com gancho inicial relevante. " * 15}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": f"Parágrafo {i} com detalhes do caso factual para preencher o tempo. " * 10}
+                for i in range(1, 8)
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fechamento provocador e sintético. " * 10}],
+        }
+        scenes = [
+            {"veiculo": "VEJA", "url": "https://veja.abril.com.br/1", "shot": "src-00.png"},
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/2", "shot": "src-01.png"},
+            {"veiculo": "G1", "url": "https://g1.globo.com/3", "shot": "src-02.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        photos = [b for b in beats if b.visual_component == "person-photo" or b.kind == "person-photo"]
+        self.assertTrue(len(photos) >= 1, "Deveria inserir person-photo quando o arquivo existe")
+        payload = photos[0].visual_payload or {}
+        self.assertEqual(payload.get("photo_src"), str(src.resolve()))
+        self.assertTrue(str(payload.get("photo") or "").startswith("/shots/"))
+        self.assertNotIn("/thumbnails/", str(payload.get("photo") or ""))
+
 
 if __name__ == "__main__":
     unittest.main()

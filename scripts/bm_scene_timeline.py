@@ -1053,13 +1053,18 @@ def build_scene_timeline(
     if not editorial_photo and vid_cand:
         try:
             from episode_image_manifest import resolve_editorial_image
-            ep_img = resolve_editorial_image(vid_cand, allow_placeholder=True)
+            ep_img = resolve_editorial_image(vid_cand, allow_placeholder=False)
             if ep_img and ep_img.exists():
                 editorial_photo = str(ep_img)
         except Exception:
             pass
 
-    if editorial_photo and len(final_beats) > 4:
+    src_path = Path(str(editorial_photo)) if editorial_photo else None
+    if src_path is not None and not src_path.is_file():
+        editorial_photo = None
+        src_path = None
+
+    if editorial_photo and src_path is not None and len(final_beats) > 4:
         # Encontra o beat mais longo do terço médio do vídeo para exibir a foto
         mid_start = max(1, len(final_beats) // 4)
         mid_end = min(len(final_beats) - 1, (len(final_beats) * 3) // 4)
@@ -1077,8 +1082,7 @@ def build_scene_timeline(
             photo_dur = min(6.5, best_cand_dur * 0.5)
             photo_t0 = round(target.t1 - photo_dur, 2)
             target.t1 = photo_t0
-            p_name = Path(editorial_photo).name
-            photo_url = f"/thumbnails/{p_name}" if "thumbnails" in editorial_photo else f"/shots/{p_name}"
+            photo_name = f"editorial-{src_path.name}"
             photo_beat = SceneBeat(
                 t0=photo_t0,
                 t1=round(photo_t0 + photo_dur, 2),
@@ -1093,7 +1097,8 @@ def build_scene_timeline(
                 visual_component="person-photo",
                 visual_variant="ken_burns",
                 visual_payload={
-                    "photo": photo_url,
+                    "photo": f"/shots/{photo_name}",
+                    "photo_src": str(src_path.resolve()),
                     "name": episode.get("speaker_name") or episode.get("titulo", "")[:45],
                     "veiculo": target.veiculo or "Registro Editorial Oficial",
                     "tag": "PERSONAGEM EM FOCO",
