@@ -127,16 +127,31 @@ Fontes:
 
 ## 7. Checklist Rápido Pré-Publicação (Mental Sanity Check)
 
-Antes de entregar a descrição ou gravá-la em disco, execute esta verificação mental rápida de 10 segundos:
+Antes de entregar a descrição ou gravá-la em disco, execute esta verificação mental rápida:
 
-- [ ] **Gancho funciona sozinho?** O espectador entende o tema nos primeiros 2 segundos antes de clicar em "mostrar mais"?
-- [ ] **Sem clichês de abertura?** A descrição começa direto no fato sem "Olá pessoal", "Fala galera" ou saudações temporais?
-- [ ] **Zero URLs do ANCAPSU?** Não há nenhuma menção a `@ancap_su`, `ancap.su` ou links do canal?
-- [ ] **Link do App presente?** `https://news.mob.tec.br` está no corpo?
-- [ ] **Hashtags adequadas?** Máximo de 3 hashtags sem espaços internos (`#BrasilEMundo`) e sem poluição visual?
-- [ ] **Capítulos narrativos sem loop?** Títulos curtos e temáticos (3–6 palavras), sem nomes de veículos de imprensa (`G1`, `Folha`, etc.) e com intervalo mínimo de 25s?
-- [ ] **Títulos com impacto em CAIXA ALTA?** As opções usam CAIXA ALTA em 1–3 palavras de choque/impacto (nomes, verbos fortes), mantendo conectivos em minúsculas e teto de 70 caracteres?
-- [ ] **Extensão controlada?** A descrição está na faixa de 350 a 800 caracteres totais?
+- [ ] **Qualidade dos dados de entrada verificada?**
+  - Entidades HTML sanitizadas (`&quot;`, `&ccedil;`, `&#039;`, `&atilde;`, `&amp;`)?
+  - Lixo de scraping e erros HTTP ("403 Forbidden", "Ft", cortes com "… / X") substituídos por rótulos descritivos limpos?
+  - Toda fonte referenciada em capítulo tem link correspondente na lista — ou foi sinalizada em nota?
+  - Nomes divergentes alinhados com a fonte verificável e alertados ao usuário?
+  - Alegações graves contra pessoas nomeadas (crimes, propina, valores) sem fonte documental foram removidas da descrição final e sinalizadas para checagem?
+- [ ] **Keyword stuffing eliminado?** Bloco fixo de palavras soltas empilhadas (`ValedaLiberdade notícias comentário política...`) foi 100% expurgado?
+- [ ] **Estrutura de 4 parágrafos respeitada?**
+  - Parágrafo 1: Manchete direta afirmando o fato central + gancho de curiosidade (citando 1–2 termos-chave do título)?
+  - Parágrafo 2: Contexto dos fatos + leitura de incentivos, poder e liberdade?
+  - Parágrafo 3: Inicia com *"Neste vídeo, analisamos..."* na primeira pessoa do plural (`analisamos`, `mostramos`)? Apresentador só foi nomeado se veio explicitamente indicado no material original?
+  - Parágrafo 4: Pergunta de fechamento preservando as expressões e linguagem forte do material original + CTA específico conectado ao conteúdo do canal?
+- [ ] **Gancho funciona sozinho?** O espectador entende o fato central nas primeiras 1–2 frases antes de clicar em "mostrar mais"?
+- [ ] **Sem clichês de abertura?** Começa direto no fato, sem "Olá pessoal", "Fala galera", "Sejam bem-vindos" ou saudações temporais?
+- [ ] **Zero URLs do ANCAPSU?** Nenhuma menção a `@ancap_su`, `ancap.su` ou links para os canais do YouTube do ANCAPSU?
+- [ ] **Links preservados sem inventar URLs?** Fontes, links e redes fornecidos no material original foram preservados? Nenhuma URL foi inventada? (Se o link do app veio no material original, ele foi preservado? Nunca invente links de app se não vierem no material).
+- [ ] **Hashtags adequadas?** No máximo 3 hashtags válidas, sem espaços internos (`#BrasilEMundo`) e sem poluição visual?
+- [ ] **Capítulos narrativos sem loop?**
+  - O bloco inicial de tópicos únicos foi mantido intacto com o seu timing original?
+  - Apenas a partir do início do loop de imagens a frequência foi reduzida para 25–40s por marcação?
+  - Os títulos de cada capítulo são narrativos e temáticos (3–6 palavras), na voz do canal — nunca nomes de veículos de imprensa (`G1`, `Folha`, etc.) nem trechos cortados de frases?
+- [ ] **Títulos com impacto em CAIXA ALTA?** As 3 sugestões de título usam CAIXA ALTA em 1–3 palavras-chave de choque/impacto (nomes de envolvidos, verbos de choque, órgãos), mantendo conectivos em minúsculas e teto de ~70 caracteres?
+- [ ] **Tom natural?** A descrição soa escrita para humanos e com a leitura libertária autêntica do canal, sem parecer SEO artificial empilhado?
 
 ---
 
