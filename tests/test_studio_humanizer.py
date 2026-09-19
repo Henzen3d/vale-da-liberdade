@@ -73,8 +73,31 @@ def test_failsafe_on_missing_ambience(tmp_path):
     assert result.exists()
 
 
+def test_voice_warmth_peaking_eq():
+    """Testa se o peaking EQ e voice warmth aplicam ganho/corte estáveis."""
+    sr = 44100
+    t = np.linspace(0, 1.0, sr, endpoint=False)
+    sig_220 = (0.5 * np.sin(2 * np.pi * 220.0 * t)).astype(np.float32)
+    sig_6000 = (0.5 * np.sin(2 * np.pi * 6000.0 * t)).astype(np.float32)
+
+    # Boost de +3dB em 220Hz deve aumentar a energia do tom 220Hz
+    boosted = StudioHumanizer.apply_peaking_eq(sig_220, sr, freq_hz=220.0, gain_db=3.0, q=1.2)
+    assert np.var(boosted) > np.var(sig_220)
+
+    # Corte de -3dB em 6000Hz deve diminuir a energia do tom 6000Hz
+    cut = StudioHumanizer.apply_peaking_eq(sig_6000, sr, freq_hz=6000.0, gain_db=-3.0, q=1.5)
+    assert np.var(cut) < np.var(sig_6000)
+
+    # Testar apply_voice_warmth
+    h = StudioHumanizer()
+    composite = sig_220 + sig_6000
+    warmed = h.apply_voice_warmth(composite, sr)
+    assert len(warmed) == len(composite)
+    assert not np.isnan(warmed).any()
+
+
 def test_full_pipeline_with_mock_ambience(tmp_path):
-    """Testa fluxo completo: prepare -> humanize com biblioteca sintética."""
+    """Testa fluxo completo: prepare -> humanize com biblioteca sintética (room, outdoor, foley, IR)."""
     raw_dir = tmp_path / "audio" / "ambience" / "raw"
     prep_dir = tmp_path / "audio" / "ambience" / "prepared"
 
@@ -82,6 +105,11 @@ def test_full_pipeline_with_mock_ambience(tmp_path):
     rt_dir = raw_dir / "room-tones"
     rt_dir.mkdir(parents=True, exist_ok=True)
     _create_sine_wav(rt_dir / "estudio_01.wav", freq=60.0, duration_s=5.0)
+
+    # Criar outdoor cru
+    out_dir = raw_dir / "outdoor"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    _create_sine_wav(out_dir / "transito_01.wav", freq=120.0, duration_s=5.0)
 
     # Criar foley cru (speech e pause)
     fol_dir = raw_dir / "foley"
@@ -100,6 +128,7 @@ def test_full_pipeline_with_mock_ambience(tmp_path):
 
     manifest = h.prepare()
     assert len(manifest["room_tones"]) == 1
+    assert len(manifest["outdoor"]) == 1
     assert len(manifest["foley"]) == 2
     assert len(manifest["impulse_responses"]) == 1
 
@@ -118,3 +147,37 @@ def test_full_pipeline_with_mock_ambience(tmp_path):
     assert sr == 44100
     assert len(mixed) == 44100 * 10
     assert np.max(np.abs(mixed)) <= 1.0
+
+
+def test_foley_ducking_and_breathing(tmp_path):
+    """Testa se o agendamento de foley produz envelope de ducking e injeta respiração."""
+    raw_dir = tmp_path / "audio" / "ambience" / "raw"
+    prep_dir = tmp_path / "audio" / "ambience" / "prepared"
+    fol_dir = raw_dir / "foley"
+    fol_dir.mkdir(parents=True, exist_ok=True)
+
+    _create_sine_wav(fol_dir / "mouse_click_01.wav", freq=2000.0, duration_s=0.1)
+    _create_sine_wav(fol_dir / "respiracao_sutil_01.wav", freq=400.0, duration_s=0.4)
+
+    h = StudioHumanizer(project_root=tmp_path)
+    h.raw_dir = raw_dir
+    h.prepared_dir = prep_dir
+    h.prepare()
+
+    sr = 44100
+    target_samples = sr * 10
+    # Envelope com pausa nos primeiros 2s, depois fala por 5s, depois pausa
+    envelope = np.full(int(target_samples / (sr * 0.15)), -60.0, dtype=np.float32)
+    # Bloco de fala do segundo 2 ao 8
+    start_block = int(2.0 / 0.15)
+    end_block = int(8.0 / 0.15)
+    envelope[start_block:end_block] = -15.0
+
+    foley, ducking = h._schedule_foley(target_samples, -20.0, envelope)
+    assert len(foley) == target_samples
+    assert len(ducking) == target_samples
+    # Ducking deve ter valores <= 1.0
+    assert np.min(ducking) <= 1.0
+    assert np.max(ducking) <= 1.0
+    assert not np.isnan(foley).any()
+    assert not np.isnan(ducking).any()

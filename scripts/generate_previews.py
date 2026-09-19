@@ -100,24 +100,25 @@ def main() -> None:
     ])
     print(f"  -> {out_03.name} (45s)")
 
-    # 2b. Gerar Prévia 3b: Voz com Ambiência pura (ZERO Reverb, 100% graves originais de estúdio)
-    print("\n[3/5] Gerando versao 3b (apenas Room Tone + Foley, ZERO Reverb)...")
-    humanizer_no_reverb = StudioHumanizer()
-    humanizer_no_reverb.cfg["reverb"]["enabled"] = False
-    tmp_no_reverb_wav = PREVIEW_DIR / "temp_no_reverb_45s.wav"
-    humanizer_no_reverb.humanize(input_wav=tmp_voice_wav, output_wav=tmp_no_reverb_wav)
+    # 2b. Gerar Prévia 3b: Versão com Reverb ligado (para comparação opcional)
+    print("\n[3/5] Gerando versao 3b (com Reverb ligado a 1.5% para comparacao)...")
+    humanizer_with_reverb = StudioHumanizer()
+    humanizer_with_reverb.cfg["reverb"]["enabled"] = True
+    humanizer_with_reverb.cfg["reverb"]["wet_mix"] = 0.015
+    tmp_reverb_wav = PREVIEW_DIR / "temp_reverb_45s.wav"
+    humanizer_with_reverb.humanize(input_wav=tmp_voice_wav, output_wav=tmp_reverb_wav)
 
-    out_03b = PREVIEW_DIR / "03b-voz-sem-reverb-apenas-fundo.mp3"
+    out_03b = PREVIEW_DIR / "03b-voz-com-reverb-opcional.mp3"
     run_ffmpeg([
         "ffmpeg", "-y",
-        "-i", str(tmp_no_reverb_wav),
+        "-i", str(tmp_reverb_wav),
         "-c:a", "libmp3lame",
         "-b:a", "192k",
         str(out_03b),
     ])
     print(f"  -> {out_03b.name} (45s)")
 
-    # 3. Gerar Prévia 1: Apenas o Fundo do Estúdio Isolado (60s)
+    # 3. Gerar Prévia 1: Apenas o Fundo do Estúdio Isolado (Room Tone + Outdoor + Foley) (60s)
     print("\n[3/4] Gerando ambiencia isolada do estudio (60s)...")
     # Geramos uma linha de silêncio de 60s simulando fala esparsa para acionar room tone e foleys
     duration_s = 60.0
@@ -125,20 +126,21 @@ def main() -> None:
     # Simular nível de voz médio de -20 dBFS para calibrar o volume relativo do room tone
     ref_voice_rms_db = -20.0
 
-    # Montar room tone
+    # Montar room tone e outdoor
     room = humanizer._assemble_room_tone(n_samples, ref_voice_rms_db)
+    outdoor = humanizer._assemble_outdoor(n_samples, ref_voice_rms_db)
+
     # Gerar envelope simulado com trechos de fala e pausas
     t = np.arange(n_samples) / SAMPLE_RATE
-    # Blocos de fala de 4s a cada 6s
     speech_mask = (t % 8.0) < 5.0
     sim_env = np.where(speech_mask, -18.0, -55.0).astype(np.float32)
     # Aumentar ligeiramente a densidade e ganho do foley para a prévia isolada ser bem audível
     humanizer.cfg["foley"]["events_per_minute_min"] = 4
     humanizer.cfg["foley"]["events_per_minute_max"] = 7
     humanizer.cfg["foley"]["volume_db"] = -26.0  # +9dB para demonstração isolada
-    foley = humanizer._schedule_foley(n_samples, ref_voice_rms_db, sim_env)
+    foley, _ = humanizer._schedule_foley(n_samples, ref_voice_rms_db, sim_env)
 
-    ambience_only = room + foley
+    ambience_only = room + outdoor + foley
     # Normalizar para não clipar
     a_peak = np.max(np.abs(ambience_only)) + 1e-9
     ambience_only = (ambience_only / a_peak) * 0.7
@@ -196,7 +198,7 @@ def main() -> None:
     print(f"  -> {out_04.name} (~60s)")
 
     # Limpeza dos WAVs temporários
-    for tmp in [tmp_voice_wav, tmp_humanized_wav, tmp_no_reverb_wav, tmp_ambience_wav, tmp_ab_wav]:
+    for tmp in [tmp_voice_wav, tmp_humanized_wav, tmp_reverb_wav, tmp_ambience_wav, tmp_ab_wav]:
         if tmp.exists():
             tmp.unlink()
 

@@ -707,7 +707,13 @@ def generate_with_retry(client, prompt, speaker_voice_configs, model: str | None
     return data
 
 
-def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str | None = None) -> bytes:
+def generate_single_speaker_pcm(
+    client,
+    text: str,
+    voice_name: str,
+    model: str | None = None,
+    cadence_hint: str | None = None,
+) -> bytes:
     """TTS de uma fala com UMA voz pré-definida (Charon/Kore).
 
     Mais confiável que multi-speaker: o Gemini multi frequentemente colapsa
@@ -718,10 +724,12 @@ def generate_single_speaker_pcm(client, text: str, voice_name: str, model: str |
         return b""
     model = model or TTS_MODEL
     # Instrução mínima de idioma + sotaque; o voice_name carrega o timbre.
+    cadence_part = f"\nDiretriz de cadência: {cadence_hint} " if cadence_hint else ""
     base_prompt = (
         "Leia em português do Brasil, de forma natural, apenas o texto a seguir, "
         "sem adicionar palavras. "
         f"{ACCENT_GUIDANCE} "
+        f"{cadence_part}"
         "Texto:\n\n" + text
     )
     sys_instruction = build_system_instruction([_speaker_for_voice(voice_name)])
@@ -962,6 +970,8 @@ def generate_halves_pcm(
 
     all_pcm = b""
     missing_halves: list[int] = []
+    total_blocks = max(1, len(work))
+
     for i, (half, pause_s) in enumerate(work, start=1):
         if len(half.split()) < MIN_CHUNK_WORDS:
             continue
@@ -972,16 +982,32 @@ def generate_halves_pcm(
             "rate": "+0%",
             "pitch": "+0Hz",
         }
+
+        # Curva dinâmica de cadência humana ao longo do episódio (simula fôlego/leve cansaço natural)
+        prog = (i - 1) / max(1, total_blocks - 1)
+        # Início (+2% vivo) -> Meio (+0% equilibrado) -> Fim (-2% mais pausado/reflexivo)
+        rate_dynamic_int = int(round(2.0 - 4.0 * prog))
+        pitch_dynamic_int = int(round(-1.0 * prog))
+        dyn_rate = f"{rate_dynamic_int:+d}%"
+        dyn_pitch = f"{pitch_dynamic_int:+d}Hz"
+        dyn_pause_s = pause_s + (0.10 * prog if pause_s > 0.05 else 0.0)
+
+        # Diretriz contextual para Gemini
+        if prog < 0.33:
+            cadence_hint = "Entregue a leitura com ritmo vivo, firme e enérgico de abertura de notícias."
+        elif prog < 0.70:
+            cadence_hint = "Mantenha o ritmo equilibrado, analítico e seguro."
+        else:
+            cadence_hint = "Adote uma cadência ligeiramente mais pausada, natural e reflexiva de fechamento."
+
         if prefer_edge:
-            # BM 2026-09-09: Edge é o principal (cadência). Rate +0% aqui —
-            # o 1.15× vem só do atempo no pós, senão empilha com +12%.
-            log.info(f"  Metade {i}: Edge TTS principal (pt-BR-AntonioNeural)")
+            log.info(f"  Metade {i}: Edge TTS principal (pt-BR-AntonioNeural, rate={dyn_rate}, pitch={dyn_pitch})")
             try:
                 pcm = _edge_tts_generate_audio(
                     half,
                     voice=style["voice"],
-                    rate="+0%",
-                    pitch=style["pitch"],
+                    rate=dyn_rate,
+                    pitch=dyn_pitch,
                 )
             except Exception as exc:
                 log.warning(f"  Edge halves {i} falhou: {exc}")
@@ -990,7 +1016,7 @@ def generate_halves_pcm(
                 log.warning(f"  halves {i}: Edge falhou — fallback Gemini")
                 for attempt in (1, 2):
                     try:
-                        pcm = generate_single_speaker_pcm(client, half, voice_name, model)
+                        pcm = generate_single_speaker_pcm(client, half, voice_name, model, cadence_hint=cadence_hint)
                     except Exception as exc:
                         log.warning(f"  Gemini halves {i} tentativa {attempt} falhou: {exc}")
                         pcm = b""
@@ -999,11 +1025,9 @@ def generate_halves_pcm(
                     log.warning(f"  halves {i} Gemini tentativa {attempt}: vazio/ruído — regerando")
                     pcm = b""
         else:
-            # 2026-08-10: retry 1x antes do fallback edge — metade com ruído/silêncio
-            # (RMS baixo) não passa mais no _pcm_is_usable e precisa ser regerada.
             for attempt in (1, 2):
                 try:
-                    pcm = generate_single_speaker_pcm(client, half, voice_name, model)
+                    pcm = generate_single_speaker_pcm(client, half, voice_name, model, cadence_hint=cadence_hint)
                 except Exception as exc:
                     log.warning(f"  Gemini halves {i} tentativa {attempt} falhou: {exc}")
                     pcm = b""
@@ -1017,8 +1041,8 @@ def generate_halves_pcm(
                     pcm = _edge_tts_generate_audio(
                         half,
                         voice=style["voice"],
-                        rate=style["rate"],
-                        pitch=style["pitch"],
+                        rate=dyn_rate,
+                        pitch=dyn_pitch,
                     )
                 except Exception as fb:
                     log.error(f"  halves {i} falhou de vez: {fb}")
@@ -1027,7 +1051,7 @@ def generate_halves_pcm(
             log.error(f"  halves {i}: NENHUM áudio utilizável — metade faltando no episódio")
             missing_halves.append(i)
             continue
-        gap = silence_24k(pause_s) if pause_s > 0.02 else b""
+        gap = silence_24k(dyn_pause_s) if dyn_pause_s > 0.02 else b""
         all_pcm += pcm + gap
 
     # 2026-08-10: episódio incompleto NÃO vai ao ar (era o caso do LULINHA 13:07

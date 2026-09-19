@@ -247,6 +247,70 @@ def generate_studio_impulse_response(rt60: float = 0.08) -> np.ndarray:
     return (tail / peak * 0.25).astype(np.float32)
 
 
+def generate_muffled_traffic(duration_s: float = 60.0) -> np.ndarray:
+    """Gera som de trânsito urbano distante abafado através de paredes/janela dupla.
+
+    Todo o conteúdo de frequência acima de 1200 Hz é cortado abruptamente,
+    criando apenas um leito aveludado de rolamento de pneus e motores suaves.
+    """
+    n = int(SAMPLE_RATE * duration_s)
+    t = np.arange(n) / SAMPLE_RATE
+
+    # 1. Base rosa e marrom filtrada
+    pink = generate_pink_noise(n)
+    fft = np.fft.rfft(pink)
+    freqs = np.fft.rfftfreq(n, 1.0 / SAMPLE_RATE)
+    # Corte passa-baixa estrito em 900 Hz com passa-altas suave em 40 Hz
+    lp = 1.0 / (1.0 + (freqs / 900.0) ** 4)
+    hp = 1.0 - (1.0 / (1.0 + (freqs / 40.0) ** 2))
+    fft_filtered = fft * lp * hp
+    traffic = np.fft.irfft(fft_filtered, n=n)
+
+    # 2. Modulação lenta de passagem de veículos ocasionais (períodos de 9s e 17s)
+    car_pass1 = 0.5 + 0.5 * np.sin(2 * np.pi * 0.08 * t + 0.5) ** 4
+    car_pass2 = 0.4 + 0.6 * np.sin(2 * np.pi * 0.045 * t + 2.0) ** 6
+    traffic = traffic * (0.4 + 0.6 * (car_pass1 + car_pass2) / 2.0)
+
+    peak = np.max(np.abs(traffic)) + 1e-9
+    return (traffic / peak * 0.35).astype(np.float32)
+
+
+def generate_distant_birds(duration_s: float = 60.0) -> np.ndarray:
+    """Gera ambiente sutil de pássaros distantes com corte passa-baixa a 1800 Hz.
+
+    Simula uma janela fechada pela manhã em área residencial arborizada.
+    """
+    n = int(SAMPLE_RATE * duration_s)
+    out = np.zeros(n, dtype=np.float32)
+
+    # Adicionar leito ultra-suave de ar externo
+    out += generate_pink_noise(n) * 0.05
+
+    # 3 a 4 gorjeios sutis distribuídos nos 60s
+    chirp_times = [12.5, 27.0, 41.2, 53.0]
+    for ct in chirp_times:
+        start_idx = int(ct * SAMPLE_RATE)
+        c_len = int(0.7 * SAMPLE_RATE)
+        if start_idx + c_len >= n:
+            continue
+        t_c = np.arange(c_len) / SAMPLE_RATE
+        # Frequência modulada em trinado suave
+        f_mod = 1600.0 + 350.0 * np.sin(2 * np.pi * 14.0 * t_c)
+        phase = 2 * np.pi * np.cumsum(f_mod) / SAMPLE_RATE
+        env = np.sin(np.pi * (t_c / 0.7)) ** 2
+        chirp = np.sin(phase) * env * 0.25
+        out[start_idx : start_idx + c_len] += chirp
+
+    # Filtro passa-baixa estrito em 1800 Hz para simular o vidro
+    fft = np.fft.rfft(out)
+    freqs = np.fft.rfftfreq(n, 1.0 / SAMPLE_RATE)
+    lp = 1.0 / (1.0 + (freqs / 1800.0) ** 4)
+    out = np.fft.irfft(fft * lp, n=n)
+
+    peak = np.max(np.abs(out)) + 1e-9
+    return (out / peak * 0.3).astype(np.float32)
+
+
 def main() -> None:
     print("=" * 60)
     print("[Studio Humanizer] Gerando Starter Pack Acustico...")
@@ -254,7 +318,7 @@ def main() -> None:
 
     # 1. Room Tones (60s cada para loops confortáveis)
     rt_dir = RAW_DIR / "room-tones"
-    print("\n[1/4] Gerando Room Tones (60s)...")
+    print("\n[1/5] Gerando Room Tones de Estúdio (60s)...")
     save_wav(rt_dir / "estudio_podcast_01.wav", generate_room_tone(60.0, hum_freq=60.0))
     print("  - estudio_podcast_01.wav (60s)")
     save_wav(rt_dir / "estudio_podcast_02.wav", generate_room_tone(60.0, hum_freq=120.0))
@@ -262,9 +326,17 @@ def main() -> None:
     save_wav(rt_dir / "escritorio_ac_leve.wav", generate_room_tone(60.0, ac_noise=True))
     print("  - escritorio_ac_leve.wav (60s)")
 
-    # 2. Foley Escritório (Speech-Concurrent)
+    # 2. Outdoor Muffled (Ambiente externo abafado - profundidade 3D)
+    out_dir = RAW_DIR / "outdoor"
+    print("\n[2/5] Gerando Ambiente Externo Abafado (<2kHz)...")
+    save_wav(out_dir / "transito_distante_01.wav", generate_muffled_traffic(60.0))
+    print("  - transito_distante_01.wav (60s)")
+    save_wav(out_dir / "passaros_distantes_01.wav", generate_distant_birds(60.0))
+    print("  - passaros_distantes_01.wav (60s)")
+
+    # 3. Foley Escritório (Speech-Concurrent)
     fol_esc = RAW_DIR / "foley" / "escritorio"
-    print("\n[2/4] Gerando Foley de Fala (speech-concurrent)...")
+    print("\n[3/5] Gerando Foley de Fala (speech-concurrent)...")
     save_wav(fol_esc / "mouse_click_01.wav", generate_mouse_click(1))
     save_wav(fol_esc / "mouse_click_02.wav", generate_mouse_click(2))
     save_wav(fol_esc / "mouse_click_03.wav", generate_mouse_click(3))
@@ -280,16 +352,16 @@ def main() -> None:
     save_wav(fol_esc / "caneta_mesa_01.wav", generate_pen_tap())
     print("  - cadeira_range_01, papel_vira_01, caneta_mesa_01")
 
-    # 3. Foley Pausa / Transição (Pause-Transition)
-    print("\n[3/4] Gerando Foley de Pausa (pause-transition)...")
+    # 4. Foley Pausa / Transição (Pause-Transition)
+    print("\n[4/5] Gerando Foley de Pausa (pause-transition)...")
     save_wav(fol_esc / "gole_agua_01.wav", generate_water_sip())
     save_wav(fol_esc / "limpar_garganta_01.wav", generate_throat_clear())
     save_wav(fol_esc / "respiracao_sutil_01.wav", generate_subtle_breath())
     print("  - gole_agua_01, limpar_garganta_01, respiracao_sutil_01")
 
-    # 4. Impulse Responses (Cola Acústica de Sala Tratada)
+    # 5. Impulse Responses (Cola Acústica de Sala Tratada)
     ir_dir = RAW_DIR / "impulse-responses"
-    print("\n[4/4] Gerando Impulse Responses (IR)...")
+    print("\n[5/5] Gerando Impulse Responses (IR)...")
     save_wav(ir_dir / "small_studio_01.wav", generate_studio_impulse_response(0.22))
     save_wav(ir_dir / "small_studio_02.wav", generate_studio_impulse_response(0.28))
     print("  - small_studio_01.wav (RT60 = 0.22s)")

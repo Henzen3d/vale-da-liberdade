@@ -18,6 +18,18 @@
       "duration_s": 60.0
     }
   ],
+  "outdoor": [
+    {
+      "name": "passaros_distantes_01",
+      "file": "audio\\ambience\\prepared\\outdoor\\passaros_distantes_01.wav",
+      "duration_s": 60.0
+    },
+    {
+      "name": "transito_distante_01",
+      "file": "audio\\ambience\\prepared\\outdoor\\transito_distante_01.wav",
+      "duration_s": 60.0
+    }
+  ],
   "foley": [
     {
       "name": "cadeira_range_01",

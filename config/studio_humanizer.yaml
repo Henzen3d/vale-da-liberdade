@@ -16,7 +16,18 @@ prepare:
   auto_prepare: true
   verify_checksums: true
 
-# ─── ROOM TONE (ruído de fundo contínuo) ─────────────────────
+# ─── VOICE WARMTH (EQ Analógico Anti-Plástico de IA) ─────────
+voice_warmth:
+  enabled: true
+  hpf_hz: 80.0             # Limpa sub-graves inaudíveis que roubam headroom
+  warmth_boost_hz: 220.0   # Realça corpo e presença de microfone dinâmico (SM7B)
+  warmth_boost_db: 1.5     # Ganho suave (+1.5 dB)
+  warmth_q: 1.2
+  harshness_cut_hz: 6000.0 # Remove chiado digital e aspereza plástica da IA
+  harshness_cut_db: -1.8   # Atenuação suave (-1.8 dB)
+  harshness_q: 1.5
+
+# ─── ROOM TONE (ruído de fundo contínuo de estúdio) ──────────
 room_tone:
   enabled: true
   volume_db: -38.0        # Volume sutil relativo à voz (-36 a -42 dB, sem chiado evidente)
@@ -43,6 +54,15 @@ room_tone:
     enabled: true
     state_file: "output/studio_humanizer_state.json"
 
+# ─── OUTDOOR (Ambiente externo abafado - profundidade 3D) ─────
+outdoor:
+  enabled: true
+  volume_db: -42.0         # Volume ultra-discreto no fundo (-40 a -45 dB)
+  crossfade_s: 5.0
+  eq:
+    highpass_hz: 60.0
+    lowpass_hz: 1800.0     # Corte estrito em 1.8kHz (sensação de janela com vidro duplo)
+
 # ─── FOLEY (micro-eventos incidentais) ───────────────────────
 foley:
   enabled: true
@@ -63,6 +83,21 @@ foley:
   eq:
     highpass_hz: 120
     lowpass_hz: 6500
+
+  # Micro-sidechain ducking: atenua a voz/fundo sutilmente durante foleys
+  ducking:
+    enabled: true
+    depth_db: -1.2        # Redução sutil de -1.2 dB
+    attack_ms: 25         # Ataque suave
+    release_ms: 100       # Retorno natural
+
+  # Respiração contextual automática antes de falas longas
+  pre_speech_breaths:
+    enabled: true
+    min_pause_s: 0.5      # Pausa mínima na voz para considerar
+    min_speech_s: 2.5     # Duração mínima da frase seguinte
+    lead_time_s: 0.35     # Injeção 0.35s antes da fala começar
+    volume_db: -36.0      # Volume suave da respiração
 
   # Pesos por tipo de evento e categoria de disparo
   events:
