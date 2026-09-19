@@ -100,8 +100,18 @@ def save_manifest(video_id: str, data: dict[str, Any]) -> Path:
 
 def _as_abs(path: Path | str) -> Path:
     p = Path(path)
+    if p.is_file():
+        return p
+    s = str(path).replace("\\", "/")
+    if "thumbnails/" in s:
+        rel = s.split("thumbnails/", 1)[1]
+        cand = THUMBS_DIR / rel
+        if cand.is_file():
+            return cand
     if not p.is_absolute():
-        p = PROJECT_ROOT / p
+        cand = PROJECT_ROOT / p
+        if cand.is_file():
+            return cand
     return p
 
 

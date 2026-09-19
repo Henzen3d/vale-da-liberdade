@@ -1050,6 +1050,10 @@ def build_scene_timeline(
     # 7.1 Inserção de Foto Editorial (Person-Photo com Ken Burns)
     editorial_photo = episode.get("editorial_image") or episode.get("foto_editorial")
     vid_cand = episode.get("video_id") or episode.get("id") or ""
+    if not vid_cand and episode.get("fonte_url"):
+        m_vid = re.search(r"(?:v=|/)([a-zA-Z0-9_-]{11})(?:[?&/]|$)", str(episode.get("fonte_url")))
+        if m_vid:
+            vid_cand = m_vid.group(1)
     if not editorial_photo and vid_cand:
         try:
             from episode_image_manifest import resolve_editorial_image

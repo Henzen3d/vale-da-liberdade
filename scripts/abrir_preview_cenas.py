@@ -107,6 +107,7 @@ def _build_preview_data(video_id: str) -> dict:
     """Constrói o payload JSON completo para o preview de cenas."""
     ep_path = EPS_DIR / f"especial-{video_id}.json"
     episode = json.loads(ep_path.read_text(encoding="utf-8"))
+    episode["video_id"] = video_id
     work = WORK_ROOT / video_id
     shot_dir = work / "shots"
 
