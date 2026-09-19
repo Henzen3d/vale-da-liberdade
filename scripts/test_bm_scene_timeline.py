@@ -16,6 +16,7 @@ from bm_scene_timeline import (
     build_scene_timeline,
     count_words,
     detect_visual_opportunities,
+    youtube_id_from_episode,
 )
 
 
@@ -380,7 +381,7 @@ class SceneTimelineTests(unittest.TestCase):
         from unittest.mock import patch
 
         episode = {
-            "id": "vidPH",
+            "id": "especial-mGwvmcIrkFM",
             "titulo": "Sem foto real",
             "abertura": [{"speaker": "Peter", "texto": "Abertura com gancho inicial relevante. " * 15}],
             "desenvolvimento": [
@@ -441,6 +442,27 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertEqual(payload.get("photo_src"), str(src.resolve()))
         self.assertTrue(str(payload.get("photo") or "").startswith("/shots/"))
         self.assertNotIn("/thumbnails/", str(payload.get("photo") or ""))
+
+    def test_youtube_id_from_episode_sources(self):
+        """ID vem de video_id, especial-*, ou URL YouTube — não de slug de portal."""
+        self.assertEqual(
+            youtube_id_from_episode({"fonte_url": "https://www.youtube.com/watch?v=mGwvmcIrkFM"}),
+            "mGwvmcIrkFM",
+        )
+        self.assertEqual(
+            youtube_id_from_episode({"id": "especial-mGwvmcIrkFM"}),
+            "mGwvmcIrkFM",
+        )
+        self.assertEqual(
+            youtube_id_from_episode({"fonte_url": "https://youtu.be/mGwvmcIrkFM"}),
+            "mGwvmcIrkFM",
+        )
+        self.assertEqual(
+            youtube_id_from_episode({
+                "fonte_url": "https://www1.folha.uol.com.br/poder/2026/09/abcdefghijk",
+            }),
+            "",
+        )
 
 
 if __name__ == "__main__":

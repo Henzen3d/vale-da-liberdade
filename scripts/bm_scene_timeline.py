@@ -592,6 +592,25 @@ def _host_of(url: str) -> str:
     return netloc
 
 
+_YT_ID_RE = re.compile(
+    r"(?:youtube\.com/(?:watch\?v=|shorts/|embed/|live/)|youtu\.be/)([A-Za-z0-9_-]{11})",
+    re.I,
+)
+
+
+def youtube_id_from_episode(episode: dict) -> str:
+    """YouTube ID do episódio: chave explícita, id especial-*, ou URL YouTube."""
+    for key in ("video_id", "id"):
+        raw = str(episode.get(key) or "").strip()
+        if raw.startswith("especial-"):
+            raw = raw[len("especial-"):]
+        if re.fullmatch(r"[A-Za-z0-9_-]{11}", raw):
+            return raw
+    blob = " ".join(str(episode.get(k) or "") for k in ("fonte_url", "youtube_url"))
+    m = _YT_ID_RE.search(blob)
+    return m.group(1) if m else ""
+
+
 def load_broll_clips(broll_index_path: Path | None = None) -> list[dict]:
     if not broll_index_path or not broll_index_path.is_file():
         return []
@@ -1049,11 +1068,7 @@ def build_scene_timeline(
 
     # 7.1 Inserção de Foto Editorial (Person-Photo com Ken Burns)
     editorial_photo = episode.get("editorial_image") or episode.get("foto_editorial")
-    vid_cand = episode.get("video_id") or episode.get("id") or ""
-    if not vid_cand and episode.get("fonte_url"):
-        m_vid = re.search(r"(?:v=|/)([a-zA-Z0-9_-]{11})(?:[?&/]|$)", str(episode.get("fonte_url")))
-        if m_vid:
-            vid_cand = m_vid.group(1)
+    vid_cand = youtube_id_from_episode(episode)
     if not editorial_photo and vid_cand:
         try:
             from episode_image_manifest import resolve_editorial_image

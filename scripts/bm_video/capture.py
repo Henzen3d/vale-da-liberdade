@@ -1002,6 +1002,8 @@ def record_mockup(
         if not scenes:
             scenes = [{"veiculo": veiculo, "url": "https://news.mob.tec.br", "shot": None}]
 
+        if video_id:
+            episode.setdefault("video_id", video_id)
         if not timeline_beats:
             timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
         stage_person_photo_assets(timeline_beats, work)

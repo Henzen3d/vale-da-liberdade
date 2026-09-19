@@ -67,6 +67,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     wallpaper = pick_wallpaper(video_id)
 
     from bm_scene_timeline import build_scene_timeline
+    if video_id:
+        episode.setdefault("video_id", video_id)
     timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
 
     title, desc, tags = build_metadata(video_id, episode, audio, scenes=scenes, timeline_beats=timeline_beats)
@@ -120,6 +122,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         }]
 
     # Recalcula timeline só com as cenas que têm imagem/vídeo de verdade
+    if video_id:
+        episode.setdefault("video_id", video_id)
     timeline_beats = build_scene_timeline(episode, dur, usable, BROLL_INDEX)
 
     # FASE 4 (opcional) — sincronia fina por word-timestamps do Whisper.
