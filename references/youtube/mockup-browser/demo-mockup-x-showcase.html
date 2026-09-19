@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vale da Liberdade • Mockups X Broadcast (Avaliador de Modelos)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #090c13;
+    --bg-surface: #131824;
+    --accent-gold: #d4a017;
+    --accent-blue: #38bdf8;
+    --border: #232b3c;
+    --text-light: #f8fafc;
+    --text-sub: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-light);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Barra de Controle Superior */
+  header.control-header {
+    height: 64px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    flex-shrink: 0;
+    z-index: 50;
+  }
+
+  .brand-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-badge {
+    background: linear-gradient(135deg, var(--accent-gold), #8c6504);
+    color: #000;
+    font-weight: 900;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .title-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+
+  .title-text span {
+    color: var(--accent-gold);
+  }
+
+  /* Seletor de Modelos em Abas */
+  .model-tabs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #090c14;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-sub);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tab-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--accent-gold), #b8860b);
+    color: #000000;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
+  }
+
+  .tab-num {
+    background: rgba(0,0,0,0.25);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .actions-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-action {
+    background: #1e2638;
+    color: #ffffff;
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-action:hover {
+    background: #2b364e;
+    border-color: var(--accent-blue);
+  }
+
+  .btn-action.gold {
+    background: rgba(212, 160, 23, 0.15);
+    border-color: rgba(212, 160, 23, 0.4);
+    color: #f5c842;
+  }
+
+  .btn-action.gold:hover {
+    background: rgba(212, 160, 23, 0.25);
+    border-color: #f5c842;
+  }
+
+  /* Área Principal do Monitor de Transmissão */
+  main.monitor-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, #151a24 0%, #08090d 100%);
+  }
+
+  .frame-viewport {
+    width: 100%;
+    max-width: 1540px;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+    background: #000;
+  }
+
+  iframe.preview-iframe {
+    width: 1920px;
+    height: 1080px;
+    border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+  }
+
+  /* Barra de Descrição do Modelo Ativo */
+  footer.model-desc-footer {
+    height: 48px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 13px;
+    color: var(--text-sub);
+    flex-shrink: 0;
+  }
+
+  .desc-tag {
+    color: var(--accent-gold);
+    font-weight: 800;
+  }
+</style>
+</head>
+<body>
+
+<header class="control-header">
+  <div class="brand-title">
+    <div class="logo-badge">VDL BROADCAST</div>
+    <div class="title-text">AVALIADOR DE MOCKUPS DO <span>𝕏 (TWITTER)</span></div>
+  </div>
+
+  <div class="model-tabs">
+    <button class="tab-btn active" id="btnMod1" onclick="switchModel(1)">
+      <span class="tab-num">1</span>
+      Modelo 1: Editorial Clássico
+    </button>
+    <button class="tab-btn" id="btnMod2" onclick="switchModel(2)">
+      <span class="tab-num">2</span>
+      Modelo 2: Ouro & Geometria
+    </button>
+    <button class="tab-btn" id="btnMod3" onclick="switchModel(3)">
+      <span class="tab-num">3</span>
+      Modelo 3: Prime 3D Glass
+    </button>
+  </div>
+
+  <div class="actions-right">
+    <button class="btn-action gold" onclick="triggerReplay()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+      Replay Animação
+    </button>
+    <button class="btn-action" onclick="openCurrentAlone()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Abrir em Tela Cheia
+    </button>
+  </div>
+</header>
+
+<main class="monitor-area" id="monitorArea">
+  <div class="frame-viewport" id="viewport">
+    <iframe class="preview-iframe" id="previewIframe" src="mockup-x-modelo1.html"></iframe>
+  </div>
+</main>
+
+<footer class="model-desc-footer">
+  <div id="modelDesc">
+    <span class="desc-tag">MODELO 1:</span> Fiel à referência visual • Asa diagonal branca pura com sombra suave, avatar circular em anel neutro e card com tipografia ampliada de alto impacto.
+  </div>
+  <div>Resolução de Render: <b>1920×1080 (16:9 Broadcast)</b> • Animações GSAP Nativas</div>
+</footer>
+
+<script>
+  let currentModel = 1;
+  const models = {
+    1: {
+      file: 'mockup-x-modelo1.html',
+      desc: '<span class="desc-tag">MODELO 1 (EDITORIAL CLÁSSICO):</span> Fiel à referência visual do canal • Asa diagonal branca com corte suave de sombra, avatar circular limpo e card com tipografia ampliada de alta legibilidade para TV.'
+    },
+    2: {
+      file: 'mockup-x-modelo2.html',
+      desc: '<span class="desc-tag">MODELO 2 (OURO & GEOMETRIA):</span> Identidade visual refinada • Friso chanfrado dourado na borda diagonal, anel ouro no avatar, badge de categoria "Comentário & Análise" e chip "Post Oficial".'
+    },
+    3: {
+      file: 'mockup-x-modelo3.html',
+      desc: '<span class="desc-tag">MODELO 3 (PRIME 3D GLASS):</span> Profundidade cinematográfica • Dupla lâmina diagonal em camadas com luz azul translúcida, badge VIP flutuante e card com perspectiva 3D sutil e zoom suave na mídia.'
+    }
+  };
+
+  function switchModel(num) {
+    currentModel = num;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btnMod${num}`).classList.add('active');
+    
+    const iframe = document.getElementById('previewIframe');
+    iframe.src = models[num].file;
+    document.getElementById('modelDesc').innerHTML = models[num].desc;
+  }
+
+  function triggerReplay() {
+    const iframe = document.getElementById('previewIframe');
+    try {
+      if (iframe.contentWindow) {
+        if (currentModel === 1 && iframe.contentWindow.playEntranceAnimation) {
+          iframe.contentWindow.playEntranceAnimation();
+        } else if (currentModel === 2 && iframe.contentWindow.playEntranceAnimation2) {
+          iframe.contentWindow.playEntranceAnimation2();
+        } else if (currentModel === 3 && iframe.contentWindow.playEntranceAnimation3) {
+          iframe.contentWindow.playEntranceAnimation3();
+        } else {
+          iframe.src = iframe.src;
+        }
+      }
+    } catch (e) {
+      iframe.src = iframe.src;
+    }
+  }
+
+  function openCurrentAlone() {
+    window.open(models[currentModel].file, '_blank');
+  }
+
+  // Ajuste de escala perfeito do iframe de 1920x1080 dentro do contêiner proporcional
+  function scaleIframe() {
+    const vp = document.getElementById('viewport');
+    const iframe = document.getElementById('previewIframe');
+    if (!vp || !iframe) return;
+    const w = vp.clientWidth;
+    const scale = w / 1920;
+    iframe.style.transform = `scale(${scale})`;
+  }
+
+  window.addEventListener('resize', scaleIframe);
+  window.addEventListener('DOMContentLoaded', scaleIframe);
+</script>
+</body>
+</html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup X Broadcast • Modelo 3 (Cinematic Prime Glass • Profundidade 3D)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script src="gsap.min.js"></script>
+<script>window.gsap || document.write('<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"><\/script>')</script>
+
+<style>
+  :root {
+    --bg-dark-base: #0a0d14;
+    --card-surface: #ffffff;
+    --text-pure: #090d16;
+    --text-sub: #536471;
+    --twitter-blue: #1d9bf0;
+    --heart-pink: #f91880;
+    --glow-blue: rgba(59, 130, 246, 0.18);
+    --shadow-cinematic: 0 40px 100px rgba(15, 23, 42, 0.16), 0 15px 35px rgba(15, 23, 42, 0.08);
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #06080e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+  }
+
+  .broadcast-stage {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    background: 
+      radial-gradient(circle at 78% 30%, rgba(59, 130, 246, 0.12) 0%, transparent 48%),
+      radial-gradient(circle at 20% 80%, rgba(212, 160, 23, 0.08) 0%, transparent 45%),
+      linear-gradient(135deg, #f8fafc 0%, #edf2f7 50%, #e2e8f0 100%);
+    overflow: hidden;
+    box-shadow: 0 0 120px rgba(0, 0, 0, 0.75);
+    perspective: 1400px;
+  }
+
+  /* Orbes de Iluminação Broadcast Suave */
+  .ambient-light {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    right: 5%;
+    top: -10%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.14), transparent 70%);
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  /* ----------------------------------------------------
+     PAINEL DIAGONAL EM DUPLA CAMADA (PROPORÇÃO AJUSTADA P/ BROADCAST)
+     ---------------------------------------------------- */
+  /* Camada 1: Sombra/Acento Traseiro translúcido */
+  .diagonal-sublayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 42%;
+    height: 100%;
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(219, 234, 254, 0.7), rgba(191, 219, 254, 0.4));
+    clip-path: polygon(0 0, 100% 0, 52% 100%, 0 100%);
+    filter: drop-shadow(15px 0 35px rgba(59, 130, 246, 0.15));
+  }
+
+  /* Camada 2: Painel Branco Puro com chanfro suave */
+  .diagonal-main {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 38%;
+    height: 100%;
+    z-index: 2;
+    filter: drop-shadow(25px 0 50px rgba(15, 23, 42, 0.12));
+  }
+
+  .diagonal-main-shape {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    clip-path: polygon(0 0, 100% 0, 46% 100%, 0 100%);
+    position: relative;
+  }
+
+  /* ----------------------------------------------------
+     SPEAKER VIP (QUADRANTE SUPERIOR ESQUERDO)
+     Harmonizado com o tamanho aumentado do card
+     ---------------------------------------------------- */
+  .speaker-box-v3 {
+    position: absolute;
+    top: 36px;
+    left: 54px;
+    width: 340px;
+    height: auto;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .avatar-card-floating {
+    position: relative;
+    padding: 8px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 
+      0 28px 70px rgba(15, 23, 42, 0.18),
+      0 10px 22px rgba(15, 23, 42, 0.08),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  .avatar-v3 {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: block;
+    background: #e2e8f0;
+  }
+
+  .avatar-v3 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Badge Flutuante no próprio círculo (Efeito VIP) */
+  .floating-vip-badge {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    background: #ffffff;
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .speaker-text-v3 {
+    margin-top: 18px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .speaker-title-v3 {
+    font-family: var(--font-display);
+    font-size: 50px;
+    font-weight: 800;
+    letter-spacing: -1.2px;
+    color: var(--text-pure);
+    line-height: 1.1;
+  }
+
+  .speaker-handle-v3 {
+    margin-top: 4px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a73e8;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ----------------------------------------------------
+     CARD DO POST DO X (QUADRANTE SUPERIOR DIREITO - AMPLIADO)
+     Altura aumentada, fonte 38px e mídia 440px
+     Preenche perfeitamente o espaço até o Lower Third
+     ---------------------------------------------------- */
+  .tweet-stage-v3 {
+    position: absolute;
+    top: 24px;
+    right: 44px;
+    width: 1250px;
+    height: auto;
+    z-index: 3;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 0;
+    transform-style: preserve-3d;
+  }
+
+  .tweet-card-v3 {
+    width: 1250px;
+    max-width: 1250px;
+    background: var(--card-surface);
+    border-radius: 28px;
+    box-shadow: var(--shadow-cinematic);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    padding: 28px 42px 20px 42px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    transform: rotateY(-1.8deg) rotateX(1deg);
+    transition: transform 0.4s ease;
+  }
+
+  /* Header do Post */
+  .tweet-header-v3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .author-v3-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .author-v3-avatar {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .author-v3-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .author-v3-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .author-v3-name {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-pure);
+    letter-spacing: -0.5px;
+  }
+
+  .author-v3-handle {
+    font-size: 21px;
+    font-weight: 500;
+    color: var(--text-sub);
+  }
+
+  .x-icon-v3 {
+    width: 32px;
+    height: 32px;
+    color: #000;
+  }
+
+  /* Texto com Destaque Editorial Máximo - Fonte 38px */
+  .tweet-body-v3 {
+    font-size: 38px;
+    line-height: 1.42;
+    font-weight: 600;
+    color: #090d16;
+    letter-spacing: -0.4px;
+  }
+
+  .tweet-body-v3 strong {
+    font-weight: 800;
+    color: #000000;
+  }
+
+  .hashtag-v3 {
+    color: var(--twitter-blue);
+    font-weight: 800;
+    display: inline-block;
+    margin-top: 2px;
+  }
+
+  /* Mídia com Altura Ampliada (440px) */
+  .media-box-v3 {
+    width: 100%;
+    height: 440px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: #000;
+    position: relative;
+  }
+
+  .media-box-v3 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform-origin: center center;
+  }
+
+  /* Barra Inferior de Métricas */
+  .tweet-footer-v3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .tweet-date-v3 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-sub);
+  }
+
+  .metrics-row-v3 {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+  }
+
+  .metric-item-v3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-sub);
+  }
+
+  .metric-item-v3.liked {
+    color: #f91880;
+  }
+
+  .metric-icon-v3 {
+    width: 25px;
+    height: 25px;
+  }
+
+  /* ----------------------------------------------------
+     SIMULAÇÃO DE CAMADAS OBS (PETER + LOWER THIRD)
+     ---------------------------------------------------- */
+  .obs-simulation-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    pointer-events: none;
+    z-index: 20;
+    transition: opacity 0.3s ease;
+  }
+
+  .obs-simulation-layer.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* Apresentador Peter no bottom-left (AVATAR_OVERLAY = 0:H-h+38) */
+  .obs-peter-frame {
+    position: absolute;
+    left: 0;
+    bottom: -38px;
+    width: 546px;
+    height: 432px;
+    z-index: 21;
+    filter: drop-shadow(10px -5px 25px rgba(0,0,0,0.35));
+  }
+
+  .obs-peter-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Lower Third oficial (1920x1080 na frente de tudo) */
+  .obs-lt-frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    z-index: 22;
+  }
+
+  .obs-lt-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Tags de depuração da régua de broadcast */
+  .obs-safe-tag {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.88);
+    color: #38bdf8;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  /* ----------------------------------------------------
+     CONTROLES INTERATIVOS FLUTUANTES (DEMO)
+     ---------------------------------------------------- */
+  .controls-bar {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ctl-btn {
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ctl-btn:hover {
+    background: #1e293b;
+    transform: scale(1.04);
+    border-color: #38bdf8;
+  }
+
+  .ctl-btn.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+  }
+</style>
+</head>
+<body>
+
+<div class="broadcast-stage" id="stage">
+  <div class="ambient-light"></div>
+
+  <!-- Dupla Camada Diagonal (Profundidade) -->
+  <div class="diagonal-sublayer" id="sublayer"></div>
+  <div class="diagonal-main" id="mainDiagonal">
+    <div class="diagonal-main-shape"></div>
+  </div>
+
+  <!-- Speaker VIP -->
+  <div class="speaker-box-v3" id="speakerBox3">
+    <div class="avatar-card-floating" id="avatarCard3">
+      <div class="avatar-v3">
+        <img src="assets/mockup-x/tim_kaine.jpg" alt="Tim Kaine">
+      </div>
+      <div class="floating-vip-badge">
+        <svg viewBox="0 0 22 22" width="34" height="34">
+          <circle cx="11" cy="11" r="9" fill="#ffffff"/>
+          <path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1D9BF0"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="speaker-text-v3" id="speakerText3">
+      <h1 class="speaker-title-v3">Tim Kaine</h1>
+      <div class="speaker-handle-v3">@timkaine</div>
+    </div>
+  </div>
+
+  <!-- Card do X (3D Tilt) -->
+  <div class="tweet-stage-v3">
+    <div class="tweet-card-v3" id="cardV3">
+      <div class="tweet-header-v3">
+        <div class="author-v3-left">
+          <img class="author-v3-avatar" src="assets/mockup-x/alexandre_moraes.jpg" alt="Alexandre de Moraes">
+          <div class="author-v3-info">
+            <div class="author-v3-name-row">
+              <span class="author-v3-name">Alexandre de Moraes</span>
+              <svg viewBox="0 0 22 22" width="22" height="22">
+                <circle cx="11" cy="11" r="9" fill="#ffffff"/>
+                <path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1D9BF0"/>
+              </svg>
+            </div>
+            <span class="author-v3-handle">@alexandre</span>
+          </div>
+        </div>
+        <svg class="x-icon-v3" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </div>
+
+      <div class="tweet-body-v3">
+        O Supremo Tribunal Federal reafirma seu compromisso inegociável com a <strong>democracia</strong>, a <strong>soberania nacional</strong> e a estrita observância da Constituição.<br>
+        <span class="hashtag-v3">#STF</span>
+      </div>
+
+      <div class="media-box-v3">
+        <img id="zoomMedia" src="assets/mockup-x/themis_justice.jpg" alt="Justiça STF">
+      </div>
+
+      <!-- Barra Inferior de Métricas -->
+      <div class="tweet-footer-v3">
+        <div class="tweet-date-v3">
+          <span>14:32 · 03 de set de 2026</span> · <b>45,1 mil</b> visualizações
+        </div>
+        <div class="metrics-row-v3">
+          <div class="metric-item-v3">
+            <svg class="metric-icon-v3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <span>4.2K</span>
+          </div>
+          <div class="metric-item-v3">
+            <svg class="metric-icon-v3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span>12.8K</span>
+          </div>
+          <div class="metric-item-v3 liked" id="heartBtn3">
+            <svg class="metric-icon-v3" viewBox="0 0 24 24" fill="#f91880"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span>45.2K</span>
+          </div>
+          <div class="metric-item-v3">
+            <svg class="metric-icon-v3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="metric-item-v3">
+            <svg class="metric-icon-v3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camada de Simulação OBS (Peter + Lower Third) -->
+  <div class="obs-simulation-layer" id="obsLayer">
+    <!-- Apresentador Peter no bottom-left -->
+    <div class="obs-peter-frame">
+      <img src="assets/mockup-x/peter_presenter.png" alt="Apresentador Peter Albuquerque">
+      <div class="obs-safe-tag" style="bottom: 400px; left: 20px;">👤 Peter (0:H-h+38)</div>
+    </div>
+
+    <!-- Tarja Lower Third oficial Vale da Liberdade -->
+    <div class="obs-lt-frame">
+      <img src="assets/mockup-x/lower_third_preview.png" alt="Lower Third Vale da Liberdade">
+      <div class="obs-safe-tag" style="bottom: 155px; left: 560px;">📺 Lower Third Oficial (1576px)</div>
+    </div>
+  </div>
+
+  <!-- Barra de Controles para Demonstração e Validação -->
+  <div class="controls-bar">
+    <button class="ctl-btn" id="btnObsGuide" onclick="toggleObsGuide()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span id="obsGuideText">Guia OBS: LIGADO</span>
+    </button>
+    <button class="ctl-btn" onclick="playEntranceAnimation3()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+      Reanimar
+    </button>
+  </div>
+</div>
+
+<script>
+  function fitStageToWindow() {
+    const stage = document.getElementById('stage');
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080, 1);
+    stage.style.transform = `scale(${scale})`;
+    stage.style.transformOrigin = 'center center';
+  }
+
+  function toggleObsGuide() {
+    const layer = document.getElementById('obsLayer');
+    const btn = document.getElementById('btnObsGuide');
+    const txt = document.getElementById('obsGuideText');
+    const isHidden = layer.classList.toggle('is-hidden');
+    if (isHidden) {
+      btn.classList.remove('active');
+      txt.textContent = 'Guia OBS: DESLIGADO';
+    } else {
+      btn.classList.add('active');
+      txt.textContent = 'Guia OBS: LIGADO';
+    }
+  }
+
+  window.addEventListener('resize', fitStageToWindow);
+  window.addEventListener('DOMContentLoaded', () => {
+    fitStageToWindow();
+    document.getElementById('btnObsGuide').classList.add('active');
+    playEntranceAnimation3();
+  });
+
+  let currentTl = null;
+  function playEntranceAnimation3() {
+    if (!window.gsap) return;
+    if (currentTl) currentTl.kill();
+
+    const sub = document.getElementById('sublayer');
+    const mainDiag = document.getElementById('mainDiagonal');
+    const avatar = document.getElementById('avatarCard3');
+    const spkText = document.getElementById('speakerText3');
+    const card = document.getElementById('cardV3');
+    const heart = document.getElementById('heartBtn3');
+    const zoomImg = document.getElementById('zoomMedia');
+
+    const tl = gsap.timeline();
+    currentTl = tl;
+
+    gsap.set(sub, { x: -800, opacity: 0 });
+    gsap.set(mainDiag, { x: -600, opacity: 0 });
+    gsap.set(avatar, { scale: 0.6, opacity: 0, rotation: 10 });
+    gsap.set(spkText, { y: 30, opacity: 0 });
+    gsap.set(card, { x: 140, rotateY: 15, opacity: 0 });
+    gsap.set(zoomImg, { scale: 1 });
+
+    // 1. Subcamada de luz
+    tl.to(sub, {
+      x: 0,
+      opacity: 1,
+      duration: 0.8,
+      ease: "power3.out"
+    });
+
+    // 2. Diagonal principal
+    tl.to(mainDiag, {
+      x: 0,
+      opacity: 1,
+      duration: 0.7,
+      ease: "power3.out"
+    }, "-=0.6");
+
+    // 3. Avatar VIP
+    tl.to(avatar, {
+      scale: 1,
+      rotation: 0,
+      opacity: 1,
+      duration: 0.85,
+      ease: "elastic.out(1, 0.45)"
+    }, "-=0.45");
+
+    // 4. Nome
+    tl.to(spkText, {
+      y: 0,
+      opacity: 1,
+      duration: 0.45,
+      ease: "power2.out"
+    }, "-=0.45");
+
+    // 5. Card 3D
+    tl.to(card, {
+      x: 0,
+      rotateY: -1.8,
+      opacity: 1,
+      duration: 0.8,
+      ease: "power3.out"
+    }, "-=0.4");
+
+    // 6. Efeito Ken Burns na imagem do tweet
+    tl.to(zoomImg, {
+      scale: 1.05,
+      duration: 10,
+      ease: "none"
+    }, "-=0.2");
+
+    // 7. Micro-pulse no like
+    tl.to(heart, {
+      scale: 1.35,
+      duration: 0.18,
+      ease: "power2.out"
+    }, "-=9.5");
+    tl.to(heart, {
+      scale: 1,
+      duration: 0.35,
+      ease: "elastic.out(1.2, 0.3)"
+    }, "-=9.3");
+  }
+</script>
+</body>
+</html>

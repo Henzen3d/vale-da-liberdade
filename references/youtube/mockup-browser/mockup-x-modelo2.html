@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup X Broadcast • Modelo 2 (Modern High-Tech News • Ouro Editorial)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Barlow+Condensed:wght@700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="gsap.min.js"></script>
+<script>window.gsap || document.write('<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"><\/script>')</script>
+
+<style>
+  :root {
+    --accent-gold: #d4a017;
+    --accent-amber: #b8860b;
+    --gold-glow: rgba(212, 160, 23, 0.35);
+    --card-bg: #ffffff;
+    --text-primary: #0a0e17;
+    --text-muted: #536471;
+    --twitter-blue: #1d9bf0;
+    --heart-pink: #f91880;
+    --border-card: rgba(212, 160, 23, 0.25);
+    --shadow-broadcast: 0 32px 75px rgba(15, 23, 42, 0.14), 0 10px 25px rgba(15, 23, 42, 0.08);
+    --font-ui: 'Plus Jakarta Sans', sans-serif;
+    --font-heading: 'Barlow Condensed', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #080b12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-ui);
+  }
+
+  .broadcast-stage {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    background: 
+      radial-gradient(circle at 85% 20%, rgba(212, 160, 23, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 50% 85%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
+      linear-gradient(135deg, #f8fafc 0%, #edf2f7 50%, #e2e8f0 100%);
+    overflow: hidden;
+    box-shadow: 0 0 100px rgba(0,0,0,0.7);
+  }
+
+  /* Grid e Raios Sutis de Telejornalismo Prime */
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none;
+  }
+
+  /* Faixa Dourada Superior de Identidade */
+  .top-gold-strip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, #d4a017 0%, #f5c842 50%, #b8860b 100%);
+    z-index: 10;
+  }
+
+  /* ----------------------------------------------------
+     PAINEL DIAGONAL DINÂMICO COM BISEL DOURADO (ESQUERDA)
+     ---------------------------------------------------- */
+  .diagonal-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 45%;
+    height: 100%;
+    z-index: 2;
+    filter: drop-shadow(20px 0 45px rgba(15, 23, 42, 0.11));
+  }
+
+  .diagonal-poly {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    clip-path: polygon(0 0, 100% 0, 66% 100%, 0 100%);
+    position: relative;
+  }
+
+  /* Friso Metálico Ouro no contorno chanfrado */
+  .diagonal-gold-bevel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    clip-path: polygon(100% 0, 99.1% 0, 65.1% 100%, 66% 100%);
+    background: linear-gradient(180deg, #f5c842 0%, #d4a017 50%, #8c6504 100%);
+    box-shadow: 0 0 15px var(--gold-glow);
+  }
+
+  /* ----------------------------------------------------
+     SPEAKER / AUTORIDADE EM DESTAQUE
+     ---------------------------------------------------- */
+  .speaker-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 37%;
+    height: 100%;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-left: 24px;
+  }
+
+  .speaker-ring-outer {
+    position: relative;
+    padding: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d4a017 0%, #ffffff 45%, #b8860b 100%);
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.18), 0 0 30px rgba(212, 160, 23, 0.25);
+  }
+
+  .avatar-circle {
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e2e8f0;
+    display: block;
+    position: relative;
+  }
+
+  .avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .speaker-identity {
+    margin-top: 34px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .badge-category {
+    background: linear-gradient(135deg, rgba(212, 160, 23, 0.15), rgba(184, 134, 11, 0.22));
+    border: 1px solid rgba(212, 160, 23, 0.5);
+    color: #8c6504;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .speaker-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .speaker-title {
+    font-size: 54px;
+    font-weight: 900;
+    letter-spacing: -1.4px;
+    color: #07090e;
+    line-height: 1;
+  }
+
+  .badge-verified-glow {
+    filter: drop-shadow(0 2px 6px rgba(29, 155, 240, 0.4));
+  }
+
+  .speaker-username {
+    margin-top: 8px;
+    font-size: 34px;
+    font-weight: 700;
+    color: #1d9bf0;
+    letter-spacing: -0.5px;
+  }
+
+  /* ----------------------------------------------------
+     CARD DO POST DO X (DIREITA)
+     ---------------------------------------------------- */
+  .tweet-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 63%;
+    height: 100%;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 80px 30px 30px;
+  }
+
+  .tweet-card-v2 {
+    width: 100%;
+    max-width: 1100px;
+    background: #ffffff;
+    border-radius: 26px;
+    box-shadow: var(--shadow-broadcast);
+    border: 1px solid var(--border-card);
+    padding: 34px 42px 28px 42px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+  }
+
+  /* Topo do Card */
+  .tweet-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .author-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .author-thumb-wrapper {
+    position: relative;
+  }
+
+  .author-thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: block;
+  }
+
+  .author-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .author-headline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .author-display-name {
+    font-size: 27px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.6px;
+  }
+
+  .author-tag {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .header-pills {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .source-pill {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .x-icon-brand {
+    width: 30px;
+    height: 30px;
+    color: #000;
+  }
+
+  /* Texto Principal do Tweet (FONTE GRANDE BROADCAST) */
+  .tweet-text-content {
+    font-size: 34px;
+    line-height: 1.44;
+    font-weight: 600;
+    color: #0a0e17;
+    letter-spacing: -0.5px;
+  }
+
+  .hashtag-accent {
+    color: var(--twitter-blue);
+    font-weight: 800;
+    background: rgba(29, 155, 240, 0.08);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  /* Mídia do Tweet */
+  .media-viewport {
+    width: 100%;
+    height: 420px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    position: relative;
+    background: #000;
+  }
+
+  .media-viewport img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+  }
+
+  /* Timestamp e Métricas */
+  .tweet-time-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding-top: 2px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 14px;
+  }
+
+  .tweet-time-stats b {
+    color: #0f1419;
+    font-weight: 700;
+  }
+
+  /* Barra de Ações */
+  .tweet-metrics-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+
+  .metric-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 21px;
+    font-weight: 600;
+  }
+
+  .metric-btn.like-active {
+    color: var(--heart-pink);
+  }
+
+  .metric-btn.like-active svg path {
+    fill: var(--heart-pink);
+  }
+
+  /* Botão de Replay */
+  .replay-control {
+    position: absolute;
+    bottom: 24px;
+    right: 28px;
+    z-index: 50;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #ffffff;
+    border: 1px solid rgba(212, 160, 23, 0.4);
+    border-radius: 30px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+  }
+
+  .replay-control:hover {
+    transform: scale(1.05);
+    border-color: #f5c842;
+  }
+</style>
+</head>
+<body>
+
+<div class="broadcast-stage" id="stage">
+  <div class="top-gold-strip"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- Painel Diagonal com Friso Ouro -->
+  <div class="diagonal-container" id="diagonalCont">
+    <div class="diagonal-poly">
+      <div class="diagonal-gold-bevel"></div>
+    </div>
+  </div>
+
+  <!-- Speaker em Destaque -->
+  <div class="speaker-section" id="speakerSection">
+    <div class="speaker-ring-outer" id="speakerRing">
+      <div class="avatar-circle">
+        <img src="assets/mockup-x/tim_kaine.jpg" alt="Tim Kaine">
+      </div>
+    </div>
+
+    <div class="speaker-identity" id="speakerIdentity">
+      <span class="badge-category">COMENTÁRIO & ANÁLISE</span>
+      <div class="speaker-title-group">
+        <h1 class="speaker-title">Tim Kaine</h1>
+        <svg class="badge-verified-glow" viewBox="0 0 22 22" width="34" height="34">
+          <circle cx="11" cy="11" r="9" fill="#ffffff"/>
+          <path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1D9BF0"/>
+        </svg>
+      </div>
+      <div class="speaker-username">@timkaine</div>
+    </div>
+  </div>
+
+  <!-- Card do X (Modelo 2) -->
+  <div class="tweet-container">
+    <div class="tweet-card-v2" id="tweetCard2">
+      <!-- Topo -->
+      <div class="tweet-top-row">
+        <div class="author-profile">
+          <div class="author-thumb-wrapper">
+            <img class="author-thumb" src="assets/mockup-x/alexandre_moraes.jpg" alt="Alexandre de Moraes">
+          </div>
+          <div class="author-details">
+            <div class="author-headline">
+              <span class="author-display-name">Alexandre de Moraes</span>
+              <svg viewBox="0 0 22 22" width="22" height="22">
+                <circle cx="11" cy="11" r="9" fill="#ffffff"/>
+                <path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1D9BF0"/>
+              </svg>
+            </div>
+            <span class="author-tag">@alexandre</span>
+          </div>
+        </div>
+
+        <div class="header-pills">
+          <div class="source-pill">POST OFICIAL</div>
+          <svg class="x-icon-brand" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Corpo com Fonte Ampliada -->
+      <div class="tweet-text-content" id="tweetContent2">
+        O Supremo Tribunal Federal reafirma seu compromisso inegociável com a democracia, a soberania nacional e a estrita observância da Constituição.<br>
+        <span class="hashtag-accent">#STF</span>
+      </div>
+
+      <!-- Mídia -->
+      <div class="media-viewport">
+        <img src="assets/mockup-x/themis_justice.jpg" alt="Justiça STF">
+      </div>
+
+      <!-- Timestamp -->
+      <div class="tweet-time-stats">
+        <span>14:32</span> · <span>03 de set de 2026</span> · <b>45,1 mil</b> <span>visualizações</span>
+      </div>
+
+      <!-- Métricas -->
+      <div class="tweet-metrics-row">
+        <div class="metric-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span>4.2K</span>
+        </div>
+        <div class="metric-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>12.8K</span>
+        </div>
+        <div class="metric-btn like-active" id="heartBtn2">
+          <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span>45.2K</span>
+        </div>
+        <div class="metric-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="metric-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="replay-control" onclick="playEntranceAnimation2()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+    Animar Novamente
+  </button>
+</div>
+
+<script>
+  function fitStageToWindow() {
+    const stage = document.getElementById('stage');
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080, 1);
+    stage.style.transform = `scale(${scale})`;
+    stage.style.transformOrigin = 'center center';
+  }
+
+  window.addEventListener('resize', fitStageToWindow);
+  window.addEventListener('DOMContentLoaded', () => {
+    fitStageToWindow();
+    playEntranceAnimation2();
+  });
+
+  let currentTl = null;
+  function playEntranceAnimation2() {
+    if (!window.gsap) return;
+    if (currentTl) currentTl.kill();
+
+    const diag = document.getElementById('diagonalCont');
+    const ring = document.getElementById('speakerRing');
+    const identity = document.getElementById('speakerIdentity');
+    const card = document.getElementById('tweetCard2');
+    const heart = document.getElementById('heartBtn2');
+
+    const tl = gsap.timeline();
+    currentTl = tl;
+
+    gsap.set(diag, { clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)", opacity: 0 });
+    gsap.set(ring, { scale: 0.4, opacity: 0, rotate: -15 });
+    gsap.set(identity, { y: 40, opacity: 0 });
+    gsap.set(card, { y: 60, scale: 0.96, opacity: 0 });
+
+    // 1. Reveal angular da diagonal
+    tl.to(diag, {
+      clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+      opacity: 1,
+      duration: 0.75,
+      ease: "power3.inOut"
+    });
+
+    // 2. Anel do Avatar surge com expansão de ouro
+    tl.to(ring, {
+      scale: 1,
+      rotate: 0,
+      opacity: 1,
+      duration: 0.85,
+      ease: "back.out(1.8)"
+    }, "-=0.35");
+
+    // 3. Identidade
+    tl.to(identity, {
+      y: 0,
+      opacity: 1,
+      duration: 0.55,
+      ease: "power2.out"
+    }, "-=0.5");
+
+    // 4. Card do Tweet
+    tl.to(card, {
+      y: 0,
+      scale: 1,
+      opacity: 1,
+      duration: 0.8,
+      ease: "power3.out"
+    }, "-=0.4");
+
+    // 5. Like pop
+    tl.to(heart, {
+      scale: 1.35,
+      duration: 0.15,
+      ease: "power2.out"
+    }, "+=0.2");
+    tl.to(heart, {
+      scale: 1,
+      duration: 0.3,
+      ease: "elastic.out(1, 0.3)"
+    });
+  }
+</script>
+</body>
+</html>
