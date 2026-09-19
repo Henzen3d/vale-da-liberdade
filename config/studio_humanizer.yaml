@@ -78,17 +78,20 @@ foley:
       limpar_garganta: 0.2
       respiracao_sutil: 0.5
 
-# ─── REVERB (cola acústica ultra-sutil na voz) ───────────────
+# ─── REVERB (cola acústica na voz) ───────────────────────────
 reverb:
-  enabled: true
-  wet_mix: 0.015          # 1.5% wet (micro-cola imperceptível, sem eco de sala)
-  pre_delay_ms: 8         # Atraso curto para manter a voz direta intacta
+  # Desabilitado por padrão após calibração A/B:
+  # Mantém 100% da presença e graves da voz do locutor (estilo microfone dinâmico colado),
+  # enquanto o Room Tone sutil e Foley criam toda a textura orgânica de estúdio.
+  enabled: false
+  wet_mix: 0.015
+  pre_delay_ms: 18
   decay_trim_db: -60.0
   preferred_ir: "small_studio_01.wav"
 
   ir_eq:
-    highpass_hz: 200
-    lowpass_hz: 4000      # Reverb escuro e aveludado, sem brilho metálico
+    highpass_hz: 350
+    lowpass_hz: 3500
 
 # ─── OUTPUT ──────────────────────────────────────────────────
 output:
