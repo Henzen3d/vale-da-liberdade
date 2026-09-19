@@ -91,6 +91,9 @@ BLOCK_HOSTS: tuple[str, ...] = (
 
 # ---- Seletores de cookie banner ------------------------------------------
 COOKIE_SELECTORS: tuple[str, ...] = (
+    "#cmp-accept-btn-handler",
+    "button#cmp-accept-btn-handler",
+    "#cmp-reject-all-handler",
     "#onetrust-accept-btn-handler",
     "button#onetrust-accept-btn-handler",
     ".banner-lgpd-consent__accept",

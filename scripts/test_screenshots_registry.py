@@ -81,6 +81,7 @@ REQUIRED_DOMAINS = (
     "online.wsj.com",
     "oantagonista.com.br",
     "antagonista.com.br",
+    "msn.com",
 )
 
 
@@ -214,6 +215,16 @@ class RegistryTests(unittest.TestCase):
         self.assertIsNotNone(sub_scraper)
         assert sub_scraper is not None
         self.assertEqual(sub_scraper.name, "antagonista")
+
+    def test_msn_registered(self):
+        scraper = get_scraper("msn.com")
+        self.assertIsNotNone(scraper)
+        assert scraper is not None
+        self.assertEqual(scraper.name, "msn")
+        sub_scraper = get_scraper("www.msn.com")
+        self.assertIsNotNone(sub_scraper)
+        assert sub_scraper is not None
+        self.assertEqual(sub_scraper.name, "msn")
 
 
 if __name__ == "__main__":
