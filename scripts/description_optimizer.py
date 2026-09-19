@@ -188,9 +188,9 @@ def clean_youtube_description(
         body = _html.unescape(body).strip()
 
     # Remove títulos markdown repetidos gerados por LLM
-    body = re.sub(r"^###\s*DESCRIÇÃO\s*", "", body, flags=re.IGNORECASE).strip()
-    body = re.sub(r"###\s*SUGESTÕES DE TÍTULO[\s\S]*$", "", body, flags=re.IGNORECASE).strip()
-    body = re.sub(r"###\s*HASHTAGS[\s\S]*$", "", body, flags=re.IGNORECASE).strip()
+    body = re.sub(r"^#{0,4}\s*\*?\*?DESCRIÇÃO\*?\*?\s*", "", body, flags=re.IGNORECASE).strip()
+    body = re.sub(r"#{0,4}\s*\*?\*?SUGESTÕES DE TÍTULO\*?\*?[\s\S]*$", "", body, flags=re.IGNORECASE).strip()
+    body = re.sub(r"#{0,4}\s*\*?\*?HASHTAGS\*?\*?[\s\S]*$", "", body, flags=re.IGNORECASE).strip()
 
     # Remove URLs proibidas do ANCAPSU
     body = strip_forbidden_urls(body)

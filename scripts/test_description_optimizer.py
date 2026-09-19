@@ -60,7 +60,8 @@ class TestDescriptionOptimizer(unittest.TestCase):
         # Link canônico do app presente
         self.assertIn(APP_CANONICAL_URL, cleaned)
 
-        # Máximo de 3 hashtags
+        # Máximo de 3 hashtags e sem label HASHTAGS
+        self.assertNotIn("HASHTAGS", cleaned)
         tags = [w for w in cleaned.split() if w.startswith("#")]
         self.assertLessEqual(len(tags), 3)
         self.assertIn("#Webjornal", tags)
