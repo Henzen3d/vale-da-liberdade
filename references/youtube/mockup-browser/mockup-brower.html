@@ -342,6 +342,13 @@ html, body {
   position: relative;
 }
 
+/* Quando há matéria com screenshot ou vídeo real, o portal mock interno é isolado e 100% oculto */
+.portal-viewport.has-page-shot .portal-navbar,
+.portal-viewport.has-page-shot .portal-content-grid {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 .portal-scroll-wrapper {
   position: absolute;
   top: 0;
@@ -4307,6 +4314,12 @@ const VDL_MOCKUP_ENGINE = {
   _applyPageMedia(d) {
     const pageShot = document.getElementById("pageShot");
     const pageVideo = document.getElementById("pageVideo");
+    const viewport = document.querySelector(".portal-viewport");
+    const hasMedia = !!(d.shotLong || d.pageImage || d.pageVideo);
+    if (viewport) {
+      viewport.classList.toggle("has-page-shot", hasMedia);
+    }
+
     if (pageVideo) {
       const fitPageVideo = () => {
         pageVideo.classList.toggle(
@@ -4341,10 +4354,33 @@ const VDL_MOCKUP_ENGINE = {
       const src = d.shotLong || d.pageImage;
       if (src && (!pageVideo || !d.pageVideo)) {
         const current = pageShot.getAttribute("src") || "";
-        if (current !== src && !current.endsWith(src)) {
+        if (current === src || current.endsWith(src)) {
+          pageShot.hidden = false;
+        } else if (!current || pageShot.hidden) {
+          // Primeira carga (frame zero): atribuição direta
           pageShot.src = src;
+          pageShot.hidden = false;
+        } else {
+          // Troca durante gravação / cena:
+          // Mantém a imagem anterior 100% visível na tela enquanto a nova carrega
+          const pre = new Image();
+          pre.onload = async () => {
+            if (pre.decode) {
+              try { await pre.decode(); } catch(e) {}
+            }
+            // Só troca quando a nova imagem está 100% pronta e decodificada na memória
+            pageShot.src = src;
+            pageShot.hidden = false;
+            if (this.currentMode === "browser") {
+              this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+            }
+          };
+          pre.onerror = () => {
+            pageShot.src = src;
+            pageShot.hidden = false;
+          };
+          pre.src = src;
         }
-        pageShot.hidden = false;
       } else if (!src) {
         pageShot.removeAttribute("src");
         pageShot.hidden = true;

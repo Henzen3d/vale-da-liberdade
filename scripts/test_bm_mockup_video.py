@@ -895,6 +895,15 @@ class MockupShotSwapTests(unittest.TestCase):
         self.assertIn("_applyPageMedia", html)
         self.assertIn("__VDL_INITIAL_DATA__", html)
         self.assertIn("initVDL", html)
+        self.assertIn("has-page-shot", html)
+        self.assertIn("pre.onload", html)
+
+    def test_record_mockup_preloads_shot_urls(self) -> None:
+        capture_src = (
+            Path(__file__).resolve().parent.parent
+            / "scripts/bm_video/capture.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("all_shot_urls", capture_src)
 
     def test_usable_filter_retains_x_post_scene(self) -> None:
         """Cenas do X com x_post devem ser utilizáveis mesmo sem screenshot estático."""

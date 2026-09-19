@@ -1088,6 +1088,35 @@ def record_mockup(
                 }""", timeout=10000,
             )
             page.wait_for_timeout(400)
+            # Pré-carrega todas as imagens de shots no cache do Chromium antes de iniciar a gravação,
+            # garantindo que as trocas de cena durante o vídeo sejam instantâneas sem latência HTTP.
+            all_shot_urls = []
+            for b_raw in (timeline_beats or []):
+                b_item = _normalize_beat_v2(b_raw)
+                s = b_item.get("shot")
+                sl = b_item.get("shot_long")
+                if s:
+                    all_shot_urls.append(f"/shots/{s}")
+                if sl:
+                    all_shot_urls.append(f"/shots/{sl}")
+            for sc in (scenes or []):
+                s = sc.get("shot")
+                sl = sc.get("shot_long")
+                if s:
+                    all_shot_urls.append(f"/shots/{s}")
+                if sl:
+                    all_shot_urls.append(f"/shots/{sl}")
+            all_shot_urls = list(dict.fromkeys(all_shot_urls))
+            if all_shot_urls:
+                page.evaluate(
+                    """(urls) => {
+                      urls.forEach(u => {
+                        const img = new Image();
+                        img.src = u;
+                      });
+                    }""",
+                    all_shot_urls,
+                )
             if timeline_beats:
                 _safe_mockup_update(page, _build_mockup_update_payload(fb_v2), label="beat0_init")
             started = time.monotonic()
