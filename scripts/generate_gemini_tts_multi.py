@@ -1376,6 +1376,19 @@ def main():
         action="store_true",
         help="BM Peter solo: Edge TTS como principal, Gemini só se o Edge falhar.",
     )
+    parser.add_argument(
+        "--humanize",
+        dest="humanize",
+        action="store_true",
+        default=None,
+        help="Forçar ativação do Studio Humanizer (ambientes/reverb)",
+    )
+    parser.add_argument(
+        "--no-humanize",
+        dest="humanize",
+        action="store_false",
+        help="Forçar desativação do Studio Humanizer",
+    )
     # (REMOVIDO) Temperatura por speaker/chunk: mantemos temperatura global.
     args = parser.parse_args()
 
@@ -1630,6 +1643,21 @@ def main():
     # BM / caminhos custom (--out fora de audio/ ou --single-speaker):
     # grava o MP3 AO LADO do WAV e NÃO sobrescreve o episódio diário.
     out_path = Path(out_path).resolve()
+
+    # ── Studio Humanizer (Humanização acústica de estúdio) ───────────────────
+    try:
+        from studio_humanizer import StudioHumanizer
+
+        humanizer = StudioHumanizer()
+        should_humanize = getattr(args, "humanize", None)
+        if should_humanize is None:
+            should_humanize = humanizer.enabled
+
+        if should_humanize:
+            humanizer.humanize(input_wav=out_path, output_wav=out_path)
+    except Exception as h_exc:
+        log.warning(f"⚠️ Studio Humanizer bypassado por segurança: {h_exc}")
+
     default_audio_dir = (project_root / "audio").resolve()
     is_custom_out = bool(args.out) and out_path.parent.resolve() != default_audio_dir
     is_single = bool(args.single_speaker)

@@ -31,13 +31,15 @@ O áudio final tem 3 camadas. A **voz é sempre a referência (0 dB relativo)**:
 
 ## 2. Equalização (EQ)
 
-### 2.1 EQ da Voz (já existe no pipeline)
-O pipeline atual (`run_ffmpeg_chain_2pass`) já aplica:
-- High-Pass: 80 Hz
-- Compressor: -22 dB threshold, ratio 2.2
-- Presence EQ: +2.5 dB @ 3500 Hz
+### 2.1 EQ da Voz e Isolamento Dinâmico (Anti-Pumping)
+O pipeline atual (`run_ffmpeg_chain_2pass`) aplica na voz:
+- High-Pass: 80-90 Hz
+- De-esser e Presence EQ
+- Compressor vocal: threshold -20 dB, ratio 2.0, makeup gain
 
-**Não alterar**. O Studio Humanizer trabalha nas camadas de ambiência, não na voz.
+> [!CRITICAL]
+> **Isolamento Dinâmico:** As camadas de Room Tone e Foley NUNCA devem passar por esse compressor com makeup gain, pois nas pausas da fala o ganho subiria subitamente criando o efeito indesejado de *noise pumping* (o ruído de fundo sobe e desce com a voz).
+> A ambiência é somada de forma linear à voz já tratada, e o áudio completo passa apenas pelo Loudnorm EBU R128 linear.
 
 ### 2.2 EQ do Room Tone
 

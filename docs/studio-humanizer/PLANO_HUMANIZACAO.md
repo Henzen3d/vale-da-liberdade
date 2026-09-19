@@ -47,34 +47,38 @@ O sistema opera em **duas fases distintas**: uma de preparo (executada uma vez) 
                                  ▼
 
 ╔══════════════════════════════════════════════════════════════════════╗
-║  PIPELINE POR EPISÓDIO (custo: ~2-3 segundos extras)               ║
+║  PIPELINE POR EPISÓDIO (custo: ~1-2 segundos extras)                 ║
 ║                                                                      ║
 ║  ┌──────────────────────────────────────────────────────────────┐   ║
-║  │  PIPELINE ATUAL (sem mudança)                                │   ║
-║  │  Gemini TTS → chunks WAV → concatenação → WAV completo      │   ║
+║  │  PIPELINE ATUAL: Síntese de Voz                              │   ║
+║  │  Gemini TTS → chunks WAV → PCM concatenado → WAV voz crua    │   ║
 ║  └──────────────────────────────┬───────────────────────────────┘   ║
 ║                                 │                                    ║
 ║                                 ▼                                    ║
 ║  ┌──────────────────────────────────────────────────────────────┐   ║
-║  │  studio_humanizer.humanize() — MONTAGEM RÁPIDA               │   ║
+║  │  studio_humanizer.humanize() — MONTAGEM SEGURA & RÁPIDA       │   ║
 ║  │                                                               │   ║
 ║  │  Usa os arquivos JÁ PREPARADOS de audio/ambience/prepared/:  │   ║
 ║  │                                                               │   ║
-║  │  1. Seleciona room tone (rotação) → loop + crossfade          │   ║
-║  │  2. Convolui voz com IR preparado → mix 4% wet               │   ║
-║  │  3. Distribui foley (posições ALEATÓRIAS fresh)               │   ║
-║  │  4. Soma tudo → WAV humanizado                                │   ║
+║  │  1. Voz tratada com cola acústica: Reverb Convolução         │   ║
+║  │     (scipy.signal.oaconvolve ultrarrápido, ~4% wet)          │   ║
+║  │  2. Room tone preparado: loop suave com crossfade + breathing │   ║
+║  │  3. Foley Scheduler categorizado:                             │   ║
+║  │     - speech_concurrent: cliques, teclado durante a fala      │   ║
+║  │     - pause_transition: gole d'água, respiração em pausas    │   ║
+║  │  4. Soma das camadas: Voz (+cola) + Room Tone + Foley         │   ║
 ║  │                                                               │   ║
-║  │  ⚡ Sem EQ/normalização pesada (já feito no prepare)          │   ║
+║  │  ⚡ Room Tone e Foley NÃO passam por compressor com makeup    │   ║
+║  │     (zero noise pumping nos silêncios)                       │   ║
 ║  └──────────────────────────────┬───────────────────────────────┘   ║
 ║                                 │                                    ║
 ║                                 ▼                                    ║
 ║  ┌──────────────────────────────────────────────────────────────┐   ║
-║  │  PIPELINE ATUAL (sem mudança)                                │   ║
+║  │  NORMALIZAÇÃO FINAL (EBU R128 Loudnorm Linear)               │   ║
 ║  │  WAV humanizado → run_ffmpeg_chain_2pass() → MP3 final       │   ║
 ║  └──────────────────────────────────────────────────────────────┘   ║
 ║                                                                      ║
-║  Tempo extra por episódio: ~2-3 segundos                             ║
+║  Tempo extra por episódio: ~1-2 segundos                             ║
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -84,13 +88,13 @@ O sistema opera em **duas fases distintas**: uma de preparo (executada uma vez) 
 |---|---|---|
 | **Room Tone EQ** | ✅ HPF, LPF, notch já aplicados | — |
 | **Room Tone seleção** | — | ✅ Qual tone usar (rotação) |
-| **Room Tone loop** | — | ✅ Corte na duração certa + crossfade |
-| **Foley normalização** | ✅ Peak, trim, DC offset | — |
-| **Foley posicionamento** | — | ✅ Posições aleatórias únicas |
-| **Foley seleção** | — | ✅ Quais sons, com pesos |
-| **IR EQ + trim** | ✅ HPF, LPF, decay truncado | — |
-| **Reverb convolução** | — | ✅ FFT convolve voz com IR preparado |
-| **Mix final** | — | ✅ Soma das 3 camadas |
+| **Room Tone loop** | — | ✅ Corte na duração certa + crossfade + breathing |
+| **Foley normalização** | ✅ Peak -6 dBFS, trim, DC offset, mono/44.1k | — |
+| **Foley posicionamento** | — | ✅ Posições aleatórias por contexto (speech vs pause) |
+| **Foley seleção** | — | ✅ Quais sons, com pesos e categorização |
+| **IR EQ + trim** | ✅ HPF, LPF, decay truncado a -60 dB | — |
+| **Reverb convolução** | — | ✅ Overlap-Add (`oaconvolve`) na voz |
+| **Mix final** | — | ✅ Soma balanceada das 3 camadas |
 
 ### Vantagens do modelo híbrido
 
@@ -122,19 +126,23 @@ Executa uma vez (ou sempre que a biblioteca de sons mudar):
 
 ### 2.3 Foley Event Scheduler (por episódio)
 - Carrega sons **já preparados** (sem normalização adicional)
-- Distribui eventos aleatórios ao longo da timeline
+- Distribui eventos inteligentes por categoria de contexto:
+  - **Speech-Concurrent**: cliques de mouse, toques de teclado, papel virando (ocorrem durante a fala)
+  - **Pause-Transition**: goles d'água, respirações sutis (ocorrem **exclusivamente** durante pausas/silêncios)
 - Densidade: 2-5 eventos por minuto (configurável)
-- Respeita "zonas de silêncio" — não coloca eventos sobre pausas
-- Cada episódio tem um seed aleatório diferente
+- Respeita zonas de troca de locutor quando fornecidos `turn_boundaries`
+- Cada episódio tem um seed aleatório derivado da data ou gerado fresh
 
 ### 2.4 Acoustic Glue — Reverb (por episódio)
 - Carrega IR **já preparado** (EQ e trim já aplicados)
-- Convoluição FFT rápida (scipy — ~0.5s para 15 min de áudio)
-- Wet mix: 4% (default)
+- Convoluição Overlap-Add ultrarrápida via `scipy.signal.oaconvolve` (~0.3s com baixo uso de RAM)
+- Wet mix: 4% (default) aplicado estritamente sobre a voz
 
-### 2.5 Mixer Final (por episódio)
-- Soma as 3 faixas (voz + reverb, room tone, foley) em PCM
-- Exporta WAV 44.1 kHz 16-bit mono
+### 2.5 Mixer Final e Prevenção de Noise Pumping (por episódio)
+- Soma a voz com cola acústica, room tone e foley
+- Mantém o Headroom com verificação anti-clipping
+- A ambiência não passa por compressores vocais com makeup gain, garantindo transparência acústica total
+- Exporta WAV 44.1 kHz 16-bit mono para o loudnorm EBU R128 linear
 
 ---
 

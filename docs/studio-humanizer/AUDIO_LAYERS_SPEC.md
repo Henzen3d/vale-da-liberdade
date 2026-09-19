@@ -50,14 +50,27 @@ Sons discretos e esporádicos que simulam a presença física do apresentador em
 
 ### Perfil: Escritório / Estúdio de Podcast
 
-| Evento | Volume (rel. voz) | Frequência | Duração |
-|---|---|---|---|
-| Clique de mouse (distante) | -35 a -40 dB | 1-3x por minuto | 0.1-0.3s |
-| Teclas de teclado mecânico | -33 a -38 dB | 0.5-2x por minuto | 0.2-0.8s |
-| Cadeira rangendo levemente | -36 a -42 dB | 0.2-0.5x por minuto | 0.5-1.5s |
-| Papel sendo movido | -38 a -44 dB | 0.1-0.3x por minuto | 0.3-1.0s |
-| Caneta/objeto na mesa | -37 a -43 dB | 0.1-0.2x por minuto | 0.1-0.3s |
-| Respiração/suspiro sutil | -34 a -40 dB | 0.3-0.8x por minuto | 0.3-0.8s |
+Os eventos Foley são divididos em **duas categorias de contexto**:
+
+#### A) Speech-Concurrent (Ações de Mesa durante a Fala)
+*Eventos que ocorrem preferencialmente durante ou colados na fala do locutor (simulando que ele consulta notas ou usa o computador enquanto fala).*
+
+| Evento | Volume (rel. voz) | Frequência | Duração | Contexto |
+|---|---|---|---|---|
+| Clique de mouse (distante) | -35 a -40 dB | 1-3x por minuto | 0.1-0.3s | Durante fala |
+| Teclas de teclado mecânico | -33 a -38 dB | 0.5-2x por minuto | 0.2-0.8s | Durante fala |
+| Cadeira rangendo levemente | -36 a -42 dB | 0.2-0.5x por minuto | 0.5-1.5s | Fala ou transição |
+| Papel sendo movido | -38 a -44 dB | 0.1-0.3x por minuto | 0.3-1.0s | Durante fala |
+| Caneta/objeto na mesa | -37 a -43 dB | 0.1-0.2x por minuto | 0.1-0.3s | Durante fala |
+
+#### B) Pause-Transition (Micro-Ações Humanas em Silêncios)
+*Eventos que ocorrem **exclusivamente em pausas** entre blocos ou falas (nunca enquanto o apresentador pronuncia uma palavra).*
+
+| Evento | Volume (rel. voz) | Frequência | Duração | Contexto |
+|---|---|---|---|---|
+| Gole de água | -36 a -42 dB | 0.1-0.2x por minuto | 0.4-0.8s | Pausa entre blocos |
+| Limpar garganta / pigarro sutil | -38 a -44 dB | 0.05-0.1x por minuto | 0.2-0.5s | Pausa entre blocos |
+| Respiração/suspiro sutil | -35 a -40 dB | 0.2-0.5x por minuto | 0.3-0.8s | Pausa entre frases |
 
 ### Perfil: Residencial / Janela Aberta
 
@@ -72,12 +85,12 @@ Sons discretos e esporádicos que simulam a presença física do apresentador em
 
 ### Regras de Posicionamento
 
-1. **Zona de exclusão**: Nenhum evento Foley dentro de 500ms de uma troca de locutor
-2. **Espaçamento mínimo**: 3 segundos entre eventos consecutivos
-3. **Variação de volume**: ±3 dB entre instâncias do mesmo tipo
-4. **Sem repetição consecutiva**: O mesmo sample não pode ser usado 2x seguidas
-5. **Limite por minuto**: Máximo 6 eventos/minuto (evitar "poluição sonora")
-6. **Correlação com fala**: Eventos de teclado/mouse devem ocorrer preferencialmente durante falas longas (como se o apresentador estivesse trabalhando enquanto fala)
+1. **Contexto obrigatório**: `speech_concurrent` só toca onde há voz detectada; `pause_transition` só toca em silêncios/pausas RMS (nunca em cima de palavras).
+2. **Zona de exclusão em troca de locutor**: Nenhum evento Foley dentro de 500ms de uma transição de locutor (se informada via `turn_boundaries`).
+3. **Espaçamento mínimo**: 3 segundos entre eventos consecutivos de qualquer tipo.
+4. **Variação de volume**: ±3 dB entre instâncias do mesmo tipo para evitar assinatura estática.
+5. **Sem repetição consecutiva**: O mesmo arquivo de áudio não pode ser tocado 2x seguidas.
+6. **Limite por minuto**: Máximo 5 eventos/minuto no total.
 
 ### Estrutura de arquivos
 
@@ -94,20 +107,19 @@ audio/ambience/foley/
 │   ├── cadeira_range_02.wav
 │   ├── papel_01.wav
 │   ├── caneta_mesa_01.wav
-│   └── respiracao_sutil_01.wav
-├── residencial/
-│   ├── passaro_01.wav
-│   ├── passaro_02.wav
-│   ├── passaro_03.wav
-│   ├── carro_distante_01.wav
-│   ├── carro_distante_02.wav
-│   ├── cachorro_distante_01.wav
-│   ├── porta_vizinho_01.wav
-│   ├── vento_janela_01.wav
-│   └── sirene_distante_01.wav
-└── transicoes/
-    ├── gole_agua_01.wav            # entre quadros
-    └── limpar_garganta_01.wav      # muito raro, muito baixo
+│   ├── respiracao_sutil_01.wav
+│   ├── gole_agua_01.wav
+│   └── limpar_garganta_01.wav
+└── residencial/
+    ├── passaro_01.wav
+    ├── passaro_02.wav
+    ├── passaro_03.wav
+    ├── carro_distante_01.wav
+    ├── carro_distante_02.wav
+    ├── cachorro_distante_01.wav
+    ├── porta_vizinho_01.wav
+    ├── vento_janela_01.wav
+    └── sirene_distante_01.wav
 ```
 
 ---
@@ -115,74 +127,50 @@ audio/ambience/foley/
 ## Camada 3 — Cola Acústica (Reverb de Convolução)
 
 ### O que é
-A voz TTS é 100% "seca" — sem nenhuma reflexão acústica. Isso faz com que a voz pareça "flutuar" desconectada do ambiente, especialmente quando há room tone embaixo.
-
-O reverb de convolução usa uma **Impulse Response (IR)** gravada em um ambiente real para simular as reflexões sonoras daquele espaço.
+A voz TTS é 100% "seca" — sem nenhuma reflexão acústica. O reverb de convolução usa uma **Impulse Response (IR)** de estúdio com absorção acústica alta para integrar a voz ao espaço físico.
 
 ### Especificações Técnicas
 
 | Parâmetro | Valor | Nota |
 |---|---|---|
-| Tipo | **Convolução FFT** | Não usar reverb algorítmico (menos realista) |
-| IR recomendada | **Small Room / Studio** | Salas pequenas (RT60 < 0.4s) |
+| Tipo | **Overlap-Add Convolução** (`scipy.signal.oaconvolve`) | Eficiência máxima de memória e CPU |
+| IR recomendada | **Small Room / Studio** | Salas pequenas (RT60 < 0.35s) |
 | Wet mix | **4%** (default) | Range: 3% a 6% |
 | Pre-delay | **8-12 ms** | Separa a voz direta do reverb |
 | HPF no reverb | **200 Hz** | Evita graves reverberados (enlameiam) |
-| LPF no reverb | **8000 Hz** | Evita "shhh" nas reflexões |
-| Aplicação | **Apenas na voz** | Room tone e foley NÃO recebem reverb |
-
-### Impulse Responses recomendadas
-
-```
-audio/impulse-responses/
-├── small_studio_01.wav          # estúdio de podcast ~15m²
-├── small_studio_02.wav          # quarto/home office ~12m²
-├── small_room_carpeted.wav      # sala com carpete (absorção alta)
-├── office_medium.wav            # escritório médio ~25m²
-└── vocal_booth_subtle.wav       # cabine vocal (reverb mínimo, 0.15s RT60)
-```
-
-### Fontes de IRs gratuitas (CC0 / permissive)
-
-1. **OpenAIR** (University of York) — academia, licenças abertas
-2. **EchoThief** — IRs de ambientes reais, CC
-3. **Voxengo** — "Voxengo Impulse Responses" (free pack)
-4. **Fokke van Saane** — Free IR collection
-5. **Gravar a própria** — Estourar um balão em um cômodo e gravar o decay (método DIY)
+| LPF no reverb | **8000 Hz** | Evita "shhh" metálico |
+| Aplicação | **Apenas na voz** | Room tone e foley NUNCA recebem reverb |
 
 ---
 
-## Diagrama de Fluxo de Sinal
+## Diagrama de Fluxo de Sinal (Sem Noise Pumping)
 
 ```
-                     VOZ TTS (24kHz → 44.1kHz)
-                              │
-                     ┌────────┴────────┐
-                     │                 │
-                     ▼                 ▼
-              [Voz Seca]        [Reverb Conv.]
-              (100% dry)         (wet 3-6%)
-                     │                 │
-                     │    HPF 200Hz    │
-                     │    LPF 8kHz     │
-                     │                 │
-                     └────────┬────────┘
-                              │ mix
-                              ▼
-                     [Voz com Cola]
-                              │
-                 ┌────────────┼────────────┐
-                 │            │            │
-                 ▼            ▼            ▼
-          [Room Tone]   [Voz + Reverb]  [Foley]
-          -30 dB rel.                   -35 dB rel.
-          HPF 100Hz                     HPF 100Hz
-          LPF 6kHz                      LPF 8kHz
-          Contínuo                      Esparso
-                 │            │            │
-                 └────────────┼────────────┘
-                              │ sum
-                              ▼
+                     VOZ TTS (44.1kHz)
+                             │
+                     ┌───────┴───────┐
+                     │               ▼
+                     │         [Reverb Conv.]
+                     │         (oaconvolve 4% wet)
+                     │         HPF 200Hz / LPF 8kHz
+                     │               │
+                     └───────┬───────┘
+                             │ soma (wet mix)
+                             ▼
+                    [Voz com Cola Acústica]
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+              ▼              ▼              ▼
+       [Room Tone]    [Voz + Reverb]     [Foley]
+       -30 dB rel.    (Voz Principal)    -35 dB rel.
+       HPF 100Hz                         (Speech ou Pause)
+       LPF 6kHz / Notch                  HPF 100Hz / LPF 8kHz
+       Contínuo + Breathing              Esparso (2-5/min)
+              │              │              │
+              └──────────────┼──────────────┘
+                             │ mixagem balanceada (headroom check)
+                             ▼
                      [WAV Humanizado]
                               │
                               ▼

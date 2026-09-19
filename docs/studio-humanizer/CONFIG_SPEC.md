@@ -88,9 +88,6 @@ room_tone:
 foley:
   enabled: true
 
-  # NOTA: Os sons já vêm normalizados do prepare.
-  # Aqui apenas controlamos posicionamento e volume.
-
   # Volume base relativo à voz (em dB).
   volume_db: -35
 
@@ -107,52 +104,47 @@ foley:
   # Zona de exclusão: não colocar foley dentro de N ms de uma troca de locutor.
   speaker_change_exclusion_ms: 500
 
-  # Zona de exclusão: não colocar foley sobre silêncios/pausas.
-  silence_exclusion:
-    enabled: true
-    rms_threshold_db: -40   # Trechos abaixo disso são considerados "silêncio"
-    window_ms: 200          # Janela de análise RMS
+  # Detecção de voz vs pausa (análise RMS por janela):
+  # - speech_concurrent: só dispara se RMS >= silence_threshold_db
+  # - pause_transition: só dispara se RMS < silence_threshold_db
+  silence_detection:
+    threshold_db: -40.0     # Abaixo disso = pausa/silêncio
+    window_ms: 150          # Resolução da janela RMS
 
   # Limite máximo de eventos por minuto (hard cap).
-  max_events_per_minute: 6
+  max_events_per_minute: 5
 
   # EQ aplicado a todos os eventos foley DURANTE O PREPARE.
-  # Valores aqui são usados quando o prepare roda.
   eq:
     highpass_hz: 100
     lowpass_hz: 8000
 
-  # Pesos por tipo de evento (influenciam a probabilidade de seleção).
-  # Maior peso = mais frequente. 0 = desabilitado.
-  weights:
-    mouse_click: 3
-    teclado_curto: 3
-    teclado_longo: 1
-    cadeira_range: 1
-    papel_vira: 1
-    papel_pega: 1
-    caneta_mesa: 1
-    gole_agua: 0.5          # Raro — apenas em transições
-    limpar_garganta: 0.2    # Muito raro
+  # Categorização e pesos por tipo de evento.
+  # speech_concurrent: disparados durante a fala.
+  # pause_transition: disparados exclusivamente em pausas.
+  events:
+    speech_concurrent:
+      mouse_click: 3.0
+      teclado_curto: 3.0
+      teclado_longo: 1.0
+      cadeira_range: 1.0
+      papel_vira: 1.0
+      caneta_mesa: 1.0
+    pause_transition:
+      gole_agua: 0.3          # Raro — pausas entre blocos
+      limpar_garganta: 0.2    # Muito raro
+      respiracao_sutil: 0.5   # Pausa suave
 
-  # Perfis de peso alternativos (sobrescrevem os pesos acima).
+  # Perfis alternativos de peso
   profiles:
     escritorio:
-      mouse_click: 3
-      teclado_curto: 3
-      teclado_longo: 1
-      cadeira_range: 1
-      papel_vira: 1
-      caneta_mesa: 1
-      gole_agua: 0.5
-      limpar_garganta: 0.2
+      # Perfil de podcast do Vale da Liberdade
+      use_speech_concurrent: true
+      use_pause_transition: true
     residencial:
-      passaro: 3
-      carro_distante: 2
-      cachorro_distante: 0.5
-      vento_janela: 1
-      sirene_distante: 0.3
-      porta_vizinho: 0.5
+      passaro: 2.0
+      carro_distante: 1.5
+      vento_janela: 1.0
 
 
 # ─── REVERB (cola acústica) ──────────────────────────────────

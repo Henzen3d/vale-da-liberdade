@@ -97,28 +97,42 @@ generate_gemini_tts_multi.py::main()
 
 ## 3. Arquivos Modificados
 
-### 3.1 `scripts/generate_gemini_tts_multi.py` — Modificação mínima
+### 3.1 `scripts/generate_gemini_tts_multi.py` — Integração Real e Segura
 
-**Localização:** Após `concatenate_wavs()` (linha ~395) e antes de `run_ffmpeg_chain_2pass()` (linha ~415)
+**Localização:** Logo após a escrita do WAV final (`wave_file(str(out_path), ...)`) e antes do pós-processamento EBU R128 (`run_ffmpeg_chain_2pass(...)`, linha ~1630).
 
 ```python
-# ── CÓDIGO EXISTENTE ────────────────────────────────────
-final_wav = concatenate_wavs(chunk_wavs, ...)
-# ── INSERÇÃO NOVA ───────────────────────────────────────
-from studio_humanizer import StudioHumanizer
+# ── CÓDIGO EXISTENTE: Gravação do WAV completo ───────────
+wave_file(str(out_path), all_pcm)
+log.info(f"OK {out_path}")
 
-humanizer = StudioHumanizer()  # lê config/studio_humanizer.yaml
-if humanizer.enabled:
-    humanized_wav = final_wav.with_stem(final_wav.stem + "-humanized")
-    humanizer.humanize(input_wav=final_wav, output_wav=humanized_wav)
-    final_wav = humanized_wav
-    log.info(f"✅ Studio Humanizer aplicado → {humanized_wav}")
-# ── CÓDIGO EXISTENTE (sem mudança) ──────────────────────
-run_ffmpeg_chain_2pass(final_wav, output_mp3)
+# ── INSERÇÃO STUDIO HUMANIZER ────────────────────────────
+try:
+    from studio_humanizer import StudioHumanizer
+    humanizer = StudioHumanizer()
+    # Ativo via config YAML ou flag CLI (--humanize / --no-humanize)
+    should_humanize = getattr(args, "humanize", None)
+    if should_humanize is None:
+        should_humanize = humanizer.enabled
+
+    if should_humanize:
+        # turn_boundaries pode ser derivado das durações acumuladas de cada chunk
+        humanizer.humanize(
+            input_wav=out_path,
+            output_wav=out_path,  # in-place para manter compatibilidade total de nomes
+            turn_boundaries=chunk_boundaries if 'chunk_boundaries' in locals() else None,
+        )
+        log.info(f"✅ Studio Humanizer aplicado com sucesso → {out_path}")
+except Exception as h_exc:
+    # Fail-Safe: nunca trava o jornal diário se houver erro no humanizer
+    log.warning(f"⚠️ Studio Humanizer bypassado por erro: {h_exc}")
+
+# ── CÓDIGO EXISTENTE: Pós-processamento EBU R128 (sem mudança) ──
+run_ffmpeg_chain_2pass(out_path, mp3_path, tempo=tempo, peter_eq=is_single)
 ```
 
-**Total de linhas adicionadas:** ~8 linhas  
-**Risco de regressão:** Mínimo (gated por `humanizer.enabled`)
+**Total de linhas adicionadas:** ~15 linhas protegidas com try/except.  
+**Risco de regressão:** Zero (protegido por fail-safe e flags de bypass).
 
 ### 3.2 `scripts/studio_humanizer.py` — Arquivo NOVO
 

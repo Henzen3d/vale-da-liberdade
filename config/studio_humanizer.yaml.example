@@ -1,0 +1,105 @@
+# ═══════════════════════════════════════════════════════════════
+# Studio Humanizer — Configuração do Estúdio Virtual (Exemplo)
+# Vale da Liberdade — Pipeline de Áudio Broadcast
+# ═══════════════════════════════════════════════════════════════
+
+# Liga/desliga globalmente o humanizador
+enabled: true
+
+# Perfil acústico ativo: "escritorio" (estúdio podcast) ou "residencial"
+profile: "escritorio"
+
+# ─── PREPARE (pré-processamento offline) ─────────────────────
+prepare:
+  raw_dir: "audio/ambience/raw"
+  prepared_dir: "audio/ambience/prepared"
+  auto_prepare: true
+  verify_checksums: true
+
+# ─── ROOM TONE (ruído de fundo contínuo) ─────────────────────
+room_tone:
+  enabled: true
+  volume_db: -30.0        # Volume relativo à voz (range: -28 a -38 dB)
+  crossfade_s: 4.0        # Crossfade na emenda de loop
+  fade_in_s: 2.0          # Fade de entrada no início do episódio
+  fade_out_s: 3.0         # Fade de saída no final do episódio
+
+  # EQ de isolamento aplicado durante o prepare
+  eq:
+    highpass_hz: 100
+    lowpass_hz: 6000
+    notch_hz: 3000
+    notch_db: -3.0
+    notch_q: 1.5
+
+  # Variação lenta de ganho sinusoidal para simular ar natural
+  breathing:
+    enabled: true
+    amplitude_db: 1.5
+    period_s: 25.0
+
+  # Rotação para alternar arquivos entre episódios
+  rotation:
+    enabled: true
+    state_file: "output/studio_humanizer_state.json"
+
+# ─── FOLEY (micro-eventos incidentais) ───────────────────────
+foley:
+  enabled: true
+  volume_db: -35.0        # Volume base relativo à voz (-32 a -40 dB)
+  volume_variation_db: 3.0 # Variação randômica entre eventos (±dB)
+  events_per_minute_min: 2
+  events_per_minute_max: 5
+  min_gap_s: 3.0          # Espaçamento mínimo entre eventos
+  speaker_change_exclusion_ms: 500
+
+  # Detecção de voz vs pausa (RMS threshold em dB)
+  silence_detection:
+    threshold_db: -40.0
+    window_ms: 150
+
+  max_events_per_minute: 5
+
+  eq:
+    highpass_hz: 100
+    lowpass_hz: 8000
+
+  # Pesos por tipo de evento e categoria de disparo
+  events:
+    speech_concurrent:
+      mouse_click: 3.0
+      teclado_curto: 3.0
+      teclado_longo: 1.0
+      cadeira_range: 1.0
+      papel_vira: 1.0
+      caneta_mesa: 1.0
+    pause_transition:
+      gole_agua: 0.3
+      limpar_garganta: 0.2
+      respiracao_sutil: 0.5
+
+# ─── REVERB (cola acústica na voz) ───────────────────────────
+reverb:
+  enabled: true
+  wet_mix: 0.04           # 4% wet (range: 0.03 a 0.06)
+  pre_delay_ms: 10        # Atraso para manter a voz direta limpa
+  decay_trim_db: -60.0
+  preferred_ir: "small_studio_01.wav"
+
+  ir_eq:
+    highpass_hz: 200
+    lowpass_hz: 8000
+
+# ─── OUTPUT ──────────────────────────────────────────────────
+output:
+  sample_rate: 44100
+  bit_depth: 16
+  channels: 1
+  keep_original: false
+  log_manifest: true
+  manifest_dir: "output/studio_humanizer_manifests"
+
+# ─── DEBUG ───────────────────────────────────────────────────
+debug:
+  export_layers: false
+  layers_dir: "test_output/humanizer_layers"

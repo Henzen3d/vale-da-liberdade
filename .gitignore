@@ -62,6 +62,7 @@ nul
 # Configurações com tokens (exceto exemplos)
 config/*.yaml
 !config/*.yaml.example
+!config/studio_humanizer.yaml
 
 # Models grandes (TTS)
 kokoro_work/
