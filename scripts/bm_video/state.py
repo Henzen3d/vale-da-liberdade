@@ -780,6 +780,10 @@ def _normalize_beat_v2(beat: Any) -> dict:
             "highlight_box": d.get("highlight_box"),
             "video": d.get("video"),
             "broll_file": d.get("broll_file"),
+            "fala_indices": list(d.get("fala_indices") or []),
+            "texto_origem": d.get("texto_origem") or "",
+            "fonte_url_fala": d.get("fonte_url_fala"),
+            "provenance_type": d.get("provenance_type") or "none",
         }
         out["kind"] = out["visual_component"] or d.get("kind") or "source"
         x_post = d.get("x_post") or d.get("xPost")
@@ -799,6 +803,10 @@ def _normalize_beat_v2(beat: Any) -> dict:
         video=d.get("video"),
         broll_file=d.get("broll_file"),
         x_post=d.get("x_post") or d.get("xPost"),
+        fala_indices=list(d.get("fala_indices") or []),
+        texto_origem=d.get("texto_origem") or "",
+        fonte_url_fala=d.get("fonte_url_fala"),
+        provenance_type=d.get("provenance_type") or "none",
     )
     overrides2: dict = {}
     if kind_raw in _v2_kinds and kind_raw not in {"source", "broll", "x-post"}:
@@ -817,6 +825,14 @@ def _normalize_beat_v2(beat: Any) -> dict:
         out2["highlight_box"] = d.get("highlight_box")
     if legacy.x_post:
         out2["x_post"] = legacy.x_post
+    if d.get("fala_indices"):
+        out2["fala_indices"] = list(d.get("fala_indices"))
+    if d.get("texto_origem"):
+        out2["texto_origem"] = d.get("texto_origem")
+    if d.get("fonte_url_fala"):
+        out2["fonte_url_fala"] = d.get("fonte_url_fala")
+    if d.get("provenance_type"):
+        out2["provenance_type"] = d.get("provenance_type")
     return out2
 
 
@@ -853,6 +869,12 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
         "visual_component": kind,
         "visual_variant": beat_v2.get("visual_variant") or ("x_card" if kind == "x-post" else ""),
         "visual_payload": dict(beat_v2.get("visual_payload") or {}),
+        "provenance": {
+            "fala_indices": list(beat_v2.get("fala_indices") or []),
+            "texto_origem": beat_v2.get("texto_origem") or "",
+            "fonte_url_fala": beat_v2.get("fonte_url_fala"),
+            "provenance_type": beat_v2.get("provenance_type") or "none",
+        },
     }
     url = _omnibox_url(beat_v2.get("url"))
     if url:

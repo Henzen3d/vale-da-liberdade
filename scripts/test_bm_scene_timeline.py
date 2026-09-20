@@ -2,9 +2,10 @@
 """Testes unitários da timeline de cenas BM (sem rede)."""
 from __future__ import annotations
 
-import unittest
+import json
 from pathlib import Path
 import sys
+import unittest
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -506,6 +507,115 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertTrue(Path(payload["photo_src"]).is_file())
 
 
+    def test_provenance_explicit_inherited_none(self):
+        """Verifica que a proveniência distingue explicit, inherited e none (sem inventar fontes no fechamento)."""
+        episode = {
+            "titulo": "Teste de Proveniência Editorial",
+            "abertura": [
+                {"speaker": "Peter", "texto": "Abertura com declaração ancorada na matéria principal. " * 5, "fonte_url": "https://portal1.com/artigo1"}
+            ],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Comentário analítico que dá sequência à matéria 1 sem URL própria. " * 10},
+                {"speaker": "Peter", "texto": "Nova pauta com dados fiscais novos e link próprio. " * 10, "fonte_url": "https://portal2.com/artigo2"},
+            ],
+            "fechamento": [
+                {"speaker": "Peter", "texto": "Conclusão e opinião final do apresentador, sem fonte associada. " * 8}
+            ],
+        }
+        scenes = [
+            {"veiculo": "Portal 1", "url": "https://portal1.com/artigo1", "shot": "src-00.png"},
+            {"veiculo": "Portal 2", "url": "https://portal2.com/artigo2", "shot": "src-01.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
+        self.assertTrue(len(beats) >= 3)
+
+        # Beat inicial com URL explícita
+        beat_0 = beats[0]
+        self.assertEqual(beat_0.provenance_type, "explicit")
+        self.assertEqual(beat_0.fonte_url_fala, "https://portal1.com/artigo1")
+        self.assertIn(0, beat_0.fala_indices)
+        self.assertIn("Abertura com declaração", beat_0.texto_origem)
+
+        # Beat do fechamento (último beat de conteúdo falado)
+        last_beat = beats[-1]
+        self.assertEqual(last_beat.provenance_type, "none")
+        self.assertIsNone(last_beat.fonte_url_fala)
+        self.assertIn(3, last_beat.fala_indices)
+        self.assertIn("Conclusão e opinião final", last_beat.texto_origem)
+
+    def test_provenance_in_v2_and_mockup_payload(self):
+        """Verifica propagação da proveniência para SceneBeatV2 e payload de window.VDL_MOCKUP.update."""
+        from bm_video.state import _build_mockup_update_payload, _normalize_beat_v2
+
+        episode = {
+            "titulo": "Teste Proveniência Mockup Payload",
+            "abertura": [
+                {"speaker": "Peter", "texto": "Texto de abertura com URL de fonte. " * 5, "fonte_url": "https://portal1.com/artigo1"}
+            ],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Texto de desenvolvimento herdando a fonte. " * 10}
+            ],
+            "fechamento": [
+                {"speaker": "Peter", "texto": "Texto de fechamento livre de fonte. " * 5}
+            ],
+        }
+        scenes = [
+            {"veiculo": "Portal 1", "url": "https://portal1.com/artigo1", "shot": "src-00.png"},
+        ]
+        beats_v2 = build_scene_timeline(episode, total_duration_s=30.0, scenes=scenes, return_v2=True)
+        self.assertTrue(len(beats_v2) >= 2)
+        b0 = beats_v2[0]
+        self.assertEqual(b0.provenance_type, "explicit")
+        self.assertEqual(b0.fonte_url_fala, "https://portal1.com/artigo1")
+
+        norm = _normalize_beat_v2(b0)
+        self.assertIn("fala_indices", norm)
+        self.assertEqual(norm["provenance_type"], "explicit")
+
+        payload = _build_mockup_update_payload(norm)
+        self.assertIn("provenance", payload)
+        self.assertEqual(payload["provenance"]["provenance_type"], "explicit")
+        self.assertEqual(payload["provenance"]["fonte_url_fala"], "https://portal1.com/artigo1")
+        self.assertIn(0, payload["provenance"]["fala_indices"])
+        self.assertTrue(len(payload["provenance"]["texto_origem"]) > 0)
+
+    def test_provenance_broll_and_transition(self):
+        """Verifica proveniência procedural para b-roll e transições broadcast."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w", encoding="utf-8") as fh:
+            json.dump([{"file": "broll1.mp4", "dur_s": 1.2}], fh)
+            broll_p = Path(fh.name)
+        self.addCleanup(broll_p.unlink, missing_ok=True)
+
+        episode = {
+            "titulo": "Procedural Beats",
+            "abertura": [{"speaker": "Peter", "texto": " ".join(["palavra"] * 30), "fonte_url": "https://p1.com"}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": " ".join(["palavra"] * 80), "fonte_url": "https://p1.com"},
+                {"speaker": "Peter", "texto": " ".join(["palavra"] * 80), "fonte_url": "https://p2.com"},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": " ".join(["palavra"] * 30), "fonte_url": "https://p2.com"}],
+        }
+        scenes = [
+            {"veiculo": "P1", "url": "https://p1.com", "shot": "p1.png"},
+            {"veiculo": "P2", "url": "https://p2.com", "shot": "p2.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=150.0, scenes=scenes, broll_index_path=broll_p)
+        broll_beats = [b for b in beats if b.provenance_type == "broll"]
+        if broll_beats:
+            self.assertEqual(broll_beats[0].fala_indices, [])
+            self.assertIsNone(broll_beats[0].fonte_url_fala)
+            self.assertEqual(broll_beats[0].texto_origem, "")
+
+        trans_beats = [b for b in beats if b.provenance_type == "transition"]
+        if trans_beats:
+            self.assertEqual(trans_beats[0].fala_indices, [])
+            self.assertIsNone(trans_beats[0].fonte_url_fala)
+            self.assertEqual(trans_beats[0].texto_origem, "")
+
+
 if __name__ == "__main__":
     unittest.main()
+
 
