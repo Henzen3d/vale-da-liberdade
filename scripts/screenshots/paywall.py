@@ -33,20 +33,43 @@ _GENERIC_PAYWALL_JS = """() => {
 }"""
 
 
+try:
+    from bm_video.constants import _BLOCK_TEXT_MARKERS
+except Exception:
+    try:
+        from scripts.bm_video.constants import _BLOCK_TEXT_MARKERS
+    except Exception:
+        _BLOCK_TEXT_MARKERS = (
+            "access denied", "you don't have permission to access",
+            "voce nao tem permissao", "você não tem permissão",
+            "acesso restrito", "errors.edgesuite.net", "request blocked",
+            "attention required", "just a moment", "are you a robot",
+            "perimeterx", "http error 403", "403 forbidden",
+            "temporarily offline", "turnstile", "verify you are human",
+            "verifique se você é humano", "enable javascript and cookies to continue",
+            "página não encontrada", "404 not found", "erro 404",
+            "checking your browser before accessing",
+        )
+
+
 def detect_block(page: Any, http_status: int | None = None) -> str | None:
     """Detecta se uma página carregada é um desafio de robô, WAF ou bloqueio de acesso."""
-    if http_status in (401, 403, 429):
+    if http_status in (401, 403, 429, 451):
         return f"http_{http_status}"
     try:
         title = (page.title() or "").lower()
-        if "just a moment..." in title or "attention required" in title or "enable js" in title:
+        if any(marker in title for marker in ("just a moment", "attention required", "enable js", "turnstile", "verify you are human", "robot")):
             return "cloudflare"
-        text = page.evaluate("() => document.body ? document.body.innerText.slice(0, 1000).toLowerCase() : ''")
+        text = page.evaluate("() => document.body ? document.body.innerText.slice(0, 3000).toLowerCase() : ''")
+        for marker in _BLOCK_TEXT_MARKERS:
+            if marker in text:
+                return f"block:{marker}"
         if "access denied" in text or "temporariamente restrito" in text or "are you a robot" in text or "perimeterx" in text:
             return "waf_block"
     except Exception:
         pass
     return None
+
 
 
 def record_capture_telemetry(result: dict, duration_s: float) -> None:

@@ -165,16 +165,16 @@ class SceneBeatV2:
 # ---------------------------------------------------------------------------
 
 QUOTE_PATTERNS = [
-    re.compile(r'["“]([^"”]{12,300})["”]', re.U),
+    re.compile(r'["“\'‘]([^"”\'’]{12,300})["”\'’]', re.U),
     re.compile(
-        r'(?:afirmou|disse|declarou|ressaltou|garantiu|destacou)\s*:\s*["“]?([^"”\n.]{12,300})["”]?',
+        r'(?:afirmou|disse|declarou|ressaltou|garantiu|destacou)(?:\s+(?:no\s+x|no\s+twitter|em\s+nota|à\s+imprensa))?\s*:\s*["“\'‘]?([^"”\'’\n.]{12,300})["”\'’]?',
         re.I | re.U,
     ),
     re.compile(
-        r'(?:afirmou|disse|declarou|ressaltou|garantiu|destacou)\s+(?:que\s+)?["“](.+?)["”]',
+        r'(?:afirmou|disse|declarou|ressaltou|garantiu|destacou)\s+(?:que\s+)?["“\'‘](.+?)["”\'’]',
         re.I | re.U,
     ),
-    re.compile(r'em\s+nota(?:,\s+afirmou\s+que)?:\s*["“]?([^.\n]{15,300})["”]?', re.I | re.U),
+    re.compile(r'em\s+nota(?:,\s+afirmou\s+que)?:\s*["“\'‘]?([^.\n]{15,300})["”\'’]?', re.I | re.U),
 ]
 
 CHART_PATTERNS = [
@@ -382,9 +382,11 @@ def detect_visual_opportunities(
         author = _extract_quote_author(paragraph, quote_m.span())
         if author or _AUTHORITY_RE.search(paragraph):
             score = _clamp01(score + 0.15)
-        # Se for menção explícita ao X/Twitter, a citação pertence ao card social
-        if _collect_pattern_hits(X_POST_PATTERNS, paragraph):
-            score = _clamp01(score - 0.20)
+        # Se for citação com menção ao X/Twitter, registra no source_name mas mantém como quote editorial
+        has_x_mention = bool(_collect_pattern_hits(X_POST_PATTERNS, paragraph))
+        quote_source = veiculo_s or ("X (antigo Twitter)" if has_x_mention else "Declaração Oficial")
+        if has_x_mention and veiculo_s and "x" not in veiculo_s.lower() and "twitter" not in veiculo_s.lower():
+            quote_source = f"{veiculo_s} (via X)"
         candidates["quote"] = {
             "opportunity_type": _OPPORTUNITY_TYPE["quote"],
             "score": round(score, 2),
@@ -394,7 +396,7 @@ def detect_visual_opportunities(
                 "quote_text": quote_text,
                 "author": author,
                 "author_name": author or "Autoridade",
-                "source_name": veiculo_s or "Declaração Oficial",
+                "source_name": quote_source,
             },
         }
 
@@ -477,12 +479,14 @@ def detect_visual_opportunities(
         }
 
     # --- x-post (social / X / Twitter) ---
-    x_hits = _collect_pattern_hits(X_POST_PATTERNS, paragraph)
+    # Uso estrito e exclusivo: só recomenda componente x-post (Modo 8) se a URL
+    # de origem for comprovadamente do X/Twitter com post_id ou dados de tweet.
+    # Citações no roteiro mencionando o X sem post real usam o componente quote.
     is_x_url = bool(url_s and ("twitter.com" in url_s.lower() or "x.com" in url_s.lower()))
-    if x_hits or is_x_url:
+    x_hits = _collect_pattern_hits(X_POST_PATTERNS, paragraph)
+    if is_x_url:
         score = _BASE_SCORE["x-post"]
-        if is_x_url:
-            score = _clamp01(score + 0.10)
+        score = _clamp01(score + 0.10)
         extracted_x: dict[str, Any] = {
             "source_name": "X (antigo Twitter)",
             "match_count": len(x_hits),
@@ -1067,14 +1071,22 @@ def build_scene_timeline(
     final_beats = expanded_beats
 
     # 7.1 Inserção de Foto Editorial (Person-Photo com Ken Burns)
-    editorial_photo = episode.get("editorial_image") or episode.get("foto_editorial")
-    vid_cand = youtube_id_from_episode(episode)
-    if not editorial_photo and vid_cand:
+    # A thumbnail/capa gerada por IA para YouTube/site NÃO deve ser usada no meio do vídeo.
+    # Apenas foto editorial legítima de personagem (person_photo / foto_editorial) ou
+    # resolução semântica de personalidades citadas no roteiro é aceita.
+    editorial_photo = episode.get("person_photo") or episode.get("foto_editorial") or episode.get("editorial_image")
+    person_info = None
+
+    if not editorial_photo:
         try:
-            from episode_image_manifest import resolve_editorial_image
-            ep_img = resolve_editorial_image(vid_cand, allow_placeholder=False)
-            if ep_img and ep_img.exists():
-                editorial_photo = str(ep_img)
+            from person_resolver import resolve_person_for_text
+            for b_item in blocks:
+                if b_item.get("section") == "fechamento":
+                    continue
+                person_info = resolve_person_for_text(b_item.get("texto") or "", auto_download=False)
+                if person_info:
+                    editorial_photo = person_info["photo_src"]
+                    break
         except Exception:
             pass
 
@@ -1102,6 +1114,7 @@ def build_scene_timeline(
             photo_t0 = round(target.t1 - photo_dur, 2)
             target.t1 = photo_t0
             photo_name = f"editorial-{src_path.name}"
+            person_name = (person_info["name"] if person_info else None) or episode.get("speaker_name") or episode.get("titulo", "")[:45]
             photo_beat = SceneBeat(
                 t0=photo_t0,
                 t1=round(photo_t0 + photo_dur, 2),
@@ -1118,7 +1131,7 @@ def build_scene_timeline(
                 visual_payload={
                     "photo": f"/shots/{photo_name}",
                     "photo_src": str(src_path.resolve()),
-                    "name": episode.get("speaker_name") or episode.get("titulo", "")[:45],
+                    "name": person_name,
                     "veiculo": target.veiculo or "Registro Editorial Oficial",
                     "tag": "PERSONAGEM EM FOCO",
                 },

@@ -277,6 +277,7 @@ _BLOCK_TEXT_MARKERS = (
     "access denied",
     "you don't have permission to access",
     "voce nao tem permissao",
+    "você não tem permissão",
     "acesso restrito",
     "errors.edgesuite.net",
     "request blocked",
@@ -287,6 +288,14 @@ _BLOCK_TEXT_MARKERS = (
     "http error 403",
     "403 forbidden",
     "temporarily offline",
+    "turnstile",
+    "verify you are human",
+    "verifique se você é humano",
+    "enable javascript and cookies to continue",
+    "página não encontrada",
+    "404 not found",
+    "erro 404",
+    "checking your browser before accessing",
 )
 
 _WAIT_STYLED_JS = """() => {
