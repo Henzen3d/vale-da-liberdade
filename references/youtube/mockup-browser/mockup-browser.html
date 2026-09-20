@@ -3254,6 +3254,77 @@ const VDL_MOCKUP_ENGINE = {
   },
 
   /**
+   * Efeito Sonoro de Transição (Whoosh) - volume suave broadcast
+   */
+  _playTransitionSfx() {
+    if (this.isFreezeShot()) return;
+    try {
+      if (!this._whooshAudio) {
+        this._whooshAudio = new Audio("assets/sfx/whoosh.mp3");
+        this._whooshAudio.volume = 0.20; // suave, não muito alto
+      }
+      this._whooshAudio.currentTime = 0;
+      const p = this._whooshAudio.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          this._synthWhoosh();
+        });
+      }
+    } catch(e) {
+      this._synthWhoosh();
+    }
+  },
+
+  _synthWhoosh() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!this._audioCtx) {
+        this._audioCtx = new AudioContext();
+      }
+      const ctx = this._audioCtx;
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const duration = 0.55;
+
+      const bufferSize = ctx.sampleRate * duration;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.0;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.Q.value = 1.8;
+      filter.frequency.setValueAtTime(320, now);
+      filter.frequency.exponentialRampToValueAtTime(1550, now + 0.24);
+      filter.frequency.exponentialRampToValueAtTime(220, now + duration);
+
+      const mainGain = ctx.createGain();
+      mainGain.gain.setValueAtTime(0.001, now);
+      mainGain.gain.linearRampToValueAtTime(0.16, now + 0.24); // volume suave
+      mainGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      noise.connect(filter);
+      filter.connect(mainGain);
+      mainGain.connect(ctx.destination);
+
+      noise.start(now);
+      noise.stop(now + duration);
+    } catch(err) {}
+  },
+
+  /**
    * Animação broadcast de troca de portal:
    * 1. Reduz o browser suavemente em direção ao centro (Zoom Out).
    * 2. No ponto contraído (vale da curva), executa o swap da matéria (screenshot, omnibox, headline).
@@ -3269,6 +3340,9 @@ const VDL_MOCKUP_ENGINE = {
       }
       return;
     }
+
+    // Dispara som suave de transição (whoosh) sincronizado com o movimento
+    this._playTransitionSfx();
 
     if (this._portalZoomTween) {
       this._portalZoomTween.kill();

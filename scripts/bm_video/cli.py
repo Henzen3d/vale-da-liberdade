@@ -14,6 +14,8 @@ from bm_video.constants import *  # noqa: F403
 from bm_video.render import (
     append_outro_video,
     compose_presenter,
+    find_portal_transition_times,
+    mix_portal_transition_sfx,
     mp4_is_playable,
     mux_video,
     prepare_audio_with_intro,
@@ -142,6 +144,9 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         timeline_beats = align_beats_to_audio(
             timeline_beats, Path(audio), block_texts, cache_dir=work
         )
+    trans_times = find_portal_transition_times(timeline_beats)
+    if trans_times:
+        audio = mix_portal_transition_sfx(audio, trans_times, work)
     raw = record_mockup(video_id, episode, audio, usable, work, wallpaper=wallpaper, timeline_beats=timeline_beats)
     mp4 = VIDEOS_OUT / f"especial-{video_id}-mockup.mp4"
     mux_video(raw, audio, mp4)

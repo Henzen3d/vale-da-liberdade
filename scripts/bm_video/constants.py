@@ -18,6 +18,14 @@ BROLL_DIR = ROOT / "references" / "youtube" / "broll"
 
 BROLL_INDEX = BROLL_DIR / "_index.json"
 
+TRANSITION_SFX_PATH = (
+    MOCKUP_DIR / "assets" / "sfx" / "whoosh.wav"
+    if (MOCKUP_DIR / "assets" / "sfx" / "whoosh.wav").is_file()
+    else ROOT / "branding" / "audio" / "sfx" / "whoosh.wav"
+)
+
+TRANSITION_SFX_VOL = float(os.environ.get("BM_TRANSITION_SFX_VOL", "0.18"))
+
 AVATAR_LOOP = (
     ROOT / "references" / "youtube" / "Apresentadores"
     / "Peter Albuquerque" / "Peter-Loop-Picsart-BackgroundRemover.mp4"

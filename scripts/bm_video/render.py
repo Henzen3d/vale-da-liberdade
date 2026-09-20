@@ -284,6 +284,93 @@ def prepare_audio_with_intro(audio: Path, work_dir: Path) -> Path:
     return audio
 
 
+def find_whoosh_sfx() -> Path | None:
+    """Localiza o áudio de efeito de transição (whoosh)."""
+    candidates = [
+        TRANSITION_SFX_PATH,
+        MOCKUP_DIR / "assets" / "sfx" / "whoosh.wav",
+        MOCKUP_DIR / "assets" / "sfx" / "whoosh.mp3",
+        ROOT / "branding" / "audio" / "sfx" / "whoosh.wav",
+        ROOT / "branding" / "audio" / "sfx" / "whoosh.mp3",
+    ]
+    for c in candidates:
+        if c and c.is_file() and c.stat().st_size > 100:
+            return c
+    return None
+
+
+def find_portal_transition_times(timeline_beats: list[Any] | None) -> list[float]:
+    """Retorna os timestamps (em segundos) onde ocorre mudança de portal."""
+    if not timeline_beats:
+        return []
+    from bm_video.state import _normalize_beat_v2
+    times = []
+    last_key = None
+    for idx, beat in enumerate(timeline_beats):
+        b = _normalize_beat_v2(beat)
+        kind = b.get("visual_component") or b.get("kind") or "source"
+        if kind not in ("source", "browser", ""):
+            continue
+        key = (
+            b.get("shot") or "",
+            b.get("shot_long") or "",
+            b.get("url") or "",
+            b.get("titulo") or "",
+        )
+        if idx > 0 and last_key is not None and key != last_key:
+            t0 = float(b.get("t0", 0.0))
+            if t0 > 0.5:  # ignora início imediato no frame zero
+                times.append(t0)
+        last_key = key
+    return times
+
+
+def mix_portal_transition_sfx(
+    audio: Path,
+    transition_times: list[float],
+    work_dir: Path,
+    vol: float = TRANSITION_SFX_VOL,
+) -> Path:
+    """Mixa o efeito sonoro de transição (whoosh) nos timestamps de troca de portal."""
+    if not transition_times:
+        return audio
+    sfx = find_whoosh_sfx()
+    if not sfx:
+        return audio
+
+    out_audio = work_dir / f"{audio.stem}-with-sfx.mp3"
+    inputs = ["-i", str(audio)]
+    fc_parts = []
+    mix_inputs = ["[0:a]"]
+
+    for idx, t in enumerate(transition_times, 1):
+        inputs.extend(["-i", str(sfx)])
+        delay_ms = max(0, int(t * 1000))
+        fc_parts.append(f"[{idx}:a]adelay={delay_ms}|{delay_ms},volume={vol:.3f}[sfx{idx}];")
+        mix_inputs.append(f"[sfx{idx}]")
+
+    mix_str = "".join(mix_inputs)
+    fc = "".join(fc_parts) + f"{mix_str}amix=inputs={len(mix_inputs)}:duration=first:normalize=0[aout]"
+
+    cmd = [
+        "ffmpeg", "-y",
+        *inputs,
+        "-filter_complex", fc,
+        "-map", "[aout]",
+        "-c:a", "libmp3lame", "-b:a", "192k",
+        str(out_audio),
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if r.returncode == 0 and out_audio.is_file() and out_audio.stat().st_size > 50_000:
+            print(f"  💨 SFX Whoosh de transição integrado em {len(transition_times)} trocas de portal (vol {vol:.2f})")
+            return out_audio
+        print(f"  ⚠️  Falha ao mixar SFX de transição: {(r.stderr or '')[-200:]}; usando áudio base")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  Exceção ao mixar SFX de transição: {exc}; usando áudio base")
+    return audio
+
+
 def find_music_outro() -> Path | None:
     """Localiza a trilha musical de encerramento em branding/audio/outro/."""
     candidates = [
