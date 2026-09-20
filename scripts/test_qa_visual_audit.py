@@ -103,8 +103,31 @@ def test_pre_render_chart_nan_demotes():
     assert any(d["from"] == "chart" for d in out["demotions"])
 
 
+def test_pre_render_includes_shot_qa_report():
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="qa_work_") as tmp_str:
+        tmp = Path(tmp_str)
+        qa_data = {"total_shots": 1, "approved_count": 1, "overall_status": "APPROVED"}
+        (tmp / "shot.qa.json").write_text(json.dumps(qa_data), encoding="utf-8")
+        plan = {
+            "beats": [
+                {
+                    "t0": 0.0,
+                    "t1": 10.0,
+                    "visual_component": "source",
+                    "url": "https://g1.globo.com",
+                    "veiculo": "G1",
+                }
+            ]
+        }
+        out = validate_pre_render(plan, audio_duration_s=10.0, work_dir=tmp)
+        assert "shot_qa" in out
+        assert out["shot_qa"]["overall_status"] == "APPROVED"
+
+
 if __name__ == "__main__":
     test_pre_render_healthy_plan()
     test_pre_render_demotes_short_quote()
     test_pre_render_chart_nan_demotes()
+    test_pre_render_includes_shot_qa_report()
     print("OK test_qa_visual_audit")

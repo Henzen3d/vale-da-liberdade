@@ -614,8 +614,49 @@ class SceneTimelineTests(unittest.TestCase):
             self.assertIsNone(trans_beats[0].fonte_url_fala)
             self.assertEqual(trans_beats[0].texto_origem, "")
 
+    def test_pacing_anti_monotony_sub_beats_and_variants(self):
+        """Valida que nenhum beat de source excede o teto (10s) e que variantes de câmera não se repetem consecutivamente."""
+        episode = {
+            "titulo": "Episódio Longo Teste Pacing",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura rápida de contexto internacional. " * 8}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Comentário analítico longo e detalhado com muitas palavras por segundo. " * 15, "fonte_url": "https://portal1.com/artigo1"},
+                {"speaker": "Peter", "texto": "Continuação da mesma matéria com desdobramentos adicionais dos fatos. " * 15, "fonte_url": "https://portal1.com/artigo1"},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fechamento sintético provocador. " * 8}],
+        }
+        scenes = [
+            {"veiculo": "Portal 1", "url": "https://portal1.com/artigo1", "shot": "shot-00.png"},
+            {"veiculo": "Portal 2", "url": "https://portal2.com/artigo2", "shot": "shot-01.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=120.0, scenes=scenes)
+
+        # 1. Teto máximo estrito (Fase 4.3): nenhum beat de source pode exceder 10.0s + tolerância de 0.5s
+        for idx, b in enumerate(beats):
+            dur = b.t1 - b.t0
+            if b.visual_component == "source":
+                self.assertLessEqual(dur, 10.5, f"Beat[{idx}] dur={dur:.2f}s excedeu teto de 10s")
+
+        # 2. Alternância de variantes visuais de câmera: consecutivas não repetem
+        for idx in range(len(beats) - 1):
+            b_curr = beats[idx]
+            b_next = beats[idx + 1]
+            if (
+                b_curr.visual_component == "source"
+                and b_next.visual_component == "source"
+                and b_curr.url == b_next.url
+                and b_curr.visual_variant
+                and b_next.visual_variant
+            ):
+                self.assertNotEqual(
+                    b_curr.visual_variant,
+                    b_next.visual_variant,
+                    f"Beats consecutivos [{idx}] e [{idx+1}] repetiram a mesma variante: {b_curr.visual_variant}",
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

@@ -593,7 +593,7 @@ def detect_visual_opportunities(
 
 
 MIN_SCENE_DURATION_S = 5.0
-MAX_SCENE_DURATION_S = 12.0
+MAX_SCENE_DURATION_S = 10.0
 DEFAULT_BROLL_DUR_S = 1.2
 TARGET_MIN_BEATS_5MIN = 18
 _PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll", "portal_highlight"]
@@ -1032,16 +1032,20 @@ def build_scene_timeline(
     for b in final_beats:
         b.abertura_fim = round(abertura_fim, 2)
 
-    # 6. Dinamismo: quebra beats longos (> MAX_SCENE_DURATION_S) mantendo a fonte sincronizada
-    # O sub-beat preserva a fonte do beat e cicla variantes visuais
-    # (portal_hero -> portal_zoom -> portal_scroll -> portal_highlight), criando
-    # cortes ópticos dinâmicos de câmera de telejornalismo a cada 6-10s mesmo com 1 print.
+    # 6. Dinamismo e Pacing Inteligente Anti-Monotonia (Fase 4.3):
+    # Quebra beats longos (> MAX_SCENE_DURATION_S) mantendo a fonte sincronizada,
+    # calibrando o ritmo pela velocidade da fala (palavras/segundo) e alternando
+    # variantes ópticas (hero -> zoom -> scroll -> highlight), criando cortes ópticos dinâmicos a cada 5-8s.
     expanded_beats: list[SceneBeat] = []
     cycle_ptr = 1
     for beat in final_beats:
         dur = beat.t1 - beat.t0
         if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
-            num_sub = max(2, int(dur // 9.0) + 1)
+            # Calibração adaptativa por velocidade de fala
+            words = count_words(beat.texto_origem)
+            wps = words / max(1.0, dur) if words > 0 else 2.3
+            step_target = 6.0 if wps >= 2.6 else (7.5 if wps >= 2.0 else 8.5)
+            num_sub = max(2, int(dur // step_target) + 1)
             step = dur / num_sub
             sub_t0 = beat.t0
             # candidatos alternativos SÓ da mesma fonte (multi-shot)
@@ -1062,7 +1066,11 @@ def build_scene_timeline(
                                  "highlight_box": beat.highlight_box,
                                  "video": beat.video, "x_post": beat.x_post}
 
-                sub_variant = _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+                # Alternância dinâmica de variantes de câmera evitando repetição consecutiva
+                last_var = expanded_beats[-1].visual_variant if expanded_beats else ""
+                avail_vars = [v for v in _PORTAL_VARIANTS_CYCLE if v != last_var]
+                sub_variant = avail_vars[s_idx % len(avail_vars)] if avail_vars else _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+
                 sub_roles = ["apresentacao_fato", "detalhe_factual", "leitura_contexto", "destaque_editorial"]
                 sub_role = sub_roles[s_idx % len(sub_roles)]
 
@@ -1196,39 +1204,54 @@ def build_scene_timeline(
                 best_cand_dur = b_dur
                 best_cand_idx = idx
 
-        if best_cand_idx >= 0 and best_cand_dur >= 6.0:
+        if best_cand_idx >= 0 and best_cand_dur >= 4.5:
             target = final_beats[best_cand_idx]
-            photo_dur = min(6.5, best_cand_dur * 0.5)
-            photo_t0 = round(target.t1 - photo_dur, 2)
-            target.t1 = photo_t0
             photo_name = f"editorial-{src_path.name}"
             person_name = (person_info["name"] if person_info else None) or episode.get("speaker_name") or episode.get("titulo", "")[:45]
-            photo_beat = SceneBeat(
-                t0=photo_t0,
-                t1=round(photo_t0 + photo_dur, 2),
-                url=target.url,
-                veiculo=target.veiculo,
-                kind="person-photo",
-                shot=target.shot,
-                video=None,
-                broll_file=None,
-                x_post=None,
-                semantic_role="destaque_editorial",
-                visual_component="person-photo",
-                visual_variant="ken_burns",
-                visual_payload={
+            if best_cand_dur >= 9.0:
+                photo_dur = min(6.5, best_cand_dur * 0.5)
+                photo_t0 = round(target.t1 - photo_dur, 2)
+                target.t1 = photo_t0
+                photo_beat = SceneBeat(
+                    t0=photo_t0,
+                    t1=round(photo_t0 + photo_dur, 2),
+                    url=target.url,
+                    veiculo=target.veiculo,
+                    kind="person-photo",
+                    shot=target.shot,
+                    video=None,
+                    broll_file=None,
+                    x_post=None,
+                    semantic_role="destaque_editorial",
+                    visual_component="person-photo",
+                    visual_variant="ken_burns",
+                    visual_payload={
+                        "photo": f"/shots/{photo_name}",
+                        "photo_src": str(src_path.resolve()),
+                        "name": person_name,
+                        "veiculo": target.veiculo or "Registro Editorial Oficial",
+                        "tag": "PERSONAGEM EM FOCO",
+                    },
+                    fala_indices=list(target.fala_indices),
+                    texto_origem=target.texto_origem,
+                    fonte_url_fala=target.fonte_url_fala,
+                    provenance_type="person_photo",
+                )
+                final_beats.insert(best_cand_idx + 1, photo_beat)
+            else:
+                # Converte o beat existente respeitando o piso e mantendo continuidade
+                target.kind = "person-photo"
+                target.semantic_role = "destaque_editorial"
+                target.visual_component = "person-photo"
+                target.visual_variant = "ken_burns"
+                target.visual_payload = {
                     "photo": f"/shots/{photo_name}",
                     "photo_src": str(src_path.resolve()),
                     "name": person_name,
                     "veiculo": target.veiculo or "Registro Editorial Oficial",
                     "tag": "PERSONAGEM EM FOCO",
-                },
-                fala_indices=list(target.fala_indices),
-                texto_origem=target.texto_origem,
-                fonte_url_fala=target.fonte_url_fala,
-                provenance_type="person_photo",
-            )
-            final_beats.insert(best_cand_idx + 1, photo_beat)
+                }
+                target.provenance_type = "person_photo"
 
     # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
     if total_dur >= 60.0 and len(final_beats) > 3:

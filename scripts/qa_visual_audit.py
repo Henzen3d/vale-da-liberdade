@@ -284,6 +284,19 @@ def validate_pre_render(
                 f"soma beats {sum_dur:.1f}s ≠ áudio/total {total:.1f}s (±{AUDIO_TOLERANCE_S}s)"
             )
 
+    shot_qa_report = None
+    if work_dir and (work_dir / "shot.qa.json").is_file():
+        try:
+            shot_qa_report = json.loads((work_dir / "shot.qa.json").read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    elif work_dir and (work_dir / "shots").is_dir():
+        try:
+            from bm_video.shot_judge import evaluate_timeline_shots
+            shot_qa_report = evaluate_timeline_shots(beats, [], work_dir)
+        except Exception:
+            pass
+
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
     ok = not blocking
     result = {
@@ -297,6 +310,8 @@ def validate_pre_render(
         "blocking_errors": blocking,
         "status": "APPROVED" if ok else "ALERT",
     }
+    if shot_qa_report:
+        result["shot_qa"] = shot_qa_report
     return result
 
 
