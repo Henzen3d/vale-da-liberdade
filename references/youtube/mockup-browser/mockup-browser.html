@@ -370,6 +370,7 @@ html, body {
   object-fit: cover;
   background: transparent;
   will-change: transform, opacity;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .portal-page-shot-incoming {
@@ -383,6 +384,8 @@ html, body {
   z-index: 5;
   opacity: 0;
   pointer-events: none;
+  will-change: opacity, transform;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 video.portal-page-shot {
@@ -531,7 +534,7 @@ video.portal-page-shot {
 .portal-page-shot.is-portrait {
   object-fit: contain;
   object-position: center;
-  background: #ffffff;
+  background: #11141c; /* Fundo de estúdio escuro para preencher barras laterais de vídeo vertical */
 }
 
 /* Header do Portal de Notícias */
@@ -4294,11 +4297,17 @@ const VDL_MOCKUP_ENGINE = {
     const flash = document.getElementById("transitionFlash");
     if (!layer || !window.gsap) return;
 
+    // Cancela qualquer transição pendente para evitar sobreposição de estados
+    gsap.killTweensOf([beam, flash]);
+    beam.style.opacity = "0";
+    flash.style.opacity = "0";
+
     layer.hidden = false;
     const cleanVar = (variant || "wipe_gold").toLowerCase().replace(/-/g, "_");
 
     if (cleanVar === "flash_cut") {
-      // Studio Shutter / Soft Glow Broadcast (0.55s, curva suave ease-in-out sem corte seco)
+      // Studio Shutter / Soft Glow Broadcast com tom âmbar refinado (0.55s)
+      flash.style.background = "radial-gradient(circle at center, rgba(212, 160, 23, 0.55) 0%, rgba(20, 25, 36, 0.85) 100%)";
       const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
       tl.fromTo(flash,
         { opacity: 0 },
@@ -4307,7 +4316,8 @@ const VDL_MOCKUP_ENGINE = {
         { opacity: 0, duration: 0.33, ease: "power2.out" }
       );
     } else if (cleanVar === "dissolve_brand") {
-      // Dissolve Editorial com tom de estúdio (0.65s, curva suave ease-in-out)
+      // Dissolve Editorial com assinatura ouro escuro e vinheta broadcast (0.65s)
+      flash.style.background = "radial-gradient(circle at center, rgba(180, 130, 15, 0.40) 0%, rgba(15, 18, 26, 0.90) 100%)";
       const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
       tl.fromTo(flash,
         { opacity: 0 },
@@ -4317,7 +4327,7 @@ const VDL_MOCKUP_ENGINE = {
         "+=0.04"
       );
     } else {
-      // wipe_gold (padrão Broadcast: 0.75s com aceleração e desaceleração calibradas)
+      // wipe_gold (padrão Broadcast: 0.75s com feixe de luz dourado e aceleração calibrada)
       const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
       tl.fromTo(beam,
         { x: "-100%", opacity: 1 },
@@ -4337,10 +4347,26 @@ const VDL_MOCKUP_ENGINE = {
     const urlEl = document.getElementById("urlText");
     const tabEl = document.getElementById("tabTitle");
 
+    // Sincronização da Aba do Navegador (com micro-fade broadcast quando animated = true)
     if (tabEl && title) {
-      tabEl.textContent = title.length > 34 ? title.substring(0, 34) + "..." : title;
+      const formattedTitle = title.length > 34 ? title.substring(0, 34) + "..." : title;
+      if (animated && window.gsap && !this.isFreezeShot()) {
+        gsap.to(tabEl, {
+          opacity: 0,
+          duration: 0.15,
+          ease: "power1.in",
+          onComplete: () => {
+            tabEl.textContent = formattedTitle;
+            gsap.to(tabEl, { opacity: 1, duration: 0.25, ease: "power2.out" });
+          }
+        });
+      } else {
+        tabEl.textContent = formattedTitle;
+        tabEl.style.opacity = "1";
+      }
     }
 
+    // Sincronização da Omnibox URL (com formatação protocol//host/path e micro-fade)
     if (!skipOmnibox && url && urlEl) {
       let formattedUrl = url;
       try {
@@ -4423,26 +4449,17 @@ const VDL_MOCKUP_ENGINE = {
           pageShot.style.opacity = "1";
           this._syncOmnibox(d.url, d.titulo, false);
         } else {
-          // Troca durante gravação / cena com DUAL-BUFFER ANTI-FLASH & CROSSFADE BROADCAST:
-          // A imagem anterior (pageShot) permanece 100% visível na tela enquanto a nova carrega.
-          const pre = new Image();
-          pre.onload = async () => {
-            if (pre.decode) {
-              try { await pre.decode(); } catch(e) {}
-            }
-            // Sincroniza a barra de URL exatamente quando a nova imagem está pronta para transição
-            this._syncOmnibox(d.url, d.titulo, true);
+          // Troca com DUAL-BUFFER ANTI-FLASH & CROSSFADE BROADCAST (Zero Double-Decode):
+          // A imagem anterior (pageShot) permanece 100% visível enquanto pageShotNext decodifica na GPU.
+          if (pageShotNext && window.gsap && !this.isFreezeShot()) {
+            pageShotNext.src = src;
+            pageShotNext.hidden = false;
+            pageShotNext.style.opacity = "0";
 
-            if (pageShotNext && window.gsap && !this.isFreezeShot()) {
-              pageShotNext.src = src;
-              pageShotNext.hidden = false;
-              pageShotNext.style.opacity = "0";
+            const triggerCrossfade = () => {
+              // Sincroniza a barra de URL e título exatamente no instante do início da transição visual
+              this._syncOmnibox(d.url, d.titulo, true);
 
-              if (pageShotNext.decode) {
-                try { await pageShotNext.decode(); } catch(e) {}
-              }
-
-              // Executa crossfade suave com curva profissional de broadcast (0.55s ease-in-out)
               if (this._crossfadeTween) this._crossfadeTween.kill();
               this._crossfadeTween = gsap.to(pageShotNext, {
                 opacity: 1,
@@ -4461,25 +4478,36 @@ const VDL_MOCKUP_ENGINE = {
                   }
                 }
               });
-            } else {
-              // Fallback caso GSAP não esteja disponível
-              pageShot.src = src;
-              pageShot.hidden = false;
-              pageShot.style.opacity = "1";
-              if (this.currentMode === "browser") {
-                this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+            };
+
+            const abortTransition = () => {
+              // Falha de rede/decode: mantém pageShot anterior 100% intacto, limpa buffer secundário
+              if (pageShotNext) {
+                pageShotNext.hidden = true;
+                pageShotNext.style.opacity = "0";
+                pageShotNext.removeAttribute("src");
               }
+            };
+
+            // Barreira única de decodificação de textura GPU (elimina ~15-30ms de double-decode)
+            if (pageShotNext.decode) {
+              pageShotNext.decode()
+                .then(triggerCrossfade)
+                .catch(abortTransition);
+            } else {
+              pageShotNext.onload = triggerCrossfade;
+              pageShotNext.onerror = abortTransition;
             }
-          };
-          pre.onerror = () => {
-            // Preserva a imagem anterior intacta — NÃO atribuir URL com falha ao pageShot primário
-            // (fix auditoria técnica: evita substituir imagem boa por placeholder de imagem quebrada)
-            if (pageShotNext) {
-              pageShotNext.hidden = true;
-              pageShotNext.removeAttribute("src");
+          } else {
+            // Fallback caso GSAP não esteja disponível ou em freezeShot
+            this._syncOmnibox(d.url, d.titulo, false);
+            pageShot.src = src;
+            pageShot.hidden = false;
+            pageShot.style.opacity = "1";
+            if (this.currentMode === "browser") {
+              this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
             }
-          };
-          pre.src = src;
+          }
         }
       } else if (!src) {
         pageShot.removeAttribute("src");
