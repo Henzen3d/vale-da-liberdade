@@ -343,6 +343,9 @@ html, body {
 }
 
 /* Quando há matéria com screenshot ou vídeo real, o portal mock interno é isolado e 100% oculto */
+.portal-viewport.has-page-shot {
+  background: #11141c; /* Fundo de proteção anti-flash: escuro editorial consistente com estúdio */
+}
 .portal-viewport.has-page-shot .portal-navbar,
 .portal-viewport.has-page-shot .portal-content-grid {
   display: none !important;
@@ -365,8 +368,21 @@ html, body {
   min-height: 100%;
   display: block;
   object-fit: cover;
-  background: #fff;
-  will-change: transform;
+  background: transparent;
+  will-change: transform, opacity;
+}
+
+.portal-page-shot-incoming {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  object-fit: cover;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
 }
 
 video.portal-page-shot {
@@ -507,7 +523,7 @@ video.portal-page-shot {
 .transition-flash-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(255, 240, 190, 0.85) 0%, rgba(14, 17, 24, 0.7) 100%);
+  background: radial-gradient(circle at center, rgba(212, 160, 23, 0.45) 0%, rgba(20, 25, 36, 0.75) 100%);
   opacity: 0;
 }
 
@@ -2618,6 +2634,7 @@ img[hidden],
     <div class="portal-viewport">
       <div id="portalScrollWrapper" class="portal-scroll-wrapper">
         <img id="pageShot" class="portal-page-shot" alt="" hidden>
+        <img id="pageShotNext" class="portal-page-shot portal-page-shot-incoming" alt="" hidden>
         <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
         <div id="portalHighlightOverlay" class="portal-highlight-overlay" hidden></div>
       </div>
@@ -4281,23 +4298,26 @@ const VDL_MOCKUP_ENGINE = {
     const cleanVar = (variant || "wipe_gold").toLowerCase().replace(/-/g, "_");
 
     if (cleanVar === "flash_cut") {
-      gsap.fromTo(flash,
+      // Studio Shutter / Soft Glow Broadcast (0.55s, curva suave ease-in-out sem corte seco)
+      const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
+      tl.fromTo(flash,
         { opacity: 0 },
-        {
-          opacity: 0.9,
-          duration: 0.12,
-          yoyo: true,
-          repeat: 1,
-          ease: "power2.inOut",
-          onComplete: () => { layer.hidden = true; }
-        }
+        { opacity: 0.65, duration: 0.22, ease: "power2.in" }
+      ).to(flash,
+        { opacity: 0, duration: 0.33, ease: "power2.out" }
       );
     } else if (cleanVar === "dissolve_brand") {
+      // Dissolve Editorial com tom de estúdio (0.65s, curva suave ease-in-out)
       const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
-      tl.fromTo(flash, { opacity: 0 }, { opacity: 0.75, duration: 0.25, ease: "power2.in" })
-        .to(flash, { opacity: 0, duration: 0.4, ease: "power2.out" }, "+=0.08");
+      tl.fromTo(flash,
+        { opacity: 0 },
+        { opacity: 0.70, duration: 0.28, ease: "power2.inOut" }
+      ).to(flash,
+        { opacity: 0, duration: 0.37, ease: "power2.inOut" },
+        "+=0.04"
+      );
     } else {
-      // wipe_gold (padrão)
+      // wipe_gold (padrão Broadcast: 0.75s com aceleração e desaceleração calibradas)
       const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
       tl.fromTo(beam,
         { x: "-100%", opacity: 1 },
@@ -4311,8 +4331,45 @@ const VDL_MOCKUP_ENGINE = {
     return !s || s.includes("news.mob.tec.br") || s.includes("valedaliberdade.com.br");
   },
 
+  _syncOmnibox(url, title, animated = false) {
+    const d = this.data || {};
+    const skipOmnibox = this._isValePlaceholderUrl(url) && !!(d.pageImage || d.pageVideo || d.shotLong);
+    const urlEl = document.getElementById("urlText");
+    const tabEl = document.getElementById("tabTitle");
+
+    if (tabEl && title) {
+      tabEl.textContent = title.length > 34 ? title.substring(0, 34) + "..." : title;
+    }
+
+    if (!skipOmnibox && url && urlEl) {
+      let formattedUrl = url;
+      try {
+        const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+        formattedUrl = `${parsed.protocol}//<b>${parsed.hostname}</b>${parsed.pathname}`;
+      } catch(e) {
+        formattedUrl = url;
+      }
+
+      if (animated && window.gsap && !this.isFreezeShot()) {
+        gsap.to(urlEl, {
+          opacity: 0,
+          duration: 0.15,
+          ease: "power1.in",
+          onComplete: () => {
+            urlEl.innerHTML = formattedUrl;
+            gsap.to(urlEl, { opacity: 1, duration: 0.25, ease: "power2.out" });
+          }
+        });
+      } else {
+        urlEl.innerHTML = formattedUrl;
+        urlEl.style.opacity = "1";
+      }
+    }
+  },
+
   _applyPageMedia(d) {
     const pageShot = document.getElementById("pageShot");
+    const pageShotNext = document.getElementById("pageShotNext");
     const pageVideo = document.getElementById("pageVideo");
     const viewport = document.querySelector(".portal-viewport");
     const hasMedia = !!(d.shotLong || d.pageImage || d.pageVideo);
@@ -4342,6 +4399,7 @@ const VDL_MOCKUP_ENGINE = {
         }
         pageVideo.hidden = false;
         if (pageShot) pageShot.hidden = true;
+        if (pageShotNext) pageShotNext.hidden = true;
       } else {
         pageVideo.hidden = true;
         try { pageVideo.pause(); } catch(e) {}
@@ -4356,34 +4414,77 @@ const VDL_MOCKUP_ENGINE = {
         const current = pageShot.getAttribute("src") || "";
         if (current === src || current.endsWith(src)) {
           pageShot.hidden = false;
+          pageShot.style.opacity = "1";
+          this._syncOmnibox(d.url, d.titulo, false);
         } else if (!current || pageShot.hidden) {
-          // Primeira carga (frame zero): atribuição direta
+          // Primeira carga (frame zero): atribuição direta sem transição
           pageShot.src = src;
           pageShot.hidden = false;
+          pageShot.style.opacity = "1";
+          this._syncOmnibox(d.url, d.titulo, false);
         } else {
-          // Troca durante gravação / cena:
-          // Mantém a imagem anterior 100% visível na tela enquanto a nova carrega
+          // Troca durante gravação / cena com DUAL-BUFFER ANTI-FLASH & CROSSFADE BROADCAST:
+          // A imagem anterior (pageShot) permanece 100% visível na tela enquanto a nova carrega.
           const pre = new Image();
           pre.onload = async () => {
             if (pre.decode) {
               try { await pre.decode(); } catch(e) {}
             }
-            // Só troca quando a nova imagem está 100% pronta e decodificada na memória
-            pageShot.src = src;
-            pageShot.hidden = false;
-            if (this.currentMode === "browser") {
-              this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+            // Sincroniza a barra de URL exatamente quando a nova imagem está pronta para transição
+            this._syncOmnibox(d.url, d.titulo, true);
+
+            if (pageShotNext && window.gsap && !this.isFreezeShot()) {
+              pageShotNext.src = src;
+              pageShotNext.hidden = false;
+              pageShotNext.style.opacity = "0";
+
+              if (pageShotNext.decode) {
+                try { await pageShotNext.decode(); } catch(e) {}
+              }
+
+              // Executa crossfade suave com curva profissional de broadcast (0.55s ease-in-out)
+              if (this._crossfadeTween) this._crossfadeTween.kill();
+              this._crossfadeTween = gsap.to(pageShotNext, {
+                opacity: 1,
+                duration: 0.55,
+                ease: "power2.inOut",
+                onComplete: () => {
+                  // Final do crossfade: promove a nova imagem para pageShot e reseta pageShotNext
+                  pageShot.src = src;
+                  pageShot.hidden = false;
+                  pageShot.style.opacity = "1";
+                  pageShotNext.hidden = true;
+                  pageShotNext.style.opacity = "0";
+                  pageShotNext.removeAttribute("src");
+                  if (this.currentMode === "browser") {
+                    this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+                  }
+                }
+              });
+            } else {
+              // Fallback caso GSAP não esteja disponível
+              pageShot.src = src;
+              pageShot.hidden = false;
+              pageShot.style.opacity = "1";
+              if (this.currentMode === "browser") {
+                this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+              }
             }
           };
           pre.onerror = () => {
             pageShot.src = src;
             pageShot.hidden = false;
+            pageShot.style.opacity = "1";
           };
           pre.src = src;
         }
       } else if (!src) {
         pageShot.removeAttribute("src");
         pageShot.hidden = true;
+        if (pageShotNext) {
+          pageShotNext.removeAttribute("src");
+          pageShotNext.hidden = true;
+        }
       }
     }
   },
@@ -4406,7 +4507,7 @@ const VDL_MOCKUP_ENGINE = {
       payload.visual_variant = newData.visual_variant;
     }
 
-    // Mídia ANTES da transição — senão o browser entra branco com URL do Vale.
+    // Mídia ANTES da transição — com dual-buffer e sincronização de Omnibox
     this._applyPageMedia(d);
 
     if (kind === "quote") {
@@ -4443,21 +4544,9 @@ const VDL_MOCKUP_ENGINE = {
     const metaEl = document.getElementById("articleMeta");
     if (metaEl) metaEl.innerHTML = `<span>Por ${d.autor}</span> • <span>${d.dataExtenso}</span> • <span>${d.leitura}</span>`;
     
-    // Aba & URL — não sobrescrever com placeholder do Vale quando há print
-    const tabEl = document.getElementById("tabTitle");
-    if (tabEl) tabEl.textContent = d.titulo.length > 34 ? d.titulo.substring(0, 34) + "..." : d.titulo;
-    
-    const skipOmnibox = this._isValePlaceholderUrl(d.url) && !!(d.pageImage || d.pageVideo);
-    if (!skipOmnibox && d.url) {
-      let formattedUrl = d.url;
-      try {
-        const parsed = new URL(d.url.startsWith('http') ? d.url : `https://${d.url}`);
-        formattedUrl = `${parsed.protocol}//<b>${parsed.hostname}</b>${parsed.pathname}`;
-      } catch(e) {
-        formattedUrl = d.url;
-      }
-      const urlEl = document.getElementById("urlText");
-      if (urlEl) urlEl.innerHTML = formattedUrl;
+    // Se não houver mídia no browser (artigo textual mock), atualiza omnibox diretamente
+    if (!d.pageImage && !d.pageVideo && !d.shotLong) {
+      this._syncOmnibox(d.url, d.titulo, false);
     }
 
     // Imagem do Artigo
@@ -4494,18 +4583,22 @@ const VDL_MOCKUP_ENGINE = {
     if (ltBrand) ltBrand.textContent = d.brandSub || "DIÁRIO";
 
     // Ticker
-    if (Array.isArray(newData.ticker)) {
+    if (newData.ticker !== undefined) {
       this.renderTicker(newData.ticker);
     }
   },
 
   /**
-   * Renderiza o ticker contínuo
+   * Renderiza o ticker contínuo com sanitização de itens e velocidade estável
    */
   renderTicker(items) {
     const scroll = document.getElementById("ltTickerScroll");
     if (!scroll) return;
-    const html = items.map(t => `<span class="lt-ticker-item">${t}</span>`).join('');
+    const cleanItems = (Array.isArray(items) ? items : String(items || '').split('|'))
+      .map(t => String(t || '').trim())
+      .filter(Boolean);
+    if (!cleanItems.length) return;
+    const html = cleanItems.map(t => `<span class="lt-ticker-item">${t}</span>`).join('');
     scroll.innerHTML = html + html;
   },
 
