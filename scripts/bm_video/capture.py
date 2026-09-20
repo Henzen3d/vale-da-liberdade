@@ -1120,6 +1120,11 @@ def record_mockup(
         if not timeline_beats:
             timeline_beats = build_scene_timeline(episode, dur, scenes, BROLL_INDEX)
         stage_person_photo_assets(timeline_beats, work)
+        try:
+            from bm_video.shot_judge import evaluate_timeline_shots
+            evaluate_timeline_shots(timeline_beats, scenes, work, episode)
+        except Exception as _qa_exc:
+            print(f"  ⚠️  Auditoria de shots (shot.qa.json) ignorada: {_qa_exc}")
 
         url = f"http://127.0.0.1:{port}/{MOCKUP_HTML}"
         raw_webm: Path | None = None

@@ -65,6 +65,11 @@ class SceneBeat:
     visual_payload: dict[str, Any] = field(default_factory=dict)
     abertura_fim: float = 0.0  # FASE 3 — t1 da abertura ampla; beats com t0 < abertura_fim são rotação livre
     aligned_by: str = "proporcao"  # FASE 4 — "proporcao" | "whisper"
+    # Proveniência Direta (Fase 4.1)
+    fala_indices: list[int] = field(default_factory=list)
+    texto_origem: str = ""
+    fonte_url_fala: str | None = None
+    provenance_type: str = "none"  # "explicit" | "inherited" | "fallback" | "broll" | "person_photo" | "transition" | "none"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -86,6 +91,11 @@ class SceneBeatV2:
     video: str | None = None                       # Vídeo/clipe auxiliar (se houver)
     broll_file: str | None = None                  # Arquivo de b-roll local
     x_post: dict | None = None                     # Dados estruturados do post no X (Modo 8)
+    # Proveniência Direta (Fase 4.1)
+    fala_indices: list[int] = field(default_factory=list)
+    texto_origem: str = ""
+    fonte_url_fala: str | None = None
+    provenance_type: str = "none"
 
     @property
     def duration(self) -> float:
@@ -113,6 +123,10 @@ class SceneBeatV2:
             visual_component=self.visual_component,
             visual_variant=self.visual_variant,
             visual_payload=self.visual_payload,
+            fala_indices=list(self.fala_indices or []),
+            texto_origem=self.texto_origem,
+            fonte_url_fala=self.fonte_url_fala,
+            provenance_type=self.provenance_type,
         )
 
     @classmethod
@@ -154,6 +168,10 @@ class SceneBeatV2:
             "video": beat.video,
             "broll_file": beat.broll_file,
             "x_post": getattr(beat, "x_post", None),
+            "fala_indices": list(getattr(beat, "fala_indices", []) or []),
+            "texto_origem": getattr(beat, "texto_origem", ""),
+            "fonte_url_fala": getattr(beat, "fonte_url_fala", None),
+            "provenance_type": getattr(beat, "provenance_type", "none"),
         }
         base.update(overrides)
         return cls(**base)
@@ -575,7 +593,7 @@ def detect_visual_opportunities(
 
 
 MIN_SCENE_DURATION_S = 5.0
-MAX_SCENE_DURATION_S = 12.0
+MAX_SCENE_DURATION_S = 10.0
 DEFAULT_BROLL_DUR_S = 1.2
 TARGET_MIN_BEATS_5MIN = 18
 _PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll", "portal_highlight"]
@@ -647,24 +665,33 @@ def build_scene_timeline(
 
     # 1. Coletar falas em ordem sequencial com seus blocos e fonte_url
     blocks: list[dict] = []
+    fala_counter = 0
     for section_name in ("abertura", "desenvolvimento", "fechamento"):
         for item in episode.get(section_name) or []:
             txt = (item.get("texto") or "").strip()
             if not txt:
                 continue
+            raw_fu = (item.get("fonte_url") or "").strip()
             blocks.append({
+                "fala_index": fala_counter,
                 "section": section_name,
                 "texto": txt,
                 "words": max(1, count_words(txt)),
-                "fonte_url": item.get("fonte_url") or "",
+                "fonte_url": raw_fu,
+                "fonte_url_raw": raw_fu,
+                "provenance_type": "explicit" if raw_fu else "none",
             })
+            fala_counter += 1
 
     if not blocks:
         blocks = [{
+            "fala_index": 0,
             "section": "desenvolvimento",
             "texto": episode.get("titulo") or "Comentário",
             "words": 100,
             "fonte_url": "",
+            "fonte_url_raw": "",
+            "provenance_type": "none",
         }]
 
     total_words = sum(b["words"] for b in blocks)
@@ -683,9 +710,13 @@ def build_scene_timeline(
         fu = (b.get("fonte_url") or "").strip()
         if fu:
             _last_fonte = fu
+            b["provenance_type"] = "explicit"
         elif _last_fonte and b.get("section") != "fechamento":
             b["fonte_url"] = _last_fonte
+            b["provenance_type"] = "inherited"
             _inherited += 1
+        else:
+            b["provenance_type"] = "none"
     if _inherited:
         try:
             print(f"  🔗 fonte_url herdada por {_inherited} bloco(s)")
@@ -745,12 +776,19 @@ def build_scene_timeline(
                     "veiculo": "Transição",
                     "kind": "broll",
                     "shot": None,
+                    "shot_long": None,
+                    "highlight_box": None,
                     "video": None,
                     "broll_file": clip.get("file"),
+                    "x_post": None,
                     "semantic_role": "transicao_broll",
                     "visual_component": "broll",
                     "visual_variant": "",
                     "visual_payload": {},
+                    "fala_indices": [],
+                    "texto_origem": "",
+                    "fonte_url_fala": None,
+                    "provenance_type": "broll",
                 })
                 current_t = broll_end
                 t_end = min(total_dur, current_t + dur_block)
@@ -809,6 +847,10 @@ def build_scene_timeline(
             "visual_component": chosen_comp,
             "visual_variant": variant,
             "visual_payload": payload,
+            "fala_indices": [b["fala_index"]] if "fala_index" in b else [idx],
+            "texto_origem": b.get("texto") or "",
+            "fonte_url_fala": b.get("fonte_url") or None,
+            "provenance_type": b.get("provenance_type") or "none",
         })
         # O ponteiro do round-robin só avança quando o fallback é usado.
         # Se a cascata casou (exato/domínio), rotacionar por bloco
@@ -847,13 +889,31 @@ def build_scene_timeline(
         vis_pay = rb.get("visual_payload") or {}
         t0 = rb["t0"]
         t1 = rb["t1"]
+        merged_fala_indices = list(rb.get("fala_indices") or [])
+        merged_textos = [rb["texto_origem"]] if rb.get("texto_origem") else []
+        fonte_url_fala = rb.get("fonte_url_fala")
+        prov_type = rb.get("provenance_type") or "none"
 
-        # Agrupar beats consecutivos idênticos
+        # Agrupar beats consecutivos idênticos (mas preserva separação de fechamento/sem fonte)
         while (i + 1 < len(raw_beats) 
                and raw_beats[i + 1]["kind"] == kind 
                and raw_beats[i + 1]["url"] == url 
-               and raw_beats[i + 1].get("visual_component") == vis_comp):
-            t1 = raw_beats[i + 1]["t1"]
+               and raw_beats[i + 1].get("visual_component") == vis_comp
+               and not (prov_type == "none" and raw_beats[i + 1].get("provenance_type") in ("explicit", "inherited"))
+               and not (prov_type in ("explicit", "inherited") and raw_beats[i + 1].get("provenance_type") == "none")):
+            next_rb = raw_beats[i + 1]
+            t1 = next_rb["t1"]
+            for fi in next_rb.get("fala_indices") or []:
+                if fi not in merged_fala_indices:
+                    merged_fala_indices.append(fi)
+            if next_rb.get("texto_origem"):
+                merged_textos.append(next_rb["texto_origem"])
+            if not fonte_url_fala and next_rb.get("fonte_url_fala"):
+                fonte_url_fala = next_rb["fonte_url_fala"]
+            if prov_type != "explicit" and next_rb.get("provenance_type") == "explicit":
+                prov_type = "explicit"
+            elif prov_type == "none" and next_rb.get("provenance_type") in ("inherited", "fallback"):
+                prov_type = next_rb.get("provenance_type")
             i += 1
 
         # Garantir piso mínimo de 8s para source se não for o último beat
@@ -876,6 +936,10 @@ def build_scene_timeline(
             visual_component=vis_comp,
             visual_variant=vis_var,
             visual_payload=vis_pay,
+            fala_indices=merged_fala_indices,
+            texto_origem=" ".join(merged_textos),
+            fonte_url_fala=fonte_url_fala,
+            provenance_type=prov_type,
         ))
         i += 1
 
@@ -900,6 +964,10 @@ def build_scene_timeline(
                 semantic_role="apresentacao_fato",
                 visual_component="source",
                 visual_variant="portal_clean",
+                fala_indices=list(old_first.fala_indices),
+                texto_origem=old_first.texto_origem,
+                fonte_url_fala=old_first.fonte_url_fala,
+                provenance_type=old_first.provenance_type,
             )
             alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
             b0_b = SceneBeat(
@@ -916,6 +984,10 @@ def build_scene_timeline(
                 semantic_role="repercussao_social" if alt_is_x else "apresentacao_fato",
                 visual_component="x-post" if alt_is_x else "source",
                 visual_variant="x_card" if alt_is_x else "portal_clean",
+                fala_indices=list(old_first.fala_indices),
+                texto_origem=old_first.texto_origem,
+                fonte_url_fala=old_first.fonte_url_fala,
+                provenance_type=old_first.provenance_type,
             )
             b0_c = SceneBeat(
                 t0=cut2,
@@ -931,6 +1003,10 @@ def build_scene_timeline(
                 semantic_role="apresentacao_fato",
                 visual_component="source",
                 visual_variant="portal_clean",
+                fala_indices=list(old_first.fala_indices),
+                texto_origem=old_first.texto_origem,
+                fonte_url_fala=old_first.fonte_url_fala,
+                provenance_type=old_first.provenance_type,
             )
             final_beats[0:1] = [b0_a, b0_b, b0_c]
 
@@ -956,16 +1032,20 @@ def build_scene_timeline(
     for b in final_beats:
         b.abertura_fim = round(abertura_fim, 2)
 
-    # 6. Dinamismo: quebra beats longos (> MAX_SCENE_DURATION_S) mantendo a fonte sincronizada
-    # O sub-beat preserva a fonte do beat e cicla variantes visuais
-    # (portal_hero -> portal_zoom -> portal_scroll -> portal_highlight), criando
-    # cortes ópticos dinâmicos de câmera de telejornalismo a cada 6-10s mesmo com 1 print.
+    # 6. Dinamismo e Pacing Inteligente Anti-Monotonia (Fase 4.3):
+    # Quebra beats longos (> MAX_SCENE_DURATION_S) mantendo a fonte sincronizada,
+    # calibrando o ritmo pela velocidade da fala (palavras/segundo) e alternando
+    # variantes ópticas (hero -> zoom -> scroll -> highlight), criando cortes ópticos dinâmicos a cada 5-8s.
     expanded_beats: list[SceneBeat] = []
     cycle_ptr = 1
     for beat in final_beats:
         dur = beat.t1 - beat.t0
         if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
-            num_sub = max(2, int(dur // 9.0) + 1)
+            # Calibração adaptativa por velocidade de fala
+            words = count_words(beat.texto_origem)
+            wps = words / max(1.0, dur) if words > 0 else 2.3
+            step_target = 6.0 if wps >= 2.6 else (7.5 if wps >= 2.0 else 8.5)
+            num_sub = max(2, int(dur // step_target) + 1)
             step = dur / num_sub
             sub_t0 = beat.t0
             # candidatos alternativos SÓ da mesma fonte (multi-shot)
@@ -986,7 +1066,11 @@ def build_scene_timeline(
                                  "highlight_box": beat.highlight_box,
                                  "video": beat.video, "x_post": beat.x_post}
 
-                sub_variant = _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+                # Alternância dinâmica de variantes de câmera evitando repetição consecutiva
+                last_var = expanded_beats[-1].visual_variant if expanded_beats else ""
+                avail_vars = [v for v in _PORTAL_VARIANTS_CYCLE if v != last_var]
+                sub_variant = avail_vars[s_idx % len(avail_vars)] if avail_vars else _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+
                 sub_roles = ["apresentacao_fato", "detalhe_factual", "leitura_contexto", "destaque_editorial"]
                 sub_role = sub_roles[s_idx % len(sub_roles)]
 
@@ -1006,6 +1090,10 @@ def build_scene_timeline(
                     visual_component=beat.visual_component,
                     visual_variant=sub_variant,
                     visual_payload=beat.visual_payload,
+                    fala_indices=list(beat.fala_indices),
+                    texto_origem=beat.texto_origem,
+                    fonte_url_fala=beat.fonte_url_fala,
+                    provenance_type=beat.provenance_type,
                 ))
                 sub_t0 = sub_t1
         else:
@@ -1040,6 +1128,10 @@ def build_scene_timeline(
                 visual_component=b_target.visual_component,
                 visual_variant=b1_variant,
                 visual_payload=b_target.visual_payload,
+                fala_indices=list(b_target.fala_indices),
+                texto_origem=b_target.texto_origem,
+                fonte_url_fala=b_target.fonte_url_fala,
+                provenance_type=b_target.provenance_type,
             )
             alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
             same_source = bool(alt_scene.get("url")) and alt_scene.get("url") == b_target.url
@@ -1065,6 +1157,10 @@ def build_scene_timeline(
                 visual_component="x-post" if alt_is_x else b_target.visual_component,
                 visual_variant=b2_variant,
                 visual_payload=b_target.visual_payload,
+                fala_indices=list(b_target.fala_indices),
+                texto_origem=b_target.texto_origem,
+                fonte_url_fala=b_target.fonte_url_fala,
+                provenance_type=b_target.provenance_type,
             )
             expanded_beats[longest_idx:longest_idx + 1] = [b1, b2]
 
@@ -1108,35 +1204,54 @@ def build_scene_timeline(
                 best_cand_dur = b_dur
                 best_cand_idx = idx
 
-        if best_cand_idx >= 0 and best_cand_dur >= 6.0:
+        if best_cand_idx >= 0 and best_cand_dur >= 4.5:
             target = final_beats[best_cand_idx]
-            photo_dur = min(6.5, best_cand_dur * 0.5)
-            photo_t0 = round(target.t1 - photo_dur, 2)
-            target.t1 = photo_t0
             photo_name = f"editorial-{src_path.name}"
             person_name = (person_info["name"] if person_info else None) or episode.get("speaker_name") or episode.get("titulo", "")[:45]
-            photo_beat = SceneBeat(
-                t0=photo_t0,
-                t1=round(photo_t0 + photo_dur, 2),
-                url=target.url,
-                veiculo=target.veiculo,
-                kind="person-photo",
-                shot=target.shot,
-                video=None,
-                broll_file=None,
-                x_post=None,
-                semantic_role="destaque_editorial",
-                visual_component="person-photo",
-                visual_variant="ken_burns",
-                visual_payload={
+            if best_cand_dur >= 9.0:
+                photo_dur = min(6.5, best_cand_dur * 0.5)
+                photo_t0 = round(target.t1 - photo_dur, 2)
+                target.t1 = photo_t0
+                photo_beat = SceneBeat(
+                    t0=photo_t0,
+                    t1=round(photo_t0 + photo_dur, 2),
+                    url=target.url,
+                    veiculo=target.veiculo,
+                    kind="person-photo",
+                    shot=target.shot,
+                    video=None,
+                    broll_file=None,
+                    x_post=None,
+                    semantic_role="destaque_editorial",
+                    visual_component="person-photo",
+                    visual_variant="ken_burns",
+                    visual_payload={
+                        "photo": f"/shots/{photo_name}",
+                        "photo_src": str(src_path.resolve()),
+                        "name": person_name,
+                        "veiculo": target.veiculo or "Registro Editorial Oficial",
+                        "tag": "PERSONAGEM EM FOCO",
+                    },
+                    fala_indices=list(target.fala_indices),
+                    texto_origem=target.texto_origem,
+                    fonte_url_fala=target.fonte_url_fala,
+                    provenance_type="person_photo",
+                )
+                final_beats.insert(best_cand_idx + 1, photo_beat)
+            else:
+                # Converte o beat existente respeitando o piso e mantendo continuidade
+                target.kind = "person-photo"
+                target.semantic_role = "destaque_editorial"
+                target.visual_component = "person-photo"
+                target.visual_variant = "ken_burns"
+                target.visual_payload = {
                     "photo": f"/shots/{photo_name}",
                     "photo_src": str(src_path.resolve()),
                     "name": person_name,
                     "veiculo": target.veiculo or "Registro Editorial Oficial",
                     "tag": "PERSONAGEM EM FOCO",
-                },
-            )
-            final_beats.insert(best_cand_idx + 1, photo_beat)
+                }
+                target.provenance_type = "person_photo"
 
     # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
     if total_dur >= 60.0 and len(final_beats) > 3:
@@ -1170,6 +1285,10 @@ def build_scene_timeline(
                         visual_component="transition",
                         visual_variant=trans_styles[trans_count % len(trans_styles)],
                         visual_payload={},
+                        fala_indices=[],
+                        texto_origem="",
+                        fonte_url_fala=None,
+                        provenance_type="transition",
                     )
                     new_beats.append(trans_beat)
                     trans_count += 1
