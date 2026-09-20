@@ -275,4 +275,4 @@ Em auditoria técnica independente realizada por Claude Sonnet / Opus (arquivo `
 ### 7.3. Validação Final
 - **Pytest:** 49/49 testes aprovados (100% verde).
 - **Playwright (Chromium Headless 1080p):** 0 erros de console, crossfade medido em `opacity: 0.312` (mid-fade) com imagem primária em `opacity: 1.000`, transições completas e ocultadas com sucesso.
-- **Paridade de Arquivos:** `mockup-browser.html` e `mockup-brower.html` idênticos byte-a-byte (`True`, 148.673 bytes).
+- **Paridade de Arquivos:** `mockup-browser.html` e `mockup-brower.html` idênticos byte-a-byte (`True`, 143.961 bytes em LF canônico / MD5 `e9a5db5e32b948a598f2e8f03c03b83a`; 148.673 bytes em CRLF Windows).
