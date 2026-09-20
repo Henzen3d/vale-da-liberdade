@@ -1109,11 +1109,18 @@ def record_mockup(
             all_shot_urls = list(dict.fromkeys(all_shot_urls))
             if all_shot_urls:
                 page.evaluate(
-                    """(urls) => {
-                      urls.forEach(u => {
+                    """async (urls) => {
+                      await Promise.all(urls.map(u => new Promise(resolve => {
                         const img = new Image();
+                        img.onload = async () => {
+                          if (img.decode) {
+                            try { await img.decode(); } catch(e) {}
+                          }
+                          resolve(true);
+                        };
+                        img.onerror = () => resolve(false);
                         img.src = u;
-                      });
+                      })));
                     }""",
                     all_shot_urls,
                 )
