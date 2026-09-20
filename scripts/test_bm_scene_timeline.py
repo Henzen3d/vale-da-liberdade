@@ -300,29 +300,52 @@ class SceneTimelineTests(unittest.TestCase):
                         f"Deveria conter variantes dinâmicas de câmera: {variants}")
 
     def test_x_post_opportunity_detection(self):
-        """Detecta citação a post no X e recomenda componente x-post com variante x_card."""
+        """Citação textual a post no X em matéria jornalística escolhe 'quote', NÃO x-post."""
         text = "Em postagem no X, o ministro afirmou: 'A regulação digital é indispensável para a soberania do país'."
         opp = detect_visual_opportunities(text, url="https://g1.globo.com/noticia", veiculo="G1")
-        self.assertEqual(opp["chosen_component"], "x-post")
-        x_cands = [c for c in opp["detected_opportunities"] if c["recommended_component"] == "x-post"]
-        self.assertTrue(len(x_cands) > 0)
-        self.assertEqual(x_cands[0]["recommended_variant"], "x_card")
-        self.assertIn("A regulação digital", x_cands[0]["extracted_data"].get("text", ""))
+        self.assertEqual(opp["chosen_component"], "quote")
+        quote_cands = [c for c in opp["detected_opportunities"] if c["recommended_component"] == "quote"]
+        self.assertTrue(len(quote_cands) > 0)
+        self.assertEqual(quote_cands[0]["recommended_variant"], "card_gold")
+        self.assertIn("A regulação digital", quote_cands[0]["extracted_data"].get("quote_text", ""))
+        self.assertIn("via X", quote_cands[0]["extracted_data"].get("source_name", ""))
+
+        # URL nativa do X recomenda o componente x-post
+        opp_native = detect_visual_opportunities(
+            "Veja a postagem sobre o tema.",
+            url="https://x.com/ministro/status/123",
+            veiculo="X",
+        )
+        self.assertEqual(opp_native["chosen_component"], "x-post")
 
     def test_x_post_in_timeline_generation(self):
-        """Texto citando @handle ou post no X gera beat nativo de x-post com payload estruturado."""
-        episode = {
+        """Cena nativa com x_post estruturado gera beat de x-post; citação em portal gera quote."""
+        # 1. Citação de texto mencionando X em portal tradicional gera quote (Modo 2), não x-post
+        episode_portal = {
             "titulo": "Repercussão nas Redes",
             "abertura": [{"speaker": "Peter", "texto": "Veja a manifestação oficial."}],
             "desenvolvimento": [
-                {"speaker": "Peter", "texto": "O presidente publicou no X que não aceitará interferências externas na política tarifária."}
+                {"speaker": "Peter", "texto": "O presidente declarou no X: 'Não aceitaremos interferências externas'."}
             ],
             "fechamento": [{"speaker": "Peter", "texto": "Até a próxima análise."}],
         }
-        scenes = [{"veiculo": "G1", "url": "https://g1.globo.com/post", "shot": "g1.png"}]
-        beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
-        x_beats = [b for b in beats if b.visual_component == "x-post" or b.kind == "x-post"]
-        self.assertTrue(len(x_beats) > 0, "Deveria ter gerado beat de x-post")
+        scenes_portal = [{"veiculo": "G1", "url": "https://g1.globo.com/post", "shot": "g1.png"}]
+        beats_portal = build_scene_timeline(episode_portal, total_duration_s=60.0, scenes=scenes_portal)
+        quote_beats = [b for b in beats_portal if b.visual_component == "quote"]
+        self.assertTrue(len(quote_beats) > 0, "Citação no roteiro deve gerar quote, não x-post falso")
+        self.assertFalse(any(b.visual_component == "x-post" for b in beats_portal))
+
+        # 2. Cena com payload real do X gera beat nativo de x-post (Modo 8)
+        scenes_x = [{
+            "veiculo": "Post no X",
+            "url": "https://x.com/pres/status/1",
+            "shot": None,
+            "kind": "x-post",
+            "x_post": {"author_name": "Presidente", "handle": "@pres", "text": "Texto oficial verificado."},
+        }]
+        beats_x = build_scene_timeline(episode_portal, total_duration_s=60.0, scenes=scenes_x)
+        x_beats = [b for b in beats_x if b.visual_component == "x-post" or b.kind == "x-post"]
+        self.assertTrue(len(x_beats) > 0, "Deveria ter gerado beat de x-post quando a cena é do X")
         self.assertEqual(x_beats[0].visual_variant, "x_card")
         self.assertEqual(x_beats[0].semantic_role, "repercussao_social")
         self.assertIsNotNone(x_beats[0].x_post)
@@ -377,9 +400,7 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertIn(trans_beats[0].visual_variant, {"wipe_gold", "dissolve_brand", "flash_cut"})
 
     def test_person_photo_skips_missing_and_placeholder(self):
-        """Foto editorial só entra com arquivo real; placeholder não é pedido."""
-        from unittest.mock import patch
-
+        """Foto editorial só entra com arquivo real explícito; thumbnail de capa do vídeo NUNCA é usada."""
         episode = {
             "id": "especial-mGwvmcIrkFM",
             "titulo": "Sem foto real",
@@ -395,15 +416,8 @@ class SceneTimelineTests(unittest.TestCase):
             {"veiculo": "Folha", "url": "https://folha.uol.com.br/2", "shot": "src-01.png"},
             {"veiculo": "G1", "url": "https://g1.globo.com/3", "shot": "src-02.png"},
         ]
-        seen = {}
-
-        def fake_resolve(video_id, allow_placeholder=False):
-            seen["allow_placeholder"] = allow_placeholder
-            raise FileNotFoundError("placeholder recusado")
-
-        with patch("episode_image_manifest.resolve_editorial_image", side_effect=fake_resolve):
-            beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
-        self.assertEqual(seen.get("allow_placeholder"), False)
+        beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        # Não deve inserir person-photo sem foto real explícita no episódio
         self.assertFalse(any(b.visual_component == "person-photo" or b.kind == "person-photo" for b in beats))
 
         episode["editorial_image"] = "/tmp/nao-existe-editorial-vale.jpg"
@@ -463,6 +477,33 @@ class SceneTimelineTests(unittest.TestCase):
             }),
             "",
         )
+
+    def test_semantic_person_photo_resolution_trump(self):
+        """Ao citar Donald Trump no roteiro, o timeline injeta automaticamente o beat de person-photo com sua foto e nome."""
+        episode = {
+            "titulo": "Tarifas Globais e Geopolítica",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura com o cenário internacional de comércio exterior. " * 15}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "O presidente Donald Trump anunciou ontem que vai impor tarifas pesadas sobre produtos importados. " * 5},
+                {"speaker": "Peter", "texto": "Essa medida protecionista atinge em cheio as cadeias produtivas de vários países emergentes. " * 5},
+                {"speaker": "Peter", "texto": "O mercado reagiu com cautela e apreensão diante do novo cenário fiscal globalizado. " * 5},
+                {"speaker": "Peter", "texto": "Especialistas apontam que a inflação pode ser pressionada nos próximos trimestres de 2026. " * 5},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fechamento provocador e sintético sobre livre mercado. " * 10}],
+        }
+        scenes = [
+            {"veiculo": "Bloomberg", "url": "https://bloomberg.com/news/1", "shot": "src-00.png"},
+            {"veiculo": "WSJ", "url": "https://wsj.com/articles/2", "shot": "src-01.png"},
+            {"veiculo": "Reuters", "url": "https://reuters.com/business/3", "shot": "src-02.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=180.0, scenes=scenes)
+        person_beats = [b for b in beats if b.visual_component == "person-photo" or b.kind == "person-photo"]
+        self.assertTrue(len(person_beats) >= 1, "Deveria ter resolvido e inserido o beat de person-photo para Trump")
+        payload = person_beats[0].visual_payload or {}
+        self.assertEqual(payload.get("name"), "Donald Trump")
+        self.assertEqual(payload.get("tag"), "PERSONAGEM EM FOCO")
+        self.assertIn("donald-trump", payload.get("photo_src", ""))
+        self.assertTrue(Path(payload["photo_src"]).is_file())
 
 
 if __name__ == "__main__":

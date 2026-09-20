@@ -87,6 +87,68 @@ def _handler_shot_ok(result: dict | None, dest: Path) -> bool:
     )
 
 
+BROKEN_HANDLERS_FILE = ROOT / "output" / "broken_handlers.json"
+
+
+def record_broken_handler(
+    url: str,
+    handler_name: str,
+    error_reason: str,
+    http_status: int | None = None,
+    log_file: Path | None = None,
+) -> None:
+    """Registra falha de captura/handler no arquivo de auditoria para triagem e reparo."""
+    if log_file is None:
+        log_file = BROKEN_HANDLERS_FILE
+    try:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        entries: list[dict[str, Any]] = []
+        if log_file.is_file():
+            try:
+                entries = json.loads(log_file.read_text(encoding="utf-8"))
+                if not isinstance(entries, list):
+                    entries = []
+            except Exception:
+                entries = []
+
+        now_iso = datetime.now().astimezone().isoformat()
+        domain = ""
+        try:
+            domain = (urlsplit(url).hostname or "").removeprefix("www.")
+        except Exception:
+            pass
+
+        new_entry = {
+            "timestamp": now_iso,
+            "url": url,
+            "domain": domain,
+            "handler": handler_name,
+            "error": str(error_reason),
+            "status": http_status,
+        }
+        entries.append(new_entry)
+        if len(entries) > 500:
+            entries = entries[-500:]
+        log_file.write_text(
+            json.dumps(entries, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    except Exception as exc:
+        print(f"  ⚠️  Falha ao registrar broken handler: {exc}")
+
+
+def _get_download_article_image():
+    """Import dinâmico de download_article_image para evitar import cíclico."""
+    try:
+        from person_resolver import download_article_image
+        return download_article_image
+    except Exception:
+        try:
+            from scripts.person_resolver import download_article_image
+            return download_article_image
+        except Exception:
+            return None
+
+
 def cache_path_for_url(url: str) -> Path:
     raw = f"{CAPTURE_CACHE_VERSION}|{(url or '').strip()}"
     url_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
@@ -736,9 +798,16 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     f"({dest.stat().st_size // 1024} KB, handler={handler_name})"
                 )
                 continue
+            err_reason = handler_result.get("error") or f"http_{handler_result.get('http_status')}" or "shot_unusable"
+            record_broken_handler(
+                url=url,
+                handler_name=handler_name,
+                error_reason=err_reason,
+                http_status=handler_result.get("http_status"),
+            )
             print(
                 f"  ↪️  {scene['veiculo']}: handler={handler_name} falhou "
-                f"({handler_result.get('error') or handler_result.get('http_status')}) "
+                f"({err_reason}) "
                 f"— fallback genérico"
             )
             dest.unlink(missing_ok=True)
@@ -866,7 +935,22 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                 wait_for_styled_capture(page)
                 blocked = page_looks_blocked(page, resp.status if resp else None)
                 if blocked:
-                    print(f"  🚫 {scene['veiculo']}: bloqueio antibot ({blocked}) — cena descartada")
+                    print(f"  🚫 {scene['veiculo']}: bloqueio antibot ({blocked}) — tentando resgate via imagem da matéria (og:image)")
+                    record_broken_handler(
+                        url=url,
+                        handler_name="generic",
+                        error_reason=f"blocked:{blocked}",
+                        http_status=resp.status if resp else None,
+                    )
+                    downloader = _get_download_article_image()
+                    if downloader and downloader(url, dest):
+                        save_cached_screenshot(url, dest)
+                        item = dict(scene)
+                        item["shot"] = dest.name
+                        item["video"] = None
+                        by_index[i] = item
+                        print(f"  🖼️  {scene['veiculo']}: resgatado com imagem editorial da matéria ({dest.stat().st_size // 1024} KB)")
+                        continue
                     item = dict(scene)
                     item["shot"] = None
                     by_index[i] = item
@@ -944,10 +1028,39 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                     by_index[i] = item
                     print(f"  📸 {scene['veiculo']}: {dest.name} ({dest.stat().st_size // 1024} KB)")
                     continue
-                print(f"  🚫 {scene['veiculo']}: screenshot em branco/pequena — cena descartada")
+                print(f"  🚫 {scene['veiculo']}: screenshot em branco/pequena — tentando resgate via imagem da matéria (og:image)")
+                record_broken_handler(
+                    url=url,
+                    handler_name="generic",
+                    error_reason="blank_or_small_screenshot",
+                    http_status=resp.status if resp else None,
+                )
                 dest.unlink(missing_ok=True)
+                downloader = _get_download_article_image()
+                if downloader and downloader(url, dest):
+                    save_cached_screenshot(url, dest)
+                    item = dict(scene)
+                    item["shot"] = dest.name
+                    item["video"] = None
+                    by_index[i] = item
+                    print(f"  🖼️  {scene['veiculo']}: resgatado com imagem editorial da matéria ({dest.stat().st_size // 1024} KB)")
+                    continue
             except Exception as exc:
                 print(f"  ⚠️  captura falhou / skip:blocked {url}: {exc}")
+                record_broken_handler(
+                    url=url,
+                    handler_name="generic",
+                    error_reason=str(exc),
+                )
+                downloader = _get_download_article_image()
+                if downloader and downloader(url, dest):
+                    save_cached_screenshot(url, dest)
+                    item = dict(scene)
+                    item["shot"] = dest.name
+                    item["video"] = None
+                    by_index[i] = item
+                    print(f"  🖼️  {scene['veiculo']}: resgatado com imagem editorial da matéria ({dest.stat().st_size // 1024} KB)")
+                    continue
             finally:
                 try:
                     page.close()
