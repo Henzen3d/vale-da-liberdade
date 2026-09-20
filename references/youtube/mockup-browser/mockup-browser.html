@@ -335,7 +335,7 @@ html, body {
    ============================================================ */
 .portal-viewport {
   flex: 1;
-  background: #ffffff;
+  background: #11141c; /* Anti-flash: fundo escuro de estúdio como base universal (auditoria técnica v2) */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -4472,9 +4472,12 @@ const VDL_MOCKUP_ENGINE = {
             }
           };
           pre.onerror = () => {
-            pageShot.src = src;
-            pageShot.hidden = false;
-            pageShot.style.opacity = "1";
+            // Preserva a imagem anterior intacta — NÃO atribuir URL com falha ao pageShot primário
+            // (fix auditoria técnica: evita substituir imagem boa por placeholder de imagem quebrada)
+            if (pageShotNext) {
+              pageShotNext.hidden = true;
+              pageShotNext.removeAttribute("src");
+            }
           };
           pre.src = src;
         }
