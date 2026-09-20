@@ -174,6 +174,7 @@ html, body {
     0 0 0 1px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
+  transform-origin: center center;
   animation: browserEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -3164,6 +3165,9 @@ img[hidden],
 const VDL_MOCKUP_ENGINE = {
   currentMode: 'browser',
   activeTimeline: null,
+  _portalZoomTween: null,
+  _hasRenderedFirstPortal: false,
+  _lastPortalKey: null,
 
   data: {
     // Portal / Artigo
@@ -3229,6 +3233,90 @@ const VDL_MOCKUP_ENGINE = {
     }
   },
 
+  _getPortalKey(d, src) {
+    const s = src || d.shotLong || d.pageImage || "";
+    const u = d.url || "";
+    const t = d.titulo || "";
+    return `${s}::${u}::${t}`;
+  },
+
+  _updateArticleText(d) {
+    const catEl = document.getElementById("articleCategory");
+    if (catEl && d.categoria) catEl.textContent = d.categoria;
+    const headEl = document.getElementById("articleHeadline");
+    if (headEl && d.titulo) headEl.textContent = d.titulo;
+    const leadEl = document.getElementById("articleLead");
+    if (leadEl && d.resumo) leadEl.textContent = d.resumo;
+    const metaEl = document.getElementById("articleMeta");
+    if (metaEl && (d.autor || d.dataExtenso || d.leitura)) {
+      metaEl.innerHTML = `<span>Por ${d.autor || "Redação"}</span> • <span>${d.dataExtenso || ""}</span> • <span>${d.leitura || ""}</span>`;
+    }
+  },
+
+  /**
+   * Animação broadcast de troca de portal:
+   * 1. Reduz o browser suavemente em direção ao centro (Zoom Out).
+   * 2. No ponto contraído (vale da curva), executa o swap da matéria (screenshot, omnibox, headline).
+   * 3. Aumenta a partir do centro até o tamanho padrão (Zoom In).
+   */
+  _animatePortalTransition(d, onSwap) {
+    const browserEl = document.getElementById("browserMockup");
+    if (!browserEl || !window.gsap || this.isFreezeShot()) {
+      if (typeof onSwap === "function") onSwap();
+      if (browserEl) {
+        browserEl.style.transform = "none";
+        browserEl.style.opacity = "1";
+      }
+      return;
+    }
+
+    if (this._portalZoomTween) {
+      this._portalZoomTween.kill();
+      this._portalZoomTween = null;
+    }
+
+    const scrollWrapper = document.getElementById("pageShotScroll");
+    if (this._pageShotTween) {
+      this._pageShotTween.kill();
+      this._pageShotTween = null;
+    }
+
+    const tl = gsap.timeline();
+    this._portalZoomTween = tl;
+
+    // Fase 1: Redução suave em direção ao centro
+    tl.to(browserEl, {
+      scale: 0.88,
+      opacity: 0.94,
+      duration: 0.28,
+      ease: "power2.inOut",
+      transformOrigin: "50% 50%"
+    });
+
+    // Fase 2: No ponto central contraído, executa a troca da matéria/portal
+    tl.add(() => {
+      if (typeof onSwap === "function") onSwap();
+      if (scrollWrapper) {
+        gsap.set(scrollWrapper, { y: 0 });
+      }
+    });
+
+    // Fase 3: Aumenta a partir do centro até ter o tamanho padrão
+    tl.to(browserEl, {
+      scale: 1.0,
+      opacity: 1.0,
+      duration: 0.38,
+      ease: "power3.out",
+      transformOrigin: "50% 50%",
+      onComplete: () => {
+        this._portalZoomTween = null;
+        if (this.currentMode === "browser") {
+          this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+        }
+      }
+    });
+  },
+
   /**
    * Transição: Volta para o Navegador do Site (com suporte a variantes e micro-motion)
    */
@@ -3267,11 +3355,16 @@ const VDL_MOCKUP_ENGINE = {
         });
       }
 
-      tl.to(browserEl, {
+      tl.fromTo(browserEl, {
+        opacity: 0,
+        y: 0,
+        scale: 0.88,
+        transformOrigin: "50% 50%"
+      }, {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.5,
+        duration: 0.45,
         ease: "power3.out"
       }, "-=0.1");
     } else {
@@ -4438,76 +4531,36 @@ const VDL_MOCKUP_ENGINE = {
       const src = d.shotLong || d.pageImage;
       if (src && (!pageVideo || !d.pageVideo)) {
         const current = pageShot.getAttribute("src") || "";
+        const isInitial = !current || pageShot.hidden || !this._hasRenderedFirstPortal;
+        const currentKey = this._getPortalKey(d, src);
+
         if (current === src || current.endsWith(src)) {
           pageShot.hidden = false;
           pageShot.style.opacity = "1";
           this._syncOmnibox(d.url, d.titulo, false);
-        } else if (!current || pageShot.hidden) {
-          // Primeira carga (frame zero): atribuição direta sem transição
+          this._lastPortalKey = currentKey;
+        } else if (isInitial) {
+          // Primeira carga (frame zero): atribuição direta sem animação de escala
           pageShot.src = src;
           pageShot.hidden = false;
           pageShot.style.opacity = "1";
           this._syncOmnibox(d.url, d.titulo, false);
+          this._hasRenderedFirstPortal = true;
+          this._lastPortalKey = currentKey;
         } else {
-          // Troca com DUAL-BUFFER ANTI-FLASH & CROSSFADE BROADCAST (Zero Double-Decode):
-          // A imagem anterior (pageShot) permanece 100% visível enquanto pageShotNext decodifica na GPU.
-          if (pageShotNext && window.gsap && !this.isFreezeShot()) {
-            pageShotNext.src = src;
-            pageShotNext.hidden = false;
-            pageShotNext.style.opacity = "0";
-
-            const triggerCrossfade = () => {
-              // Sincroniza a barra de URL e título exatamente no instante do início da transição visual
-              this._syncOmnibox(d.url, d.titulo, true);
-
-              if (this._crossfadeTween) this._crossfadeTween.kill();
-              this._crossfadeTween = gsap.to(pageShotNext, {
-                opacity: 1,
-                duration: 0.55,
-                ease: "power2.inOut",
-                onComplete: () => {
-                  // Final do crossfade: promove a nova imagem para pageShot e reseta pageShotNext
-                  pageShot.src = src;
-                  pageShot.hidden = false;
-                  pageShot.style.opacity = "1";
-                  pageShotNext.hidden = true;
-                  pageShotNext.style.opacity = "0";
-                  pageShotNext.removeAttribute("src");
-                  if (this.currentMode === "browser") {
-                    this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
-                  }
-                }
-              });
-            };
-
-            const abortTransition = () => {
-              // Falha de rede/decode: mantém pageShot anterior 100% intacto, limpa buffer secundário
-              if (pageShotNext) {
-                pageShotNext.hidden = true;
-                pageShotNext.style.opacity = "0";
-                pageShotNext.removeAttribute("src");
-              }
-            };
-
-            // Barreira única de decodificação de textura GPU (elimina ~15-30ms de double-decode)
-            if (pageShotNext.decode) {
-              pageShotNext.decode()
-                .then(triggerCrossfade)
-                .catch(abortTransition);
-            } else {
-              pageShotNext.onload = triggerCrossfade;
-              pageShotNext.onerror = abortTransition;
-            }
-          } else {
-            // Fallback caso GSAP não esteja disponível ou em freezeShot
+          // Troca de portal com animação suave de zoom out ao centro e zoom in
+          this._lastPortalKey = currentKey;
+          this._animatePortalTransition(d, () => {
             this._syncOmnibox(d.url, d.titulo, false);
             pageShot.src = src;
             pageShot.hidden = false;
             pageShot.style.opacity = "1";
-            if (this.currentMode === "browser") {
-              this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
+            if (pageShotNext) {
+              pageShotNext.hidden = true;
+              pageShotNext.removeAttribute("src");
             }
-          }
+            this._updateArticleText(d);
+          });
         }
       } else if (!src) {
         pageShot.removeAttribute("src");
@@ -4566,18 +4619,22 @@ const VDL_MOCKUP_ENGINE = {
     }
 
     // Portal / Notícia
-    const catEl = document.getElementById("articleCategory");
-    if (catEl) catEl.textContent = d.categoria;
-    const headEl = document.getElementById("articleHeadline");
-    if (headEl) headEl.textContent = d.titulo;
-    const leadEl = document.getElementById("articleLead");
-    if (leadEl) leadEl.textContent = d.resumo;
-    const metaEl = document.getElementById("articleMeta");
-    if (metaEl) metaEl.innerHTML = `<span>Por ${d.autor}</span> • <span>${d.dataExtenso}</span> • <span>${d.leitura}</span>`;
+    this._updateArticleText(d);
     
-    // Se não houver mídia no browser (artigo textual mock), atualiza omnibox diretamente
+    // Se não houver mídia no browser (artigo textual mock), atualiza omnibox e anima se mudou de portal
     if (!d.pageImage && !d.pageVideo && !d.shotLong) {
-      this._syncOmnibox(d.url, d.titulo, false);
+      const currentKey = this._getPortalKey(d, "");
+      if (this._hasRenderedFirstPortal && this._lastPortalKey && this._lastPortalKey !== currentKey) {
+        this._lastPortalKey = currentKey;
+        this._animatePortalTransition(d, () => {
+          this._syncOmnibox(d.url, d.titulo, false);
+          this._updateArticleText(d);
+        });
+      } else {
+        this._syncOmnibox(d.url, d.titulo, false);
+        this._hasRenderedFirstPortal = true;
+        this._lastPortalKey = currentKey;
+      }
     }
 
     // Imagem do Artigo
