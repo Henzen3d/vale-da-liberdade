@@ -395,3 +395,24 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
   2. Fundo institucional (`#fff1e5`) tem que ser reforçado depois de limpar os elementos — o archive deixa áreas transparentes/escuras que desvirtuam a identidade visual do veículo.
   3. Fatorar a escada de recuperação (`WafRecoveryMixin`) fora dos handlers é o que torna o bypass reutilizável — FT, Economist e futuros paywalls duros compartilham a mesma infra.
 - **Suíte:** `scripts/test_screenshots_registry.py` — 17/17 aprovados (ft.com + www.ft.com resolvem para o handler `ft`).
+
+---
+
+## [2026-09-21] EXP-0001 — proveniência visual da fala (KEEP)
+
+- **Contexto:** o round-robin e o gancho de 15 s promoviam uma cena vizinha, inclusive card do X, durante fala que não citava aquele post. UHWL perdeu o artigo (404) e o vídeo inteiro virou X. PEZ trocava Metrópoles por Poder360 na abertura.
+- **Hipótese:** beat sem URL de matéria fica na matéria primária não-X. x-post só se `fonte_url` da fala for aquele post e o payload for real.
+- **O que foi feito:** `scripts/bm_scene_timeline.py` e `scripts/bm_video/cli.py`. O assert que exigia x-post só porque a cena era do X foi invertido.
+- **Métricas:** x-post fora de contexto PEZ 3 / jHb 2 / UHWL 8 → 0 nos seis episódios do replay. Hosts distintos 0–15 s: 2 → 1. Match explícito preservado. Tela vazia: 0. Testes 65 → 70. Render PEZ 1499,5 s contra janela de referência 1715 s (−12,6%, bônus, não métrica de qualidade).
+- **Decisão:** KEEP.
+- **Commit:** `4c98de3` (`feat/evolucao-visual-broadcast`).
+
+---
+
+## [2026-09-21] EXP-0002 — person-photo no beat que cita a pessoa (KEEP)
+
+- **Contexto:** a foto ia para o beat source mais longo do terço médio. Em C4HES, Lula aparecia por volta de 161 s num beat cujo texto não continha o nome. A capa do episódio também podia entrar por `editorial_image`.
+- **Hipótese:** a foto só entra na janela temporal do primeiro bloco que cita a pessoa. Sem citação, não insere. Capa em `thumbnails/` não é foto de pessoa.
+- **O que não entrou:** trocar o retrato Wikimedia pela `og:image` da matéria. Sem juiz de rosto, a imagem da matéria pode não ser a pessoa. Isso fica para um juiz semântico.
+- **Métricas:** C4HES, janela Lula 0–14,4 s, foto 9,0–14,8 s, sobrepõe a fala. jHb, janela Moraes 0–15,2 s, foto 9,0–15,0 s, sobrepõe a fala. PEZ, sem pessoa do catálogo, foto 0. Testes da timeline 41 → 50 neste recorte, suíte relevante verde.
+- **Decisão:** KEEP.

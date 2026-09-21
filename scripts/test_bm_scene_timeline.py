@@ -440,8 +440,9 @@ class SceneTimelineTests(unittest.TestCase):
             "editorial_image": str(src),
             "abertura": [{"speaker": "Peter", "texto": "Abertura com gancho inicial relevante. " * 15}],
             "desenvolvimento": [
-                {"speaker": "Peter", "texto": f"Parágrafo {i} com detalhes do caso factual para preencher o tempo. " * 10}
-                for i in range(1, 8)
+                {"speaker": "Peter", "texto": "Parágrafo longo sem citar pessoa alguma do catálogo. " * 12},
+                {"speaker": "Peter", "texto": "O presidente Donald Trump anunciou a medida nesta fala específica. " * 6},
+                {"speaker": "Peter", "texto": "Outro parágrafo longo ainda sem o nome. " * 12},
             ],
             "fechamento": [{"speaker": "Peter", "texto": "Fechamento provocador e sintético. " * 10}],
         }
@@ -457,6 +458,7 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertEqual(payload.get("photo_src"), str(src.resolve()))
         self.assertTrue(str(payload.get("photo") or "").startswith("/shots/"))
         self.assertNotIn("/thumbnails/", str(payload.get("photo") or ""))
+        self.assertTrue(all("Trump" in (b.texto_origem or "") for b in photos))
 
     def test_youtube_id_from_episode_sources(self):
         """ID vem de video_id, especial-*, ou URL YouTube — não de slug de portal."""
@@ -505,6 +507,9 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertEqual(payload.get("tag"), "PERSONAGEM EM FOCO")
         self.assertIn("donald-trump", payload.get("photo_src", ""))
         self.assertTrue(Path(payload["photo_src"]).is_file())
+        self.assertTrue(all("Trump" in (b.texto_origem or "") for b in person_beats))
+        unrelated = [b for b in beats if b.visual_component == "person-photo" and "Trump" not in (b.texto_origem or "")]
+        self.assertEqual(unrelated, [])
 
 
     def test_provenance_explicit_inherited_none(self):
@@ -758,6 +763,46 @@ class Exp0001ProvenanceTests(unittest.TestCase):
         self.assertTrue(spoken)
         self.assertTrue(all(b.url == "https://www.poder360.com.br/artigo-b" for b in spoken))
         self.assertFalse(any(b.visual_component == "x-post" for b in beats))
+
+
+class Exp0002PersonPhotoTests(unittest.TestCase):
+    def test_foto_nao_cai_no_beat_longo_sem_o_nome(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Pesquisa sem foto no beat errado",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura sem citar ministro. " * 8}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Bloco longo sobre a pesquisa, sem nome de pessoa do catálogo. " * 20},
+                {"speaker": "Peter", "texto": "Alexandre de Moraes reagiu ao número nesta fala. " * 8},
+                {"speaker": "Peter", "texto": "Outro bloco longo sobre metodologia, ainda sem o nome. " * 20},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho sem o nome. " * 6}],
+        }
+        scenes = [
+            {"veiculo": "Estadão", "url": "https://www.estadao.com.br/a", "shot": "a.png"},
+            {"veiculo": "Jota", "url": "https://www.jota.info/b", "shot": "b.png"},
+        ]
+        beats = build_scene_timeline(episode, 180.0, scenes)
+        photos = [b for b in beats if b.visual_component == "person-photo"]
+        self.assertTrue(photos, "deveria haver foto no beat que cita Moraes")
+        self.assertTrue(all(b.visual_payload.get("name") == "Alexandre de Moraes" for b in photos))
+        self.assertGreater(photos[0].t0, 15.0, "foto não pode cair na abertura, que não cita Moraes")
+
+    def test_capa_do_episodio_nao_vira_pessoa(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Capa não é pessoa",
+            "editorial_image": "/home/osmar/web-jornal-vale-da-liberdade/thumbnails/yt_bm_fake.jpg",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura. " * 10}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Desenvolvimento sem pessoa. " * 20},
+                {"speaker": "Peter", "texto": "Mais desenvolvimento sem pessoa. " * 20},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho. " * 8}],
+        }
+        scenes = [{"veiculo": "G1", "url": "https://g1.globo.com/a", "shot": "a.png"}]
+        beats = build_scene_timeline(episode, 180.0, scenes)
+        self.assertFalse(any(b.visual_component == "person-photo" for b in beats))
 
 
 if __name__ == "__main__":

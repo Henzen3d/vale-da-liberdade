@@ -784,6 +784,40 @@ def scene_has_real_x_post(scene: dict | None) -> bool:
     return True
 
 
+def _is_episode_thumbnail(path: Path) -> bool:
+    """Capa do episódio não é fotografia de pessoa."""
+    text = str(path).replace("\\", "/").lower()
+    return "/thumbnails/" in text or "/yt_bm_" in text
+
+
+def _explicit_person_photo(episode: dict) -> Path | None:
+    raw = episode.get("person_photo") or episode.get("foto_editorial") or episode.get("editorial_image")
+    if not raw:
+        return None
+    path = Path(str(raw))
+    if _is_episode_thumbnail(path) or not path.is_file():
+        return None
+    return path
+
+
+def _person_mention_window(blocks: list[dict], total_dur: float) -> tuple[float, float, dict] | None:
+    """Janela temporal do primeiro bloco cujo texto cita a pessoa. Não usa texto mesclado."""
+    try:
+        from person_resolver import resolve_person_for_text
+    except Exception:
+        return None
+    total_words = sum(int(b.get("words") or 1) for b in blocks) or 1
+    cursor = 0.0
+    for block in blocks:
+        dur = (int(block.get("words") or 1) / total_words) * total_dur
+        if block.get("section") != "fechamento":
+            info = resolve_person_for_text(block.get("texto") or "", auto_download=False)
+            if info:
+                return cursor, cursor + dur, info
+        cursor += dur
+    return None
+
+
 def primary_non_x_scene(scenes: list[dict]) -> dict | None:
     for scene in scenes:
         url = scene.get("url") or ""
@@ -1336,92 +1370,67 @@ def build_scene_timeline(
 
     final_beats = expanded_beats
 
-    # 7.1 Inserção de Foto Editorial (Person-Photo com Ken Burns)
-    # A thumbnail/capa gerada por IA para YouTube/site NÃO deve ser usada no meio do vídeo.
-    # Apenas foto editorial legítima de personagem (person_photo / foto_editorial) ou
-    # resolução semântica de personalidades citadas no roteiro é aceita.
-    editorial_photo = episode.get("person_photo") or episode.get("foto_editorial") or episode.get("editorial_image")
-    person_info = None
-
-    if not editorial_photo:
-        try:
-            from person_resolver import resolve_person_for_text
-            for b_item in blocks:
-                if b_item.get("section") == "fechamento":
-                    continue
-                person_info = resolve_person_for_text(b_item.get("texto") or "", auto_download=False)
-                if person_info:
-                    editorial_photo = person_info["photo_src"]
-                    break
-        except Exception:
-            pass
-
-    src_path = Path(str(editorial_photo)) if editorial_photo else None
-    if src_path is not None and not src_path.is_file():
-        editorial_photo = None
-        src_path = None
-
-    if editorial_photo and src_path is not None and len(final_beats) > 4:
-        # Encontra o beat mais longo do terço médio do vídeo para exibir a foto
-        mid_start = max(1, len(final_beats) // 4)
-        mid_end = min(len(final_beats) - 1, (len(final_beats) * 3) // 4)
+    # 7.1 Person-photo na janela da fala que cita a pessoa.
+    # Não usa o beat mais longo, nem o texto mesclado de beats posteriores.
+    # og:image da matéria não entra aqui: sem juiz de rosto, vira evidência errada.
+    mention = _person_mention_window(blocks, total_dur)
+    explicit_photo = _explicit_person_photo(episode)
+    if mention and len(final_beats) > 4:
+        win_t0, win_t1, person_info = mention
         best_cand_idx = -1
-        best_cand_dur = 0.0
-        for idx in range(mid_start, mid_end):
-            b = final_beats[idx]
-            b_dur = b.t1 - b.t0
-            if b.visual_component == "source" and b_dur > best_cand_dur:
-                best_cand_dur = b_dur
+        best_overlap = 0.0
+        for idx, beat in enumerate(final_beats):
+            if beat.visual_component not in ("source", "quote"):
+                continue
+            overlap = min(beat.t1, win_t1) - max(beat.t0, win_t0)
+            if overlap > best_overlap:
+                best_overlap = overlap
                 best_cand_idx = idx
-
-        if best_cand_idx >= 0 and best_cand_dur >= 4.5:
+        if best_cand_idx >= 0 and best_overlap >= 0.4:
             target = final_beats[best_cand_idx]
-            photo_name = f"editorial-{src_path.name}"
-            person_name = (person_info["name"] if person_info else None) or episode.get("speaker_name") or episode.get("titulo", "")[:45]
-            if best_cand_dur >= 9.0:
-                photo_dur = min(6.5, best_cand_dur * 0.5)
-                photo_t0 = round(target.t1 - photo_dur, 2)
-                target.t1 = photo_t0
-                photo_beat = SceneBeat(
-                    t0=photo_t0,
-                    t1=round(photo_t0 + photo_dur, 2),
-                    url=target.url,
-                    veiculo=target.veiculo,
-                    kind="person-photo",
-                    shot=target.shot,
-                    video=None,
-                    broll_file=None,
-                    x_post=None,
-                    semantic_role="destaque_editorial",
-                    visual_component="person-photo",
-                    visual_variant="ken_burns",
-                    visual_payload={
-                        "photo": f"/shots/{photo_name}",
-                        "photo_src": str(src_path.resolve()),
-                        "name": person_name,
-                        "veiculo": target.veiculo or "Registro Editorial Oficial",
-                        "tag": "PERSONAGEM EM FOCO",
-                    },
-                    fala_indices=list(target.fala_indices),
-                    texto_origem=target.texto_origem,
-                    fonte_url_fala=target.fonte_url_fala,
-                    provenance_type="person_photo",
-                )
-                final_beats.insert(best_cand_idx + 1, photo_beat)
-            else:
-                # Converte o beat existente respeitando o piso e mantendo continuidade
-                target.kind = "person-photo"
-                target.semantic_role = "destaque_editorial"
-                target.visual_component = "person-photo"
-                target.visual_variant = "ken_burns"
-                target.visual_payload = {
+            src_path = explicit_photo or Path(str(person_info.get("photo_src") or ""))
+            if src_path.is_file() and not _is_episode_thumbnail(src_path):
+                photo_name = f"editorial-{src_path.name}"
+                person_name = person_info.get("name") or "Figura pública"
+                best_cand_dur = target.t1 - target.t0
+                payload = {
                     "photo": f"/shots/{photo_name}",
                     "photo_src": str(src_path.resolve()),
                     "name": person_name,
                     "veiculo": target.veiculo or "Registro Editorial Oficial",
                     "tag": "PERSONAGEM EM FOCO",
+                    "slug": person_info.get("slug") or "",
                 }
-                target.provenance_type = "person_photo"
+                if best_cand_dur >= 9.0:
+                    photo_dur = min(6.5, best_cand_dur * 0.5)
+                    photo_t0 = round(target.t1 - photo_dur, 2)
+                    target.t1 = photo_t0
+                    final_beats.insert(best_cand_idx + 1, SceneBeat(
+                        t0=photo_t0,
+                        t1=round(photo_t0 + photo_dur, 2),
+                        url=target.url,
+                        veiculo=target.veiculo,
+                        kind="person-photo",
+                        shot=target.shot,
+                        video=None,
+                        broll_file=None,
+                        x_post=None,
+                        semantic_role="destaque_editorial",
+                        visual_component="person-photo",
+                        visual_variant="ken_burns",
+                        visual_payload=payload,
+                        fala_indices=list(target.fala_indices),
+                        texto_origem=target.texto_origem,
+                        fonte_url_fala=target.fonte_url_fala,
+                        provenance_type="person_photo",
+                    ))
+                elif best_cand_dur >= 4.5:
+                    target.kind = "person-photo"
+                    target.semantic_role = "destaque_editorial"
+                    target.visual_component = "person-photo"
+                    target.visual_variant = "ken_burns"
+                    target.visual_payload = payload
+                    target.provenance_type = "person_photo"
 
     # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
     if total_dur >= 60.0 and len(final_beats) > 3:
