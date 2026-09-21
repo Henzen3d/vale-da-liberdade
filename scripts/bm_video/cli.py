@@ -43,6 +43,103 @@ from bm_video.youtube import (
     sync_dynamic_playlist_action,
 )
 
+
+def _scene_host(url: str) -> str:
+    from urllib.parse import urlsplit
+    try:
+        host = (urlsplit(url or "").hostname or "").lower()
+    except Exception:
+        return ""
+    return host[4:] if host.startswith("www.") else host
+
+
+def _is_x_scene(url: str) -> bool:
+    return _scene_host(url) in {"x.com", "twitter.com", "mobile.x.com", "mobile.twitter.com"}
+
+
+def _is_youtube_scene(url: str) -> bool:
+    host = _scene_host(url)
+    return host in {"youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com"} or host.endswith(".youtube.com")
+
+
+def _scene_has_pixels(scene: dict) -> bool:
+    return bool(scene.get("shot") or scene.get("video") or scene.get("x_post"))
+
+
+def select_usable_scenes(
+    captured: list[dict],
+    episode: dict,
+    shot_dir: Path | None = None,
+    rescue=None,
+) -> list[dict]:
+    """Mantém a matéria primária não-X mesmo se o screenshot falhar.
+
+    Tenta o resgate og:image já existente. Post do X continua na lista só
+    para a fala que o citar. Nunca substitui a matéria morta pelo X vizinho.
+    """
+    explicit: set[str] = set()
+    for section in ("abertura", "desenvolvimento", "fechamento"):
+        for item in episode.get(section) or []:
+            url = (item.get("fonte_url") or "").strip()
+            if url and not _is_youtube_scene(url):
+                explicit.add(url)
+
+    primary = None
+    for scene in captured:
+        url = scene.get("url") or ""
+        if url and not _is_x_scene(url) and not _is_youtube_scene(url):
+            primary = scene
+            break
+
+    protected: list[dict] = []
+    if primary is not None:
+        protected.append(primary)
+    for scene in captured:
+        if scene is primary:
+            continue
+        url = scene.get("url") or ""
+        if url in explicit and not _is_x_scene(url):
+            protected.append(scene)
+
+    if shot_dir is not None:
+        shot_dir.mkdir(parents=True, exist_ok=True)
+        if rescue is None:
+            from person_resolver import download_article_image
+            rescue = download_article_image
+        for index, scene in enumerate(protected):
+            if _scene_has_pixels(scene):
+                continue
+            url = scene.get("url") or ""
+            if not url.startswith("http"):
+                continue
+            dest = shot_dir / f"rescued-primary-{index:02d}.jpg"
+            try:
+                ok = bool(rescue(url, dest))
+            except Exception:
+                ok = False
+            if ok and dest.is_file() and dest.stat().st_size >= 8192:
+                scene["shot"] = dest.name
+
+    usable: list[dict] = []
+    seen: set[int] = set()
+    for scene in captured:
+        keep = scene in protected or _scene_has_pixels(scene)
+        if _is_x_scene(scene.get("url") or "") and not scene.get("x_post") and not scene.get("shot") and not scene.get("video"):
+            keep = False
+        if keep and id(scene) not in seen:
+            usable.append(scene)
+            seen.add(id(scene))
+    if not usable:
+        usable = [{
+            "veiculo": episode.get("fonte_veiculo") or "Vale da Liberdade",
+            "url": APP_URL,
+            "titulo": episode.get("titulo") or "",
+            "shot": None,
+            "video": None,
+        }]
+    return usable
+
+
 def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force: bool = False) -> dict:
     episode = load_episode(video_id)
     if episode.get("_skip_video_reason") and not force:
@@ -106,22 +203,13 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     shots.mkdir(parents=True, exist_ok=True)
     captured = capture_sources(scenes, shots) if scenes else []
 
-    # Descarta cenas mortas: captura falhou (sem screenshot E sem vídeo E sem x_post).
-    # Cenas do X (Modo 8) possuem dados estruturados (x_post) e renderizam nativamente via DOM.
-    usable = [c for c in captured if c.get("shot") or c.get("video") or c.get("x_post")]
-    dropped = len(captured) - len(usable)
+    # Matéria primária não-X não sai da lista só porque o screenshot falhou.
+    # O resgate og:image roda aqui. X vizinho não ocupa o lugar.
+    usable = select_usable_scenes(captured, episode, shots)
+    dropped = [c for c in captured if c not in usable]
     if dropped:
-        for c in captured:
-            if not (c.get("shot") or c.get("video") or c.get("x_post")):
-                print(f"  🚫 cena descartada (captura falhou): {c.get('veiculo')} · {c.get('url')}")
-    if not usable:
-        usable = [{
-            "veiculo": episode.get("fonte_veiculo") or "Vale da Liberdade",
-            "url": APP_URL,
-            "titulo": episode.get("titulo") or "",
-            "shot": None,
-            "video": None,
-        }]
+        for c in dropped:
+            print(f"  🚫 cena descartada (captura falhou): {c.get('veiculo')} · {c.get('url')}")
 
     # Recalcula timeline só com as cenas que têm imagem/vídeo de verdade
     if video_id:

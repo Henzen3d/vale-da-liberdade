@@ -732,6 +732,114 @@ def _host_of(url: str) -> str:
     return netloc
 
 
+_X_HOSTS = frozenset({"x.com", "twitter.com", "mobile.x.com", "mobile.twitter.com"})
+_YT_HOSTS = frozenset({"youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com"})
+_SAFE_FALLBACK_URL = "https://news.mob.tec.br"
+_X_STATUS_RE = re.compile(r"/status/(\d+)")
+_HOOK_VARIANTS = ("portal_hero", "portal_zoom", "portal_highlight")
+
+
+def _is_x_url(url: str) -> bool:
+    return _host_of(url) in _X_HOSTS
+
+
+def _is_youtube_url(url: str) -> bool:
+    host = _host_of(url)
+    return host in _YT_HOSTS or host.endswith(".youtube.com")
+
+
+def editorial_fonte_url(url: str | None) -> str:
+    """URL de matéria ou de post. A URL do YouTube do episódio não é fonte editorial."""
+    raw = (url or "").strip()
+    if not raw or _is_youtube_url(raw):
+        return ""
+    return raw
+
+
+def _x_status_id(url: str) -> str:
+    match = _X_STATUS_RE.search(url or "")
+    return match.group(1) if match else ""
+
+
+def _same_x_post(left: str, right: str) -> bool:
+    left_id, right_id = _x_status_id(left), _x_status_id(right)
+    if left_id and right_id:
+        return left_id == right_id
+    return bool(left) and left.rstrip("/") == (right or "").rstrip("/")
+
+
+def scene_has_real_x_post(scene: dict | None) -> bool:
+    """Post capturado de verdade. Payload do detector (match_count) não conta."""
+    if not scene:
+        return False
+    post = scene.get("x_post")
+    if not isinstance(post, dict):
+        return False
+    text = (post.get("text") or "").strip()
+    handle = (post.get("handle") or "").strip()
+    if not text or not handle.startswith("@"):
+        return False
+    if "match_count" in post and not (post.get("likes") or post.get("timestamp") or post.get("avatar")):
+        return False
+    return True
+
+
+def primary_non_x_scene(scenes: list[dict]) -> dict | None:
+    for scene in scenes:
+        url = scene.get("url") or ""
+        if url and not _is_x_url(url) and not _is_youtube_url(url):
+            return scene
+    return None
+
+
+def fala_authorizes_x_post(fonte_url: str, scene: dict | None) -> bool:
+    """x-post só com fonte_url da fala apontando para aquele post e dados reais na cena."""
+    fala = editorial_fonte_url(fonte_url)
+    if not fala or not _is_x_url(fala) or not scene_has_real_x_post(scene):
+        return False
+    scene_url = (scene or {}).get("url") or ""
+    post_url = str(((scene or {}).get("x_post") or {}).get("url") or "")
+    return _same_x_post(fala, scene_url) or _same_x_post(fala, post_url)
+
+
+def resolve_scene_for_fala(
+    block: dict,
+    scenes: list[dict],
+    scene_by_url: dict[str, dict],
+    scene_by_host: dict[str, list[dict]],
+) -> tuple[dict, str]:
+    """Escolhe a cena da fala. Sem round-robin. X vizinho nunca é fallback."""
+    target = (block.get("fonte_url") or "").strip()
+    if target:
+        if target in scene_by_url:
+            return scene_by_url[target], "exato"
+        status_id = _x_status_id(target)
+        if status_id:
+            for url, scene in scene_by_url.items():
+                if _x_status_id(url) == status_id:
+                    return scene, "exato"
+        if not _is_x_url(target):
+            host = _host_of(target)
+            if host and host in scene_by_host:
+                return scene_by_host[host][0], "dominio"
+        return {
+            "url": target,
+            "veiculo": _host_of(target) or "Fonte",
+            "kind": "source",
+            "shot": None,
+        }, "explicito_ausente"
+
+    primary = primary_non_x_scene(scenes)
+    if primary:
+        return primary, "primaria"
+    return {
+        "url": _SAFE_FALLBACK_URL,
+        "veiculo": "Vale da Liberdade",
+        "kind": "source",
+        "shot": None,
+    }, "fallback"
+
+
 _YT_ID_RE = re.compile(
     r"(?:youtube\.com/(?:watch\?v=|shorts/|embed/|live/)|youtu\.be/)([A-Za-z0-9_-]{11})",
     re.I,
@@ -816,24 +924,23 @@ def build_scene_timeline(
     available_broll = load_broll_clips(broll_index_path)
 
     # FASE 0.2 — Herança de fonte por janela
-    # O condensador marca fonte_url só no primeiro bloco de cada matéria (o
-    # prompt trata o campo como opcional). Blocos de transição/opinião que
-    # continuam comentando a mesma matéria chegam sem a marca e caíam no
-    # round-robin cego, mostrando a matéria errada no fundo.
-    # Regra: um bloco sem fonte herda a última fonte conhecida. O
-    # fechamento não herda (síntese/opinião final, não comenta a matéria).
+    # YouTube do episódio não é fonte editorial e não se herda.
+    # Bloco sem fonte herda a última matéria real. Fechamento não herda.
     _last_fonte = ""
     _inherited = 0
     for b in blocks:
-        fu = (b.get("fonte_url") or "").strip()
+        raw_fu = (b.get("fonte_url") or "").strip()
+        fu = editorial_fonte_url(raw_fu)
         if fu:
             _last_fonte = fu
+            b["fonte_url"] = fu
             b["provenance_type"] = "explicit"
         elif _last_fonte and b.get("section") != "fechamento":
             b["fonte_url"] = _last_fonte
             b["provenance_type"] = "inherited"
             _inherited += 1
         else:
+            b["fonte_url"] = ""
             b["provenance_type"] = "none"
     if _inherited:
         try:
@@ -848,7 +955,6 @@ def build_scene_timeline(
         if s.get("url"):
             scene_by_host.setdefault(_host_of(s["url"]), []).append(s)
     scene_queue = list(scenes)
-    scene_ptr = 0
 
     # FASE 2 — Log de diagnóstico: qual nível da cascata casou cada bloco
     match_stats: dict[str, int] = {}
@@ -859,23 +965,11 @@ def build_scene_timeline(
 
     for idx, b in enumerate(blocks):
         dur_block = (b["words"] / total_words) * total_dur
-        target_url = (b.get("fonte_url") or "").strip()
-        scene_item = None
-        match_level = ""
-
-        # Nivel 1 — match exato de URL (mantem comportamento original)
-        if target_url and target_url in scene_by_url:
-            scene_item = scene_by_url[target_url]
-            match_level = "exato"
-        # Nivel 2 — match por dominio (cobre normalizacao de URL: www,
-        # parametros de tracking, paths diferentes do mesmo veiculo)
-        elif target_url and _host_of(target_url) in scene_by_host:
-            scene_item = scene_by_host[_host_of(target_url)][0]
-            match_level = "dominio"
-        # Nivel 3 — fallback: round-robin (apenas aqui, depois da cascata)
-        else:
-            scene_item = scene_queue[scene_ptr % len(scene_queue)]
-            match_level = "round_robin"
+        if b.get("provenance_type") == "none" and b.get("section") != "fechamento" and not (b.get("fonte_url") or "").strip():
+            b["provenance_type"] = "fallback"
+        scene_item, match_level = resolve_scene_for_fala(b, scene_queue, scene_by_url, scene_by_host)
+        if match_level in ("primaria", "fallback") and b.get("section") != "fechamento" and b.get("provenance_type") in ("none", "fallback"):
+            b["provenance_type"] = "fallback"
 
         match_stats[match_level] = match_stats.get(match_level, 0) + 1
 
@@ -911,25 +1005,29 @@ def build_scene_timeline(
                 current_t = broll_end
                 t_end = min(total_dur, current_t + dur_block)
 
-        # Se a cena for nativa do X (Modo 8), prioriza o componente x-post
-        is_x_post = (scene_item.get("kind") == "x-post") or bool(scene_item.get("x_post"))
-        if is_x_post:
+        # x-post só se a fala aponta para aquele post e a cena tem o payload real.
+        # URL x.com no pool, kind=x-post ou menção no texto não bastam.
+        is_x_post = fala_authorizes_x_post(b.get("fonte_url") or "", scene_item)
+        real_post = dict(scene_item.get("x_post") or {}) if is_x_post else None
+        if is_x_post and real_post:
             chosen_comp = "x-post"
             semantic_role = "repercussao_social"
             variant = "x_card"
-            payload = {"x_post": scene_item.get("x_post")} if scene_item.get("x_post") else {}
+            payload = dict(real_post)
         else:
-            # Detecta componente visual adequado para o parágrafo
+            is_x_post = False
+            real_post = None
             opp = detect_visual_opportunities(
                 b["texto"],
-                scene_item.get("url") or "",
+                "" if _is_x_url(scene_item.get("url") or "") else (scene_item.get("url") or ""),
                 scene_item.get("veiculo") or "",
                 block_index=idx,
             )
             chosen_comp = opp.get("chosen_component") or "source"
+            if chosen_comp == "x-post":
+                chosen_comp = "source"
 
-            # Atribui dados estruturados se componente especial foi escolhido
-            payload: dict[str, Any] = {}
+            payload = {}
             variant = _VARIANT_BY_COMPONENT.get(chosen_comp, "portal_clean")
             role_map = {
                 "quote": "declaracao_forte",
@@ -937,7 +1035,6 @@ def build_scene_timeline(
                 "timeline": "contexto_cronologico",
                 "chart": "impacto_economico",
                 "comparison": "confronto_posicoes",
-                "x-post": "repercussao_social",
                 "source": "apresentacao_fato",
             }
             semantic_role = role_map.get(chosen_comp, "apresentacao_fato")
@@ -949,18 +1046,21 @@ def build_scene_timeline(
                         variant = op_item.get("recommended_variant") or variant
                         break
 
+        kind = "x-post" if is_x_post else (
+            chosen_comp if chosen_comp in _LEGACY_KINDS else "source"
+        )
         raw_beats.append({
             "t0": round(current_t, 2),
             "t1": round(t_end, 2),
             "url": scene_item.get("url") or "",
             "veiculo": scene_item.get("veiculo") or "Fonte",
-            "kind": "x-post" if (is_x_post or chosen_comp == "x-post") else (scene_item.get("kind") or (chosen_comp if chosen_comp in _LEGACY_KINDS else "source")),
+            "kind": kind,
             "shot": scene_item.get("shot"),
             "shot_long": scene_item.get("shot_long"),
             "highlight_box": scene_item.get("highlight_box"),
             "video": scene_item.get("video"),
             "broll_file": None,
-            "x_post": scene_item.get("x_post") or (payload if (is_x_post or chosen_comp == "x-post") else None),
+            "x_post": real_post if is_x_post else None,
             "semantic_role": semantic_role,
             "visual_component": chosen_comp,
             "visual_variant": variant,
@@ -970,11 +1070,6 @@ def build_scene_timeline(
             "fonte_url_fala": b.get("fonte_url") or None,
             "provenance_type": b.get("provenance_type") or "none",
         })
-        # O ponteiro do round-robin só avança quando o fallback é usado.
-        # Se a cascata casou (exato/domínio), rotacionar por bloco
-        # sobrescreveria a sincronia que acabamos de resolver.
-        if match_level == "round_robin":
-            scene_ptr += 1
         current_t = t_end
 
     # 4. Agregação e aplicação de piso mínimo de duração por cena de fonte
@@ -1061,72 +1156,35 @@ def build_scene_timeline(
         ))
         i += 1
 
-    # 5. Gancho dos Primeiros 15 Segundos (Visual Hook)
+    # 5. Gancho dos primeiros 15s: três enquadramentos da mesma evidência.
+    # Não troca de matéria e não promove cena vizinha a x-post.
     if total_dur >= 120.0 and len(final_beats) > 1 and len(scene_queue) > 1:
         if final_beats[0].t1 >= 14.0 and final_beats[0].visual_component == "source":
             old_first = final_beats[0]
-            cut1 = 5.0
-            cut2 = 9.0
-            alt_scene = scene_queue[1 % len(scene_queue)]
-            b0_a = SceneBeat(
-                t0=0.0,
-                t1=cut1,
-                url=old_first.url,
-                veiculo=old_first.veiculo,
-                kind="source",
-                shot=old_first.shot,
-                shot_long=old_first.shot_long,
-                highlight_box=old_first.highlight_box,
-                video=old_first.video,
-                x_post=old_first.x_post,
-                semantic_role="apresentacao_fato",
-                visual_component="source",
-                visual_variant="portal_clean",
-                fala_indices=list(old_first.fala_indices),
-                texto_origem=old_first.texto_origem,
-                fonte_url_fala=old_first.fonte_url_fala,
-                provenance_type=old_first.provenance_type,
-            )
-            alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
-            b0_b = SceneBeat(
-                t0=cut1,
-                t1=cut2,
-                url=alt_scene.get("url") or old_first.url,
-                veiculo=alt_scene.get("veiculo") or old_first.veiculo,
-                kind="x-post" if alt_is_x else (alt_scene.get("kind") or "source"),
-                shot=alt_scene.get("shot") or old_first.shot,
-                shot_long=alt_scene.get("shot_long") or old_first.shot_long,
-                highlight_box=alt_scene.get("highlight_box") or old_first.highlight_box,
-                video=alt_scene.get("video") or old_first.video,
-                x_post=alt_scene.get("x_post") or old_first.x_post,
-                semantic_role="repercussao_social" if alt_is_x else "apresentacao_fato",
-                visual_component="x-post" if alt_is_x else "source",
-                visual_variant="x_card" if alt_is_x else "portal_clean",
-                fala_indices=list(old_first.fala_indices),
-                texto_origem=old_first.texto_origem,
-                fonte_url_fala=old_first.fonte_url_fala,
-                provenance_type=old_first.provenance_type,
-            )
-            b0_c = SceneBeat(
-                t0=cut2,
-                t1=old_first.t1,
-                url=old_first.url,
-                veiculo=old_first.veiculo,
-                kind="source",
-                shot=old_first.shot,
-                shot_long=old_first.shot_long,
-                highlight_box=old_first.highlight_box,
-                video=old_first.video,
-                x_post=old_first.x_post,
-                semantic_role="apresentacao_fato",
-                visual_component="source",
-                visual_variant="portal_clean",
-                fala_indices=list(old_first.fala_indices),
-                texto_origem=old_first.texto_origem,
-                fonte_url_fala=old_first.fonte_url_fala,
-                provenance_type=old_first.provenance_type,
-            )
-            final_beats[0:1] = [b0_a, b0_b, b0_c]
+            cuts = ((0.0, 5.0), (5.0, 9.0), (9.0, old_first.t1))
+            hooked: list[SceneBeat] = []
+            for (t0, t1), variant in zip(cuts, _HOOK_VARIANTS):
+                hooked.append(SceneBeat(
+                    t0=t0,
+                    t1=t1,
+                    url=old_first.url,
+                    veiculo=old_first.veiculo,
+                    kind="source",
+                    shot=old_first.shot,
+                    shot_long=old_first.shot_long,
+                    highlight_box=old_first.highlight_box,
+                    video=old_first.video,
+                    x_post=None,
+                    semantic_role=old_first.semantic_role or "apresentacao_fato",
+                    visual_component="source",
+                    visual_variant=variant,
+                    visual_payload=old_first.visual_payload,
+                    fala_indices=list(old_first.fala_indices),
+                    texto_origem=old_first.texto_origem,
+                    fonte_url_fala=old_first.fonte_url_fala,
+                    provenance_type=old_first.provenance_type,
+                ))
+            final_beats[0:1] = hooked
 
     # FASE 3 — Abertura ampla, corpo sincronizado
     # Os primeiros segundos mantêm a rotação ampla de fontes (passo 5 acima é o
@@ -1155,7 +1213,6 @@ def build_scene_timeline(
     # calibrando o ritmo pela velocidade da fala (palavras/segundo) e alternando
     # variantes ópticas (hero -> zoom -> scroll -> highlight), criando cortes ópticos dinâmicos a cada 5-8s.
     expanded_beats: list[SceneBeat] = []
-    cycle_ptr = 1
     for beat in final_beats:
         dur = beat.t1 - beat.t0
         if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
@@ -1227,9 +1284,12 @@ def build_scene_timeline(
             if b_dur < 10.0:
                 break
             half = round(b_target.t0 + b_dur / 2.0, 2)
-            alt_scene = scene_queue[cycle_ptr % len(scene_queue)]
-            cycle_ptr += 1
             b1_variant = b_target.visual_variant or "portal_hero"
+            b2_variant = "portal_zoom" if b1_variant in ("portal_hero", "portal_clean", "") else (
+                "portal_highlight" if b1_variant == "portal_zoom" else "portal_scroll"
+            )
+            if b2_variant == b1_variant:
+                b2_variant = "portal_highlight"
             b1 = SceneBeat(
                 t0=b_target.t0,
                 t1=half,
@@ -1251,28 +1311,20 @@ def build_scene_timeline(
                 fonte_url_fala=b_target.fonte_url_fala,
                 provenance_type=b_target.provenance_type,
             )
-            alt_is_x = (alt_scene.get("kind") == "x-post") or bool(alt_scene.get("x_post"))
-            same_source = bool(alt_scene.get("url")) and alt_scene.get("url") == b_target.url
-            b2_url = (alt_scene.get("url") or b_target.url) if (alt_is_x or same_source) else b_target.url
-            b2_veic = (alt_scene.get("veiculo") or b_target.veiculo) if (alt_is_x or same_source) else b_target.veiculo
-            b2_shot = (alt_scene.get("shot") or b_target.shot) if same_source else b_target.shot
-            b2_shot_long = (alt_scene.get("shot_long") or b_target.shot_long) if same_source else b_target.shot_long
-            b2_highlight_box = (alt_scene.get("highlight_box") or b_target.highlight_box) if same_source else b_target.highlight_box
-            b2_variant = "x_card" if alt_is_x else ("portal_zoom" if b1_variant in ("portal_hero", "portal_clean") else "portal_scroll")
             b2 = SceneBeat(
                 t0=half,
                 t1=b_target.t1,
-                url=b2_url,
-                veiculo=b2_veic,
-                kind="x-post" if alt_is_x else (b_target.kind if not same_source else (alt_scene.get("kind") or "source")),
-                shot=b2_shot,
-                shot_long=b2_shot_long,
-                highlight_box=b2_highlight_box,
-                video=alt_scene.get("video") or b_target.video,
-                broll_file=None,
-                x_post=alt_scene.get("x_post") or b_target.x_post,
-                semantic_role="repercussao_social" if alt_is_x else ("detalhe_factual" if b2_variant == "portal_zoom" else b_target.semantic_role),
-                visual_component="x-post" if alt_is_x else b_target.visual_component,
+                url=b_target.url,
+                veiculo=b_target.veiculo,
+                kind=b_target.kind,
+                shot=b_target.shot,
+                shot_long=b_target.shot_long,
+                highlight_box=b_target.highlight_box,
+                video=b_target.video,
+                broll_file=b_target.broll_file,
+                x_post=b_target.x_post,
+                semantic_role=b_target.semantic_role,
+                visual_component=b_target.visual_component,
                 visual_variant=b2_variant,
                 visual_payload=b_target.visual_payload,
                 fala_indices=list(b_target.fala_indices),

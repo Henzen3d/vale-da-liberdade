@@ -336,7 +336,8 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertTrue(len(quote_beats) > 0, "Citação no roteiro deve gerar quote, não x-post falso")
         self.assertFalse(any(b.visual_component == "x-post" for b in beats_portal))
 
-        # 2. Cena com payload real do X gera beat nativo de x-post (Modo 8)
+        # 2. Cena X com payload real NÃO vira x-post se a fala não cita aquele post.
+        # O teste antigo exigia o contrário e validava o bug do EXP-0001.
         scenes_x = [{
             "veiculo": "Post no X",
             "url": "https://x.com/pres/status/1",
@@ -345,11 +346,10 @@ class SceneTimelineTests(unittest.TestCase):
             "x_post": {"author_name": "Presidente", "handle": "@pres", "text": "Texto oficial verificado."},
         }]
         beats_x = build_scene_timeline(episode_portal, total_duration_s=60.0, scenes=scenes_x)
-        x_beats = [b for b in beats_x if b.visual_component == "x-post" or b.kind == "x-post"]
-        self.assertTrue(len(x_beats) > 0, "Deveria ter gerado beat de x-post quando a cena é do X")
-        self.assertEqual(x_beats[0].visual_variant, "x_card")
-        self.assertEqual(x_beats[0].semantic_role, "repercussao_social")
-        self.assertIsNotNone(x_beats[0].x_post)
+        self.assertFalse(
+            any(b.visual_component == "x-post" for b in beats_x),
+            "Cena X sem fonte_url da fala não pode virar x-post",
+        )
 
     def test_timeline_propagates_shot_long_and_highlight_box(self):
         """shot_long e highlight_box são propagados do input scenes para os beats."""
@@ -653,6 +653,111 @@ class SceneTimelineTests(unittest.TestCase):
                     b_next.visual_variant,
                     f"Beats consecutivos [{idx}] e [{idx+1}] repetiram a mesma variante: {b_curr.visual_variant}",
                 )
+
+
+class Exp0001ProvenanceTests(unittest.TestCase):
+    """EXP-0001: a fala escolhe a evidência. Cena vizinha não entra por disponibilidade."""
+
+    def _article(self):
+        return {"veiculo": "Metrópoles", "url": "https://www.metropoles.com/materia", "shot": "metro.png"}
+
+    def _x(self, status="2102008469217808460"):
+        return {
+            "veiculo": "X",
+            "url": f"https://x.com/andreshalders/status/{status}",
+            "kind": "x-post",
+            "shot": None,
+            "x_post": {
+                "author_name": "André Shalders",
+                "handle": "@andreshalders",
+                "text": "Texto real do post, não a narração.",
+                "likes": "12",
+            },
+        }
+
+    def test_caso_a_fala_sem_fonte_nao_vira_x_post(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Caso A",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura sem fonte marcada no roteiro."}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Desenvolvimento continua sem URL de matéria."}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho."}],
+        }
+        beats = build_scene_timeline(episode, 60.0, [self._article(), self._x()])
+        self.assertFalse(any(b.visual_component == "x-post" or b.kind == "x-post" for b in beats))
+        shown = [b for b in beats if b.visual_component not in ("transition", "broll")]
+        self.assertTrue(shown)
+        self.assertTrue(all(b.url == "https://www.metropoles.com/materia" for b in shown))
+
+    def test_caso_b_fala_com_post_real_gera_um_x_post(self):
+        from bm_scene_timeline import build_scene_timeline
+        post_url = "https://x.com/andreshalders/status/2102008469217808460"
+        episode = {
+            "titulo": "Caso B",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura na matéria.", "fonte_url": "https://www.metropoles.com/materia"}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "A narração não pode virar o corpo do card.", "fonte_url": post_url}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho."}],
+        }
+        beats = build_scene_timeline(episode, 60.0, [self._article(), self._x()])
+        x_beats = [b for b in beats if b.visual_component == "x-post"]
+        self.assertEqual(len(x_beats), 1)
+        self.assertEqual(x_beats[0].x_post["text"], "Texto real do post, não a narração.")
+        self.assertNotIn("narração não pode", x_beats[0].x_post["text"])
+        self.assertEqual(x_beats[0].visual_variant, "x_card")
+
+    def test_caso_c_abertura_longa_mesma_url(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Caso C",
+            "abertura": [{"speaker": "Peter", "texto": "Texto longo de abertura com mais de cinquenta palavras para ocupar os primeiros trinta segundos de vídeo de forma densa e contínua sem interrupções artificiais."}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Corpo longo. " * 50}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fim."}],
+        }
+        beats = build_scene_timeline(episode, 240.0, [
+            self._article(),
+            {"veiculo": "Poder360", "url": "https://www.poder360.com.br/outra", "shot": "p360.png"},
+        ])
+        first = [b for b in beats if b.t0 < 15.0 and b.visual_component not in ("transition", "broll")]
+        self.assertGreaterEqual(len(first), 2)
+        self.assertEqual({b.url for b in first}, {"https://www.metropoles.com/materia"})
+        self.assertTrue(any(b.visual_variant in ("portal_hero", "portal_zoom", "portal_highlight") for b in first))
+
+    def test_caso_d_artigo_sem_shot_nao_promove_x(self):
+        from bm_scene_timeline import build_scene_timeline
+        from bm_video.cli import select_usable_scenes
+        article = {"veiculo": "ICL", "url": "https://iclnoticias.com.br/aviao", "shot": None}
+        episode = {
+            "titulo": "Caso D",
+            "abertura": [{"speaker": "Peter", "texto": "Fala sobre o avião, sem citar post."}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Continua o mesmo fato."}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho."}],
+        }
+        usable = select_usable_scenes([article, self._x()], episode, shot_dir=None, rescue=lambda url, dest: False)
+        self.assertIn(article, usable)
+        beats = build_scene_timeline(episode, 60.0, usable)
+        self.assertFalse(any(b.visual_component == "x-post" for b in beats))
+        shown = [b for b in beats if b.visual_component not in ("transition", "broll")]
+        self.assertTrue(all(b.url == "https://iclnoticias.com.br/aviao" for b in shown))
+        self.assertTrue(all(b.url for b in beats))
+
+    def test_caso_e_fonte_explicita_vence_primaria_e_x(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Caso E",
+            "abertura": [{"speaker": "Peter", "texto": "Esta fala cita a matéria B.", "fonte_url": "https://www.poder360.com.br/artigo-b"}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Ainda a matéria B.", "fonte_url": "https://www.poder360.com.br/artigo-b"}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho."}],
+        }
+        scenes = [
+            self._article(),
+            {"veiculo": "Poder360", "url": "https://www.poder360.com.br/artigo-b", "shot": "b.png"},
+            self._x(),
+        ]
+        beats = build_scene_timeline(episode, 60.0, scenes)
+        spoken = [b for b in beats if b.fonte_url_fala == "https://www.poder360.com.br/artigo-b"]
+        self.assertTrue(spoken)
+        self.assertTrue(all(b.url == "https://www.poder360.com.br/artigo-b" for b in spoken))
+        self.assertFalse(any(b.visual_component == "x-post" for b in beats))
 
 
 if __name__ == "__main__":
