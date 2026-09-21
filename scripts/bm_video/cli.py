@@ -159,10 +159,18 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         raise RuntimeError(f"{video_id}: encerramento obrigatório — nenhum clip de outro resolvido")
     mp4 = append_outro_video(mp4, outro_video, work)
 
+    try:
+        from bm_video.video_judge import audit_rendered_video
+        qa_rep = audit_rendered_video(mp4, work, timeline_beats=timeline_beats, expected_duration_s=dur)
+        status_sym = "✅" if qa_rep.get("overall_status") == "APPROVED" else ("⚠️" if qa_rep.get("overall_status") == "WARNING" else "❌")
+        print(f"  {status_sym} Video QA: {qa_rep.get('overall_status')} ({qa_rep.get('sampled_frames_count', 0)} frames auditados)")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  ⚠️  Video QA falhou: {exc}")
+
 
 
     try:
-        append_last_video(video_id, episode_date(audio), timeline_beats)
+        append_last_video(video_id, episode_date(audio), timeline_beats, wallpaper=wallpaper.name if wallpaper else None)
     except Exception as exc:  # noqa: BLE001
         print(f"  ⚠️  last_videos append falhou: {exc}")
 

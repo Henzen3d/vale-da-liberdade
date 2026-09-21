@@ -43,7 +43,10 @@ VisualComponent = Literal[
     "transition",       # Transição de corte / wipe broadcast
 ]
 
-_LEGACY_KINDS = frozenset({"source", "broll", "x-post", "person-photo", "transition"})
+_LEGACY_KINDS = frozenset({
+    "source", "broll", "x-post", "person-photo", "transition",
+    "quote", "timeline", "chart", "comparison", "document", "recorte"
+})
 
 
 @dataclass
@@ -363,6 +366,123 @@ def _collect_pattern_hits(patterns, text: str):
     return hits
 
 
+def _extract_timeline_events(paragraph: str) -> dict[str, Any]:
+    """Extrai marcos temporais para o componente Timeline do mockup."""
+    text = (paragraph or "").strip()
+    year_m = re.search(r'\b(201[8-9]|202[0-9])\b', text)
+    year = year_m.group(1) if year_m else "2026"
+
+    events: list[dict[str, str]] = []
+    sentences = [s.strip() for s in re.split(r'[.;]\s+', text) if len(s.strip()) > 8]
+    for s in sentences:
+        hit = None
+        for pat in TIMELINE_PATTERNS:
+            m = pat.search(s)
+            if m:
+                hit = m.group(0).strip().upper()
+                break
+        if hit:
+            clean_desc = re.sub(r'^(?:em|desde|no\s+mês\s+de)\s+', '', s, flags=re.IGNORECASE).strip()
+            events.append({"date": hit, "desc": clean_desc[:95]})
+
+    if len(events) < 2:
+        hits = list(_collect_pattern_hits(TIMELINE_PATTERNS, text))
+        for h in hits[:3]:
+            val = h.group(0).strip().upper()
+            start = max(0, h.start() - 20)
+            end = min(len(text), h.end() + 75)
+            desc_snip = text[start:end].replace("\n", " ").strip()
+            events.append({"date": val, "desc": desc_snip[:90]})
+
+    title = paragraph.split(".")[0].strip()[:65] if paragraph else "CRONOGRAMA DOS FATOS"
+    return {
+        "timeline_title": title or "CRONOGRAMA DOS FATOS",
+        "year": year,
+        "events": events if len(events) >= 2 else [
+            {"date": f"INÍCIO / {year}", "desc": (text[:90] or "Abertura dos fatos e medidas iniciais.")},
+            {"date": "DESDOBRAMENTO", "desc": "Novos desdobramentos apurados e manifestações."},
+            {"date": "HOJE", "desc": "Cenário consolidado no momento."}
+        ],
+    }
+
+
+def _extract_chart_metrics(paragraph: str) -> dict[str, Any]:
+    """Extrai métricas, prefixo, sufixo e valores para o componente DataChart."""
+    text = (paragraph or "").strip()
+    low = text.lower()
+    prefix = "R$" if ("r$" in low or "reais" in low) else ("US$" if "dólar" in low or "us$" in low else "")
+
+    val = "0"
+    suffix = "%"
+
+    pct_m = re.search(r'([0-9]+(?:,[0-9]+)?)\s*%', text)
+    if pct_m:
+        val = pct_m.group(1)
+        suffix = "%"
+    else:
+        num_m = re.search(r'(?:R\$|US\$)?\s*([0-9]+(?:,[0-9]+)?)\s*(milhões|bilhões|mil|mi|bi)?', text, re.IGNORECASE)
+        if num_m:
+            val = num_m.group(1)
+            scale = (num_m.group(2) or "").lower()
+            if "bi" in scale:
+                suffix = "BI"
+            elif "mi" in scale:
+                suffix = "MI"
+            elif "mil" in scale:
+                suffix = "MIL"
+            else:
+                suffix = ""
+
+    trend = "down" if re.search(r'\b(?:queda|recuo|caiu|redução|menor|desaceleração|corte)\b', text, re.IGNORECASE) else "up"
+    lead_sentence = text.split(".")[0].strip() if text else "INDICADOR ECONÔMICO"
+    delta_str = f"{'-' if trend == 'down' else '+'}{val}{suffix} recente"
+
+    sub_items = [
+        {"label": "Período Anterior", "value": f"{prefix} {val} (ant.)", "pct": "55%"},
+        {"label": "Registrado / Atual", "value": f"{prefix} {val} {suffix}".strip(), "pct": "85%"}
+    ]
+
+    return {
+        "metric_label": lead_sentence[:60].upper(),
+        "metric_prefix": prefix,
+        "metric_value": val,
+        "metric_suffix": suffix,
+        "delta_text": delta_str,
+        "trend": trend,
+        "context": text[:140],
+        "sub_items": sub_items,
+    }
+
+
+def _extract_comparison_sides(paragraph: str) -> dict[str, Any]:
+    """Extrai lados A e B para o componente Comparison."""
+    text = (paragraph or "").strip()
+    lead_sentence = text.split(".")[0].strip() if text else "CONFRONTO DE POSIÇÕES"
+
+    parts = re.split(r'\b(?:mas|porém|contudo|no entanto|enquanto|ao contrário de)\b', text, maxsplit=1, flags=re.IGNORECASE)
+    if len(parts) == 2:
+        text_a = parts[0].strip()
+        text_b = parts[1].strip()
+    else:
+        mid = len(text) // 2
+        text_a = text[:mid].strip()
+        text_b = text[mid:].strip()
+
+    return {
+        "comparison_title": lead_sentence[:65].upper() or "PROMESSA × REALIDADE",
+        "side_a": {
+            "header": "POSIÇÃO INICIAL / PROMESSA",
+            "highlight": "ALEGAÇÃO",
+            "details": text_a[:120] or "Declarações ou expectativas divulgadas anteriormente.",
+        },
+        "side_b": {
+            "header": "FATO / REALIDADE",
+            "highlight": "RESULTADO",
+            "details": text_b[:120] or "Constatação documental ou desfecho apurado.",
+        }
+    }
+
+
 def detect_visual_opportunities(
     text: str,
     url: str = "",
@@ -446,14 +566,8 @@ def detect_visual_opportunities(
         score = _BASE_SCORE["chart"]
         if _ECONOMIC_THEME_RE.search(paragraph):
             score = _clamp01(score + 0.15)
-        extracted_chart: dict[str, Any] = {"match_count": len(chart_hits)}
-        first = chart_hits[0]
-        if first.lastindex and first.group(1):
-            extracted_chart["value"] = first.group(1)
-            extracted_chart["metric_value"] = first.group(1)
-            if first.lastindex >= 2 and first.group(2):
-                extracted_chart["unit"] = first.group(2)
-                extracted_chart["metric_suffix"] = f" {first.group(2).upper()}"
+        extracted_chart = _extract_chart_metrics(paragraph)
+        extracted_chart["match_count"] = len(chart_hits)
         candidates["chart"] = {
             "opportunity_type": _OPPORTUNITY_TYPE["chart"],
             "score": round(score, 2),
@@ -469,17 +583,19 @@ def detect_visual_opportunities(
         distinct_markers.add(h.group(0).lower().strip())
     if len(distinct_markers) >= 2 or (len(timeline_hits) >= 2 and len(distinct_markers) >= 1):
         score = _BASE_SCORE["timeline"]
+        if len(distinct_markers) >= 2 or len(timeline_hits) >= 3:
+            score = _clamp01(score + 0.15)
         if _CHRONO_CONNECTOR_RE.search(paragraph):
             score = _clamp01(score + 0.15)
+        extracted_tl = _extract_timeline_events(paragraph)
+        extracted_tl["markers"] = sorted(distinct_markers)
+        extracted_tl["match_count"] = len(timeline_hits)
         candidates["timeline"] = {
             "opportunity_type": _OPPORTUNITY_TYPE["timeline"],
             "score": round(score, 2),
             "recommended_component": "timeline",
             "recommended_variant": _VARIANT_BY_COMPONENT["timeline"],
-            "extracted_data": {
-                "markers": sorted(distinct_markers),
-                "match_count": len(timeline_hits),
-            },
+            "extracted_data": extracted_tl,
         }
 
     # --- comparison ---
@@ -488,12 +604,14 @@ def detect_visual_opportunities(
         score = _BASE_SCORE["comparison"]
         if _CONTRAST_DATES_RE.search(paragraph):
             score = _clamp01(score + 0.20)
+        extracted_comp = _extract_comparison_sides(paragraph)
+        extracted_comp["match_count"] = len(comparison_hits)
         candidates["comparison"] = {
             "opportunity_type": _OPPORTUNITY_TYPE["comparison"],
             "score": round(score, 2),
             "recommended_component": "comparison",
             "recommended_variant": _VARIANT_BY_COMPONENT["comparison"],
-            "extracted_data": {"match_count": len(comparison_hits)},
+            "extracted_data": extracted_comp,
         }
 
     # --- x-post (social / X / Twitter) ---

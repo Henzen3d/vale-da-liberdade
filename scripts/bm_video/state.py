@@ -160,12 +160,38 @@ def list_wallpapers() -> list[Path]:
     return out
 
 
-def pick_wallpaper(video_id: str) -> Path | None:
+def get_recent_visual_history(n: int = 3) -> list[dict]:
+    """Retorna os N últimos registros de composição e estilo de last_videos.json."""
+    try:
+        if LAST_VIDEOS_PATH.exists():
+            data = json.loads(LAST_VIDEOS_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                history = data.get("history") or []
+                if isinstance(history, list):
+                    return history[-n:]
+    except Exception:
+        pass
+    return []
+
+
+def pick_wallpaper(video_id: str, exclude_recent_n: int = 2) -> Path | None:
+    """Seleciona o wallpaper com rotação determinística e veto a wallpapers recentes (anti-fadiga)."""
     files = list_wallpapers()
     if not files:
         return None
-    idx = int(hashlib.md5((video_id or "").encode("utf-8")).hexdigest(), 16) % len(files)
-    return files[idx]
+
+    # Anti-fadiga: veta os wallpapers usados nos últimos episódios para garantir variedade visual
+    recent_history = get_recent_visual_history(exclude_recent_n)
+    recent_wp_names = {
+        h.get("wallpaper")
+        for h in recent_history
+        if isinstance(h, dict) and h.get("wallpaper") and h.get("video_id") != video_id
+    }
+
+    available = [f for f in files if f.name not in recent_wp_names]
+    pool = available if available else files
+    idx = int(hashlib.md5((video_id or "").encode("utf-8")).hexdigest(), 16) % len(pool)
+    return pool[idx]
 
 
 def episode_summary(episode: dict, limit: int = 380) -> str:
@@ -880,6 +906,12 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
     url = _omnibox_url(beat_v2.get("url"))
     if url:
         payload["url"] = url
+    # Mescla campos diretos do visual_payload (timeline, chart, comparison, quote)
+    vis_data = beat_v2.get("visual_payload")
+    if isinstance(vis_data, dict):
+        for k, v in vis_data.items():
+            if k not in payload:
+                payload[k] = v
     # kind x-post sempre carrega xPost (mesmo vazio) — o enrich cobre os defaults
     if x_post or kind == "x-post":
         payload["xPost"] = _enrich_x_post_speaker(x_post or {})
@@ -975,6 +1007,7 @@ def append_last_video(
     date: str,
     timeline_beats: list | None = None,
     *,
+    wallpaper: str | None = None,
     dominant_style: str | None = None,
     components_used: list | None = None,
     max_history: int = 30,
@@ -985,6 +1018,7 @@ def append_last_video(
     entry = {
         "video_id": video_id,
         "date": date,
+        "wallpaper": wallpaper,
         "dominant_style": style,
         "components_used": comps,
     }
