@@ -682,7 +682,7 @@ def render_roteiro_md(data: dict, video_id: str) -> str:
 
 # ── Pipeline principal ───────────────────────────────────────────────────────
 
-def _trim_to_max(data: dict, words: int, target: int, max_words: int) -> tuple[dict, int]:
+def _trim_to_max(data: dict, words: int, target: int, max_words: int, min_words: int) -> tuple[dict, int]:
     """Corta um roteiro acima do teto, mantendo o resultado se o corte falhar."""
     overage = words - target
     print(f"  ⚠️  {words} palavras (máx {max_words}). Pedindo corte de ~{overage} palavras...")
@@ -697,9 +697,13 @@ def _trim_to_max(data: dict, words: int, target: int, max_words: int) -> tuple[d
         assert_clean_controls(trimmed, where="corte")
         trimmed_words = count_words_in_roteiro(trimmed)
         print(f"  Após corte: {trimmed_words} palavras")
-        # Só aceita se de fato encurtou sem cair abaixo do alvo.
-        if trimmed_words < words:
+        # Só aceita se de fato encurtou, SEM cair abaixo do piso minimo.
+        # Cortar ate abaixo do piso (ex: 1200 -> 441) entrega um roteiro
+        # curto que aborta o gate de duracao e publica um audio de ~2.5 min.
+        if min_words <= trimmed_words < words:
             return trimmed, trimmed_words
+        if trimmed_words < min_words:
+            print(f"  ⚠️  Corte caiu abaixo do piso ({trimmed_words} < {min_words}); mantém resultado anterior")
     except Exception as exc:
         print(f"  ⚠️  Corte falhou ({exc}); mantém resultado anterior")
     return data, words
@@ -775,7 +779,7 @@ def condense(video_id: str, force: bool = False) -> dict:
             print(f"  Tentativa {attempt}: {words} palavras geradas")
 
             if words > max_words:
-                data, words = _trim_to_max(data, words, target, max_words)
+                data, words = _trim_to_max(data, words, target, max_words, min_words)
 
             # Sub-loop de expansão: tenta até 2 rodadas dedicadas se estiver abaixo do piso
             if words < min_words:
@@ -832,7 +836,7 @@ def condense(video_id: str, force: bool = False) -> dict:
                         print(f"  ⚠️  Segunda rodada falhou ({exc}); mantém resultado anterior")
 
                 if words > max_words:
-                    data, words = _trim_to_max(data, words, target, max_words)
+                    data, words = _trim_to_max(data, words, target, max_words, min_words)
 
             # Se atingiu o piso (ou superou), temos sucesso nesta tentativa!
             if words >= min_words:
