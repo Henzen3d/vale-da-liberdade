@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from bm_condensador import _trim_to_max, count_words_in_roteiro
+from bm_condensador import _trim_to_max, adaptive_word_targets, count_words_in_roteiro
 
 
 def _roteiro(n_palavras: int) -> dict:
@@ -91,6 +91,29 @@ class TrimToMaxTestCase(unittest.TestCase):
             out, out_words = _trim_to_max(data, words, 830, 920, 750)
         self.assertEqual(out, data)
         self.assertEqual(out_words, words)
+
+
+class AdaptiveTargetsTestCase(unittest.TestCase):
+
+    def test_video_curto_mantem_as_metas_padrao(self):
+        cfg = {"target_word_count": 830, "min_word_count": 750, "max_word_count": 920}
+        t, mn, mx = adaptive_word_targets(cfg, 1500)
+        self.assertEqual((t, mn, mx), (830, 750, 920))
+
+    def test_video_de_21_min_sobe_o_teto(self):
+        # 82KsKJygHWA: 4328 palavras de transcrição.
+        cfg = {"target_word_count": 830, "min_word_count": 750, "max_word_count": 920}
+        t, mn, mx = adaptive_word_targets(cfg, 4328)
+        self.assertEqual(mn, 750)          # piso inegociavel nao se move
+        self.assertGreater(t, 830)
+        self.assertGreater(mx, 920)
+        self.assertLessEqual(mx, int(920 * 1.6))
+
+    def test_video_enorme_tem_teto_limitado(self):
+        cfg = {"target_word_count": 830, "min_word_count": 750, "max_word_count": 920}
+        t, mn, mx = adaptive_word_targets(cfg, 20000)
+        self.assertEqual(mx, int(920 * 2.5))  # +150% no maximo
+        self.assertEqual(mn, 750)
 
 
 if __name__ == "__main__":

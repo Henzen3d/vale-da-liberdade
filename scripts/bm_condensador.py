@@ -75,6 +75,26 @@ def load_config() -> dict:
     return {"target_word_count": 830, "min_word_count": 750, "max_word_count": 920, "tags": []}
 
 
+def adaptive_word_targets(config: dict, transcript_words: int) -> tuple[int, int, int]:
+    """Sobe a meta de palavras em vídeos com muito conteúdo.
+
+    Vídeos longos (transcrição grande) tem material factual de sobra; forçar
+    o teto de 920 palavras num vídeo de 21 min (4328 palavras) desperdiça
+    conteúdo. Acima do dobro do tamanho típico, o teto cresce proporcional.
+    """
+    target = config.get("target_word_count", 830)
+    min_words = config.get("min_word_count", 750)
+    max_words = config.get("max_word_count", 920)
+    # ~2500 palavras ≈ 15 min de vídeo: material factual de sobra para um
+    # roteiro mais longo. +25% por bloco extra de 1500 palavras, teto +150%.
+    if transcript_words >= 2500:
+        extra = min((transcript_words - 2500) // 1500, 6)
+        boost = 1 + 0.25 * extra
+        target = int(target * boost)
+        max_words = int(max_words * boost)
+    return target, min_words, max_words
+
+
 def load_skill() -> str:
     if SKILL_PATH.exists():
         return SKILL_PATH.read_text(encoding="utf-8")
@@ -460,6 +480,8 @@ def assert_clean_controls(obj, *, where: str = "roteiro") -> None:
 # ── Prompt ───────────────────────────────────────────────────────────────────
 
 def build_prompt(raw: dict, config: dict, skill_text: str, sources_briefing: str = "") -> str:
+    # condense() sobrescreve as metas em config com os valores adaptados ao
+    # tamanho da transcrição (vídeos longos ganham teto maior).
     target    = config.get("target_word_count", 830)
     min_words = config.get("min_word_count", 750)
     max_words = config.get("max_word_count", 920)
@@ -746,14 +768,19 @@ def condense(video_id: str, force: bool = False) -> dict:
     config    = load_config()
     skill     = load_skill()
     raw       = load_raw(video_id)
-    target    = config.get("target_word_count", 830)
-    min_words = config.get("min_word_count", 750)
-    max_words = config.get("max_word_count", 920)
+    tw        = raw.get("transcript_words") or 0
+    target, min_words, max_words = adaptive_word_targets(config, tw)
 
     from bm_enrich_sources import enrich_episode_sources
     enriched_refs, sources_briefing = enrich_episode_sources(raw, video_id)
 
     print(f"🧠 Condensando transcrição de '{raw['title'][:60]}' ({raw['transcript_words']} palavras → meta ~{target} palavras [{min_words}-{max_words}])...")
+
+    # build_prompt le as metas de config; injeta as adaptadas aqui.
+    config = dict(config)
+    config["target_word_count"] = target
+    config["min_word_count"] = min_words
+    config["max_word_count"] = max_words
 
     base_prompt = build_prompt(raw, config, skill, sources_briefing=sources_briefing)
     max_rounds = 2
