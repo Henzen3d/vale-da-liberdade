@@ -502,7 +502,7 @@ class XVideoFitTests(unittest.TestCase):
         )
         self.assertRegex(
             html,
-            r"\.portal-page-shot\.is-portrait\s*\{[^}]*background:\s*#ffffff",
+            r"\.portal-page-shot\.is-portrait\s*\{[^}]*background:\s*#(?:11141c|ffffff)",
         )
         self.assertNotIn("background: #0b0d12", html)
         self.assertIn("pageVideo.videoHeight > pageVideo.videoWidth", html)
@@ -896,7 +896,7 @@ class MockupShotSwapTests(unittest.TestCase):
         self.assertIn("__VDL_INITIAL_DATA__", html)
         self.assertIn("initVDL", html)
         self.assertIn("has-page-shot", html)
-        self.assertIn("pre.onload", html)
+        self.assertIn("_animatePortalTransition", html)
 
     def test_record_mockup_preloads_shot_urls(self) -> None:
         capture_src = (

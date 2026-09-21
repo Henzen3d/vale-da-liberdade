@@ -368,7 +368,8 @@ def _bm_seo_description(
     try:
         llm_res = generate_description_via_llm(ctx)
         if llm_res:
-            raw_body, llm_tags = llm_res
+            raw_body = llm_res[0]
+            llm_tags = llm_res[1]
     except Exception as exc:  # noqa: BLE001
         print(f"  ⚠️  LLM da descrição falhou: {exc}")
     if not raw_body:
