@@ -416,3 +416,4 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 - **O que não entrou:** trocar o retrato Wikimedia pela `og:image` da matéria. Sem juiz de rosto, a imagem da matéria pode não ser a pessoa. Isso fica para um juiz semântico.
 - **Métricas:** C4HES, janela Lula 0–14,4 s, foto 9,0–14,8 s, sobrepõe a fala. jHb, janela Moraes 0–15,2 s, foto 9,0–15,0 s, sobrepõe a fala. PEZ, sem pessoa do catálogo, foto 0. Testes da timeline 41 → 50 neste recorte, suíte relevante verde.
 - **Decisão:** KEEP.
+- **Commit:** `d6d692f` (`feat/evolucao-visual-broadcast`).
