@@ -1331,9 +1331,17 @@ def build_scene_timeline(
             num_sub = max(2, int(dur // step_target) + 1)
             step = dur / num_sub
             sub_t0 = beat.t0
-            # candidatos alternativos SÓ da mesma fonte (multi-shot)
+            # Variadores alternam entre prints da mesma fonte (multi-shot)
+            # quando disponíveis; sem isso, usa o beat original.
             same_src = [s for s in scene_queue
-                        if s.get("url") and s.get("url") == beat.url and s.get("shot") != beat.shot]
+                        if s.get("url") and s.get("url") == beat.url
+                        and s.get("shot") != beat.shot]
+            if same_src:
+                variant = same_src
+            elif len(scene_queue) > 1:
+                variant = [s for s in scene_queue if s.get("shot")]
+            else:
+                variant = []
             extras = []
             extra_at: dict[int, dict] = {}
             if not episode_cited and beat.provenance_type in ("none", "fallback", ""):
@@ -1354,8 +1362,8 @@ def build_scene_timeline(
                 forced_extra = extra_at.get(s_idx)
                 if forced_extra:
                     alt_scene = forced_extra
-                elif same_src:
-                    alt_scene = same_src[s_idx % len(same_src)]
+                elif variant:
+                    alt_scene = variant[s_idx % len(variant)]
                 else:
                     alt_scene = {"url": beat.url, "veiculo": beat.veiculo,
                                  "kind": beat.kind, "shot": beat.shot,
