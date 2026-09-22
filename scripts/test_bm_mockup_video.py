@@ -269,6 +269,10 @@ class SourceFilterTests(unittest.TestCase):
         self.assertTrue(is_blocked_source_url("https://youtu.be/abc"))
         self.assertTrue(is_blocked_source_url("https://news.mob.tec.br/ep/especial-x.html"))
         self.assertFalse(is_blocked_source_url("https://www.cnnbrasil.com.br/economia/evergrande/"))
+        self.assertTrue(is_blocked_source_url("https://www.google.com/maps/place/Berlin"))
+        self.assertTrue(is_blocked_source_url("https://docs.google.com/viewerng/viewer?url=https://exemplo.com/a.pdf"))
+        self.assertFalse(is_blocked_source_url("https://www.dw.com/pt-br/eleicao"))
+        self.assertFalse(is_blocked_source_url("https://x.com/andreshalders/status/1"))
 
     def test_source_scenes_skips_self_and_youtube(self):
         ep = {
@@ -285,6 +289,21 @@ class SourceFilterTests(unittest.TestCase):
         self.assertTrue(urls[0].startswith("https://www.cnnbrasil.com.br"))
         self.assertNotIn("utm_source", urls[0])
         self.assertEqual(urls[1], "https://www.bbc.com/portuguese/articles/cwy")
+
+    def test_source_scenes_drops_maps_and_docs_viewer(self):
+        ep = {
+            "fonte_referencias": [
+                {"veiculo": "Google Maps", "url": "https://www.google.com/maps/place/Berlin", "role": "supporting"},
+                {"veiculo": "DW", "url": "https://www.dw.com/pt-br/eleicao", "role": "primary"},
+                {"veiculo": "Docs", "url": "https://docs.google.com/viewerng/viewer?url=https://exemplo.com/a.pdf", "role": "supporting"},
+                {"veiculo": "IstoÉ", "url": "https://istoe.com.br/eleicao", "role": "supporting"},
+            ]
+        }
+        urls = [s["url"] for s in source_scenes(ep)]
+        self.assertEqual(urls[0], "https://www.dw.com/pt-br/eleicao")
+        self.assertNotIn("https://www.google.com/maps/place/Berlin", urls)
+        self.assertFalse(any("docs.google.com" in u for u in urls))
+        self.assertIn("https://istoe.com.br/eleicao", urls)
 
     def test_source_scenes_respects_max_per_host_and_max_scenes(self):
         # 12 referências de 4 domínios diferentes

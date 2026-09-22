@@ -41,9 +41,25 @@ def domain_of(url: str) -> str:
         return ""
 
 
+def is_useless_visual_url(url: str) -> bool:
+    """Host que não é matéria: mapa, busca, viewer do Google Docs."""
+    host = domain_of(url)
+    try:
+        path = urlsplit(url or "").path.lower()
+    except Exception:
+        path = ""
+    if host in {"docs.google.com", "drive.google.com", "maps.google.com", "news.google.com"}:
+        return True
+    if host == "google.com" and (path.startswith("/maps") or path.startswith("/search")):
+        return True
+    return False
+
+
 def is_blocked_source_url(url: str) -> bool:
     low = (url or "").lower()
     if not low.startswith("http"):
+        return True
+    if is_useless_visual_url(url):
         return True
     return any(
         token in low

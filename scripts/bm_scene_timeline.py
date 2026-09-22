@@ -749,10 +749,16 @@ def _is_youtube_url(url: str) -> bool:
 
 
 def editorial_fonte_url(url: str | None) -> str:
-    """URL de matéria ou de post. A URL do YouTube do episódio não é fonte editorial."""
+    """URL de matéria ou de post. YouTube, mapa e viewer do Docs não são fonte editorial."""
     raw = (url or "").strip()
     if not raw or _is_youtube_url(raw):
         return ""
+    try:
+        from bm_video.state import is_useless_visual_url
+        if is_useless_visual_url(raw):
+            return ""
+    except Exception:
+        return raw
     return raw
 
 

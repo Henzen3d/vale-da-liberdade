@@ -805,6 +805,31 @@ class Exp0002PersonPhotoTests(unittest.TestCase):
         self.assertFalse(any(b.visual_component == "person-photo" for b in beats))
 
 
+class Exp0003UselessHostTests(unittest.TestCase):
+    def test_mapa_citado_nao_vira_cena_da_abertura(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Eleição sem mapa",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura sobre a eleição, sem mapa. " * 8}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "O mapa não é a matéria.", "fonte_url": "https://www.google.com/maps/place/Berlin"},
+                {"speaker": "Peter", "texto": "Os números da eleição estão na reportagem. " * 8},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho. " * 4}],
+            "fonte_referencias": [
+                {"veiculo": "Google Maps", "url": "https://www.google.com/maps/place/Berlin", "role": "supporting"},
+                {"veiculo": "DW", "url": "https://www.dw.com/pt-br/eleicao", "role": "primary"},
+            ],
+        }
+        from bm_video.state import source_scenes
+        scenes = source_scenes(episode)
+        beats = build_scene_timeline(episode, 180.0, scenes)
+        shown = [b for b in beats if b.t0 < 15 and b.visual_component not in ("transition", "broll")]
+        self.assertTrue(shown)
+        self.assertTrue(all("dw.com" in b.url for b in shown))
+        self.assertFalse(any("google.com/maps" in (b.url or "") for b in beats))
+
+
 if __name__ == "__main__":
     unittest.main()
 

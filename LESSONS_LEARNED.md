@@ -417,3 +417,12 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 - **Métricas:** C4HES, janela Lula 0–14,4 s, foto 9,0–14,8 s, sobrepõe a fala. jHb, janela Moraes 0–15,2 s, foto 9,0–15,0 s, sobrepõe a fala. PEZ, sem pessoa do catálogo, foto 0. Testes da timeline 41 → 50 neste recorte, suíte relevante verde.
 - **Decisão:** KEEP.
 - **Commit:** `d6d692f` (`feat/evolucao-visual-broadcast`).
+
+---
+
+## [2026-09-21] EXP-0003 — host inútil não vira cena (KEEP)
+
+- **Contexto:** Google Maps ocupava a primeira cena de oj1 porque uma fala trazia a URL do mapa e a herança espalhava isso. C4HES ainda reservava um slot para o viewer do Google Docs.
+- **Hipótese:** mapa, busca Google, Docs/Drive e news.google não são fonte editorial. Saem do pool e não se herdam. Matéria real permanece. Post do X com URL própria não entra nessa lista.
+- **Métricas:** oj1, hosts 0–15 s google.com → dw.com, beats de mapa 0, cenas 5 → 4. C4HES, docs.google sai, hosts 0–15 s continua estadao.com.br, cenas 8 → 7. PEZ, jHb, ciYz e UHWL sem host inútil e sem x-post fora de contexto. Testes 99 → 101.
+- **Decisão:** KEEP.
