@@ -1332,21 +1332,40 @@ def build_scene_timeline(
             step = dur / num_sub
             sub_t0 = beat.t0
             # Variadores alternam entre prints da mesma fonte (multi-shot)
-            # quando disponíveis; senão, injeta outras cenas SÓ se a fala
-            # não tiver fonte explícita — evitar que uma URL diferente
+            # quando disponíveis; senão, injeta outras matérias SÓ se a
+            # fala NÃO tiver URL explícita — evitar que outra URL
             # atrapalhe matéria citada.
             same_src = [s for s in scene_queue
                         if s.get("url") and s.get("url") == beat.url
                         and s.get("shot") != beat.shot]
             if same_src:
                 variant = same_src
-            elif len(scene_queue) > 1 and not episode_cited:
-                variant = [s for s in scene_queue if s.get("shot")]
+            elif beat.provenance_type in ("none", "fallback", "") and len(scene_queue) > 1:
+                # Sem URL na fala: permite variar entre matérias distintas.
+                # Mas se o episódio já cita URL, bloqueia variantes para
+                # não confundir com a matéria da fala.
+                if episode_cited:
+                    variant = []
+                else:
+                    from urllib.parse import urlsplit
+                    variant = []
+                    for s in scene_queue:
+                        u = (s.get("url") or "").strip()
+                        if not u or _is_youtube_url(u) or _is_x_url(u):
+                            continue
+                        path = ""
+                        try:
+                            path = urlsplit(u).path.strip("/")
+                        except Exception:
+                            path = ""
+                        if not path:
+                            continue
+                        variant.append(s)
             else:
                 variant = []
             extras = []
             extra_at: dict[int, dict] = {}
-            if not episode_cited and beat.provenance_type in ("none", "fallback", ""):
+            if beat.provenance_type in ("none", "fallback", "") and not episode_cited:
                 extras = extra_visual_scenes(scene_queue, beat.url)
                 eligible = [i for i in range(num_sub) if (beat.t0 + i * step) >= 15.0]
                 cursor = 0
