@@ -3482,7 +3482,10 @@ const VDL_MOCKUP_ENGINE = {
         const containerWidth = scrollWrapper.offsetWidth || 1540;
         const scale = containerWidth / (pageShot.naturalWidth || 1400.0);
 
-        if (box && box.found) {
+        const boxY = box ? Number(box.y) || 0 : 0;
+        const boxH = box ? Number(box.h) || 0 : 0;
+        const boxUsable = box && box.found && boxY <= 900 && boxH >= 28 && boxH <= 220;
+        if (boxUsable) {
           const pad = 8;
           const leftPx = Math.max(12, Math.round(box.x * scale) - pad);
           const topPx = Math.max(0, Math.round(box.y * scale) - pad);
@@ -3494,17 +3497,20 @@ const VDL_MOCKUP_ENGINE = {
           highlightOverlay.style.width = `${widthPx}px`;
           highlightOverlay.style.height = `${heightPx}px`;
 
-          // Se a coordenada Y estiver abaixo do topo visível, rola suavemente para centralizar
-          if (topPx > 360 && window.gsap) {
-            const targetY = -Math.max(0, topPx - 220);
+          // Rola só dentro do miolo. y>900 é rodapé/relacionadas (base escura).
+          if (topPx > 360 && topPx <= 900 && window.gsap) {
+            const targetY = -Math.max(0, Math.min(topPx - 220, 420));
             gsap.to(scrollWrapper, { y: targetY, duration: 1.2, ease: "power2.out" });
+          } else if (window.gsap) {
+            gsap.set(scrollWrapper, { y: 0 });
           }
         } else {
-          // Fallback editorial calibrado na área do subtítulo
+          // Fallback editorial calibrado na área do subtítulo. Não rola até o rodapé.
           highlightOverlay.style.left = "8%";
           highlightOverlay.style.top = "290px";
           highlightOverlay.style.width = "82%";
           highlightOverlay.style.height = "76px";
+          if (window.gsap) gsap.set(scrollWrapper, { y: 0 });
         }
 
         highlightOverlay.hidden = false;

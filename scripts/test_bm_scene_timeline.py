@@ -861,6 +861,58 @@ class Exp0004BrollTests(unittest.TestCase):
         self.assertEqual(brolls[0].broll_file, "stf.mp4")
 
 
+class UncitedSourceWeaveTests(unittest.TestCase):
+    def test_sem_fonte_na_fala_mostra_video_do_x_depois_do_gancho(self):
+        from bm_scene_timeline import build_scene_timeline
+        episode = {
+            "titulo": "Marina",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura sem fonte editorial. " * 12}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Desenvolvimento longo sem citar URL. " * 80}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho."}],
+        }
+        x1 = "https://x.com/Chief117Br/status/2101845941498064913"
+        x2 = "https://x.com/marinahelenabr/status/2102083106601587060"
+        scenes = [
+            {"veiculo": "DCM", "url": "https://www.diariodocentrodomundo.com.br/materia", "shot": "src-00.png"},
+            {"veiculo": "X", "url": x1, "video": "/shots/xvid-01.mp4", "shot": None},
+            {"veiculo": "X", "url": x2, "video": "/shots/xvid-02.mp4", "shot": None},
+            {"veiculo": "Apoia", "url": "https://peterapoia.com/", "shot": "src-04.png"},
+        ]
+        beats = build_scene_timeline(episode, 300.0, scenes)
+        early = [b for b in beats if b.t0 < 15 and b.visual_component not in ("broll", "transition")]
+        self.assertTrue(early)
+        self.assertTrue(all("diariodocentrodomundo" in b.url for b in early))
+        shown = {b.url for b in beats}
+        self.assertIn(x1, shown)
+        self.assertIn(x2, shown)
+        self.assertNotIn("https://peterapoia.com/", shown)
+        x_beats = [b for b in beats if b.url in (x1, x2) and b.visual_component == "source"]
+        self.assertTrue(all(b.video for b in x_beats))
+        self.assertTrue(all(b.visual_component == "source" for b in x_beats))
+
+
+class HighlightBoxSanitizeTests(unittest.TestCase):
+    def test_rodape_escuro_nao_vira_grifo(self):
+        from bm_video.state import sanitize_highlight_box
+        bad = {
+            "found": True,
+            "tag": "h2",
+            "text": "Discussões recentes no podcast de Felipe Sestaro",
+            "x": 211,
+            "y": 1963,
+            "w": 640,
+            "h": 25,
+        }
+        out = sanitize_highlight_box(bad)
+        self.assertFalse(out["found"])
+        self.assertLessEqual(out["y"], 900)
+
+    def test_lead_visivel_permanece(self):
+        from bm_video.state import sanitize_highlight_box
+        good = {"found": True, "text": "Candidata afirmou que o apresentador defendia o modelo", "x": 80, "y": 340, "w": 900, "h": 48}
+        self.assertTrue(sanitize_highlight_box(good)["found"])
+
+
 if __name__ == "__main__":
     unittest.main()
 

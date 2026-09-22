@@ -195,11 +195,17 @@ _EXTRACT_HIGHLIGHT_BOX_JS = """() => {
     'header h2'
   ];
   for (const sel of leadSelectors) {
-    const el = document.querySelector(sel);
-    if (el && (el.innerText || '').trim().length > 15) {
+    const nodes = document.querySelectorAll(sel);
+    for (const el of nodes) {
+      const t = (el.innerText || '').trim();
+      if (t.length <= 15) continue;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      if (top > 780) continue;
+      if (/leia também|relacionad|discussões recentes|clique no estado/i.test(t)) continue;
       target = el;
       break;
     }
+    if (target) break;
   }
   if (!target && article) {
     const ps = Array.from(article.querySelectorAll('p')).filter(p => {

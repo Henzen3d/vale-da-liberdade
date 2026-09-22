@@ -824,6 +824,40 @@ def _person_mention_window(blocks: list[dict], total_dur: float) -> tuple[float,
     return None
 
 
+def extra_visual_scenes(scenes: list[dict], primary_url: str) -> list[dict]:
+    """Fontes capturadas além da primária, com print ou vídeo.
+
+    Homepage (peterapoia.com/) e URL sem pixels ficam de fora. Post do X só
+    entra se o clipe foi baixado — x_post sem vídeo não substitui a matéria.
+    """
+    from urllib.parse import urlsplit
+
+    extras: list[dict] = []
+    seen: set[str] = set()
+    for scene in scenes:
+        url = (scene.get("url") or "").strip()
+        if not url or url == primary_url or _is_youtube_url(url) or url in seen:
+            continue
+        try:
+            from bm_video.state import is_blocked_source_url
+            if is_blocked_source_url(url):
+                continue
+        except Exception:
+            pass
+        path = ""
+        try:
+            path = urlsplit(url).path.strip("/")
+        except Exception:
+            path = ""
+        if not _is_x_url(url) and not path:
+            continue
+        if not (scene.get("shot") or scene.get("video")):
+            continue
+        seen.add(url)
+        extras.append(scene)
+    return extras
+
+
 def primary_non_x_scene(scenes: list[dict]) -> dict | None:
     for scene in scenes:
         url = scene.get("url") or ""
@@ -1282,6 +1316,7 @@ def build_scene_timeline(
     # calibrando o ritmo pela velocidade da fala (palavras/segundo) e alternando
     # variantes ópticas (hero -> zoom -> scroll -> highlight), criando cortes ópticos dinâmicos a cada 5-8s.
     expanded_beats: list[SceneBeat] = []
+    episode_cited = any(b.provenance_type == "explicit" for b in final_beats)
     for beat in final_beats:
         dur = beat.t1 - beat.t0
         if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
@@ -1295,13 +1330,27 @@ def build_scene_timeline(
             # candidatos alternativos SÓ da mesma fonte (multi-shot)
             same_src = [s for s in scene_queue
                         if s.get("url") and s.get("url") == beat.url and s.get("shot") != beat.shot]
+            extras = []
+            extra_at: dict[int, dict] = {}
+            if not episode_cited and beat.provenance_type in ("none", "fallback", ""):
+                extras = extra_visual_scenes(scene_queue, beat.url)
+                eligible = [i for i in range(num_sub) if (beat.t0 + i * step) >= 15.0]
+                cursor = 0
+                for scene in extras:
+                    if cursor >= len(eligible):
+                        break
+                    extra_at[eligible[cursor]] = scene
+                    if cursor + 1 < len(eligible):
+                        extra_at[eligible[cursor + 1]] = scene
+                    cursor += 3
             for s_idx in range(num_sub):
                 sub_t1 = round(beat.t0 + (s_idx + 1) * step, 2)
                 if s_idx == num_sub - 1:
                     sub_t1 = beat.t1
-                # alterna dentro do multi-shot da mesma fonte, se houver;
-                # senão mantém o próprio beat (fonte correta preservada)
-                if same_src:
+                forced_extra = extra_at.get(s_idx)
+                if forced_extra:
+                    alt_scene = forced_extra
+                elif same_src:
                     alt_scene = same_src[s_idx % len(same_src)]
                 else:
                     alt_scene = {"url": beat.url, "veiculo": beat.veiculo,
@@ -1314,6 +1363,8 @@ def build_scene_timeline(
                 last_var = expanded_beats[-1].visual_variant if expanded_beats else ""
                 avail_vars = [v for v in _PORTAL_VARIANTS_CYCLE if v != last_var]
                 sub_variant = avail_vars[s_idx % len(avail_vars)] if avail_vars else _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+                if forced_extra and forced_extra.get("video"):
+                    sub_variant = "portal_hero"
 
                 sub_roles = ["apresentacao_fato", "detalhe_factual", "leitura_contexto", "destaque_editorial"]
                 sub_role = sub_roles[s_idx % len(sub_roles)]
@@ -1323,15 +1374,15 @@ def build_scene_timeline(
                     t1=round(sub_t1, 2),
                     url=alt_scene.get("url") or beat.url,
                     veiculo=alt_scene.get("veiculo") or beat.veiculo,
-                    kind=alt_scene.get("kind") or "source",
-                    shot=alt_scene.get("shot") or beat.shot,
-                    shot_long=alt_scene.get("shot_long") or beat.shot_long,
-                    highlight_box=alt_scene.get("highlight_box") or beat.highlight_box,
-                    video=alt_scene.get("video") or beat.video,
+                    kind="source" if forced_extra else (alt_scene.get("kind") or "source"),
+                    shot=alt_scene.get("shot") if forced_extra else (alt_scene.get("shot") or beat.shot),
+                    shot_long=alt_scene.get("shot_long") if forced_extra else (alt_scene.get("shot_long") or beat.shot_long),
+                    highlight_box=alt_scene.get("highlight_box") if forced_extra else (alt_scene.get("highlight_box") or beat.highlight_box),
+                    video=alt_scene.get("video") if forced_extra else (alt_scene.get("video") or beat.video),
                     broll_file=None,
-                    x_post=alt_scene.get("x_post") or beat.x_post,
+                    x_post=None if forced_extra else (alt_scene.get("x_post") or beat.x_post),
                     semantic_role=sub_role,
-                    visual_component=beat.visual_component,
+                    visual_component="source" if forced_extra else beat.visual_component,
                     visual_variant=sub_variant,
                     visual_payload=beat.visual_payload,
                     fala_indices=list(beat.fala_indices),

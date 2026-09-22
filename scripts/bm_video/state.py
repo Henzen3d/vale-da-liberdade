@@ -41,6 +41,29 @@ def domain_of(url: str) -> str:
         return ""
 
 
+def sanitize_highlight_box(box: dict | None) -> dict:
+    """Recusa grifo fora do miolo visível da matéria.
+
+    O seletor `article h2` pega "leia também" no rodapé (y=1963, h=25 no
+    DCM). O mockup rola a screenshot longa até essa coordenada e a tela
+    vira a base escura, sem texto destacado.
+    """
+    fallback = {"found": False, "x": 80, "y": 320, "w": 1000, "h": 70}
+    if not isinstance(box, dict) or not box.get("found"):
+        return fallback
+    try:
+        y = int(box.get("y") or 0)
+        h = int(box.get("h") or 0)
+    except (TypeError, ValueError):
+        return fallback
+    text = (box.get("text") or "").lower()
+    if y > 900 or h < 28 or h > 220:
+        return fallback
+    if any(token in text for token in ("discussões recentes", "leia também", "leia tambem", "relacionad", "clique no estado")):
+        return fallback
+    return box
+
+
 def is_useless_visual_url(url: str) -> bool:
     """Host que não é matéria: mapa, busca, viewer do Google Docs."""
     host = domain_of(url)
@@ -906,7 +929,7 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
     payload: dict = {
         "pageImage": page_image,
         "shotLong": page_image_long,
-        "highlightBox": beat_v2.get("highlight_box") or {},
+        "highlightBox": sanitize_highlight_box(beat_v2.get("highlight_box")),
         "pageVideo": page_video,
         "kind": kind,
         "visual_component": kind,
