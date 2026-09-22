@@ -78,11 +78,23 @@ def is_useless_visual_url(url: str) -> bool:
     return False
 
 
+def is_instagram_profile_url(url: str) -> bool:
+    """Perfil do Instagram (sem /p/ /reel/ /tv/) não abre sem login.
+
+    Não é publicação. Colocar essa URL na barra mostra o template do Vale
+    fingindo que é o Instagram.
+    """
+    low = (url or "").lower()
+    if "instagram.com" not in low:
+        return False
+    return not bool(re.search(r"instagram\.com/(?:p|reel|reels|tv)/", low))
+
+
 def is_blocked_source_url(url: str) -> bool:
     low = (url or "").lower()
     if not low.startswith("http"):
         return True
-    if is_useless_visual_url(url):
+    if is_useless_visual_url(url) or is_instagram_profile_url(url):
         return True
     return any(
         token in low
@@ -943,7 +955,8 @@ def _build_mockup_update_payload(beat_v2: dict) -> dict:
         },
     }
     url = _omnibox_url(beat_v2.get("url"))
-    if url:
+    # Sem print nem vídeo, a barra não pode anunciar um site que não carregou.
+    if url and (page_image or page_video):
         payload["url"] = url
     # Mescla campos diretos do visual_payload (timeline, chart, comparison, quote)
     vis_data = beat_v2.get("visual_payload")

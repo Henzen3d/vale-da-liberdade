@@ -544,6 +544,52 @@ def extract_instagram_video(url: str, work: Path, video_id: str, idx: int) -> st
     return f"/shots/{dest.name}"
 
 
+def extract_instagram_image(url: str, work: Path, video_id: str, idx: int) -> str | None:
+    """Foto de post do Instagram. yt-dlp recusa post sem vídeo.
+
+    /p/{code}/media/?size=l redireciona para o JPG público. Perfil sem
+    shortcode devolve None.
+    """
+    code = instagram_shortcode(url)
+    if not code:
+        return None
+    dest = work / "shots" / f"igimg-{video_id}-{idx:02d}.jpg"
+    if dest.exists() and dest.stat().st_size > MIN_SHOT_BYTES and _looks_like_image(dest):
+        return dest.name
+    media = f"https://www.instagram.com/p/{code}/media/?size=l"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        r = subprocess.run(
+            [
+                "curl", "-fsSL", "-L", "--max-redirs", "5", "--max-time", "40",
+                "-A", "Mozilla/5.0",
+                "-o", str(dest),
+                media,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=50,
+        )
+    except Exception as exc:
+        print(f"  ⚠️  instagram-image: {exc}")
+        dest.unlink(missing_ok=True)
+        return None
+    if r.returncode != 0 or not dest.exists() or dest.stat().st_size < MIN_SHOT_BYTES or not _looks_like_image(dest):
+        print(f"  ⚠️  instagram-image: sem foto em {url}")
+        dest.unlink(missing_ok=True)
+        return None
+    print(f"  📸 instagram-image: {dest.name} ({dest.stat().st_size // 1024} KB)")
+    return dest.name
+
+
+def _looks_like_image(path: Path) -> bool:
+    try:
+        head = path.read_bytes()[:12]
+    except Exception:
+        return False
+    return head.startswith(b"\xff\xd8") or head.startswith(b"\x89PNG") or head[:4] == b"RIFF"
+
+
 def extract_uol_flash_video(url: str, work: Path, video_id: str, idx: int) -> str | None:
     """Baixa o clipe de uol.com.br/flash via yt-dlp (teste: loUBwNIVsfk).
 
@@ -918,7 +964,14 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         by_index[i] = item
                         print(f"  📸🎞️ {scene['veiculo']}: vídeo baixado ({vid_rel})")
                         continue
-                    # Sem vídeo ou falhou: tenta embed público oficial para evitar login-wall
+                    img_name = extract_instagram_image(url, shot_dir.parent, shot_dir.parent.name, i)
+                    if img_name:
+                        item = dict(scene)
+                        item["shot"] = img_name
+                        item["video"] = None
+                        by_index[i] = item
+                        continue
+                    # Sem vídeo ou foto: embed público, último recurso antes do login-wall
                     if capture_instagram_embed(page, url, dest):
                         save_cached_screenshot(url, dest)
                         item = dict(scene)

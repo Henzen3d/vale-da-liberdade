@@ -859,11 +859,15 @@ def extra_visual_scenes(scenes: list[dict], primary_url: str) -> list[dict]:
 
 
 def primary_non_x_scene(scenes: list[dict]) -> dict | None:
+    candidates = []
     for scene in scenes:
         url = scene.get("url") or ""
         if url and not _is_x_url(url) and not _is_youtube_url(url):
+            candidates.append(scene)
+    for scene in candidates:
+        if scene.get("shot") or scene.get("video"):
             return scene
-    return None
+    return candidates[0] if candidates else None
 
 
 def fala_authorizes_x_post(fonte_url: str, scene: dict | None) -> bool:

@@ -157,7 +157,15 @@ class InstagramMediaTests(unittest.TestCase):
             "XYZ987",
         )
 
-    def test_returns_none_for_non_post_instagram_urls(self):
+    def test_profile_url_has_no_image(self):
+        from bm_video.capture import extract_instagram_image
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(extract_instagram_image(
+                "https://www.instagram.com/luanadellevedove/",
+                Path(tmp),
+                "vid",
+                1,
+            ))
         self.assertIsNone(instagram_shortcode("https://www.instagram.com/nikolasferreiradm/"))
         self.assertIsNone(instagram_shortcode("https://www.cnnbrasil.com.br/"))
         self.assertIsNone(instagram_shortcode(""))
@@ -273,6 +281,9 @@ class SourceFilterTests(unittest.TestCase):
         self.assertTrue(is_blocked_source_url("https://docs.google.com/viewerng/viewer?url=https://exemplo.com/a.pdf"))
         self.assertFalse(is_blocked_source_url("https://www.dw.com/pt-br/eleicao"))
         self.assertFalse(is_blocked_source_url("https://x.com/andreshalders/status/1"))
+        self.assertTrue(is_blocked_source_url("https://www.instagram.com/luanadellevedove/"))
+        self.assertFalse(is_blocked_source_url("https://www.instagram.com/p/DVWFszVjrOE/"))
+        self.assertFalse(is_blocked_source_url("https://www.instagram.com/reel/DczgElQso4z/"))
 
     def test_source_scenes_skips_self_and_youtube(self):
         ep = {

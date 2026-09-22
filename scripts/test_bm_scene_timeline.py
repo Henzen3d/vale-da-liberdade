@@ -913,6 +913,32 @@ class HighlightBoxSanitizeTests(unittest.TestCase):
         self.assertTrue(sanitize_highlight_box(good)["found"])
 
 
+class DeadSocialUrlTests(unittest.TestCase):
+    def test_primaria_prefere_materia_com_print(self):
+        from bm_scene_timeline import primary_non_x_scene
+        scenes = [
+            {"url": "https://www.instagram.com/luanadellevedove/", "shot": None},
+            {"url": "https://www.diariodocentrodomundo.com.br/materia", "shot": "src-02.png"},
+        ]
+        self.assertIn("diariodocentrodomundo", primary_non_x_scene(scenes)["url"])
+
+    def test_barra_nao_anuncia_url_sem_midia(self):
+        from bm_video.state import _build_mockup_update_payload
+        dead = _build_mockup_update_payload({
+            "url": "https://www.instagram.com/luanadellevedove/",
+            "visual_component": "source",
+            "kind": "source",
+        })
+        self.assertNotIn("url", dead)
+        live = _build_mockup_update_payload({
+            "url": "https://www.instagram.com/p/DVWFszVjrOE/",
+            "shot": "igimg-00.jpg",
+            "visual_component": "source",
+            "kind": "source",
+        })
+        self.assertIn("instagram.com/p/", live["url"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
