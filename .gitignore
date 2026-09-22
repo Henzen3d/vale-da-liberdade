@@ -9,6 +9,7 @@
 tokens*
 *client_secret*.json
 sources/*cookies*.json
+free-api.md
 
 # Dependências
 node_modules/
