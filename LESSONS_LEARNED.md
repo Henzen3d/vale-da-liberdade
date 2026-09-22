@@ -427,3 +427,15 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 - **Métricas:** oj1, hosts 0–15 s google.com → dw.com, beats de mapa 0, cenas 5 → 4. C4HES, docs.google sai, hosts 0–15 s continua estadao.com.br, cenas 8 → 7. PEZ, jHb, ciYz e UHWL sem host inútil e sem x-post fora de contexto. Testes 99 → 101.
 - **Decisão:** KEEP.
 - **Commit:** `77a006b` (`feat/evolucao-visual-broadcast`).
+
+---
+
+## [2026-09-21] EXP-0004, EXP-0005 e EXP-0006 (KEEP)
+
+- **EXP-0004.** B-roll deixou de ser só rotação. Se a fala traz uma tag que já existe no índice (stf, tribunal, justica, policia, dolar, bolsa, economia, corrupcao), o clipe dessa tag entra. Sem tag, a rotação antiga permanece. Não baixa clipe novo.
+- **EXP-0005.** Em episódio longo, Peter fica nos primeiros 12 s e nos últimos 12 s. No meio o overlay some, para a evidência não ficar coberta. Episódio curto, abaixo de 40 s, ele continua o tempo todo. Sem lip-sync. O filtro de encode não mudou, só ganhou `enable`.
+- **EXP-0006.** O juiz Gemini não escolhe imagem. No pipeline, uma chamada no máximo, no primeiro shot de fonte já aprovado. Se a resposta for `match: false`, o shot cai no resgate por og:image que já existia. Sem chave, sem resposta ou na dúvida, não veta. Os testes não chamam a API.
+- **Testes:** 109 passed no recorte da timeline, do mockup, do shot judge e dos componentes visuais.
+- **Render:** não reencodei. A métrica do B-roll é o arquivo escolhido. A do avatar é a janela `between(t,...)`. A do veto é o status REJECTED seguido do resgate.
+- **Decisão:** KEEP.
+- **Commit:** `a65384f` (`feat/evolucao-visual-broadcast`).
