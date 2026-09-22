@@ -129,17 +129,14 @@ def avatar_visible_windows(
     intro_s: float = 12.0,
     outro_s: float = 12.0,
 ) -> list[tuple[float, float]]:
-    """Peter na abertura e no fecho. No meio a evidência fica descoberta.
+    """Peter fica na tela o episódio inteiro.
 
-    Vídeo curto demais para sair e voltar mantém o apresentador o tempo todo.
+    intro_s/outro_s ficam na assinatura para não quebrar chamadas antigas.
+    Não escondem mais o apresentador no meio.
     """
+    del intro_s, outro_s
     duration = max(0.0, float(duration_s or 0.0))
-    if duration <= intro_s + outro_s + 8.0:
-        return [(0.0, round(duration, 2))]
-    return [
-        (0.0, round(intro_s, 2)),
-        (round(max(intro_s, duration - outro_s), 2), round(duration, 2)),
-    ]
+    return [(0.0, round(duration, 2))]
 
 
 def avatar_enable_expr(windows: list[tuple[float, float]]) -> str:
@@ -186,12 +183,6 @@ def compose_presenter(
         l3_path = None
 
     enable = ""
-    if timeline_beats:
-        dur = probe_duration_s(base_mp4) or probe_duration_s(audio)
-        windows = avatar_visible_windows(dur)
-        expr = avatar_enable_expr(windows)
-        if expr and len(windows) > 1:
-            enable = f":enable='{expr}'"
     vf_avatar = (
         f"[1:v]crop={AVATAR_CROP},format=rgba,"
         f"colorkey=0x007E00:0.10:0.03,lut=a='if(lt(val\\,230)\\,0\\,255)',"
