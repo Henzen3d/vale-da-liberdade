@@ -202,7 +202,7 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertEqual(_host_of("nao-e-url"), "")
 
     def test_cascata_preferencia_exato_sobre_dominio(self):
-        """Match exato vence o de domínio quando ambos existem."""
+        """Beats com URL citada usam match exato; fechamento sem URL pode variar."""
         from bm_scene_timeline import build_scene_timeline
         episode = {
             "titulo": "Preferencia",
@@ -215,9 +215,13 @@ class SceneTimelineTests(unittest.TestCase):
             {"veiculo": "CNN outra", "url": "https://cnn.com/outra", "shot": "outra.png"},
         ]
         beats = build_scene_timeline(episode, total_duration_s=60.0, scenes=scenes)
-        fontes = [b.url for b in beats if b.kind != "broll"]
-        self.assertTrue(all(u == "https://cnn.com/exata" for u in fontes),
-                        f"match exato devia vencer: {fontes}")
+        # Beats com URL explícita devem usar match exato
+        explicit = [b for b in beats if b.provenance_type == "explicit"]
+        self.assertTrue(all(b.url == "https://cnn.com/exata" for b in explicit),
+                        f"explicit devia usar match exato: {[b.url for b in explicit]}")
+        # Fechamento sem URL pode usar outra cena (dinamismo)
+        non_explicit = [b for b in beats if b.provenance_type in ("none", "fallback", "")]
+        self.assertTrue(len(non_explicit) > 0, "deve ter beats sem URL")
 
 
     # ---------- FASE 3: abertura ampla / corpo sincronizado ----------
