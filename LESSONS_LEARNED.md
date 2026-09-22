@@ -426,3 +426,4 @@ Formato: entrada por incidente/decisão com contexto, causa, solução e como ev
 - **Hipótese:** mapa, busca Google, Docs/Drive e news.google não são fonte editorial. Saem do pool e não se herdam. Matéria real permanece. Post do X com URL própria não entra nessa lista.
 - **Métricas:** oj1, hosts 0–15 s google.com → dw.com, beats de mapa 0, cenas 5 → 4. C4HES, docs.google sai, hosts 0–15 s continua estadao.com.br, cenas 8 → 7. PEZ, jHb, ciYz e UHWL sem host inútil e sem x-post fora de contexto. Testes 99 → 101.
 - **Decisão:** KEEP.
+- **Commit:** `77a006b` (`feat/evolucao-visual-broadcast`).
