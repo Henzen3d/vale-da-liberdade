@@ -1332,13 +1332,15 @@ def build_scene_timeline(
             step = dur / num_sub
             sub_t0 = beat.t0
             # Variadores alternam entre prints da mesma fonte (multi-shot)
-            # quando disponíveis; sem isso, usa o beat original.
+            # quando disponíveis; senão, injeta outras cenas SÓ se a fala
+            # não tiver fonte explícita — evitar que uma URL diferente
+            # atrapalhe matéria citada.
             same_src = [s for s in scene_queue
                         if s.get("url") and s.get("url") == beat.url
                         and s.get("shot") != beat.shot]
             if same_src:
                 variant = same_src
-            elif len(scene_queue) > 1:
+            elif len(scene_queue) > 1 and not episode_cited:
                 variant = [s for s in scene_queue if s.get("shot")]
             else:
                 variant = []
