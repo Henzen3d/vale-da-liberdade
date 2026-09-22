@@ -161,11 +161,57 @@ def audit_captured_shot(
     }
 
 
+def semantic_veto(shot_path: Path, text: str, title: str = "", ask=None) -> str | None:
+    """Veto pontual. None = não veta (falha aberta ou imagem compatível)."""
+    if ask is None:
+        ask = _gemini_veto_ask
+    try:
+        answer = ask(shot_path, text or "", title or "")
+    except Exception:
+        return None
+    if not answer:
+        return None
+    low = str(answer).lower().replace(" ", "")
+    if '"match":false' in low or low.strip().startswith("rejeitar"):
+        return str(answer)[:180]
+    return None
+
+
+def _gemini_veto_ask(shot_path: Path, text: str, title: str) -> str | None:
+    """Uma chamada multimodal. Sem chave ou com erro, não veta."""
+    import os
+    if not os.environ.get("GEMINI_API_KEY"):
+        return None
+    try:
+        from gemini_client import GeminiMultiClient
+        from google.genai import types
+        data = Path(shot_path).read_bytes()
+        mime = "image/png" if str(shot_path).lower().endswith(".png") else "image/jpeg"
+        prompt = (
+            "Imagem de evidência de telejornal. Título: "
+            + (title or "")[:120]
+            + ". Narração: "
+            + (text or "")[:400]
+            + '. Responda só JSON {"match": true} se o assunto combina, '
+            'ou {"match": false, "reason": "curto"} se for claramente outro assunto, '
+            "mapa, login ou tela vazia. Na dúvida, match true."
+        )
+        response = GeminiMultiClient().generate_content(
+            "gemini-2.5-flash",
+            [types.Part.from_bytes(data=data, mime_type=mime), prompt],
+        )
+        return getattr(response, "text", None) or ""
+    except Exception:
+        return None
+
+
 def evaluate_timeline_shots(
     timeline_beats: list[Any],
     scenes: list[dict],
     work_dir: Path,
     episode: dict | None = None,
+    semantic_veto_ask=None,
+    enable_semantic_veto: bool = False,
 ) -> dict[str, Any]:
     """Avalia semântica e integridade de todos os shots da timeline.
 
@@ -179,6 +225,7 @@ def evaluate_timeline_shots(
     approved_count = 0
 
     from person_resolver import download_article_image
+    veto_left = 1 if enable_semantic_veto else 0
 
     for idx, beat in enumerate(timeline_beats):
         b_dict = beat.to_dict() if hasattr(beat, "to_dict") else dict(beat)
@@ -203,6 +250,24 @@ def evaluate_timeline_shots(
         audit["url"] = url
         audit["veiculo"] = veiculo
         audit["visual_component"] = comp
+
+        if (
+            veto_left
+            and audit["status"] == "APPROVED"
+            and comp == "source"
+            and texto.strip()
+        ):
+            veto_left -= 1
+            reason = semantic_veto(
+                shot_path,
+                texto,
+                (episode or {}).get("titulo") or "",
+                ask=semantic_veto_ask,
+            )
+            if reason:
+                audit["status"] = "REJECTED"
+                audit["reasons"] = [f"Veto semântico: {reason}"]
+                audit["semantic_veto"] = True
 
         # Escada de resgate automático se o shot for rejeitado e houver URL válida
         if audit["status"] == "REJECTED" and url and url.startswith("http"):

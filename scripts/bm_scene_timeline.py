@@ -899,6 +899,33 @@ def youtube_id_from_episode(episode: dict) -> str:
     return m.group(1) if m else ""
 
 
+_BROLL_TAG_HINTS = (
+    ("stf", ("stf", "moraes", "supremo")),
+    ("tribunal", ("tribunal", "juíza", "juiza", "sentença", "sentenca")),
+    ("justica", ("justiça", "justica", "impeachment", "processo")),
+    ("policia", ("polícia", "policia", "delegado")),
+    ("dolar", ("dólar", "dolar", "câmbio", "cambio")),
+    ("bolsa", ("ibovespa", "bolsa")),
+    ("economia", ("economia", "inflação", "inflacao", "juros", "imposto", "fiscal")),
+    ("corrupcao", ("corrupção", "corrupcao", "propina", "lobista", "desvio")),
+)
+
+
+def pick_broll_clip(clips: list[dict], text: str, fallback_index: int = 0) -> dict | None:
+    """Prefere clipe cuja tag existe no índice e aparece na fala. Sem tag, rotação."""
+    if not clips:
+        return None
+    low = (text or "").lower()
+    for tag, hints in _BROLL_TAG_HINTS:
+        if not any(hint in low for hint in hints):
+            continue
+        for clip in clips:
+            tags = [str(t).lower() for t in (clip.get("tags") or [])]
+            if tag in tags:
+                return clip
+    return clips[fallback_index % len(clips)]
+
+
 def load_broll_clips(broll_index_path: Path | None = None) -> list[dict]:
     if not broll_index_path or not broll_index_path.is_file():
         return []
@@ -1018,7 +1045,9 @@ def build_scene_timeline(
         # Inserção de b-roll na transição entre matérias se houver clipes
         if available_broll and raw_beats and raw_beats[-1]["url"] != scene_item.get("url"):
             if total_dur - current_t > 15.0:
-                clip = available_broll[len(raw_beats) % len(available_broll)]
+                clip = pick_broll_clip(available_broll, b.get("texto") or "", len(raw_beats))
+                if not clip:
+                    clip = available_broll[len(raw_beats) % len(available_broll)]
                 clip_dur = float(clip.get("dur_s", DEFAULT_BROLL_DUR_S))
                 broll_end = min(total_dur - 5.0, current_t + clip_dur)
                 raw_beats.append({

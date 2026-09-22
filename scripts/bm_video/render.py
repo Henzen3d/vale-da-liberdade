@@ -124,7 +124,36 @@ def mux_video(raw: Path, audio: Path, dest: Path) -> Path:
     return dest
 
 
-def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) -> Path:
+def avatar_visible_windows(
+    duration_s: float,
+    intro_s: float = 12.0,
+    outro_s: float = 12.0,
+) -> list[tuple[float, float]]:
+    """Peter na abertura e no fecho. No meio a evidência fica descoberta.
+
+    Vídeo curto demais para sair e voltar mantém o apresentador o tempo todo.
+    """
+    duration = max(0.0, float(duration_s or 0.0))
+    if duration <= intro_s + outro_s + 8.0:
+        return [(0.0, round(duration, 2))]
+    return [
+        (0.0, round(intro_s, 2)),
+        (round(max(intro_s, duration - outro_s), 2), round(duration, 2)),
+    ]
+
+
+def avatar_enable_expr(windows: list[tuple[float, float]]) -> str:
+    parts = [f"between(t,{start:.2f},{end:.2f})" for start, end in windows if end > start]
+    return "+".join(parts)
+
+
+def compose_presenter(
+    base_mp4: Path,
+    episode: dict,
+    audio: Path,
+    work: Path,
+    timeline_beats: list | None = None,
+) -> Path:
     """Sobre o mockup: avatar aprovado + lower third na frente. Falha não derruba o mp4 base."""
     if not AVATAR_LOOP.is_file():
         print("  ⚠️  avatar loop ausente — segue sem apresentador")
@@ -156,12 +185,19 @@ def compose_presenter(base_mp4: Path, episode: dict, audio: Path, work: Path) ->
         print(f"  ⚠️  lower-third falhou ({exc}); overlay só do avatar")
         l3_path = None
 
+    enable = ""
+    if timeline_beats:
+        dur = probe_duration_s(base_mp4) or probe_duration_s(audio)
+        windows = avatar_visible_windows(dur)
+        expr = avatar_enable_expr(windows)
+        if expr and len(windows) > 1:
+            enable = f":enable='{expr}'"
     vf_avatar = (
         f"[1:v]crop={AVATAR_CROP},format=rgba,"
         f"colorkey=0x007E00:0.10:0.03,lut=a='if(lt(val\\,230)\\,0\\,255)',"
         f"scale={AVATAR_SCALE}:flags=bilinear,"
         f"tpad=start_duration={AVATAR_START_DELAY_S}:start_mode=clone[av];"
-        f"[0:v][av]overlay={AVATAR_OVERLAY}:format=auto:shortest=1"
+        f"[0:v][av]overlay={AVATAR_OVERLAY}:format=auto:shortest=1{enable}"
     )
     inputs = ["-i", str(base_mp4), "-stream_loop", "-1", "-i", str(AVATAR_LOOP)]
     if l3_path and l3_path.is_file():

@@ -239,7 +239,7 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
     mp4 = VIDEOS_OUT / f"especial-{video_id}-mockup.mp4"
     mux_video(raw, audio, mp4)
     print(f"  ✅ mp4 {mp4} ({mp4.stat().st_size // 1024} KB)")
-    mp4 = compose_presenter(mp4, episode, audio, work)
+    mp4 = compose_presenter(mp4, episode, audio, work, timeline_beats=timeline_beats)
     if not mp4_is_playable(mp4):
         raise RuntimeError(f"{video_id}: MP4 ilegível após overlay — recusando upload")
     outro_video = resolve_outro_video(video_id, wallpaper=wallpaper, work=work)

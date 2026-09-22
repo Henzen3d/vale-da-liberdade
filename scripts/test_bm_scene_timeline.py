@@ -830,6 +830,37 @@ class Exp0003UselessHostTests(unittest.TestCase):
         self.assertFalse(any("google.com/maps" in (b.url or "") for b in beats))
 
 
+class Exp0004BrollTests(unittest.TestCase):
+    def test_broll_prefere_tag_da_fala(self):
+        import json as _json
+        import tempfile
+        from bm_scene_timeline import build_scene_timeline
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w", encoding="utf-8") as fh:
+            _json.dump({"clips": [
+                {"file": "economia.mp4", "dur_s": 1.2, "tags": ["economia"]},
+                {"file": "stf.mp4", "dur_s": 1.2, "tags": ["stf"]},
+            ]}, fh)
+            path = Path(fh.name)
+        self.addCleanup(path.unlink, missing_ok=True)
+        episode = {
+            "titulo": "STF",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura curta.", "fonte_url": "https://portal1.com/a"}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": " " .join(["palavra"] * 40), "fonte_url": "https://portal1.com/a"},
+                {"speaker": "Peter", "texto": "O ministro do STF mudou o placar. " * 8, "fonte_url": "https://portal2.com/b"},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho.", "fonte_url": "https://portal2.com/b"}],
+        }
+        scenes = [
+            {"veiculo": "P1", "url": "https://portal1.com/a", "shot": "a.png"},
+            {"veiculo": "P2", "url": "https://portal2.com/b", "shot": "b.png"},
+        ]
+        beats = build_scene_timeline(episode, 180.0, scenes, broll_index_path=path)
+        brolls = [b for b in beats if b.visual_component == "broll"]
+        self.assertTrue(brolls)
+        self.assertEqual(brolls[0].broll_file, "stf.mp4")
+
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -1122,7 +1122,9 @@ def record_mockup(
         stage_person_photo_assets(timeline_beats, work)
         try:
             from bm_video.shot_judge import evaluate_timeline_shots
-            evaluate_timeline_shots(timeline_beats, scenes, work, episode)
+            evaluate_timeline_shots(
+                timeline_beats, scenes, work, episode, enable_semantic_veto=True
+            )
         except Exception as _qa_exc:
             print(f"  ⚠️  Auditoria de shots (shot.qa.json) ignorada: {_qa_exc}")
 

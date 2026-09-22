@@ -15,7 +15,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from bm_video.shot_judge import audit_captured_shot, evaluate_timeline_shots
+from bm_video.shot_judge import audit_captured_shot, evaluate_timeline_shots, semantic_veto
 
 
 class ShotJudgeTests(unittest.TestCase):
@@ -128,6 +128,40 @@ class ShotJudgeTests(unittest.TestCase):
         self.assertEqual(data["approved_count"], 1)
         self.assertEqual(data["rescued_count"], 1)
         self.assertEqual(data["shots"][1]["status"], "RESCUED")
+
+    def test_semantic_veto_rejects_then_rescue_can_run(self):
+        shot = self.tmp_dir / "shots" / "src-00.png"
+        self._create_dummy_image(shot)
+        beats = [{
+            "visual_component": "source",
+            "shot": "src-00.png",
+            "url": "https://www.dw.com/pt-br/eleicao",
+            "veiculo": "DW",
+            "texto_origem": "A eleição estadual na Alemanha mudou o mapa do poder.",
+        }]
+
+        def reject(*_args):
+            return '{"match": false, "reason": "mapa"}'
+
+        def rescue(url, dest):
+            self._create_dummy_image(dest)
+            return True
+
+        with patch("person_resolver.download_article_image", side_effect=rescue):
+            report = evaluate_timeline_shots(
+                beats,
+                [],
+                self.tmp_dir,
+                episode={"titulo": "Alemanha"},
+                semantic_veto_ask=reject,
+                enable_semantic_veto=True,
+            )
+        self.assertEqual(report["rescued_count"], 1)
+        self.assertTrue(report["shots"][0].get("semantic_veto"))
+
+    def test_semantic_veto_fail_open(self):
+        self.assertIsNone(semantic_veto(Path("/tmp/x.png"), "texto", ask=lambda *a: None))
+        self.assertIsNone(semantic_veto(Path("/tmp/x.png"), "texto", ask=lambda *a: '{"match": true}'))
 
 
 if __name__ == "__main__":

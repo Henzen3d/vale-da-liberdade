@@ -305,6 +305,17 @@ class SourceFilterTests(unittest.TestCase):
         self.assertFalse(any("docs.google.com" in u for u in urls))
         self.assertIn("https://istoe.com.br/eleicao", urls)
 
+    def test_avatar_leaves_middle_of_long_episode(self):
+        from bm_video.render import avatar_enable_expr, avatar_visible_windows
+        short = avatar_visible_windows(20.0)
+        self.assertEqual(short, [(0.0, 20.0)])
+        long = avatar_visible_windows(300.0)
+        self.assertEqual(long[0], (0.0, 12.0))
+        self.assertEqual(long[1][0], 288.0)
+        expr = avatar_enable_expr(long)
+        self.assertIn("between(t,0.00,12.00)", expr)
+        self.assertIn("between(t,288.00,300.00)", expr)
+
     def test_source_scenes_respects_max_per_host_and_max_scenes(self):
         # 12 referências de 4 domínios diferentes
         ep = {
