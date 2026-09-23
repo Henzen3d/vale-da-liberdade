@@ -1317,6 +1317,12 @@ def record_mockup(
 
             raw_webm = Path(page.video.path())
             ctx.close()
+            # Aguarda o arquivo webm ser escrito completamente
+            import time as _time
+            for _ in range(10):
+                if raw_webm.exists() and raw_webm.stat().st_size > 1000:
+                    break
+                _time.sleep(0.5)
             browser.close()
     finally:
         httpd.shutdown()
