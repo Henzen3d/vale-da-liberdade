@@ -659,9 +659,9 @@ def chapters_block(
         return ""
     lines = ["", "⏱ CAPÍTULOS:", "0:00 Introdução"]
     for ts, label in ch[1:-1]:
-        lines.append(f"{ts // 60:.0f}:{ts % 60:02d} {label}")
+        lines.append(f"{int(ts) // 60:.0f}:{int(ts) % 60:02d} {label}")
     last_ts, last_label = ch[-1]
-    lines.append(f"{last_ts // 60:.0f}:{last_ts % 60:02d} {last_label}")
+    lines.append(f"{int(last_ts) // 60:.0f}:{int(last_ts) % 60:02d} {last_label}")
     return "\n".join(lines)
 
 
