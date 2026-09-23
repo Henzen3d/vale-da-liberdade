@@ -336,7 +336,7 @@ html, body {
    ============================================================ */
 .portal-viewport {
   flex: 1;
-  background: #11141c; /* Anti-flash: fundo escuro de estúdio como base universal (auditoria técnica v2) */
+  background: #ffffff; /* Fundo limpo editorial para o leitor simulado dos portais */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -658,13 +658,16 @@ video.portal-page-shot {
 }
 
 .article-image-box {
-  flex: 1;
-  min-height: 220px;
-  max-height: 320px;
+  min-height: 180px;
+  max-height: 260px;
   border-radius: 10px;
   overflow: hidden;
   position: relative;
   background: linear-gradient(135deg, #1e293b, #334155);
+  margin-bottom: 14px;
+}
+.article-image-box[hidden] {
+  display: none !important;
 }
 
 .article-cover-img {
@@ -697,13 +700,13 @@ video.portal-page-shot {
 /* Leitor Simulado — Corpo do Artigo e Grifos Dinâmicos */
 .portal-article-body {
   margin-top: 14px;
-  font-size: 17px;
-  line-height: 1.60;
+  font-size: 21px;
+  line-height: 1.62;
   color: #1e293b;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 280px;
+  gap: 14px;
+  max-height: 380px;
   overflow: hidden;
 }
 
@@ -713,15 +716,20 @@ video.portal-page-shot {
 
 .portal-article-body .sel {
   border-radius: 4px;
-  padding: 1px 4px;
+  padding: 2px 6px;
   transition: background 0.45s ease, color 0.45s ease, box-shadow 0.45s ease;
 }
 
 .portal-article-body .sel.on {
-  background: var(--sel-bg, rgba(254, 240, 138, 0.75));
+  background: var(--sel-bg, rgba(254, 240, 138, 0.95));
   color: #090e17;
-  box-shadow: 0 0 0 1.5px rgba(212, 160, 23, 0.35);
-  font-weight: 600;
+  box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.45);
+  font-weight: 700;
+}
+
+.phone-viewport video[hidden],
+.phone-viewport img[hidden] {
+  display: none !important;
 }
 
 /* ============================================================
@@ -3473,6 +3481,20 @@ const VDL_MOCKUP_ENGINE = {
         isSerif: false
       };
     }
+    // Folha de S.Paulo
+    if (rawUrl.includes("folha.uol.com.br") || rawFonte.includes("folha")) {
+      return {
+        id: "folha",
+        badge: "FOLHA",
+        name: "FOLHA DE S.PAULO",
+        nameHtml: "FOLHA DE S.PAULO",
+        badgeBg: "#18406f",
+        badgeColor: "#ffffff",
+        accent: "#18406f",
+        menus: ["Poder", "Mercado", "Mundo", "Cotidiano", "Opinião"],
+        isSerif: true
+      };
+    }
     // UOL
     if (rawUrl.includes("uol.com.br") || rawFonte.includes("uol")) {
       return {
@@ -3499,20 +3521,6 @@ const VDL_MOCKUP_ENGINE = {
         accent: "#ff0036",
         menus: ["Brasil", "Política", "Economia", "Grande Angular", "Distrito Federal"],
         isSerif: false
-      };
-    }
-    // Folha de S.Paulo
-    if (rawUrl.includes("folha.uol.com.br") || rawFonte.includes("folha")) {
-      return {
-        id: "folha",
-        badge: "FOLHA",
-        name: "FOLHA DE S.PAULO",
-        nameHtml: "FOLHA DE S.PAULO",
-        badgeBg: "#18406f",
-        badgeColor: "#ffffff",
-        accent: "#18406f",
-        menus: ["Poder", "Mercado", "Mundo", "Cotidiano", "Opinião"],
-        isSerif: true
       };
     }
     // CNN Brasil
@@ -3993,13 +4001,19 @@ const VDL_MOCKUP_ENGINE = {
         phoneVideo.load();
       }
       phoneVideo.hidden = false;
+      phoneVideo.style.display = "block";
       phoneVideo.play().catch(() => {});
-      if (phoneShot) phoneShot.hidden = true;
+      if (phoneShot) {
+        phoneShot.hidden = true;
+        phoneShot.style.display = "none";
+      }
     } else if (imageSrc && phoneShot) {
       phoneShot.src = imageSrc;
       phoneShot.hidden = false;
+      phoneShot.style.display = "block";
       if (phoneVideo) {
         phoneVideo.hidden = true;
+        phoneVideo.style.display = "none";
         try { phoneVideo.pause(); } catch(e) {}
       }
     }
@@ -5330,8 +5344,15 @@ const VDL_MOCKUP_ENGINE = {
 
     // Imagem do Artigo
     const imgContainer = document.getElementById("articleImageBox");
-    if (imgContainer && d.imagem) {
-      imgContainer.innerHTML = `<img class="article-cover-img" src="${d.imagem}" alt="${d.titulo}">`;
+    if (imgContainer) {
+      if (d.imagem) {
+        imgContainer.innerHTML = `<img class="article-cover-img" src="${d.imagem}" alt="${d.titulo}">`;
+        imgContainer.hidden = false;
+        imgContainer.style.display = "block";
+      } else {
+        imgContainer.hidden = true;
+        imgContainer.style.display = "none";
+      }
     }
 
     const wall = document.getElementById("sceneWallpaper");
