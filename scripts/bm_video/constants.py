@@ -81,9 +81,9 @@ MAX_PER_RUN = 1
 
 WINDOW_DAYS = 2
 
-MAX_SCENES = 8
+MAX_SCENES = int(os.environ.get("BM_MAX_SCENES", "999"))
 
-MAX_PER_HOST = 2
+MAX_PER_HOST = int(os.environ.get("BM_MAX_PER_HOST", "999"))
 
 CACHE_MAX_AGE_HOURS = 36.0
 

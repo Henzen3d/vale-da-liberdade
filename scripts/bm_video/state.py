@@ -136,7 +136,14 @@ def episode_date(audio: Path) -> str:
     return m.group(1) if m else datetime.now().strftime("%Y-%m-%d")
 
 
-def source_scenes(episode: dict, max_sources: int = MAX_SCENES) -> list[dict]:
+def source_scenes(
+    episode: dict,
+    max_sources: int | None = None,
+    max_per_host: int | None = None,
+) -> list[dict]:
+    eff_max_sources = max_sources if max_sources is not None else MAX_SCENES
+    eff_max_host = max_per_host if max_per_host is not None else MAX_PER_HOST
+
     # 1. Identificar URLs citadas diretamente no roteiro (quoted_in / fala com fonte_url)
     quoted_urls: set[str] = set()
     for section in ("abertura", "desenvolvimento", "fechamento"):
@@ -178,16 +185,16 @@ def source_scenes(episode: dict, max_sources: int = MAX_SCENES) -> list[dict]:
             "role": role,
         })
 
-    # Ordenar por prioridade
+    # Ordenar por prioridade (matérias citadas e principais primeiro)
     candidates.sort(key=lambda x: x["priority"])
 
-    # 3. Aplicar teto de 2 URLs por host e limite global de cenas
+    # 3. Aplicar limite de URLs por host e limite global de cenas (se configurados)
     scenes: list[dict] = []
     host_counts: dict[str, int] = {}
 
     for cand in candidates:
         dom = domain_of(cand["url"])
-        if host_counts.get(dom, 0) >= MAX_PER_HOST:
+        if eff_max_host and eff_max_host > 0 and host_counts.get(dom, 0) >= eff_max_host:
             continue
         host_counts[dom] = host_counts.get(dom, 0) + 1
         scenes.append({
@@ -195,7 +202,7 @@ def source_scenes(episode: dict, max_sources: int = MAX_SCENES) -> list[dict]:
             "url": cand["url"],
             "titulo": cand["titulo"],
         })
-        if len(scenes) >= max_sources:
+        if eff_max_sources and eff_max_sources > 0 and len(scenes) >= eff_max_sources:
             break
 
     return scenes

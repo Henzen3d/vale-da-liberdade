@@ -241,10 +241,11 @@ GEMINI_MODELS = [
     "gemma-4-31b-it",          # backup aberto
 ]
 OPENROUTER_MODELS = [
+    "qwen/qwen3.8-27b:free",
     "nvidia/nemotron-3-super-120b-a12b:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
     "google/gemma-4-31b-it:free",
-    "openai/gpt-oss-20b:free",
-    "poolside/laguna-m.1:free",
+    "z-ai/glm-5.2:free",
 ]
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
