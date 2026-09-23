@@ -1321,6 +1321,7 @@ def build_scene_timeline(
     # variantes ópticas (hero -> zoom -> scroll -> highlight), criando cortes ópticos dinâmicos a cada 5-8s.
     expanded_beats: list[SceneBeat] = []
     episode_cited = any(b.provenance_type == "explicit" for b in final_beats)
+    global_extra_cursor = 0
     for beat in final_beats:
         dur = beat.t1 - beat.t0
         if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
@@ -1365,14 +1366,10 @@ def build_scene_timeline(
             if beat.provenance_type in ("none", "fallback", ""):
                 extras = extra_visual_scenes(scene_queue, beat.url)
                 eligible = [i for i in range(num_sub) if (beat.t0 + i * step) >= 15.0]
-                cursor = 0
-                for scene in extras:
-                    if cursor >= len(eligible):
-                        break
-                    extra_at[eligible[cursor]] = scene
-                    if cursor + 1 < len(eligible):
-                        extra_at[eligible[cursor + 1]] = scene
-                    cursor += 3
+                if extras and eligible:
+                    for slot in eligible:
+                        extra_at[slot] = extras[global_extra_cursor % len(extras)]
+                        global_extra_cursor += 1
             for s_idx in range(num_sub):
                 sub_t1 = round(beat.t0 + (s_idx + 1) * step, 2)
                 if s_idx == num_sub - 1:

@@ -270,9 +270,11 @@ GEMINI_MODELS = [
     "gemma-4-31b-it",          # fallback aberto
 ]
 OPENROUTER_MODELS = [
+    "qwen/qwen3.8-27b:free",
     "nvidia/nemotron-3-super-120b-a12b:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
     "google/gemma-4-31b-it:free",
-    "openai/gpt-oss-20b:free",
+    "z-ai/glm-5.2:free",
 ]
 
 # ── Schema Pydantic para Saída Estruturada (Structured Outputs) ────────────────

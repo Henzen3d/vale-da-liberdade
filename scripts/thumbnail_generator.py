@@ -747,6 +747,13 @@ def _refresh_wrangler_oauth() -> tuple[str, str]:
         raise ModelFailed(f"wrangler oauth refresh rede: {e}") from e
     access = str(data.get("access_token") or "").strip()
     if resp.status_code != 200 or not access:
+        if "invalid_grant" in str(data):
+            try:
+                cleaned_text = re.sub(r"^(oauth_token|refresh_token)\s*=.*$\n?", "", text, flags=re.M)
+                cfg_path.write_text(cleaned_text, encoding="utf-8")
+                log.info("wrangler toml limpo de credenciais oauth revogadas (invalid_grant)")
+            except Exception:
+                pass
         raise ModelFailed(
             f"wrangler oauth refresh HTTP {resp.status_code}: {str(data)[:200]}"
         )

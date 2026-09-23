@@ -694,6 +694,177 @@ video.portal-page-shot {
   opacity: 0.85;
 }
 
+/* Leitor Simulado — Corpo do Artigo e Grifos Dinâmicos */
+.portal-article-body {
+  margin-top: 14px;
+  font-size: 17px;
+  line-height: 1.60;
+  color: #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  overflow: hidden;
+}
+
+.portal-article-body p {
+  margin: 0;
+}
+
+.portal-article-body .sel {
+  border-radius: 4px;
+  padding: 1px 4px;
+  transition: background 0.45s ease, color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.portal-article-body .sel.on {
+  background: var(--sel-bg, rgba(254, 240, 138, 0.75));
+  color: #090e17;
+  box-shadow: 0 0 0 1.5px rgba(212, 160, 23, 0.35);
+  font-weight: 600;
+}
+
+/* ============================================================
+   PHONE MOCKUP • APPLE IPHONE BROADCAST CHASSIS
+   ============================================================ */
+.phone-wrapper {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 390px;
+  height: 800px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+}
+
+.phone-outer-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #181a20;
+  border-radius: 52px;
+  padding: 10px;
+  box-shadow: 
+    0 0 0 3px #323644,
+    0 0 0 5.5px #15171e,
+    0 35px 80px rgba(0, 0, 0, 0.65),
+    0 10px 25px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+}
+
+.phone-btn {
+  position: absolute;
+  background: #2b2e3a;
+  border-radius: 2px;
+}
+.phone-btn-action { left: -7px; top: 110px; width: 4px; height: 26px; }
+.phone-btn-vol-up { left: -7px; top: 155px; width: 4px; height: 48px; }
+.phone-btn-vol-down { left: -7px; top: 215px; width: 4px; height: 48px; }
+.phone-btn-power { right: -7px; top: 170px; width: 4px; height: 75px; }
+
+.phone-dynamic-island {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 112px;
+  height: 28px;
+  background: #000000;
+  border-radius: 20px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 11px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+.island-camera {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #1a2238, #050811);
+  border: 1px solid #111;
+}
+.island-sensor {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0c0d14;
+}
+
+.phone-statusbar {
+  position: absolute;
+  top: 14px;
+  left: 28px;
+  right: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  z-index: 45;
+  pointer-events: none;
+}
+.phone-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.phone-screen-bezel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 44px;
+  overflow: hidden;
+  background: #000000;
+}
+
+.phone-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.phone-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.phone-shot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.phone-home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px;
+  height: 4.5px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 3px;
+  z-index: 50;
+}
+
 /* Coluna Lateral: Destaques / Mais Lidas */
 .portal-sidebar {
   border-left: 1px solid var(--border-light);
@@ -2673,6 +2844,7 @@ img[hidden],
               <span style="font-size:12px; font-weight:600; opacity:0.8;">Web Jornal Vale da Liberdade</span>
             </div>
           </div>
+          <div class="portal-article-body" id="articleBodyText"></div>
         </article>
 
         <!-- SIDEBAR MAIS LIDAS -->
@@ -2709,6 +2881,39 @@ img[hidden],
       </main>
     </div>
 
+  </div>
+
+  <!-- MOCKUP CELULAR (APPLE IPHONE) PARA VÍDEOS VERTICAIS -->
+  <div class="phone-wrapper" id="phoneMockup" style="display:none; visibility:hidden;">
+    <div class="phone-outer-frame">
+      <div class="phone-btn phone-btn-action"></div>
+      <div class="phone-btn phone-btn-vol-up"></div>
+      <div class="phone-btn phone-btn-vol-down"></div>
+      <div class="phone-btn phone-btn-power"></div>
+      
+      <div class="phone-screen-bezel">
+        <div class="phone-dynamic-island">
+          <div class="island-camera"></div>
+          <div class="island-sensor"></div>
+        </div>
+        
+        <div class="phone-statusbar">
+          <span class="phone-time" id="phoneClock">12:45</span>
+          <div class="phone-status-icons">
+            <span>📶</span>
+            <span style="font-weight:900; font-size:10px;">5G</span>
+            <span>🔋</span>
+          </div>
+        </div>
+        
+        <div class="phone-viewport">
+          <video id="phoneVideo" class="phone-video" muted loop playsinline autoplay></video>
+          <img id="phoneShot" class="phone-shot" alt="" hidden>
+        </div>
+        
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
   </div>
 
   <!-- PALCO DE GRÁFICOS PROCEDURAIS E COMPONENTES BROADCAST -->
@@ -3220,6 +3425,16 @@ const VDL_MOCKUP_ENGINE = {
         el.style.opacity = "0";
       }
     });
+    const phoneEl = document.getElementById("phoneMockup");
+    if (phoneEl) {
+      phoneEl.style.display = "none";
+      phoneEl.style.visibility = "hidden";
+      phoneEl.style.opacity = "0";
+      const pv = document.getElementById("phoneVideo");
+      if (pv) {
+        try { pv.pause(); } catch(e) {}
+      }
+    }
     // Desliga a camada de fundo do Modo 8 (diagonais + speaker + ambient)
     const xRoot = document.getElementById("xStageRoot");
     if (xRoot) {
@@ -3240,16 +3455,285 @@ const VDL_MOCKUP_ENGINE = {
     return `${s}::${u}::${t}`;
   },
 
+  _getPortalTheme(d = {}) {
+    const rawUrl = String(d.url || "").toLowerCase();
+    const rawFonte = String(d.fonte || d.source || d.source_name || d.autor || "").toLowerCase();
+    
+    // G1
+    if (rawUrl.includes("g1.globo.com") || rawFonte.includes("g1")) {
+      return {
+        id: "g1",
+        badge: "G1",
+        name: "G1",
+        nameHtml: "G1 <span>O PORTAL DE NOTÍCIAS DA GLOBO</span>",
+        badgeBg: "#c4170c",
+        badgeColor: "#ffffff",
+        accent: "#c4170c",
+        menus: ["Política", "Economia", "Mundo", "Fato ou Fake", "Tecnologia"],
+        isSerif: false
+      };
+    }
+    // UOL
+    if (rawUrl.includes("uol.com.br") || rawFonte.includes("uol")) {
+      return {
+        id: "uol",
+        badge: "UOL",
+        name: "UOL NOTÍCIAS",
+        nameHtml: "<b>UOL</b> NOTÍCIAS",
+        badgeBg: "#ff7000",
+        badgeColor: "#000000",
+        accent: "#ff7000",
+        menus: ["Notícias", "Política", "Economia", "Cotidiano", "Colunas"],
+        isSerif: false
+      };
+    }
+    // Metrópoles
+    if (rawUrl.includes("metropoles.com") || rawFonte.includes("metropoles") || rawFonte.includes("metrópoles")) {
+      return {
+        id: "metropoles",
+        badge: "M",
+        name: "METRÓPOLES",
+        nameHtml: "METRÓPOLES",
+        badgeBg: "#0d0d0d",
+        badgeColor: "#ff0036",
+        accent: "#ff0036",
+        menus: ["Brasil", "Política", "Economia", "Grande Angular", "Distrito Federal"],
+        isSerif: false
+      };
+    }
+    // Folha de S.Paulo
+    if (rawUrl.includes("folha.uol.com.br") || rawFonte.includes("folha")) {
+      return {
+        id: "folha",
+        badge: "FOLHA",
+        name: "FOLHA DE S.PAULO",
+        nameHtml: "FOLHA DE S.PAULO",
+        badgeBg: "#18406f",
+        badgeColor: "#ffffff",
+        accent: "#18406f",
+        menus: ["Poder", "Mercado", "Mundo", "Cotidiano", "Opinião"],
+        isSerif: true
+      };
+    }
+    // CNN Brasil
+    if (rawUrl.includes("cnnbrasil.com.br") || rawFonte.includes("cnn")) {
+      return {
+        id: "cnn",
+        badge: "CNN",
+        name: "CNN BRASIL",
+        nameHtml: "<b>CNN</b> BRASIL",
+        badgeBg: "#cc0000",
+        badgeColor: "#ffffff",
+        accent: "#cc0000",
+        menus: ["Política", "Economia", "Nacional", "Internacional", "Análises"],
+        isSerif: false
+      };
+    }
+    // Pleno.News
+    if (rawUrl.includes("pleno.news") || rawFonte.includes("pleno")) {
+      return {
+        id: "pleno",
+        badge: "PLENO",
+        name: "PLENO.NEWS",
+        nameHtml: "PLENO.<b>NEWS</b>",
+        badgeBg: "#1e3a8a",
+        badgeColor: "#ffffff",
+        accent: "#2563eb",
+        menus: ["Brasil", "Política", "Mundo", "Economia", "Opinião"],
+        isSerif: false
+      };
+    }
+    // Jota
+    if (rawUrl.includes("jota.info") || rawFonte.includes("jota")) {
+      return {
+        id: "jota",
+        badge: "JOTA",
+        name: "JOTA",
+        nameHtml: "<b>JOTA</b>",
+        badgeBg: "#000000",
+        badgeColor: "#ff3366",
+        accent: "#ff3366",
+        menus: ["Poder", "Tributário", "Trabalhista", "Saúde", "STF"],
+        isSerif: false
+      };
+    }
+    // O Globo
+    if (rawUrl.includes("oglobo.globo.com") || rawFonte.includes("oglobo") || rawFonte.includes("o globo")) {
+      return {
+        id: "oglobo",
+        badge: "GLOBO",
+        name: "O GLOBO",
+        nameHtml: "O GLOBO",
+        badgeBg: "#003882",
+        badgeColor: "#ffffff",
+        accent: "#003882",
+        menus: ["Brasil", "Política", "Economia", "Mundo", "Opinião"],
+        isSerif: true
+      };
+    }
+    // Poder360
+    if (rawUrl.includes("poder360.com.br") || rawFonte.includes("poder360") || rawFonte.includes("poder 360")) {
+      return {
+        id: "poder360",
+        badge: "360",
+        name: "PODER360",
+        nameHtml: "PODER<b>360</b>",
+        badgeBg: "#d9381e",
+        badgeColor: "#ffffff",
+        accent: "#d9381e",
+        menus: ["Governo", "Congresso", "STF", "Economia", "Eleições"],
+        isSerif: false
+      };
+    }
+    // Gazeta do Povo
+    if (rawUrl.includes("gazetadopovo.com.br") || rawFonte.includes("gazeta")) {
+      return {
+        id: "gazeta",
+        badge: "GP",
+        name: "GAZETA DO POVO",
+        nameHtml: "GAZETA DO POVO",
+        badgeBg: "#004b87",
+        badgeColor: "#ffffff",
+        accent: "#004b87",
+        menus: ["República", "Economia", "Voz da Comunidade", "Bom Gourmet", "Opinião"],
+        isSerif: false
+      };
+    }
+    // Estadão
+    if (rawUrl.includes("estadao.com.br") || rawFonte.includes("estadão") || rawFonte.includes("estadao")) {
+      return {
+        id: "estadao",
+        badge: "ESTADÃO",
+        name: "ESTADÃO",
+        nameHtml: "ESTADÃO",
+        badgeBg: "#004880",
+        badgeColor: "#ffffff",
+        accent: "#004880",
+        menus: ["Política", "Economia", "Internacional", "São Paulo", "Opinião"],
+        isSerif: true
+      };
+    }
+    // Padrão: Vale da Liberdade
+    return {
+      id: "vdl",
+      badge: "VDL",
+      name: "VALE DA LIBERDADE",
+      nameHtml: "VALE DA <span>LIBERDADE</span>",
+      badgeBg: "linear-gradient(135deg, #d4a017, #8c6504)",
+      badgeColor: "#0b0e14",
+      accent: "#d4a017",
+      menus: ["Diário", "Brasil & Mundo", "Economia", "Política", "Opinião"],
+      isSerif: false
+    };
+  },
+
   _updateArticleText(d) {
+    const theme = this._getPortalTheme(d);
+
+    // Navbar branding
+    const badgeEl = document.querySelector(".portal-brand-badge");
+    if (badgeEl) {
+      badgeEl.textContent = theme.badge;
+      badgeEl.style.background = theme.badgeBg;
+      badgeEl.style.color = theme.badgeColor;
+    }
+    const nameEl = document.querySelector(".portal-brand-name");
+    if (nameEl) {
+      nameEl.innerHTML = theme.nameHtml;
+    }
+    const menuEl = document.querySelector(".portal-menu");
+    if (menuEl && theme.menus && theme.menus.length > 0) {
+      menuEl.innerHTML = theme.menus.map((m, idx) => 
+        `<li class="portal-menu-item ${idx === 0 ? 'active' : ''}">${m}</li>`
+      ).join('');
+    }
+
     const catEl = document.getElementById("articleCategory");
-    if (catEl && d.categoria) catEl.textContent = d.categoria;
+    if (catEl) {
+      catEl.textContent = d.categoria || (theme.menus[0] ? theme.menus[0].toUpperCase() : "NOTÍCIA");
+      if (theme.accent) {
+        catEl.style.color = theme.accent;
+        catEl.style.borderColor = theme.accent;
+      }
+    }
+
     const headEl = document.getElementById("articleHeadline");
-    if (headEl && d.titulo) headEl.textContent = d.titulo;
+    if (headEl) {
+      if (d.titulo) headEl.textContent = d.titulo;
+      headEl.style.fontFamily = theme.isSerif ? "'Georgia', 'Times New Roman', serif" : "var(--font-headline)";
+    }
+
     const leadEl = document.getElementById("articleLead");
     if (leadEl && d.resumo) leadEl.textContent = d.resumo;
+
     const metaEl = document.getElementById("articleMeta");
-    if (metaEl && (d.autor || d.dataExtenso || d.leitura)) {
-      metaEl.innerHTML = `<span>Por ${d.autor || "Redação"}</span> • <span>${d.dataExtenso || ""}</span> • <span>${d.leitura || ""}</span>`;
+    if (metaEl) {
+      const author = d.autor || `Redação ${theme.name}`;
+      const dateStr = d.dataExtenso || d.date || "Atualizado recentemente";
+      const readTime = d.leitura || "3 min de leitura";
+      metaEl.innerHTML = `<span>Por ${author}</span> • <span>${dateStr}</span> • <span>${readTime}</span>`;
+    }
+
+    // Leitor Simulado: Parágrafos com grifo animado
+    const bodyBox = document.getElementById("articleBodyText");
+    if (bodyBox) {
+      let paras = [];
+      if (Array.isArray(d.paragrafos) && d.paragrafos.length > 0) {
+        paras = d.paragrafos;
+      } else if (Array.isArray(d.paragraphs) && d.paragraphs.length > 0) {
+        paras = d.paragraphs;
+      } else if (typeof d.body === "string" && d.body.trim()) {
+        paras = d.body.split(/\n\n+/).filter(Boolean);
+      } else if (typeof d.texto === "string" && d.texto.trim()) {
+        paras = d.texto.split(/\n\n+/).filter(Boolean);
+      } else if (d.resumo || d.titulo) {
+        // Fallback realista baseado no lead e título
+        const lead = d.resumo || "Os desdobramentos da matéria impactam diretamente as diretrizes institucionais.";
+        paras = [
+          `De acordo com apuração preliminar dos fatos, <span class="sel">${lead}</span> O cenário mobilizou lideranças e analistas que acompanham o andamento do caso.`,
+          `Em manifestação técnica, fontes ligadas ao setor destacaram que <span class="sel">a prioridade consiste no cumprimento rigoroso do rito estabelecido</span> e na transparência pública dos dados.`
+        ];
+      }
+
+      if (paras.length > 0) {
+        const formattedParas = paras.map((p, idx) => {
+          let text = String(p).trim();
+          if (!text.includes('class="sel"') && !text.includes("class='sel'")) {
+            if (text.includes("==")) {
+              text = text.replace(/==([^=]+)==/g, '<span class="sel">$1</span>');
+            } else {
+              const sentences = text.split(/(?<=[.?!])\s+/);
+              if (sentences.length > 1 && idx === 0) {
+                text = `<span class="sel">${sentences[0]}</span> ` + sentences.slice(1).join(" ");
+              } else if (sentences.length > 0) {
+                const targetIdx = Math.min(1, sentences.length - 1);
+                sentences[targetIdx] = `<span class="sel">${sentences[targetIdx]}</span>`;
+                text = sentences.join(" ");
+              } else {
+                text = `<span class="sel">${text}</span>`;
+              }
+            }
+          }
+          return `<p>${text}</p>`;
+        });
+
+        bodyBox.innerHTML = formattedParas.join("");
+
+        // Ativa grifo animado progressivo (efeito marca-texto broadcast)
+        if (this._selTimers) {
+          this._selTimers.forEach(t => clearTimeout(t));
+        }
+        this._selTimers = [];
+
+        const selElements = bodyBox.querySelectorAll(".sel");
+        selElements.forEach((el, idx) => {
+          el.classList.remove("on");
+          const timer = setTimeout(() => {
+            el.classList.add("on");
+          }, 350 + idx * 750);
+          this._selTimers.push(timer);
+        });
+      }
     }
   },
 
@@ -3400,6 +3884,7 @@ const VDL_MOCKUP_ENGINE = {
 
     const browserEl = document.getElementById("browserMockup");
     const stageEl = document.getElementById("broadcastStage");
+    const phoneEl = document.getElementById("phoneMockup");
     if (!browserEl) return;
 
     browserEl.style.display = "flex";
@@ -3415,7 +3900,23 @@ const VDL_MOCKUP_ENGINE = {
       const tl = gsap.timeline();
       this.activeTimeline = tl;
 
-      if (stageEl) {
+      if (phoneEl && phoneEl.style.display !== "none") {
+        tl.to(phoneEl, {
+          y: 60,
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.35,
+          ease: "power2.inOut",
+          onComplete: () => {
+            phoneEl.style.display = "none";
+            phoneEl.style.visibility = "hidden";
+            const pv = document.getElementById("phoneVideo");
+            if (pv) try { pv.pause(); } catch(e) {}
+          }
+        }, 0);
+      }
+
+      if (stageEl && stageEl.style.display !== "none") {
         tl.to(stageEl, {
           opacity: 0,
           y: 40,
@@ -3426,7 +3927,7 @@ const VDL_MOCKUP_ENGINE = {
             stageEl.style.visibility = "hidden";
             this._hideAllCards();
           }
-        });
+        }, 0);
       }
 
       tl.fromTo(browserEl, {
@@ -3442,6 +3943,12 @@ const VDL_MOCKUP_ENGINE = {
         ease: "power3.out"
       }, "-=0.1");
     } else {
+      if (phoneEl) {
+        phoneEl.style.display = "none";
+        phoneEl.style.visibility = "hidden";
+        const pv = document.getElementById("phoneVideo");
+        if (pv) try { pv.pause(); } catch(e) {}
+      }
       if (stageEl) {
         stageEl.style.display = "none";
         stageEl.style.visibility = "hidden";
@@ -3449,6 +3956,105 @@ const VDL_MOCKUP_ENGINE = {
       this._hideAllCards();
       browserEl.style.opacity = "1";
       browserEl.style.transform = "none";
+    }
+  },
+
+  /**
+   * Transição 0: MOCKUP CELULAR (Apple iPhone) para vídeos e mídias verticais
+   */
+  transitionToPhone(payload = {}) {
+    this.currentMode = "phone";
+    const browserEl = document.getElementById("browserMockup");
+    const stageEl = document.getElementById("broadcastStage");
+    const phoneEl = document.getElementById("phoneMockup");
+    const phoneVideo = document.getElementById("phoneVideo");
+    const phoneShot = document.getElementById("phoneShot");
+    const phoneClock = document.getElementById("phoneClock");
+
+    if (!phoneEl) return;
+    this._hideAllCards();
+
+    // Dispara som suave de transição (whoosh)
+    this._playTransitionSfx();
+
+    if (phoneClock) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      phoneClock.textContent = `${hh}:${mm}`;
+    }
+
+    const videoSrc = payload.pageVideo || payload.video || payload.url_video || (this.data && this.data.pageVideo) || "";
+    const imageSrc = payload.pageImage || payload.shotLong || payload.image || (this.data && (this.data.pageImage || this.data.shotLong)) || "";
+
+    if (videoSrc && phoneVideo) {
+      if (!phoneVideo.src.endsWith(videoSrc)) {
+        phoneVideo.src = videoSrc;
+        phoneVideo.load();
+      }
+      phoneVideo.hidden = false;
+      phoneVideo.play().catch(() => {});
+      if (phoneShot) phoneShot.hidden = true;
+    } else if (imageSrc && phoneShot) {
+      phoneShot.src = imageSrc;
+      phoneShot.hidden = false;
+      if (phoneVideo) {
+        phoneVideo.hidden = true;
+        try { phoneVideo.pause(); } catch(e) {}
+      }
+    }
+
+    phoneEl.style.display = "flex";
+    phoneEl.style.visibility = "visible";
+
+    if (window.gsap && !this.isFreezeShot()) {
+      if (this.activeTimeline) this.activeTimeline.kill();
+      const tl = gsap.timeline();
+      this.activeTimeline = tl;
+
+      if (browserEl && browserEl.style.display !== "none") {
+        tl.to(browserEl, {
+          y: 60,
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.35,
+          ease: "power2.inOut",
+          onComplete: () => {
+            browserEl.style.display = "none";
+            browserEl.style.visibility = "hidden";
+          }
+        });
+      }
+
+      if (stageEl && stageEl.style.display !== "none") {
+        tl.to(stageEl, {
+          y: 40,
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.in",
+          onComplete: () => {
+            stageEl.style.display = "none";
+            stageEl.style.visibility = "hidden";
+          }
+        }, "<");
+      }
+
+      tl.fromTo(phoneEl,
+        { opacity: 0, y: 50, scale: 0.88 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" },
+        "-=0.15"
+      );
+    } else {
+      if (browserEl) {
+        browserEl.style.display = "none";
+        browserEl.style.visibility = "hidden";
+      }
+      if (stageEl) {
+        stageEl.style.display = "none";
+        stageEl.style.visibility = "hidden";
+      }
+      phoneEl.style.opacity = "1";
+      phoneEl.style.transform = "none";
     }
   },
 
@@ -4582,6 +5188,9 @@ const VDL_MOCKUP_ENGINE = {
           "is-portrait",
           pageVideo.videoHeight > pageVideo.videoWidth && pageVideo.videoWidth > 0
         );
+        if (pageVideo.videoHeight > pageVideo.videoWidth && pageVideo.videoWidth > 0) {
+          this.transitionToPhone(d);
+        }
       };
       if (!pageVideo.dataset.fitBound) {
         pageVideo.dataset.fitBound = "1";
@@ -4674,7 +5283,9 @@ const VDL_MOCKUP_ENGINE = {
     // Mídia ANTES da transição — com dual-buffer e sincronização de Omnibox
     this._applyPageMedia(d);
 
-    if (kind === "quote") {
+    if (kind === "phone" || kind === "vertical-video" || kind === "mobile" || d.is_portrait) {
+      this.transitionToPhone(payload);
+    } else if (kind === "quote") {
       this.transitionToQuote(payload);
     } else if (kind === "document") {
       this.transitionToDocument(payload);
@@ -4692,7 +5303,7 @@ const VDL_MOCKUP_ENGINE = {
       this.transitionToPersonPhoto(payload);
     } else if (kind === "transition") {
       this.playTransition(newData.visual_variant || payload.visual_variant || "wipe_gold");
-    } else if (kind === "source" || (!kind && this.currentMode !== "browser")) {
+    } else if (kind === "source" || (!kind && this.currentMode !== "browser" && this.currentMode !== "phone")) {
       this.transitionToBrowser(payload);
     } else if (this.currentMode === "browser") {
       this._applyVisualVariant(newData.visual_variant || this.data.visual_variant, payload);
