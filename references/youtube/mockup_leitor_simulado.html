@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Quadro de Leitura Simulada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f8fafc;
+    --text:#0f172a;
+    --muted:#64748b;
+    --hairline:#e2e8f0;
+    --accent:#b8860b;
+    --accent-soft:rgba(254,240,138,0.65);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:#f1f5f9;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    padding:32px 16px;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  .frame{
+    position:relative;
+    width:100%;
+    max-width:760px;
+    aspect-ratio:16/9;
+    background:var(--bg);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(15,23,42,0.12), 0 0 0 1px var(--hairline);
+  }
+
+  .chrome{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--hairline);
+    background:var(--panel);
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:#cbd5e1;}
+  .url-bar{
+    flex:1;
+    margin-left:10px;
+    background:#ffffff;
+    border:1px solid var(--hairline);
+    border-radius:6px;
+    padding:5px 10px;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.2px;
+  }
+
+  .viewport{
+    position:relative;
+    height:calc(100% - 37px);
+    overflow:hidden;
+  }
+  .content{
+    position:absolute;
+    inset:0;
+    padding:28px 34px 60px;
+    overflow-y:auto;
+    scrollbar-width:none;
+  }
+  .content::-webkit-scrollbar{display:none;}
+
+  .eyebrow{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    color:var(--accent);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-size:23px;
+    font-weight:800;
+    line-height:1.28;
+    margin:0 0 10px;
+    color:var(--text);
+    letter-spacing:-0.2px;
+  }
+  .source{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:18px;
+  }
+  .source b{color:#1e293b;font-weight:700;}
+  hr{
+    border:none;
+    border-top:1px solid var(--hairline);
+    margin:0 0 20px;
+  }
+  p{
+    font-size:14.5px;
+    line-height:1.75;
+    color:#334155;
+    margin:0 0 16px;
+  }
+  .sel{
+    border-radius:2px;
+    transition:background 0.35s ease, color 0.35s ease;
+  }
+  .sel.on{
+    background:var(--accent-soft);
+    color:#0a0e17;
+  }
+
+  .cursor{
+    position:absolute;
+    width:14px;
+    height:14px;
+    border:2px solid var(--accent);
+    border-radius:50%;
+    background:rgba(232,162,61,0.15);
+    transform:translate(-50%,-50%);
+    transition:left 1.1s cubic-bezier(.4,0,.2,1), top 1.1s cubic-bezier(.4,0,.2,1), opacity .3s;
+    pointer-events:none;
+    box-shadow:0 0 0 6px rgba(232,162,61,0.08);
+  }
+
+  .lower-third{
+    position:absolute;
+    left:20px;
+    bottom:20px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 12px 6px 10px;
+    background:rgba(0,0,0,0.75);
+    border:1px solid var(--hairline);
+    border-left:3px solid var(--accent);
+    border-radius:3px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:1px;
+    color:#fff;
+    text-transform:uppercase;
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .lower-third.show{opacity:1;transform:translateY(0);}
+
+  .badge{
+    position:absolute;
+    top:44px;
+    right:14px;
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    background:rgba(0,0,0,0.5);
+    padding:4px 8px;
+    border-radius:4px;
+    border:1px solid var(--hairline);
+  }
+
+  .caption{
+    max-width:760px;
+    width:100%;
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:12.5px;
+    color:#6b6b68;
+    text-align:center;
+    padding:0 12px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="frame" id="frame">
+    <div class="chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <div class="url-bar">valedaliberdade.app/leitor · matéria comentada</div>
+    </div>
+    <div class="viewport">
+      <div class="content" id="content">
+        <div class="eyebrow">Matéria comentada</div>
+        <h1>Prefeitura anuncia ampliação da malha cicloviária no bairro Velha Central</h1>
+        <div class="source">Fonte: <b>Portal Notícia Regional</b> — portalnoticiaregional.com.br/velha-central-ciclovia (ilustrativo)</div>
+        <hr>
+        <p>A prefeitura confirmou nesta semana a licitação para mais <span class="sel" id="s1">2,4 quilômetros de ciclovia</span> ligando o bairro Velha Central ao centro da cidade, com previsão de início das obras para o próximo trimestre.</p>
+        <p>Segundo o comunicado oficial, o investimento faz parte de um plano maior de mobilidade urbana que prevê a <span class="sel" id="s2">integração entre transporte público e modais alternativos</span> nos próximos quatro anos, com recursos mistos entre orçamento municipal e financiamento externo.</p>
+        <p>Moradores da região relatam que o trecho é hoje um dos mais movimentados por ciclistas que se deslocam diariamente para o trabalho, apesar da <span class="sel" id="s3">ausência de sinalização adequada</span> e da proximidade com vias de tráfego intenso.</p>
+        <p>A expectativa da administração é concluir a obra ainda dentro do mandato atual, embora especialistas em planejamento urbano apontem que prazos semelhantes, em projetos anteriores, tenham sofrido atrasos recorrentes.</p>
+      </div>
+    </div>
+    <div class="badge">quadro 03 · pré-visualização</div>
+    <div class="cursor" id="cursor"></div>
+    <div class="lower-third" id="lower">Blumenau</div>
+  </div>
+
+  <div class="caption">Mockup ilustrativo do quadro "leitor simulado" — texto e portal fictícios, usados apenas para pré-visualizar a mecânica de cursor, seleção e rolagem.</div>
+
+<script>
+const frame = document.getElementById('frame');
+const cursor = document.getElementById('cursor');
+const content = document.getElementById('content');
+const lower = document.getElementById('lower');
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function moveCursorTo(el, offsetX = 0, offsetY = 0){
+  const fRect = frame.getBoundingClientRect();
+  const eRect = el.getBoundingClientRect();
+  const x = eRect.left - fRect.left + offsetX;
+  const y = eRect.top - fRect.top + offsetY;
+  cursor.style.left = x + 'px';
+  cursor.style.top = y + 'px';
+}
+
+async function highlight(id, hold = 900){
+  const el = document.getElementById(id);
+  moveCursorTo(el, el.offsetWidth * 0.15, el.offsetHeight * 0.5);
+  await sleep(1150);
+  el.classList.add('on');
+  await sleep(hold);
+}
+
+async function unhighlightAll(){
+  document.querySelectorAll('.sel').forEach(el => el.classList.remove('on'));
+}
+
+async function scrollContentBy(delta, duration = 1200){
+  const start = content.scrollTop;
+  const target = start + delta;
+  const t0 = performance.now();
+  return new Promise(resolve => {
+    function step(t){
+      const p = Math.min((t - t0) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      content.scrollTop = start + (target - start) * eased;
+      if(p < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+async function loop(){
+  cursor.style.opacity = 1;
+  content.scrollTop = 0;
+  unhighlightAll();
+  lower.classList.remove('show');
+
+  moveCursorTo(document.querySelector('h1'), 40, 10);
+  await sleep(500);
+  lower.classList.add('show');
+  await sleep(600);
+
+  await highlight('s1', 1000);
+  await scrollContentBy(70, 1000);
+  await sleep(300);
+
+  await highlight('s2', 1100);
+  await scrollContentBy(90, 1200);
+  await sleep(300);
+
+  unhighlightAll();
+  await highlight('s3', 1000);
+  await sleep(600);
+
+  await scrollContentBy(120, 1300);
+  await sleep(1400);
+
+  // reset e reinicia o loop, simulando o próximo ciclo de "leitura"
+  cursor.style.opacity = 0;
+  lower.classList.remove('show');
+  await sleep(700);
+  loop();
+}
+
+loop();
+</script>
+</body>
+</html>

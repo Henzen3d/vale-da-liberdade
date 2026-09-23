@@ -83,7 +83,29 @@ SKILLS/
 test_output/
 voices/
 ads/
-branding/
+# Branding: docs/HTML versionados; mídia pesada fica só no disco
+branding/*.mp3
+branding/*.wav
+branding/*.mp4
+branding/*.mov
+branding/*.webm
+branding/*.mkv
+branding/*.png
+branding/*.jpg
+branding/*.jpeg
+branding/*.webp
+branding/*.gif
+branding/**/*.mp3
+branding/**/*.wav
+branding/**/*.mp4
+branding/**/*.mov
+branding/**/*.webm
+branding/**/*.mkv
+branding/**/*.png
+branding/**/*.jpg
+branding/**/*.jpeg
+branding/**/*.webp
+branding/**/*.gif
 comparison/
 pipelines/
 /youtube/
@@ -121,6 +143,7 @@ credentials/
 output/brasil_e_mundo/capture-cache/
 references/youtube/broll/*.mp4
 references/youtube/end-bumper/*.mp4
+scripts/x-twitter/*.mp4
 
 # ---- Conteúdo gerado pelo publish/pipeline (2026-08-31) ----
 # Fonte de verdade = scripts/ + output/. Estes são regenerados a cada run

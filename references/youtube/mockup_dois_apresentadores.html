@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Indicador de Fala Ativa (Dois Apresentadores)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --hairline:#e2e8f0;
+    --accent:#b8860b;
+    --accent-soft:rgba(212,160,23,0.18);
+    --peter:#b8860b;
+    --ricardo:#0284c7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:#f1f5f9;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    padding:32px 16px;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  .frame{
+    position:relative;
+    width:100%;
+    max-width:760px;
+    aspect-ratio:16/9;
+    border-radius:10px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(212,160,23,0.10), transparent 55%),
+      linear-gradient(160deg, #ffffff, #f8fafc 65%);
+    box-shadow:0 25px 60px rgba(15,23,42,0.12), 0 0 0 1px var(--hairline);
+  }
+
+  .badge{
+    position:absolute;
+    top:14px;
+    right:14px;
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    background:rgba(241,245,249,0.95);
+    padding:4px 8px;
+    border-radius:4px;
+    border:1px solid var(--hairline);
+  }
+
+  .eyebrow{
+    position:absolute;
+    top:22px;
+    left:24px;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:1.2px;
+    color:var(--accent);
+    text-transform:uppercase;
+  }
+  .headline{
+    position:absolute;
+    top:44px;
+    left:24px;
+    right:120px;
+    font-size:19px;
+    font-weight:800;
+    color:var(--text);
+    line-height:1.3;
+  }
+  .sub{
+    position:absolute;
+    top:96px;
+    left:24px;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .presenters{
+    position:absolute;
+    right:22px;
+    bottom:22px;
+    display:flex;
+    gap:16px;
+  }
+
+  .presenter{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    opacity:0.55;
+    transform:scale(0.94);
+    transition:opacity .45s ease, transform .45s ease;
+  }
+  .presenter.active{
+    opacity:1;
+    transform:scale(1);
+  }
+
+  .avatar-wrap{
+    position:relative;
+    width:84px;
+    height:84px;
+  }
+  .ring{
+    position:absolute;
+    inset:-4px;
+    border-radius:50%;
+    border:2.5px solid transparent;
+    transition:border-color .4s ease, box-shadow .4s ease;
+  }
+  #peter .ring{ }
+  #ricardo .ring{ }
+  .presenter.active#peter .ring,
+  .presenter.active .ring.peter-ring{
+    border-color:var(--peter);
+    box-shadow:0 0 18px rgba(232,162,61,0.55);
+  }
+  .presenter.active .ring.ricardo-ring{
+    border-color:var(--ricardo);
+    box-shadow:0 0 18px rgba(90,176,168,0.55);
+  }
+
+  .avatar{
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    font-weight:800;
+    color:#fff;
+    background:linear-gradient(150deg, #2a2a28, #141414);
+    animation:breathe 2.6s ease-in-out infinite;
+  }
+  #peter .avatar{ box-shadow:inset 0 0 0 1px rgba(232,162,61,0.25); }
+  #ricardo .avatar{ box-shadow:inset 0 0 0 1px rgba(90,176,168,0.25); }
+
+  @keyframes breathe{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.035); }
+  }
+
+  .label{
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted);
+    transition:color .4s ease;
+  }
+  .presenter.active .label{
+    color:#fff;
+  }
+  #peter.active .label{ color:var(--peter); }
+  #ricardo.active .label{ color:var(--ricardo); }
+
+  .waveline{
+    position:absolute;
+    left:24px;
+    bottom:22px;
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    height:22px;
+  }
+  .waveline span{
+    width:3px;
+    background:var(--muted);
+    border-radius:2px;
+    transition:background .3s ease;
+    animation:bar 1.1s ease-in-out infinite;
+  }
+  .waveline span:nth-child(odd){ animation-delay:0.15s; }
+  .waveline span:nth-child(3n){ animation-delay:0.3s; }
+  @keyframes bar{
+    0%,100%{ height:6px; }
+    50%{ height:20px; }
+  }
+  .waveline.peter span{ background:var(--peter); }
+  .waveline.ricardo span{ background:var(--ricardo); }
+
+  .caption{
+    max-width:760px;
+    width:100%;
+    font-size:12.5px;
+    color:#6b6b68;
+    text-align:center;
+    padding:0 12px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="frame">
+    <div class="eyebrow">Brasil e Mundo</div>
+    <div class="headline">Comentário sobre a nova rodada de estímulo fiscal anunciada pelo governo</div>
+    <div class="sub">quadro 05 · 02:14</div>
+    <div class="badge">pré-visualização</div>
+
+    <div class="waveline" id="wave">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="presenters">
+      <div class="presenter" id="peter">
+        <div class="avatar-wrap">
+          <div class="ring peter-ring"></div>
+          <div class="avatar">P</div>
+        </div>
+        <div class="label">Peter</div>
+      </div>
+      <div class="presenter" id="ricardo">
+        <div class="avatar-wrap">
+          <div class="ring ricardo-ring"></div>
+          <div class="avatar">R</div>
+        </div>
+        <div class="label">Ricardo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption">Mockup ilustrativo — anel e legenda acendem conforme o segmento de fala de cada apresentador, dirigidos pelo mesmo marcador de voz que já existe no pipeline de TTS.</div>
+
+<script>
+const peter = document.getElementById('peter');
+const ricardo = document.getElementById('ricardo');
+const wave = document.getElementById('wave');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// mesma referência do speaker_segments da spec (em ms), só que acelerado pra demo
+const segments = [
+  { speaker: 'peter',   duration: 2400 },
+  { speaker: 'ricardo', duration: 3200 },
+  { speaker: 'peter',   duration: 1800 },
+  { speaker: 'ricardo', duration: 2600 },
+  { speaker: 'peter',   duration: 2000 },
+];
+
+function setActive(speaker){
+  peter.classList.toggle('active', speaker === 'peter');
+  ricardo.classList.toggle('active', speaker === 'ricardo');
+  wave.className = 'waveline ' + speaker;
+}
+
+async function loop(){
+  while(true){
+    for(const seg of segments){
+      setActive(seg.speaker);
+      await sleep(seg.duration);
+    }
+  }
+}
+
+loop();
+</script>
+</body>
+</html>
