@@ -347,6 +347,7 @@ html, body {
 .portal-viewport.has-page-shot {
   background: #11141c; /* Fundo de proteção anti-flash: escuro editorial consistente com estúdio */
 }
+.portal-viewport.has-page-shot #portalHeaderZone,
 .portal-viewport.has-page-shot .portal-navbar,
 .portal-viewport.has-page-shot .portal-content-grid {
   display: none !important;
@@ -538,7 +539,328 @@ video.portal-page-shot {
   background: #11141c; /* Fundo de estúdio escuro para preencher barras laterais de vídeo vertical */
 }
 
-/* Header do Portal de Notícias */
+/* ============================================================
+   ESTILOS DE CABEÇALHO AUTÊNTICOS POR PORTAL
+   ============================================================ */
+
+/* 1. G1 REAL HEADER */
+.g1-real-header {
+  height: 52px;
+  background: #c4170c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  flex: none;
+  user-select: none;
+}
+.g1-header-inner {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.g1-header-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.g1-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.g1-hamburger {
+  font-size: 17px;
+  line-height: 1;
+}
+.g1-logo-badge {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  color: #ffffff;
+  line-height: 1;
+}
+.g1-header-center {
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.g1-header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.g1-search-btn {
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.g1-user-badge {
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+  padding: 4px 14px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 2. FOLHA DE S.PAULO REAL HEADER */
+.folha-real-header {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex: none;
+  user-select: none;
+}
+.folha-top-row {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid #edf2f7;
+}
+.folha-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.folha-menu-btn {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a202c;
+  letter-spacing: 0.5px;
+}
+.folha-assine-btn {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: #dc2626;
+  letter-spacing: 0.5px;
+}
+.folha-brand-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.folha-logo-text {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #0a0e17;
+  line-height: 1;
+}
+.folha-stars {
+  display: flex;
+  gap: 6px;
+  font-size: 8px;
+  margin-top: 2px;
+}
+.folha-stars .star.blue { color: #0284c7; }
+.folha-stars .star.red { color: #dc2626; }
+
+.folha-user-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.folha-subnav {
+  height: 34px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  gap: 10px;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.folha-subnav-cat { font-weight: 700; color: #0f172a; text-transform: lowercase; }
+.folha-arrow { color: #94a3b8; font-size: 12px; }
+.folha-subnav-topic { font-weight: 700; color: #0f172a; text-transform: lowercase; }
+.folha-subnav-links {
+  margin-left: 20px;
+  display: flex;
+  gap: 16px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.folha-offer-bar {
+  height: 34px;
+  background: #002f52;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+.folha-offer-text {
+  color: #ffffff;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.folha-offer-btn {
+  background: #ffd000;
+  color: #000000;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 3. METRÓPOLES REAL HEADER */
+.metropoles-real-header {
+  height: 52px;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 2px solid #ff0036;
+  flex: none;
+  user-select: none;
+}
+.metropoles-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.metropoles-m-badge {
+  background: #ff0036;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 900;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+.metropoles-name {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+.metropoles-menu {
+  display: flex;
+  gap: 22px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+.metropoles-menu .active { color: #ffffff; }
+
+/* 4. UOL REAL HEADER */
+.uol-real-header {
+  height: 52px;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 2px solid #ff7000;
+  flex: none;
+  user-select: none;
+}
+.uol-circle-badge {
+  background: #ff7000;
+  color: #000000;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.uol-menu {
+  display: flex;
+  gap: 22px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #cbd5e1;
+}
+.uol-menu .active { color: #ff7000; }
+.uol-right {
+  display: flex;
+  gap: 16px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 5. CNN REAL HEADER */
+.cnn-real-header {
+  height: 52px;
+  background: #cc0000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  color: #ffffff;
+  flex: none;
+  user-select: none;
+}
+.cnn-logo {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+.cnn-logo span {
+  font-size: 12px;
+  margin-left: 6px;
+  font-weight: 700;
+}
+.cnn-menu {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.cnn-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(0,0,0,0.25);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+/* Padrão Broadcast Vale da Liberdade */
 .portal-navbar {
   height: 56px;
   border-bottom: 1px solid var(--border-light);
@@ -549,13 +871,11 @@ video.portal-page-shot {
   background: #ffffff;
   flex: none;
 }
-
 .portal-brand {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .portal-brand-badge {
   background: linear-gradient(135deg, #d4a017, #8c6504);
   color: #000;
@@ -565,7 +885,6 @@ video.portal-page-shot {
   border-radius: 4px;
   letter-spacing: 0.5px;
 }
-
 .portal-brand-name {
   font-family: var(--font-headline);
   font-size: 20px;
@@ -574,18 +893,15 @@ video.portal-page-shot {
   color: #0f172a;
   text-transform: uppercase;
 }
-
 .portal-brand-name span {
   color: #d4a017;
 }
-
 .portal-menu {
   display: flex;
   align-items: center;
   gap: 22px;
   list-style: none;
 }
-
 .portal-menu-item {
   font-size: 12px;
   font-weight: 700;
@@ -595,76 +911,173 @@ video.portal-page-shot {
   cursor: pointer;
   transition: color 0.2s;
 }
-
 .portal-menu-item.active, .portal-menu-item:hover {
   color: #d4a017;
 }
 
-/* Grid Editorial: Artigo + Sidebar */
+/* Grid Editorial: Coluna Centralizada Autêntica */
 .portal-content-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.85fr);
-  gap: 32px;
-  padding: 24px 36px 85px 36px;
-  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  padding: 28px 48px 90px 48px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #ffffff;
 }
 
-/* Coluna do Artigo */
 .portal-article {
+  width: 100%;
+  max-width: 960px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+}
+
+.portal-sidebar {
+  display: none !important;
 }
 
 .article-badge {
   align-self: flex-start;
-  background: linear-gradient(135deg, #d4a017, #b8860b);
-  color: #000000;
-  font-size: 10px;
+  color: #c4170c;
+  font-size: 14px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-}
-
-.article-headline {
-  font-size: clamp(22px, 2.3vw, 34px);
-  font-weight: 900;
-  line-height: 1.12;
-  letter-spacing: -0.7px;
-  color: #0f172a;
   margin-bottom: 8px;
 }
 
+.article-headline {
+  font-size: clamp(28px, 2.5vw, 42px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.7px;
+  color: #111111;
+  margin-bottom: 12px;
+}
+
 .article-lead {
-  font-size: clamp(12px, 1.1vw, 15px);
-  color: #475569;
-  line-height: 1.4;
-  margin-bottom: 10px;
-  font-weight: 500;
+  font-size: clamp(15px, 1.2vw, 19px);
+  color: #555555;
+  line-height: 1.44;
+  margin-bottom: 14px;
+  font-weight: 400;
 }
 
 .article-meta-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 600;
+  font-size: 13px;
+  color: #777777;
+  font-weight: 500;
   margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.article-meta-info b {
+  color: #222222;
+  font-weight: 700;
+}
+
+.article-share-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.share-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #ffffff;
+  color: #475569;
+}
+.share-btn.share-whatsapp {
+  background: #25d366;
+  border-color: #25d366;
+  color: #ffffff;
+}
+.share-btn.share-facebook {
+  background: #1877f2;
+  border-color: #1877f2;
+  color: #ffffff;
+}
+.share-divider {
+  width: 1px;
+  height: 22px;
+  background: #e2e8f0;
+  margin: 0 4px;
+}
+.article-resumo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.article-img-caption {
+  font-size: 12px;
+  color: #777777;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Estilos Específicos por Tema */
+.theme-g1 .article-badge {
+  color: #c4170c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+}
+.theme-g1 .article-headline {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: #111111;
+}
+.theme-g1 .article-lead {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #555555;
+}
+
+.theme-folha .article-badge {
+  color: #64748b;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+.theme-folha .article-headline {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #111111;
+}
+.theme-folha .article-lead {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #475569;
 }
 
 .article-image-box {
-  min-height: 180px;
-  max-height: 260px;
-  border-radius: 10px;
+  width: 100%;
+  min-height: 240px;
+  max-height: 520px;
+  border-radius: 6px;
   overflow: hidden;
   position: relative;
-  background: linear-gradient(135deg, #1e293b, #334155);
-  margin-bottom: 14px;
+  background: #f1f5f9;
+  margin-bottom: 18px;
 }
 .article-image-box[hidden] {
   display: none !important;
@@ -2821,20 +3234,23 @@ img[hidden],
         <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
         <div id="portalHighlightOverlay" class="portal-highlight-overlay" hidden></div>
       </div>
-      <nav class="portal-navbar">
-        <div class="portal-brand">
-          <span class="portal-brand-badge">VDL</span>
-          <div class="portal-brand-name">VALE DA <span>LIBERDADE</span></div>
-        </div>
+      <!-- CABEÇALHO DO PORTAL DINÂMICO (G1, FOLHA, METRÓPOLES, UOL, CNN OU VDL) -->
+      <div id="portalHeaderZone">
+        <nav class="portal-navbar">
+          <div class="portal-brand">
+            <span class="portal-brand-badge">VDL</span>
+            <div class="portal-brand-name">VALE DA <span>LIBERDADE</span></div>
+          </div>
 
-        <ul class="portal-menu">
-          <li class="portal-menu-item active" id="menuSection">Diário</li>
-          <li class="portal-menu-item">Brasil & Mundo</li>
-          <li class="portal-menu-item">Economia</li>
-          <li class="portal-menu-item">Política</li>
-          <li class="portal-menu-item">Opinião</li>
-        </ul>
-      </nav>
+          <ul class="portal-menu">
+            <li class="portal-menu-item active" id="menuSection">Diário</li>
+            <li class="portal-menu-item">Brasil & Mundo</li>
+            <li class="portal-menu-item">Economia</li>
+            <li class="portal-menu-item">Política</li>
+            <li class="portal-menu-item">Opinião</li>
+          </ul>
+        </nav>
+      </div>
 
       <main class="portal-content-grid">
         <!-- ARTIGO PRINCIPAL -->
@@ -2846,12 +3262,31 @@ img[hidden],
             <span>Por Redação VDL</span> • <span>05 de abril de 2026</span> • <span>3 min de leitura</span>
           </div>
 
+          <!-- BARRA DE COMPARTILHAMENTO E RESUMO ESTILO PORTAL REAL -->
+          <div class="article-share-bar" id="articleShareBar">
+            <span class="share-btn share-whatsapp" title="WhatsApp">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+            </span>
+            <span class="share-btn share-facebook" title="Facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.374 14.5 5 15.667 5H18V0h-3.808C10.595 0 9 1.582 9 4.615V8z"/></svg>
+            </span>
+            <span class="share-btn" title="Compartilhar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </span>
+            <div class="share-divider"></div>
+            <div class="article-resumo-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Ver resumo</span>
+            </div>
+          </div>
+
           <div class="article-image-box" id="articleImageBox">
             <div class="article-cover-fallback">
               <span class="icon">📰</span>
               <span style="font-size:12px; font-weight:600; opacity:0.8;">Web Jornal Vale da Liberdade</span>
             </div>
           </div>
+          <div class="article-img-caption" id="articleImgCaption"></div>
           <div class="portal-article-body" id="articleBodyText"></div>
         </article>
 
@@ -3638,23 +4073,14 @@ const VDL_MOCKUP_ENGINE = {
   _updateArticleText(d) {
     const theme = this._getPortalTheme(d);
 
-    // Navbar branding
-    const badgeEl = document.querySelector(".portal-brand-badge");
-    if (badgeEl) {
-      badgeEl.textContent = theme.badge;
-      badgeEl.style.background = theme.badgeBg;
-      badgeEl.style.color = theme.badgeColor;
+    // Atualiza classe do tema na viewport editorial
+    const viewport = document.querySelector(".portal-viewport");
+    if (viewport) {
+      viewport.className = `portal-viewport theme-${theme.id}`;
     }
-    const nameEl = document.querySelector(".portal-brand-name");
-    if (nameEl) {
-      nameEl.innerHTML = theme.nameHtml;
-    }
-    const menuEl = document.querySelector(".portal-menu");
-    if (menuEl && theme.menus && theme.menus.length > 0) {
-      menuEl.innerHTML = theme.menus.map((m, idx) => 
-        `<li class="portal-menu-item ${idx === 0 ? 'active' : ''}">${m}</li>`
-      ).join('');
-    }
+
+    // Renderiza cabeçalho autêntico do portal correspondente
+    this._renderPortalHeader(theme, d);
 
     const catEl = document.getElementById("articleCategory");
     if (catEl) {
@@ -3668,7 +4094,7 @@ const VDL_MOCKUP_ENGINE = {
     const headEl = document.getElementById("articleHeadline");
     if (headEl) {
       if (d.titulo) headEl.textContent = d.titulo;
-      headEl.style.fontFamily = theme.isSerif ? "'Georgia', 'Times New Roman', serif" : "var(--font-headline)";
+      headEl.style.fontFamily = theme.isSerif ? "'Times New Roman', Georgia, serif" : "var(--font-headline)";
     }
 
     const leadEl = document.getElementById("articleLead");
@@ -3676,10 +4102,22 @@ const VDL_MOCKUP_ENGINE = {
 
     const metaEl = document.getElementById("articleMeta");
     if (metaEl) {
-      const author = d.autor || `Redação ${theme.name}`;
-      const dateStr = d.dataExtenso || d.date || "Atualizado recentemente";
-      const readTime = d.leitura || "3 min de leitura";
-      metaEl.innerHTML = `<span>Por ${author}</span> • <span>${dateStr}</span> • <span>${readTime}</span>`;
+      const author = d.autor || (theme.id === "g1" ? "Arthur Stabile, g1 — São Paulo" : (theme.id === "folha" ? "Redação Folha" : `Redação ${theme.name}`));
+      const dateStr = d.dataExtenso || d.date || (theme.id === "g1" ? "Atualizado há 2 minutos" : "Atualizado recentemente");
+      metaEl.innerHTML = `<span>Por <b>${author}</b></span> • <span>${dateStr}</span>`;
+    }
+
+    const captionEl = document.getElementById("articleImgCaption");
+    if (captionEl) {
+      if (d.legenda || d.caption || d.credito) {
+        captionEl.textContent = d.legenda || d.caption || `${d.titulo ? d.titulo.slice(0, 60) + '...' : ''} — Foto: ${d.credito || theme.name}`;
+        captionEl.hidden = false;
+      } else if (d.imagem || d.image || d.thumb) {
+        captionEl.textContent = `Registro fotográfico oficial — Foto: Reprodução / ${theme.name}`;
+        captionEl.hidden = false;
+      } else {
+        captionEl.hidden = true;
+      }
     }
 
     // Leitor Simulado: Parágrafos com grifo animado
@@ -3743,6 +4181,140 @@ const VDL_MOCKUP_ENGINE = {
         });
       }
     }
+  },
+
+  _renderPortalHeader(theme, d) {
+    const headerZone = document.getElementById("portalHeaderZone");
+    if (!headerZone) return;
+
+    if (theme.id === "g1") {
+      const topic = (d.categoria || (theme.menus && theme.menus[0]) || "ELEIÇÕES 2026").toUpperCase();
+      headerZone.innerHTML = `
+        <header class="g1-real-header">
+          <div class="g1-header-inner">
+            <div class="g1-header-left">
+              <span class="g1-menu-btn"><span class="g1-hamburger">☰</span> MENU</span>
+              <span class="g1-logo-badge">g1</span>
+            </div>
+            <div class="g1-header-center">${topic}</div>
+            <div class="g1-header-right">
+              <span class="g1-search-btn">🔍 BUSCAR</span>
+              <span class="g1-user-badge">👤 Entrar com Conta Globo</span>
+            </div>
+          </div>
+        </header>
+      `;
+      return;
+    }
+
+    if (theme.id === "folha") {
+      const cat = (d.categoria || "política").toLowerCase();
+      headerZone.innerHTML = `
+        <header class="folha-real-header">
+          <div class="folha-top-row">
+            <div class="folha-left">
+              <span class="folha-menu-btn">☰ MENU</span>
+              <span class="folha-assine-btn">ASSINE</span>
+            </div>
+            <div class="folha-brand-center">
+              <span class="folha-logo-text">FOLHA DE S.PAULO</span>
+              <div class="folha-stars">
+                <span class="star blue">★</span>
+                <span class="star red">★</span>
+                <span class="star blue">★</span>
+              </div>
+            </div>
+            <div class="folha-user-right">
+              <span>👤 ENTRAR</span>
+              <span>🔍 BUSCAR</span>
+            </div>
+          </div>
+          <div class="folha-subnav">
+            <span class="folha-subnav-cat">${cat}</span>
+            <span class="folha-arrow">&gt;</span>
+            <span class="folha-subnav-topic">eleições 2026</span>
+            <div class="folha-subnav-links">
+              <span>apuração</span>
+              <span>pesquisa eleitoral</span>
+              <span>ficha dos candidatos</span>
+              <span>debates</span>
+            </div>
+          </div>
+          <div class="folha-offer-bar">
+            <span class="folha-offer-text">Oferta Especial: <b>R$1,90 no 1º mês</b></span>
+            <span class="folha-offer-btn">ASSINE A FOLHA</span>
+          </div>
+        </header>
+      `;
+      return;
+    }
+
+    if (theme.id === "metropoles") {
+      headerZone.innerHTML = `
+        <header class="metropoles-real-header">
+          <div class="metropoles-left">
+            <span class="metropoles-m-badge">M</span>
+            <span class="metropoles-name">METRÓPOLES</span>
+          </div>
+          <div class="metropoles-menu">
+            ${theme.menus.map((m, i) => `<span class="${i === 0 ? 'active' : ''}">${m}</span>`).join('')}
+          </div>
+          <div style="display:flex; gap:16px; color:#cbd5e1; font-size:12px; font-weight:700;">
+            <span>🔍 BUSCAR</span>
+            <span>👤 ENTRAR</span>
+          </div>
+        </header>
+      `;
+      return;
+    }
+
+    if (theme.id === "uol") {
+      headerZone.innerHTML = `
+        <header class="uol-real-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="uol-circle-badge">UOL</span>
+            <span style="font-weight:900; font-size:16px; color:#ffffff;">NOTÍCIAS</span>
+          </div>
+          <div class="uol-menu">
+            ${theme.menus.map((m, i) => `<span class="${i === 0 ? 'active' : ''}">${m}</span>`).join('')}
+          </div>
+          <div class="uol-right">
+            <span>ENTRAR</span>
+            <span>SAC</span>
+          </div>
+        </header>
+      `;
+      return;
+    }
+
+    if (theme.id === "cnn") {
+      headerZone.innerHTML = `
+        <header class="cnn-real-header">
+          <div class="cnn-logo">CNN <span>BRASIL</span></div>
+          <div class="cnn-menu">
+            ${theme.menus.map((m) => `<span>${m}</span>`).join('')}
+          </div>
+          <div class="cnn-live">
+            <span class="live-dot"></span>
+            AO VIVO
+          </div>
+        </header>
+      `;
+      return;
+    }
+
+    // Default VDL Header
+    headerZone.innerHTML = `
+      <nav class="portal-navbar">
+        <div class="portal-brand">
+          <span class="portal-brand-badge">${theme.badge}</span>
+          <div class="portal-brand-name">${theme.nameHtml}</div>
+        </div>
+        <ul class="portal-menu">
+          ${theme.menus.map((m, idx) => `<li class="portal-menu-item ${idx === 0 ? 'active' : ''}">${m}</li>`).join('')}
+        </ul>
+      </nav>
+    `;
   },
 
   /**
@@ -5345,8 +5917,9 @@ const VDL_MOCKUP_ENGINE = {
     // Imagem do Artigo
     const imgContainer = document.getElementById("articleImageBox");
     if (imgContainer) {
-      if (d.imagem) {
-        imgContainer.innerHTML = `<img class="article-cover-img" src="${d.imagem}" alt="${d.titulo}">`;
+      const imgSrc = d.imagem || d.image || d.thumb;
+      if (imgSrc) {
+        imgContainer.innerHTML = `<img class="article-cover-img" src="${imgSrc}" alt="${d.titulo || ''}">`;
         imgContainer.hidden = false;
         imgContainer.style.display = "block";
       } else {
