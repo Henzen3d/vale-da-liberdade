@@ -29,6 +29,14 @@ if [ "$#" -gt 0 ]; then
   EXTRA_ARGS=("$@")
 fi
 
+# Opção B: Por padrão no cron diário automático, tolera episódios com menos de 1500 palavras
+# para garantir que o podcast sempre saia pontualmente às 06:00 (a menos que DISABLE_ALLOW_SHORT=1).
+if [ "${DISABLE_ALLOW_SHORT:-0}" != "1" ]; then
+  if [[ ! " ${EXTRA_ARGS[*]:-} " =~ " --allow-short-audio " ]]; then
+    EXTRA_ARGS+=("--allow-short-audio")
+  fi
+fi
+
 # Hermes no_agent default = 3600s. Este wrapper precisa sempre fechar o log
 # mesmo se pipeline.py sair ≠ 0. O teto do job está em cron.script_timeout_seconds.
 PIPELINE_RC=0
