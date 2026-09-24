@@ -143,8 +143,20 @@ def select_usable_scenes(
 def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force: bool = False) -> dict:
     episode = load_episode(video_id)
     if episode.get("_skip_video_reason") and not force:
-        print(f"  ⏭️  Vídeo pulado: {episode['_skip_video_reason']}")
-        return {"video_id": video_id, "skipped": True, "reason": episode["_skip_video_reason"]}
+        reason = episode["_skip_video_reason"]
+        print(f"  ⏭️  Vídeo pulado: {reason}")
+        try:
+            state = load_state()
+            blocked = state.setdefault("blocked", {})
+            if video_id not in blocked:
+                blocked[video_id] = {
+                    "motivo": reason,
+                    "quando": datetime.now().isoformat(),
+                }
+                save_state(state)
+        except Exception as exc:  # noqa: BLE001
+            print(f"  ⚠️  Não foi possível registrar {video_id} em blocked: {exc}")
+        return {"video_id": video_id, "skipped": True, "reason": reason}
     if episode.get("_skip_video_reason") and force:
         print(f"  ⚠️  Forçando geração (skip original: {episode['_skip_video_reason']})")
 
@@ -341,6 +353,8 @@ def process_one(video_id: str, upload: bool, privacy: str, dry_run: bool, force:
         if prev:
             post_channel_cross_comment(yt_id, prev)
         state = load_state()
+        if "blocked" in state and video_id in state["blocked"]:
+            state["blocked"].pop(video_id, None)
         state.setdefault("videos", {})[video_id] = {
             "yt_id": yt_id,
             "url": result["url"],
@@ -383,8 +397,23 @@ def pending_ids(days: int, backfill: bool) -> list[str]:
             continue
         if not backfill and datetime.fromtimestamp(audio.stat().st_mtime) < cutoff:
             continue
-        if not (EPS_DIR / f"especial-{vid}.json").exists():
+        ep_path = EPS_DIR / f"especial-{vid}.json"
+        if not ep_path.exists():
             continue
+        try:
+            ep_data = json.loads(ep_path.read_text(encoding="utf-8"))
+            skip_reason = ep_data.get("_skip_video_reason")
+            if skip_reason:
+                print(f"  ⏭️  {vid}: marcado com skip ({skip_reason}) — arquivando em bloqueados")
+                state.setdefault("blocked", {})[vid] = {
+                    "motivo": skip_reason,
+                    "quando": datetime.now().isoformat(),
+                }
+                save_state(state)
+                seen.add(vid)
+                continue
+        except Exception:
+            pass
         dur_s = probe_duration_s(audio)
         if dur_s > MAX_DURATION_S:
             print(f"  ⏭️  {vid}: áudio {dur_s:.0f}s > {MAX_DURATION_S:.0f}s — fora da fila do mockup")
@@ -437,12 +466,16 @@ def main() -> int:
     n_tried = 0
     last_err = None
     for vid in ids:
-        n_tried += 1
         try:
-            process_one(vid, upload=args.upload, privacy=args.privacy, dry_run=args.dry_run, force=args.force)
+            res = process_one(vid, upload=args.upload, privacy=args.privacy, dry_run=args.dry_run, force=args.force)
+            if isinstance(res, dict) and res.get("skipped"):
+                # Vídeo foi pulado deliberadamente (ex: _skip_video_reason sem --force); não consome cota do --max
+                continue
             n_ok += 1
+            n_tried += 1
         except Exception as exc:
             last_err = exc
+            n_tried += 1
             print(f"  ❌ {vid}: {exc}")
         if n_tried >= args.max:
             break
