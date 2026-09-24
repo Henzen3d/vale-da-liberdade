@@ -632,7 +632,7 @@ def cmd_process(date: str, force_render: bool = False):
     return tts_path
 
 
-def cmd_validate(date: str):
+def cmd_validate(date: str, allow_short: bool = False):
     """Valida o episódio contra o checklist de qualidade.
     Returns (ok: bool, errors: list[str], warnings: list[str]).
     Erros bloqueiam o pipeline, warnings são apenas indicados.
@@ -650,7 +650,10 @@ def cmd_validate(date: str):
     warnings = []
     for issue in issues:
         if issue.startswith("❌"):
-            errors.append(issue)
+            if allow_short and ("curto demais" in issue.lower() or "palavras" in issue.lower()):
+                warnings.append(f"⚠️  [ALLOW-SHORT-AUDIO] {issue.removeprefix('❌ ')}")
+            else:
+                errors.append(issue)
         else:
             warnings.append(issue)
 
@@ -943,7 +946,7 @@ def cmd_full(
 
     # 4. Validar
     print("\n🔍 Etapa 4/7 — Validação")
-    ok, errors, warnings = cmd_validate(date)
+    ok, errors, warnings = cmd_validate(date, allow_short=allow_short_audio)
     if not ok:
         print("\n❌ Episódio tem problemas críticos. Pipeline abortado.")
         for e in errors:
@@ -1129,7 +1132,7 @@ if __name__ == "__main__":
     elif args.command == "process":
         cmd_process(date)
     elif args.command == "validate":
-        cmd_validate(date)
+        cmd_validate(date, allow_short=args.allow_short_audio)
     elif args.command == "audio":
         cmd_audio(date, allow_short=args.allow_short_audio)
     elif args.command == "full":

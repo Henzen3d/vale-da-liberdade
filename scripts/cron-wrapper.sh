@@ -23,13 +23,18 @@ export PYTHONUNBUFFERED=1
 
 LOG_FILE="$LOG_DIR/daily-$(date +%F).log"
 EXEC_DATE="${1:-$(date +%F)}"
+EXTRA_ARGS=()
+if [ "$#" -gt 0 ]; then
+  shift
+  EXTRA_ARGS=("$@")
+fi
 
 # Hermes no_agent default = 3600s. Este wrapper precisa sempre fechar o log
 # mesmo se pipeline.py sair ≠ 0. O teto do job está em cron.script_timeout_seconds.
 PIPELINE_RC=0
 {
   echo "=== Daily build started: $(date '+%a %d %b %Y %H:%M:%S %Z') ==="
-  /home/osmar/.hermes/hermes-agent/venv/bin/python3 "$PROJECT_DIR/scripts/pipeline.py" full --date "$EXEC_DATE"
+  /home/osmar/.hermes/hermes-agent/venv/bin/python3 "$PROJECT_DIR/scripts/pipeline.py" full --date "$EXEC_DATE" ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
   PIPELINE_RC=$?
   echo "=== Daily build finished: $(date '+%a %d %b %Y %H:%M:%S %Z') rc=$PIPELINE_RC ==="
 } > "$LOG_FILE" 2>&1
