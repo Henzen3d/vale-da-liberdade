@@ -266,6 +266,31 @@ Responda SOMENTE com JSON válido:
         return t, h
 
 
+def highlight_tail(title: str) -> str:
+    """Trecho final da mesma frase da capa. Não inventa outra manchete."""
+    words = [w for w in re.sub(r"\s+", " ", title or "").strip().split(" ") if w]
+    if len(words) >= 4:
+        return " ".join(words[-3:])
+    if len(words) >= 2:
+        return " ".join(words[-2:])
+    return title.strip()
+
+
+def store_cover_on_episode(video_id: str, title: str, highlight: str) -> None:
+    path = EPS_DIR / f"especial-{video_id}.json"
+    if not path.is_file() or not title:
+        return
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data.get("capa_promessa") == title and data.get("capa_destaque") == highlight:
+            return
+        data["capa_promessa"] = title
+        data["capa_destaque"] = highlight
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    except Exception as exc:
+        print(f"   ⚠️  capa_promessa não gravada: {exc}")
+
+
 def heuristic_short_title(title: str) -> str:
     t = re.sub(r"\s+", " ", title).strip()
     if len(t) <= MAX_TITLE_CHARS:
@@ -396,7 +421,12 @@ def generate_youtube_thumbnail(
     if not title or not highlight:
         episode = load_episode(video_id)
         title_full, context = episode_text(episode, video_id)
-        auto_t, auto_h = generate_headline(title_full, context)
+        # A capa usa o título do episódio. Segunda chamada de Gemini criava outra frase.
+        if title_full:
+            auto_t = heuristic_short_title(title_full)
+            auto_h = highlight_tail(auto_t)
+        else:
+            auto_t, auto_h = generate_headline(title_full or video_id, context)
         title = title or auto_t
         highlight = highlight or auto_h
 
@@ -449,6 +479,7 @@ def generate_youtube_thumbnail(
             "date": date,
         },
     )
+    store_cover_on_episode(video_id, title, highlight)
     print(
         f"   thumbnail_input_hash: {rec['youtube_thumbnail_input_hash']}\n"
         f"   thumbnail_output: {final}\n"

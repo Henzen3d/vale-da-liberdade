@@ -4661,14 +4661,18 @@ const VDL_MOCKUP_ENGINE = {
           ease: "sine.out"
         });
       } else {
-        // portal-clean / portal-hero
+        // portal-clean / portal-hero: movimento dentro da leitura, sem corte.
+        const viewportHeight = document.querySelector(".portal-viewport")?.offsetHeight || 923;
+        const imgHeight = scrollWrapper.offsetHeight || 1400;
+        const maxScroll = Math.max(0, imgHeight - viewportHeight);
+        const drift = maxScroll > 80 ? Math.min(maxScroll * 0.35, 280) : 120;
         this._pageShotTween = gsap.fromTo(scrollWrapper,
           { scale: 1.0, y: 0 },
           {
-            scale: 1.025,
-            y: 0,
-            duration: 9.0,
-            ease: "sine.out"
+            scale: 1.04,
+            y: -drift,
+            duration: 22.0,
+            ease: "sine.inOut"
           }
         );
       }

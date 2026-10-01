@@ -159,9 +159,9 @@ def compose_presenter(
     l3_path = work / "lower-third.webm"
     try:
         from faceless_lower_third import clip_payload, date_from_audio, render_lower_third
-        from bm_video.state import _unescape, episode_date, one_line_subhead, ticker_headlines
+        from bm_video.state import cover_promise, episode_date, one_line_subhead, ticker_headlines
 
-        title = _unescape(episode.get("titulo") or "Brasil e Mundo")
+        title = cover_promise(episode, work.name if work.name else None)
         subhead = one_line_subhead(episode)
         vid = work.name if work.name else None
         headlines = ticker_headlines(episode, vid)

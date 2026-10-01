@@ -467,6 +467,34 @@ def _bm_seo_description(
     )
 
 
+def cover_promise(episode: dict | None, video_id: str | None = None) -> str:
+    """Frase da capa. A mesma linha entra no lower-third do frame 0."""
+    episode = episode or {}
+    vid = (video_id or str(episode.get("video_id") or "")).strip()
+    if vid:
+        try:
+            import episode_image_manifest as eim
+            man = eim.load_manifest(vid) or {}
+            yt = _unescape(str(man.get("youtube_title") or "")).strip()
+            if yt:
+                return yt
+        except Exception:
+            pass
+    stored = _unescape(str(episode.get("capa_promessa") or "")).strip()
+    if stored:
+        return stored
+    title = re.sub(r"\s+", " ", _unescape(str(episode.get("titulo") or "")).strip())
+    if not title:
+        return "Brasil e Mundo"
+    if len(title) <= 58:
+        return title
+    cut = title[:58]
+    if ":" in cut:
+        return cut.split(":")[0].strip()[:58]
+    sp = cut.rfind(" ")
+    return (cut[:sp] if sp > 20 else cut).rstrip(":,!- ").strip()
+
+
 def one_line_subhead(episode: dict, limit: int = 98) -> str:
     """Linha fina: submanchete de uma linha, nunca o nome da fonte nem a fala de abertura do roteiro."""
     title = _unescape((episode.get("titulo") or "").strip())
@@ -626,8 +654,13 @@ def build_chapters(
     # - Mínimo de 25s entre capítulos (evita loops curtos)
     # - Sem repetição consecutiva de títulos
     # - Sem nomes de veículos
-    out: list[tuple[float, str]] = [(0, "Introdução")]
-    prev_label = "Introdução"
+    opening = "Introdução"
+    if episode:
+        promise = cover_promise(episode)
+        if promise and promise.casefold() not in ("brasil e mundo", "introdução"):
+            opening = highlight_from_script(promise, limit=42) or promise[:42].strip()
+    out: list[tuple[float, str]] = [(0, opening or "Introdução")]
+    prev_label = opening or "Introdução"
 
     for ts, label in sorted(entries, key=lambda x: x[0]):
         if label.lower() in ("introdução", "transição") or ts < 12.0:
@@ -664,7 +697,7 @@ def chapters_block(
     ch = build_chapters(scenes, dur, timeline_beats=timeline_beats, episode=episode)
     if len(ch) < 3:
         return ""
-    lines = ["", "⏱ CAPÍTULOS:", "0:00 Introdução"]
+    lines = ["", "⏱ CAPÍTULOS:", f"0:00 {ch[0][1]}"]
     for ts, label in ch[1:-1]:
         lines.append(f"{int(ts) // 60:.0f}:{int(ts) % 60:02d} {label}")
     last_ts, last_label = ch[-1]

@@ -428,7 +428,8 @@ class MetadataTests(unittest.TestCase):
         chapters = build_chapters([], dur=180.0, timeline_beats=beats, episode=ep)
         labels = [c[1] for c in chapters]
         blob = " ".join(labels).lower()
-        self.assertIn("Introdução", labels)
+        self.assertNotIn("Introdução", labels)
+        self.assertTrue(labels[0].lower().startswith("lula") or "stf" in labels[0].lower(), labels)
         self.assertIn("Conclusão", labels)
         self.assertNotIn("G1", labels)
         self.assertNotIn("Folha", labels)
@@ -437,6 +438,11 @@ class MetadataTests(unittest.TestCase):
             any(k in blob for k in ("stf", "dino", "delegado", "moraes", "mendonça", "planalto", "blindar")),
             labels,
         )
+
+    def test_cover_promise_uses_episode_title(self):
+        from bm_video.state import cover_promise
+        ep = {"titulo": "Lula tenta salvar aliados na crise do STF"}
+        self.assertEqual(cover_promise(ep), ep["titulo"])
 
     def test_highlight_from_script_is_a_punch_not_the_outlet(self):
         label = highlight_from_script(

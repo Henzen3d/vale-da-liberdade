@@ -553,6 +553,8 @@ Sua tarefa: transformar a transcrição abaixo em um comentário solo de ~4:30 a
    - TRAVA FACTUAL: Não invente fatos, números, nomes ou leis que não constem na transcrição ou no briefing de fontes.
 8. {fonte}
 9. SINCRONIZAÇÃO VISUAL: Ao citar ou comentar a matéria de um veículo, inclua no objeto da fala o campo opcional "fonte_url" com a URL correspondente.
+9b. PONTE: a última frase de cada bloco de desenvolvimento, exceto o último, é uma linha que puxa o próximo fato. Sem cartela e sem "a seguir".
+9c. FECHAMENTO: uma pergunta concreta sobre o fato deste episódio. Proibido encerrar só com like, inscreva-se ou sininho.
 10. IDENTIDADE DO NARRADOR (INEGOCIÁVEL): o apresentador é Peter Albuquerque, do Webjornal Vale da Liberdade. Se a transcrição disser Turguniev / Peter Turguniev / qualquer grafia parecida, SUBSTITUA por Albuquerque. NUNCA transcreva, cite ou deixe essa palavra no JSON, no título, no subtítulo ou nas falas. O áudio também nunca pode pronunciá-la.
 10b. APRESENTAÇÃO (INEGOCIÁVEL): o roteiro NUNCA pode citar o canal de origem. Se a transcrição trouxer uma auto-apresentação (ex.: "aqui é Peter Turguniev do Ancapsu", "do canal Ancapsu", "se inscreve no canal"), REESCREVA sempre como: "aqui é Peter Albuquerque do Vale da Liberdade". Sem exceção, mesmo em menções casuais, agradecimentos ou chamadas a ação.
 10c. ZERO MENÇÕES AO CANAL DE ORIGEM (INEGOCIÁVEL): proibido citar "Ancapsu", "ANCAPSU", "@ancap_su", "ancap.su" ou o nome de qualquer canal concorrente em título, subtítulo, falas, tags ou descrição. A única marca que existe no roteiro é "Vale da Liberdade".
@@ -569,6 +571,7 @@ Canal: {raw['channel']}
 === REGRAS DO TÍTULO E SUBTÍTULO (OBRIGATÓRIAS) ===
 1. TÍTULO ("titulo"): Deve ser BASEADO no título original do YouTube acima, ADAPTADO às regras:
    - 40 a 65 caracteres; NUNCA passar de 80. Entidade/tema nas primeiras palavras.
+   - A primeira fala da abertura TEM que dizer essa mesma afirmação, com o número ou o nome. Sem saudação antes.
    - Curiosidade com gap, sem prometer fato que o episódio não entrega.
    - Especificidade numérica se houver (R$, %, anos).
    - PROIBIDO acusação como fato consumado ("roubou", "farsa", "mentira", "propina", "desviou") -> use "no caso", "sob suspeita", "o escândalo de", "a polêmica de".
@@ -588,16 +591,16 @@ Canal: {raw['channel']}
   "fonte_veiculo": "{raw.get('source_names', [''])[0] if raw.get('source_names') else ''}",
   "tags": ["tag1", "tag2"],
   "abertura": [
-    {{"speaker": "Peter", "texto": "Fala 1 (Tempo 1 — O Soco no Estômago / fato cru e imediato)..."}},
+    {{"speaker": "Peter", "texto": "Fala 1 (a mesma afirmação do título, dita em voz, com o número ou o nome. Sem saudação)..."}},
     {{"speaker": "Peter", "texto": "Fala 2 (Tempo 2 — O Contraste Cético / ironia com o discurso oficial)..."}},
     {{"speaker": "Peter", "texto": "Fala 3 (Tempo 3 — O Open Loop de Curiosidade / detalhe oculto que muda tudo)..."}}
   ],
   "desenvolvimento": [
-    {{"speaker": "Peter", "texto": "Bloco 1 (O mecanismo e os dados)...", "fonte_url": "https://..."}},
+    {{"speaker": "Peter", "texto": "Bloco 1 (o mecanismo e os dados). A última frase, se houver outro bloco, é uma ponte de uma linha para o próximo fato...", "fonte_url": "https://..."}},
     {{"speaker": "Peter", "texto": "Bloco 2 (Incentivos perversos e quem paga a conta)..."}}
   ],
   "fechamento": [
-    {{"speaker": "Peter", "texto": "Síntese ácida e conclusão contundente do caso..."}},
+    {{"speaker": "Peter", "texto": "Uma pergunta específica sobre o fato deste episódio. Proibido fechar só com like, inscreva-se ou sininho..."}},
     {{"speaker": "Peter", "texto": "Chamado à soberania individual e proteção patrimonial. Eu sou Peter Albuquerque para o Web Jornal Vale da Liberdade. Até a próxima."}}
   ]
 }}
