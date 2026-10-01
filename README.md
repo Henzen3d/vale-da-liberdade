@@ -77,8 +77,8 @@ Vídeos verticais/horizontais opinativos focados em um tema quente do dia, apres
   ```
 
 ### Motor Visual & Retenção do Telespectador:
-- **Gancho Inicial (Primeiros 15s):** 3 cortes rápidos de abertura (0-5s, 5-9s, 9-15s) combinando manchete, close de parágrafo e B-roll para prender a atenção e evitar abandono precoce do vídeo.
-- **Mínimo de 18 Telas por Episódio (Pacing Acelerado):** Timeline dinâmica que impede telas estáticas por mais de 12s (piso 5s, teto 12s, 18+ beats em 5 min).
+- **Leitura do portal:** cada matéria fica 27s de vídeo (18s reais em 1.5x) para título, subtítulo e o início do texto. Sem cortes de 5s/4s na abertura.
+- **Pacing:** não fatiar portal abaixo de 27s. Hero na troca de URL; scroll na continuação da mesma matéria.
 - **Multi-Shot Óptico & Variantes:** 4 enquadramentos de telejornalismo (`portal_hero`, `portal_zoom`, `portal_scroll`, `portal_highlight`), além de captura dupla em Playwright (Hero + Detail).
 - **Micro-Motion Ken Burns & X-Cards:** Animação de câmera sutil contínua no browser mockup e ativação procedural de cartões 3D para tweets e repercussões do X.
 - **B-Roll Footage:** Vídeos gratuitos em 1080p (Pexels / Pixabay) e tweets do X inseridos contextualmente.

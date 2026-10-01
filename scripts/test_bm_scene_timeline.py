@@ -12,7 +12,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 from bm_scene_timeline import (
     MIN_SCENE_DURATION_S,
-    TARGET_MIN_BEATS_5MIN,
+    PORTAL_READ_HOLD_S,
     SceneBeat,
     build_scene_timeline,
     count_words,
@@ -100,6 +100,48 @@ class SceneTimelineTests(unittest.TestCase):
         # O primeiro beat deve respeitar o piso mínimo
         self.assertGreaterEqual(beats[0].t1 - beats[0].t0, MIN_SCENE_DURATION_S)
 
+    def test_portal_hold_covers_title_subtitle_and_lead_at_1_5x(self):
+        """Portal fica tempo bastante para ler título, subtítulo e o início da matéria em 1.5x.
+
+        Orçamento real (ouvindo o roteiro): título ~4s + subtítulo ~4s + lead ~10s = 18s.
+        Vídeo = 18 * 1.5 = PORTAL_READ_HOLD_S. Corte óptico e troca de URL não fatiam abaixo disso.
+        """
+        episode = {
+            "titulo": "Leitura do portal",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura longa o bastante para o gancho não comer a matéria. " * 20}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Desenvolvimento contínuo da mesma pauta, com fatos e contexto. " * 40},
+                {"speaker": "Peter", "texto": "Segundo bloco ainda sem trocar de assunto no meio da frase. " * 40},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho curto."}],
+        }
+        scenes = [
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/materia", "shot": "folha.png"},
+            {"veiculo": "G1", "url": "https://g1.globo.com/materia", "shot": "g1.png"},
+            {"veiculo": "Poder360", "url": "https://www.poder360.com.br/materia", "shot": "p360.png"},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
+        sources = [b for b in beats if b.visual_component == "source" and b.url]
+        self.assertTrue(sources)
+        first_url = sources[0].url
+        for b in sources:
+            if b.t0 < PORTAL_READ_HOLD_S - 0.05:
+                self.assertEqual(
+                    b.url,
+                    first_url,
+                    f"portal trocou em {b.t0:.1f}s, antes da janela de leitura {PORTAL_READ_HOLD_S:.0f}s",
+                )
+        for b in sources:
+            dur = b.t1 - b.t0
+            tail = b.t1 >= 300.0 - 0.6
+            if tail and dur < PORTAL_READ_HOLD_S:
+                continue
+            self.assertGreaterEqual(
+                dur,
+                PORTAL_READ_HOLD_S - 1.0,
+                f"portal {b.url} ficou {dur:.1f}s (t0={b.t0:.1f}); em 1.5x isso é {dur/1.5:.1f}s reais, curto para título+subtítulo+lead",
+            )
+
     def test_5min_episode_generates_at_least_10_beats(self):
         # Simula episódio real de 5 minutos (~830 palavras, 300 segundos)
         episode = {
@@ -134,9 +176,10 @@ class SceneTimelineTests(unittest.TestCase):
             {"veiculo": "Fonte 2", "url": "https://2.com", "shot": "s2.png"},
         ]
         beats = build_scene_timeline(episode, total_duration_s=240.0, scenes=scenes)
-        # Nos primeiros 15s deve haver mais de 1 corte para prender a atenção do público
-        first_15s_beats = [b for b in beats if b.t0 < 15.0]
-        self.assertGreaterEqual(len(first_15s_beats), 2, "Deveria ter pelo menos 2 cortes nos primeiros 15s")
+        # Abertura estável: um portal só, tempo de ler título e subtítulo mesmo em 1.5x.
+        first_15s_beats = [b for b in beats if b.t0 < 15.0 and b.visual_component == "source"]
+        self.assertEqual(len(first_15s_beats), 1, "abertura não pode fatiar o portal antes da leitura")
+        self.assertGreaterEqual(first_15s_beats[0].t1, PORTAL_READ_HOLD_S - 1.0)
 
 
 
@@ -262,8 +305,8 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertEqual(out, beats)
 
     # ---------- FRENTE 2 VISUAL: Pacing, Multi-Shot & X-Card ----------
-    def test_5min_episode_generates_at_least_18_beats(self):
-        """Em vídeos de 5 min (300s), garante densidade dinâmica de pelo menos 18 beats."""
+    def test_5min_episode_keeps_portals_readable(self):
+        """Em 5 min, cada portal fica a janela de leitura. Densidade de 18 cortes curtos foi descartada."""
         episode = {
             "titulo": "Escândalo no Congresso",
             "abertura": [{"speaker": "Peter", "texto": "Abertura com gancho inicial relevante. " * 15}],
@@ -279,10 +322,15 @@ class SceneTimelineTests(unittest.TestCase):
             {"veiculo": "G1", "url": "https://g1.globo.com/3", "shot": "src-02.png"},
         ]
         beats = build_scene_timeline(episode, total_duration_s=300.0, scenes=scenes)
-        self.assertGreaterEqual(len(beats), TARGET_MIN_BEATS_5MIN,
-                                f"Deveria ter pelo menos {TARGET_MIN_BEATS_5MIN} beats, teve {len(beats)}")
         self.assertEqual(beats[0].t0, 0.0)
         self.assertEqual(beats[-1].t1, 300.0)
+        sources = [b for b in beats if b.visual_component == "source" and b.url]
+        self.assertTrue(sources)
+        for b in sources:
+            dur = b.t1 - b.t0
+            if b.t1 >= 299.4 and dur < PORTAL_READ_HOLD_S:
+                continue
+            self.assertGreaterEqual(dur, PORTAL_READ_HOLD_S - 1.0, f"{b.url} ficou {dur:.1f}s")
 
     def test_sub_beats_cycle_visual_variants(self):
         """Sub-beats gerados de cenas longas devem ciclar variantes ópticas (hero, zoom, scroll, highlight)."""
@@ -640,11 +688,11 @@ class SceneTimelineTests(unittest.TestCase):
         ]
         beats = build_scene_timeline(episode, total_duration_s=120.0, scenes=scenes)
 
-        # 1. Teto máximo estrito (Fase 4.3): nenhum beat de source pode exceder 10.0s + tolerância de 0.5s
+        # Portal pode (e deve) passar de 10s. Piso = janela de leitura em 1.5x.
         for idx, b in enumerate(beats):
             dur = b.t1 - b.t0
-            if b.visual_component == "source":
-                self.assertLessEqual(dur, 10.5, f"Beat[{idx}] dur={dur:.2f}s excedeu teto de 10s")
+            if b.visual_component == "source" and b.t1 < 119.4:
+                self.assertGreaterEqual(dur, PORTAL_READ_HOLD_S - 1.0, f"Beat[{idx}] dur={dur:.2f}s curto demais para leitura")
 
         # 2. Alternância de variantes visuais de câmera: consecutivas não repetem
         for idx in range(len(beats) - 1):
@@ -727,12 +775,9 @@ class Exp0001ProvenanceTests(unittest.TestCase):
             {"veiculo": "Poder360", "url": "https://www.poder360.com.br/outra", "shot": "p360.png"},
         ])
         first = [b for b in beats if b.t0 < 15.0 and b.visual_component not in ("transition", "broll")]
-        self.assertGreaterEqual(len(first), 2)
-        # Sem URL citada, variadores podem alternar entre prints disponíveis.
-        # O importante é que tenha variação (não repita a mesma cena).
-        shots = {b.shot for b in first}
-        self.assertGreaterEqual(len(shots), 1)
-        self.assertTrue(any(b.visual_variant in ("portal_hero", "portal_zoom", "portal_highlight") for b in first))
+        self.assertEqual(len(first), 1, "abertura longa não fatia o portal em cortes de 5s")
+        self.assertGreaterEqual(first[0].t1, 15.0)
+        self.assertEqual(len({b.url for b in first}), 1)
 
     def test_caso_d_artigo_sem_shot_nao_promove_x(self):
         from bm_scene_timeline import build_scene_timeline

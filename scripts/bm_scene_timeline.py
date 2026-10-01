@@ -712,6 +712,9 @@ def detect_visual_opportunities(
 
 MIN_SCENE_DURATION_S = 5.0
 MAX_SCENE_DURATION_S = 10.0
+# Leitura em 1.5x: título ~4s + subtítulo ~4s + início da matéria ~10s = 18s reais.
+# Tempo de vídeo = 18 * 1.5. Abaixo disso o print troca antes da leitura.
+PORTAL_READ_HOLD_S = 27.0
 DEFAULT_BROLL_DUR_S = 1.2
 TARGET_MIN_BEATS_5MIN = 18
 _PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll", "portal_highlight"]
@@ -736,7 +739,6 @@ _X_HOSTS = frozenset({"x.com", "twitter.com", "mobile.x.com", "mobile.twitter.co
 _YT_HOSTS = frozenset({"youtube.com", "youtu.be", "m.youtube.com", "music.youtube.com"})
 _SAFE_FALLBACK_URL = "https://news.mob.tec.br"
 _X_STATUS_RE = re.compile(r"/status/(\d+)")
-_HOOK_VARIANTS = ("portal_hero", "portal_zoom", "portal_highlight")
 
 
 def _is_x_url(url: str) -> bool:
@@ -1263,42 +1265,12 @@ def build_scene_timeline(
         ))
         i += 1
 
-    # 5. Gancho dos primeiros 15s: três enquadramentos da mesma evidência.
-    # Não troca de matéria e não promove cena vizinha a x-post.
-    if total_dur >= 120.0 and len(final_beats) > 1 and len(scene_queue) > 1:
-        if final_beats[0].t1 >= 14.0 and final_beats[0].visual_component == "source":
-            old_first = final_beats[0]
-            cuts = ((0.0, 5.0), (5.0, 9.0), (9.0, old_first.t1))
-            hooked: list[SceneBeat] = []
-            for (t0, t1), variant in zip(cuts, _HOOK_VARIANTS):
-                hooked.append(SceneBeat(
-                    t0=t0,
-                    t1=t1,
-                    url=old_first.url,
-                    veiculo=old_first.veiculo,
-                    kind="source",
-                    shot=old_first.shot,
-                    shot_long=old_first.shot_long,
-                    highlight_box=old_first.highlight_box,
-                    video=old_first.video,
-                    x_post=None,
-                    semantic_role=old_first.semantic_role or "apresentacao_fato",
-                    visual_component="source",
-                    visual_variant=variant,
-                    visual_payload=old_first.visual_payload,
-                    fala_indices=list(old_first.fala_indices),
-                    texto_origem=old_first.texto_origem,
-                    fonte_url_fala=old_first.fonte_url_fala,
-                    provenance_type=old_first.provenance_type,
-                ))
-            final_beats[0:1] = hooked
+    # Abertura não fatia o portal em 5s/4s. Em 1.5x isso some com título e subtítulo
+    # antes da leitura. O primeiro portal permanece estável pela janela PORTAL_READ_HOLD_S.
+    # abertura_fim abaixo só marca a rotação livre para diagnóstico, sem corte visual.
 
-    # FASE 3 — Abertura ampla, corpo sincronizado
-    # Os primeiros segundos mantêm a rotação ampla de fontes (passo 5 acima é o
-    # gancho de retenção: 3 cortes rápidos 0→5→9→fim do primeiro beat). A
-    # cascata da Fase 2 só passa a valer a partir do primeiro bloco de
-    # desenvolvimento. Marcamos esse corte no campo `abertura_fim` de cada beat
-    # para que render.py e diagnósticos saibam que ali ainda é rotação livre.
+    # FASE 3 — marca abertura_fim para diagnóstico. Não fatia o portal:
+    # a leitura do título exige o primeiro quadro estável por PORTAL_READ_HOLD_S.
     abertura_fim = 0.0
     if total_dur >= 120.0 and final_beats:
         # abertura = duração do(s) beat(s) do início até o primeiro beat de
@@ -1315,21 +1287,26 @@ def build_scene_timeline(
     for b in final_beats:
         b.abertura_fim = round(abertura_fim, 2)
 
-    # 6. Dinamismo e Pacing Inteligente Anti-Monotonia (Fase 4.3):
-    # Quebra beats longos (> MAX_SCENE_DURATION_S) mantendo a fonte sincronizada,
-    # calibrando o ritmo pela velocidade da fala (palavras/segundo) e alternando
-    # variantes ópticas (hero -> zoom -> scroll -> highlight), criando cortes ópticos dinâmicos a cada 5-8s.
+    # 6. Leitura do portal (1.5x): não fatiar source abaixo de PORTAL_READ_HOLD_S.
+    # Troca de URL e corte óptico só depois da janela, e cada pedaço continua legível.
+    # Variante nova = hero (título no quadro). Continuação da mesma URL = scroll (mostra o lead).
     expanded_beats: list[SceneBeat] = []
     episode_cited = any(b.provenance_type == "explicit" for b in final_beats)
     global_extra_cursor = 0
     for beat in final_beats:
         dur = beat.t1 - beat.t0
-        if dur > MAX_SCENE_DURATION_S and len(scene_queue) > 1 and beat.visual_component == "source":
-            # Calibração adaptativa por velocidade de fala
-            words = count_words(beat.texto_origem)
-            wps = words / max(1.0, dur) if words > 0 else 2.3
-            step_target = 6.0 if wps >= 2.6 else (7.5 if wps >= 2.0 else 8.5)
-            num_sub = max(2, int(dur // step_target) + 1)
+        if (
+            dur >= 2 * PORTAL_READ_HOLD_S
+            and len(scene_queue) > 1
+            and beat.visual_component == "source"
+        ):
+            step_target = PORTAL_READ_HOLD_S
+            num_sub = max(2, int(dur // step_target))
+            while num_sub > 1 and (dur / num_sub) < PORTAL_READ_HOLD_S - 0.05:
+                num_sub -= 1
+            if num_sub < 2:
+                expanded_beats.append(beat)
+                continue
             step = dur / num_sub
             sub_t0 = beat.t0
             # Variadores alternam entre prints da mesma fonte (multi-shot)
@@ -1365,7 +1342,8 @@ def build_scene_timeline(
             extra_at: dict[int, dict] = {}
             if beat.provenance_type in ("none", "fallback", ""):
                 extras = extra_visual_scenes(scene_queue, beat.url)
-                eligible = [i for i in range(num_sub) if (beat.t0 + i * step) >= 15.0]
+                # Primeiro pedaço fica na matéria da fala. Extra só depois da janela de leitura.
+                eligible = [i for i in range(num_sub) if i >= 1]
                 if extras and eligible:
                     for slot in eligible:
                         extra_at[slot] = extras[global_extra_cursor % len(extras)]
@@ -1375,21 +1353,27 @@ def build_scene_timeline(
                 if s_idx == num_sub - 1:
                     sub_t1 = beat.t1
                 forced_extra = extra_at.get(s_idx)
-                if forced_extra:
+                own = {"url": beat.url, "veiculo": beat.veiculo,
+                       "kind": beat.kind, "shot": beat.shot,
+                       "shot_long": beat.shot_long,
+                       "highlight_box": beat.highlight_box,
+                       "video": beat.video, "x_post": beat.x_post}
+                if s_idx == 0:
+                    alt_scene = own
+                elif forced_extra:
                     alt_scene = forced_extra
                 elif variant:
                     alt_scene = variant[s_idx % len(variant)]
                 else:
-                    alt_scene = {"url": beat.url, "veiculo": beat.veiculo,
-                                 "kind": beat.kind, "shot": beat.shot,
-                                 "shot_long": beat.shot_long,
-                                 "highlight_box": beat.highlight_box,
-                                 "video": beat.video, "x_post": beat.x_post}
+                    alt_scene = own
 
-                # Alternância dinâmica de variantes de câmera evitando repetição consecutiva
-                last_var = expanded_beats[-1].visual_variant if expanded_beats else ""
-                avail_vars = [v for v in _PORTAL_VARIANTS_CYCLE if v != last_var]
-                sub_variant = avail_vars[s_idx % len(avail_vars)] if avail_vars else _PORTAL_VARIANTS_CYCLE[s_idx % len(_PORTAL_VARIANTS_CYCLE)]
+                new_url = alt_scene.get("url") or beat.url
+                prev_url = expanded_beats[-1].url if expanded_beats else ""
+                if not prev_url or prev_url != new_url:
+                    sub_variant = "portal_hero"
+                else:
+                    last_var = expanded_beats[-1].visual_variant
+                    sub_variant = "portal_scroll" if last_var != "portal_scroll" else "portal_hero"
                 if forced_extra and forced_extra.get("video"):
                     sub_variant = "portal_hero"
 
@@ -1428,7 +1412,7 @@ def build_scene_timeline(
             longest_idx = max(range(len(expanded_beats)), key=lambda idx: (expanded_beats[idx].t1 - expanded_beats[idx].t0))
             b_target = expanded_beats[longest_idx]
             b_dur = b_target.t1 - b_target.t0
-            if b_dur < 10.0:
+            if b_dur < 2 * PORTAL_READ_HOLD_S:
                 break
             half = round(b_target.t0 + b_dur / 2.0, 2)
             b1_variant = b_target.visual_variant or "portal_hero"

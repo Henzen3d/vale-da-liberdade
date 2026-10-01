@@ -84,8 +84,8 @@
 - **Janela Temporal:** Fontes complementares de RSS só são aceitas se publicadas nos últimos 7 dias.
 
 ## Dinâmica Visual e Retenção do Telespectador (~5 Minutos)
-- **Gancho Visual Crítico (Primeiros 15 Segundos):** Os primeiros 15 segundos definem se o telespectador fica ou sai. A abertura deve ter pelo menos 3 trocas de quadro/cortes rápidos (ex.: 0-5s, 5-9s, 9-15s) entre manchete, close de parágrafo e B-roll.
-- **Pacing Acelerado e Anti-Dropoff (Mínimo de 18 Telas por Episódio):** Ao longo dos ~300 segundos, a tela de fundo deve alternar no mínimo 18 vezes (média de 8 a 12s por tela). **Nenhuma tela fica estática por mais de 12 segundos** (`MAX_SCENE_DURATION_S = 12.0`, `MIN_SCENE_DURATION_S = 5.0`, `TARGET_MIN_BEATS_5MIN = 18`).
+- **Leitura do portal (1.5x):** cada matéria fica no mínimo 27s de vídeo (`PORTAL_READ_HOLD_S`). Em 1.5x isso são 18s reais: título (~4s) + subtítulo (~4s) + início da matéria (~10s). Não fatiar a abertura em 5s/4s. Corte óptico e troca de URL só depois dessa janela; portal novo abre em `portal_hero` (título no quadro), continuação da mesma URL em `portal_scroll`.
+- **Pacing:** densidade de 18 cortes curtos foi descartada. Tela estática longa é o objetivo enquanto a fala está naquela matéria. Ken Burns no mockup continua.
 - **Multi-Shot Óptico e Variantes de Enquadramento:** Sub-beats de uma mesma matéria ciclam proceduralmente entre 4 variantes de telejornalismo para criar cortes dinâmicos de câmera mesmo quando há apenas 1 screenshot:
   1. *portal_hero:* Enquadramento geral com cabeçalho, manchete limpa e logo do veículo (scale 1.0x).
   2. *portal_zoom:* Push-in óptico cinematográfico (scale 1.18x, foco a 28%) direto no lead ou parágrafo factual.

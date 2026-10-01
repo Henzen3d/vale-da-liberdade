@@ -4,7 +4,7 @@
 Protocolo: youtube/Evolucao-Visual/05_VISUAL_QA_E_METRICAS.md
 Contrato:  youtube/Evolucao-Visual/02_SCHEMAS_E_CONTRATOS.md
 
-Pré-render (<1s): schema SceneBeatV2, timings 4–18s, assets, higiene de payload.
+Pré-render (<1s): schema SceneBeatV2, timings (transição pode ser <4s; portal de matéria pode passar de 18s — piso de leitura 27s), assets, higiene de payload.
 Pós-render (~3s): 4–6 frames FFmpeg + luminância/contraste (Pillow).
 Sem re-render pesado. Fallback gracioso: componente inválido → source.
 """
@@ -39,7 +39,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 MIN_BEAT_S = 4.0
-MAX_BEAT_S = 18.0
+MAX_BEAT_S = 480.0  # teto do episódio; portal de matéria segura até PORTAL_READ_HOLD_S (27s) ou mais
 MIN_ASSET_BYTES = 8 * 1024
 MIN_QUOTE_CHARS = 20
 LUMINANCE_STDDEV_MIN = 12.0
