@@ -31,7 +31,7 @@ Quando o vídeo de origem do YouTube for curto ou superficial:
 ## 3. Fontes Visuais e Metadados
 
 - **Quantidade de referências no JSON:** 6 a 10 URLs externas úteis (veículos de imprensa legítimos, sem contar YouTube, ANCAPSU ou links do próprio site).
-- **Teto de captura visual no vídeo:** Até **8 cenas** por episódio (`MAX_SCENES = 8`).
+- **Captura visual:** todas as URLs da descrição entram. Sem teto de 8 cenas e sem limite de 3 cortes.
 - **Campos estendidos em `fonte_referencias`:**
   - `veiculo`: Nome legível do jornal/portal (ex: "CNN Brasil", "Folha", "G1").
   - `url`: Link sanitizado (sem parâmetros UTM).

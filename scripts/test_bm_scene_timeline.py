@@ -142,6 +142,28 @@ class SceneTimelineTests(unittest.TestCase):
                 f"portal {b.url} ficou {dur:.1f}s (t0={b.t0:.1f}); em 1.5x isso é {dur/1.5:.1f}s reais, curto para título+subtítulo+lead",
             )
 
+    def test_cited_speech_still_shows_every_other_url(self):
+        """Fala pode citar uma matéria. As outras URLs capturadas entram mesmo assim. Sem teto de 8 nem de 3 cortes."""
+        episode = {
+            "titulo": "Todas as fontes",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura na matéria citada. " * 12, "fonte_url": "https://folha.uol.com.br/a"}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "Desenvolvimento continua na mesma citação. " * 40, "fonte_url": "https://folha.uol.com.br/a"}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho ainda na citação. " * 8, "fonte_url": "https://folha.uol.com.br/a"}],
+        }
+        scenes = [
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/a", "shot": "folha.png"},
+            {"veiculo": "G1", "url": "https://g1.globo.com/b", "shot": "g1.png"},
+            {"veiculo": "Poder360", "url": "https://www.poder360.com.br/c", "shot": "p360.png"},
+            {"veiculo": "X", "url": "https://x.com/alguem/status/111", "video": "/shots/x.mp4", "shot": None},
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=180.0, scenes=scenes)
+        shown = {b.url for b in beats}
+        for scene in scenes:
+            self.assertIn(scene["url"], shown, f"URL ficou de fora: {scene['url']}")
+        sources = [b for b in beats if b.visual_component == "source" and b.t0 < PORTAL_READ_HOLD_S]
+        self.assertTrue(sources)
+        self.assertTrue(all(b.url == "https://folha.uol.com.br/a" for b in sources))
+
     def test_5min_episode_generates_at_least_10_beats(self):
         # Simula episódio real de 5 minutos (~830 palavras, 300 segundos)
         episode = {
@@ -741,10 +763,9 @@ class Exp0001ProvenanceTests(unittest.TestCase):
             "fechamento": [{"speaker": "Peter", "texto": "Fecho."}],
         }
         beats = build_scene_timeline(episode, 60.0, [self._article(), self._x()])
-        self.assertFalse(any(b.visual_component == "x-post" or b.kind == "x-post" for b in beats))
-        shown = [b for b in beats if b.visual_component not in ("transition", "broll")]
-        self.assertTrue(shown)
-        self.assertTrue(all(b.url == "https://www.metropoles.com/materia" for b in shown))
+        shown = {b.url for b in beats}
+        self.assertIn("https://www.metropoles.com/materia", shown)
+        self.assertIn(self._x()["url"], shown, "URL do X capturada também entra na tela")
 
     def test_caso_b_fala_com_post_real_gera_um_x_post(self):
         from bm_scene_timeline import build_scene_timeline
@@ -814,7 +835,9 @@ class Exp0001ProvenanceTests(unittest.TestCase):
         spoken = [b for b in beats if b.fonte_url_fala == "https://www.poder360.com.br/artigo-b"]
         self.assertTrue(spoken)
         self.assertTrue(all(b.url == "https://www.poder360.com.br/artigo-b" for b in spoken))
-        self.assertFalse(any(b.visual_component == "x-post" for b in beats))
+        shown = {b.url for b in beats}
+        self.assertIn("https://www.metropoles.com/materia", shown)
+        self.assertIn(self._x()["url"], shown)
 
 
 class Exp0002PersonPhotoTests(unittest.TestCase):

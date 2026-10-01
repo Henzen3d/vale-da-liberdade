@@ -726,7 +726,7 @@ def extract_transcript(url: str, video_id: str) -> dict | None:
     # 4. Fontes da descrição (seção "Referências:" tem prioridade)
     source_urls = extract_source_urls(meta.get("description", ""))
     sources: list[dict] = []
-    for i, src_url in enumerate(source_urls[:8]):
+    for i, src_url in enumerate(source_urls):
         name = ""
         if i < 5:
             name = fetch_source_name(src_url)

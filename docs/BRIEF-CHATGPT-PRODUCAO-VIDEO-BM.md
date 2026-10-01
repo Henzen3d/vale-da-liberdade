@@ -194,13 +194,9 @@ Karaoke palavra-a-palavra: **proibido**.
 
 Constantes vivas em `scripts/bm_scene_timeline.py`:
 
-- `MIN_SCENE_DURATION_S = 5.0`
-- `MAX_SCENE_DURATION_S = 12.0` (nenhuma tela `source` estática > 12 s)
-- `TARGET_MIN_BEATS_5MIN = 18` (piso de telas em episódios ≥ 180 s)
-- `MAX_SCENES = 8` matérias visuais
-- `MAX_PER_HOST = 2`
-
-Gancho dos **primeiros 15 s**: pelo menos 3 cortes (0–5, 5–9, 9–15) entre manchete, close e B-roll.
+- `PORTAL_READ_HOLD_S = 27` quando o episódio cabe. Sem teto de 12s. Sem piso de 18 cortes.
+- Sem teto de cenas e sem limite por host. Toda URL da descrição entra no vídeo.
+- Sem gancho de 3 cortes nos primeiros 15s.
 
 B-roll: 0,8–1,5 s na troca de bloco; se a biblioteca estiver vazia, corte direto (não falha).
 

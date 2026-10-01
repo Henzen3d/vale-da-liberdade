@@ -976,6 +976,126 @@ def load_broll_clips(broll_index_path: Path | None = None) -> list[dict]:
         return []
 
 
+def _showable_scene(scene: dict) -> bool:
+    """URL que pode aparecer na tela: matéria com print, clipe ou card. Sem homepage nem YouTube."""
+    url = (scene.get("url") or "").strip()
+    if not url or _is_youtube_url(url):
+        return False
+    try:
+        from bm_video.state import is_blocked_source_url
+        if is_blocked_source_url(url):
+            return False
+    except Exception:
+        pass
+    if not _is_x_url(url):
+        try:
+            path = urlsplit(url).path.strip("/")
+        except Exception:
+            path = ""
+        if not path:
+            return False
+    return bool(scene.get("shot") or scene.get("shot_long") or scene.get("video") or scene.get("x_post"))
+
+
+def ensure_all_scene_urls(
+    beats: list[SceneBeat],
+    scenes: list[dict],
+    total_dur: float,
+) -> list[SceneBeat]:
+    """Toda URL capturada entra na timeline. Sem teto de cenas e sem limite de 3 cortes.
+
+    A abertura citada continua estável por PORTAL_READ_HOLD_S quando o episódio cabe.
+    Se não couber 27s por URL, cada uma ainda aparece — nenhuma fica de fora para honrar o piso.
+    """
+    showable = [s for s in scenes if _showable_scene(s)]
+    if len(showable) <= 1 or not beats:
+        return beats
+    shown = {b.url for b in beats if b.url}
+    missing = [s for s in showable if (s.get("url") or "") not in shown]
+    if not missing:
+        return beats
+
+    protect = PORTAL_READ_HOLD_S if total_dur >= PORTAL_READ_HOLD_S + 4.0 * len(missing) else 0.0
+    available = max(4.0 * len(missing), total_dur - protect)
+    slot = max(4.0, min(PORTAL_READ_HOLD_S, available / len(missing)))
+
+    beats = list(beats)
+    for scene in missing:
+        url = (scene.get("url") or "").strip()
+        donor_idx = -1
+        best_spare = 0.0
+        for i, beat in enumerate(beats):
+            if beat.visual_component not in ("source", "x-post") or not beat.url or beat.url == url:
+                continue
+            other = sum(
+                (b.t1 - b.t0)
+                for j, b in enumerate(beats)
+                if j != i and b.url == beat.url and b.visual_component in ("source", "x-post")
+            )
+            spare_start = beat.t0 if other >= 4.0 and beat.t0 >= protect else max(beat.t0, protect)
+            spare = beat.t1 - spare_start
+            if spare > best_spare:
+                best_spare = spare
+                donor_idx = i
+        if donor_idx < 0:
+            continue
+        donor = beats[donor_idx]
+        other = sum(
+            (b.t1 - b.t0)
+            for j, b in enumerate(beats)
+            if j != donor_idx and b.url == donor.url and b.visual_component in ("source", "x-post")
+        )
+        is_x_card = bool(scene.get("x_post")) and not scene.get("video") and not scene.get("shot")
+
+        def _apply(target: SceneBeat) -> None:
+            target.url = url
+            target.veiculo = scene.get("veiculo") or ""
+            target.kind = "x-post" if is_x_card else "source"
+            target.shot = scene.get("shot")
+            target.shot_long = scene.get("shot_long")
+            target.highlight_box = scene.get("highlight_box")
+            target.video = scene.get("video")
+            target.x_post = scene.get("x_post")
+            target.visual_component = "x-post" if is_x_card else "source"
+            target.visual_variant = "x_card" if is_x_card else "portal_hero"
+            target.provenance_type = "fallback"
+            target.fonte_url_fala = None
+
+        if other >= 4.0 and donor.t0 >= protect:
+            _apply(donor)
+            shown.add(url)
+            continue
+        spare_start = max(donor.t0, protect)
+        spare = donor.t1 - spare_start
+        take = min(slot, spare)
+        if spare - take < 4.0 and spare >= 8.0:
+            take = spare - 4.0
+        if take < 4.0:
+            continue
+        cut = round(donor.t1 - take, 2)
+        if cut < spare_start or cut <= donor.t0 + 0.3:
+            continue
+        donor.t1 = cut
+        beats.insert(donor_idx + 1, SceneBeat(
+            t0=cut,
+            t1=round(cut + take, 2),
+            url=url,
+            veiculo=scene.get("veiculo") or "",
+            kind="x-post" if is_x_card else "source",
+            shot=scene.get("shot"),
+            shot_long=scene.get("shot_long"),
+            highlight_box=scene.get("highlight_box"),
+            video=scene.get("video"),
+            x_post=scene.get("x_post"),
+            semantic_role="leitura_contexto",
+            visual_component="x-post" if is_x_card else "source",
+            visual_variant="x_card" if is_x_card else "portal_hero",
+            provenance_type="fallback",
+        ))
+        shown.add(url)
+    return beats
+
+
 def build_scene_timeline(
     episode: dict,
     total_duration_s: float,
@@ -1529,6 +1649,9 @@ def build_scene_timeline(
                     target.visual_payload = payload
                     target.provenance_type = "person_photo"
 
+    # Toda URL capturada entra, mesmo quando a fala cita só uma. Sem teto de cenas.
+    final_beats = ensure_all_scene_urls(final_beats, scene_queue, total_dur)
+
     # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
     if total_dur >= 60.0 and len(final_beats) > 3:
         trans_styles = ["wipe_gold", "dissolve_brand", "flash_cut"]
@@ -1537,7 +1660,7 @@ def build_scene_timeline(
         for idx, b in enumerate(final_beats):
             new_beats.append(b)
             # Verifica se há transição de pauta no próximo beat (apenas fora do gancho inicial de 14s)
-            if idx < len(final_beats) - 1 and trans_count < 3 and b.t0 >= 14.0:
+            if idx < len(final_beats) - 1 and b.t0 >= 14.0:
                 next_b = final_beats[idx + 1]
                 is_section_change = (b.t0 < 30.0 and next_b.t0 >= 20.0) or (next_b.t0 >= (total_dur * 0.78))
                 is_url_change = bool(b.url and next_b.url and b.url != next_b.url and b.visual_component == "source" and next_b.visual_component == "source")
