@@ -3231,7 +3231,7 @@ img[hidden],
       <div id="portalScrollWrapper" class="portal-scroll-wrapper">
         <img id="pageShot" class="portal-page-shot" alt="" hidden>
         <img id="pageShotNext" class="portal-page-shot portal-page-shot-incoming" alt="" hidden>
-        <video id="pageVideo" class="portal-page-shot" muted loop playsinline autoplay hidden></video>
+        <video id="pageVideo" class="portal-page-shot" muted playsinline autoplay hidden></video>
         <div id="portalHighlightOverlay" class="portal-highlight-overlay" hidden></div>
       </div>
       <!-- CABEÇALHO DO PORTAL DINÂMICO (G1, FOLHA, METRÓPOLES, UOL, CNN OU VDL) -->
@@ -3350,7 +3350,7 @@ img[hidden],
         </div>
         
         <div class="phone-viewport">
-          <video id="phoneVideo" class="phone-video" muted loop playsinline autoplay></video>
+          <video id="phoneVideo" class="phone-video" muted playsinline autoplay></video>
           <img id="phoneShot" class="phone-shot" alt="" hidden>
         </div>
         
@@ -5787,10 +5787,9 @@ const VDL_MOCKUP_ENGINE = {
         if (!pageVideo.src.endsWith(src)) {
           pageVideo.src = src;
           pageVideo.load();
-          pageVideo.play().catch(() => {});
-        } else {
-          fitPageVideo();
         }
+        try { pageVideo.currentTime = 0; } catch (e) {}
+        pageVideo.play().catch(() => {});
         pageVideo.hidden = false;
         if (pageShot) pageShot.hidden = true;
         if (pageShotNext) pageShotNext.hidden = true;

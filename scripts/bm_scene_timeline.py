@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlsplit
@@ -997,6 +997,73 @@ def _showable_scene(scene: dict) -> bool:
     return bool(scene.get("shot") or scene.get("shot_long") or scene.get("video") or scene.get("x_post"))
 
 
+def _video_duration_s(scene: dict) -> float:
+    raw = scene.get("video_dur_s")
+    if raw:
+        try:
+            return max(0.0, float(raw))
+        except (TypeError, ValueError):
+            return 0.0
+    return 0.0
+
+
+def hold_source_videos_in_full(
+    beats: list[SceneBeat],
+    scenes: list[dict],
+    total_dur: float,
+) -> list[SceneBeat]:
+    """Clipe de fonte toca a duração do arquivo antes de trocar de portal ou de vídeo."""
+    dur_by_url: dict[str, tuple[float, dict]] = {}
+    for scene in scenes:
+        url = (scene.get("url") or "").strip()
+        if not url or not scene.get("video"):
+            continue
+        dur = _video_duration_s(scene)
+        if dur > 0.5:
+            dur_by_url[url] = (dur, scene)
+    if not dur_by_url or not beats:
+        return beats
+
+    beats = list(beats)
+    for url, (need, scene) in dur_by_url.items():
+        idx = next((i for i, b in enumerate(beats) if b.url == url), None)
+        if idx is None:
+            continue
+        start = beats[idx].t0
+        end_target = min(total_dur, round(start + need, 2))
+        if end_target - start < 0.5:
+            continue
+        kept: list[SceneBeat] = []
+        placed = False
+        for beat in beats:
+            if beat.t1 <= start + 0.05 or beat.t0 >= end_target - 0.05:
+                kept.append(beat)
+                continue
+            if beat.t0 < start:
+                kept.append(replace(beat, t1=round(start, 2)))
+            if not placed:
+                kept.append(replace(
+                    beats[idx],
+                    t0=round(start, 2),
+                    t1=end_target,
+                    url=url,
+                    veiculo=scene.get("veiculo") or beats[idx].veiculo,
+                    kind="source",
+                    shot=scene.get("shot"),
+                    shot_long=scene.get("shot_long"),
+                    video=scene.get("video"),
+                    x_post=scene.get("x_post"),
+                    visual_component="source",
+                    visual_variant="portal_hero",
+                ))
+                placed = True
+            if beat.t1 > end_target + 0.05:
+                kept.append(replace(beat, t0=end_target))
+        beats = [b for b in kept if b.t1 > b.t0 + 0.05]
+        beats.sort(key=lambda b: (b.t0, b.t1))
+    return beats
+
+
 def ensure_all_scene_urls(
     beats: list[SceneBeat],
     scenes: list[dict],
@@ -1025,7 +1092,7 @@ def ensure_all_scene_urls(
         donor_idx = -1
         best_spare = 0.0
         for i, beat in enumerate(beats):
-            if beat.visual_component not in ("source", "x-post") or not beat.url or beat.url == url:
+            if beat.visual_component not in ("source", "x-post") or not beat.url or beat.url == url or beat.video:
                 continue
             other = sum(
                 (b.t1 - b.t0)
@@ -1419,6 +1486,7 @@ def build_scene_timeline(
             dur >= 2 * PORTAL_READ_HOLD_S
             and len(scene_queue) > 1
             and beat.visual_component == "source"
+            and not beat.video
         ):
             step_target = PORTAL_READ_HOLD_S
             num_sub = max(2, int(dur // step_target))
@@ -1651,6 +1719,8 @@ def build_scene_timeline(
 
     # Toda URL capturada entra, mesmo quando a fala cita só uma. Sem teto de cenas.
     final_beats = ensure_all_scene_urls(final_beats, scene_queue, total_dur)
+    final_beats = hold_source_videos_in_full(final_beats, scene_queue, total_dur)
+    final_beats = ensure_all_scene_urls(final_beats, scene_queue, total_dur)
 
     # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
     if total_dur >= 60.0 and len(final_beats) > 3:
@@ -1660,7 +1730,7 @@ def build_scene_timeline(
         for idx, b in enumerate(final_beats):
             new_beats.append(b)
             # Verifica se há transição de pauta no próximo beat (apenas fora do gancho inicial de 14s)
-            if idx < len(final_beats) - 1 and b.t0 >= 14.0:
+            if idx < len(final_beats) - 1 and b.t0 >= 14.0 and not b.video:
                 next_b = final_beats[idx + 1]
                 is_section_change = (b.t0 < 30.0 and next_b.t0 >= 20.0) or (next_b.t0 >= (total_dur * 0.78))
                 is_url_change = bool(b.url and next_b.url and b.url != next_b.url and b.visual_component == "source" and next_b.visual_component == "source")

@@ -510,6 +510,14 @@ def extract_x_video(url: str, work: Path, video_id: str, idx: int) -> str | None
     return f"/shots/{dest.name}"
 
 
+def _stamp_video_dur(item: dict, work: Path) -> None:
+    """Grava a duração real do clipe para a timeline tocar o arquivo inteiro."""
+    rel = item.get("video") or ""
+    path = work / "shots" / Path(str(rel)).name
+    if path.is_file():
+        item["video_dur_s"] = round(probe_duration_s(path), 2)
+
+
 def instagram_shortcode(url: str | None) -> str | None:
     """Extrai o shortcode (ID do post ou reel) de uma URL do Instagram."""
     m = _INSTAGRAM_POST_RE.search(url or "")
@@ -913,6 +921,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         item = dict(scene)
                         item["shot"] = None
                         item["video"] = vid_rel
+                        _stamp_video_dur(item, shot_dir.parent)
                         by_index[i] = item
                         continue
                     # sem vídeo: tenta mockup estruturado do X (clean animado)
@@ -949,6 +958,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         item = dict(scene)
                         item["shot"] = None
                         item["video"] = vid_rel
+                        _stamp_video_dur(item, shot_dir.parent)
                         by_index[i] = item
                         print(f"  🎞️  {scene['veiculo']}: vídeo baixado ({vid_rel})")
                         continue
@@ -961,6 +971,7 @@ def capture_sources(scenes: list[dict], shot_dir: Path) -> list[dict]:
                         item = dict(scene)
                         item["shot"] = None
                         item["video"] = vid_rel
+                        _stamp_video_dur(item, shot_dir.parent)
                         by_index[i] = item
                         print(f"  📸🎞️ {scene['veiculo']}: vídeo baixado ({vid_rel})")
                         continue

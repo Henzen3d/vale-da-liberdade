@@ -164,6 +164,45 @@ class SceneTimelineTests(unittest.TestCase):
         self.assertTrue(sources)
         self.assertTrue(all(b.url == "https://folha.uol.com.br/a" for b in sources))
 
+    def test_source_video_plays_full_duration_before_switch(self):
+        """Fonte em vídeo toca o clipe inteiro. 30s de arquivo = 30s na tela, só depois troca."""
+        episode = {
+            "titulo": "Clipe integral",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura no portal, sem o vídeo ainda. " * 18}],
+            "desenvolvimento": [
+                {"speaker": "Peter", "texto": "Olha esse vídeo.", "fonte_url": "https://x.com/a/status/1"},
+                {"speaker": "Peter", "texto": "Depois o portal continua com o restante da pauta factual. " * 28},
+            ],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho curto da edição. " * 6}],
+        }
+        scenes = [
+            {"veiculo": "Folha", "url": "https://folha.uol.com.br/m", "shot": "f.png"},
+            {
+                "veiculo": "X",
+                "url": "https://x.com/a/status/1",
+                "video": "/shots/x.mp4",
+                "video_dur_s": 30.0,
+                "shot": None,
+            },
+        ]
+        beats = build_scene_timeline(episode, total_duration_s=180.0, scenes=scenes)
+        url = "https://x.com/a/status/1"
+        first = next(b for b in beats if b.url == url and b.visual_component != "transition")
+        covered = 0.0
+        cursor = first.t0
+        for b in beats:
+            if b.t1 <= cursor + 0.05:
+                continue
+            if b.t0 > cursor + 0.2:
+                break
+            if b.url == url and b.visual_component != "transition":
+                covered += b.t1 - max(b.t0, cursor)
+                cursor = b.t1
+            elif covered > 0:
+                break
+        self.assertGreaterEqual(covered, 29.5, f"clipe de 30s ficou {covered:.1f}s antes de trocar")
+        self.assertTrue(first.video)
+
     def test_5min_episode_generates_at_least_10_beats(self):
         # Simula episódio real de 5 minutos (~830 palavras, 300 segundos)
         episode = {
