@@ -4389,70 +4389,20 @@ const VDL_MOCKUP_ENGINE = {
   },
 
   /**
-   * Animação broadcast de troca de portal:
-   * 1. Reduz o browser suavemente em direção ao centro (Zoom Out).
-   * 2. No ponto contraído (vale da curva), executa o swap da matéria (screenshot, omnibox, headline).
-   * 3. Aumenta a partir do centro até o tamanho padrão (Zoom In).
+   * Troca de portal no mesmo mockup: corte seco.
+   * Zoom/wipe/whoosh eram de edição. Troca de tipo fica em transitionTo*.
    */
   _animatePortalTransition(d, onSwap) {
     const browserEl = document.getElementById("browserMockup");
-    if (!browserEl || !window.gsap || this.isFreezeShot()) {
-      if (typeof onSwap === "function") onSwap();
-      if (browserEl) {
-        browserEl.style.transform = "none";
-        browserEl.style.opacity = "1";
-      }
-      return;
-    }
-
-    // Dispara som suave de transição (whoosh) sincronizado com o movimento
-    this._playTransitionSfx();
-
     if (this._portalZoomTween) {
       this._portalZoomTween.kill();
       this._portalZoomTween = null;
     }
-
-    const scrollWrapper = document.getElementById("pageShotScroll");
-    if (this._pageShotTween) {
-      this._pageShotTween.kill();
-      this._pageShotTween = null;
+    if (typeof onSwap === "function") onSwap();
+    if (browserEl) {
+      browserEl.style.transform = "none";
+      browserEl.style.opacity = "1";
     }
-
-    const tl = gsap.timeline();
-    this._portalZoomTween = tl;
-
-    // Fase 1: Redução suave em direção ao centro
-    tl.to(browserEl, {
-      scale: 0.88,
-      opacity: 0.94,
-      duration: 0.28,
-      ease: "power2.inOut",
-      transformOrigin: "50% 50%"
-    });
-
-    // Fase 2: No ponto central contraído, executa a troca da matéria/portal
-    tl.add(() => {
-      if (typeof onSwap === "function") onSwap();
-      if (scrollWrapper) {
-        gsap.set(scrollWrapper, { y: 0 });
-      }
-    });
-
-    // Fase 3: Aumenta a partir do centro até ter o tamanho padrão
-    tl.to(browserEl, {
-      scale: 1.0,
-      opacity: 1.0,
-      duration: 0.38,
-      ease: "power3.out",
-      transformOrigin: "50% 50%",
-      onComplete: () => {
-        this._portalZoomTween = null;
-        if (this.currentMode === "browser") {
-          this._applyVisualVariant(d.visual_variant || this.data.visual_variant, d);
-        }
-      }
-    });
   },
 
   /**
@@ -4666,57 +4616,10 @@ const VDL_MOCKUP_ENGINE = {
     );
     pageShot.classList.add(`variant-${cleanVar}`);
 
-    // Destaque tipo marca-texto editorial dinâmico
+    // Seleção de texto descartada: o retângulo não acompanhava o texto.
     if (highlightOverlay) {
-      if (cleanVar === "portal-highlight") {
-        const d = this.data || {};
-        const box = visualPayload.highlightBox || d.highlightBox || (d.visual_payload && d.visual_payload.highlightBox);
-        const containerWidth = scrollWrapper.offsetWidth || 1540;
-        const scale = containerWidth / (pageShot.naturalWidth || 1400.0);
-
-        const boxY = box ? Number(box.y) || 0 : 0;
-        const boxH = box ? Number(box.h) || 0 : 0;
-        const boxUsable = box && box.found && boxY <= 900 && boxH >= 28 && boxH <= 220;
-        if (boxUsable) {
-          const pad = 8;
-          const leftPx = Math.max(12, Math.round(box.x * scale) - pad);
-          const topPx = Math.max(0, Math.round(box.y * scale) - pad);
-          const widthPx = Math.min(containerWidth - leftPx - 16, Math.round(box.w * scale) + (pad * 2));
-          const heightPx = Math.max(36, Math.round(box.h * scale) + (pad * 2));
-
-          highlightOverlay.style.left = `${leftPx}px`;
-          highlightOverlay.style.top = `${topPx}px`;
-          highlightOverlay.style.width = `${widthPx}px`;
-          highlightOverlay.style.height = `${heightPx}px`;
-
-          // Rola só dentro do miolo. y>900 é rodapé/relacionadas (base escura).
-          if (topPx > 360 && topPx <= 900 && window.gsap) {
-            const targetY = -Math.max(0, Math.min(topPx - 220, 420));
-            gsap.to(scrollWrapper, { y: targetY, duration: 1.2, ease: "power2.out" });
-          } else if (window.gsap) {
-            gsap.set(scrollWrapper, { y: 0 });
-          }
-        } else {
-          // Fallback editorial calibrado na área do subtítulo. Não rola até o rodapé.
-          highlightOverlay.style.left = "8%";
-          highlightOverlay.style.top = "290px";
-          highlightOverlay.style.width = "82%";
-          highlightOverlay.style.height = "76px";
-          if (window.gsap) gsap.set(scrollWrapper, { y: 0 });
-        }
-
-        highlightOverlay.hidden = false;
-        requestAnimationFrame(() => {
-          highlightOverlay.classList.add("is-active");
-        });
-      } else {
-        highlightOverlay.classList.remove("is-active");
-        setTimeout(() => {
-          if (!highlightOverlay.classList.contains("is-active")) {
-            highlightOverlay.hidden = true;
-          }
-        }, 350);
-      }
+      highlightOverlay.classList.remove("is-active");
+      highlightOverlay.hidden = true;
     }
 
     // Micro-motion broadcast contínuo e rolagem real
@@ -5656,49 +5559,13 @@ const VDL_MOCKUP_ENGINE = {
     }
   },
 
-  playTransition(variant = "wipe_gold") {
+  playTransition() {
     const layer = document.getElementById("broadcastTransition");
     const beam = document.getElementById("transitionWipeBeam");
     const flash = document.getElementById("transitionFlash");
-    if (!layer || !window.gsap) return;
-
-    // Cancela qualquer transição pendente para evitar sobreposição de estados
-    gsap.killTweensOf([beam, flash]);
-    beam.style.opacity = "0";
-    flash.style.opacity = "0";
-
-    layer.hidden = false;
-    const cleanVar = (variant || "wipe_gold").toLowerCase().replace(/-/g, "_");
-
-    if (cleanVar === "flash_cut") {
-      // Studio Shutter / Soft Glow Broadcast com tom âmbar refinado (0.55s)
-      flash.style.background = "radial-gradient(circle at center, rgba(212, 160, 23, 0.55) 0%, rgba(20, 25, 36, 0.85) 100%)";
-      const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
-      tl.fromTo(flash,
-        { opacity: 0 },
-        { opacity: 0.65, duration: 0.22, ease: "power2.in" }
-      ).to(flash,
-        { opacity: 0, duration: 0.33, ease: "power2.out" }
-      );
-    } else if (cleanVar === "dissolve_brand") {
-      // Dissolve Editorial com assinatura ouro escuro e vinheta broadcast (0.65s)
-      flash.style.background = "radial-gradient(circle at center, rgba(180, 130, 15, 0.40) 0%, rgba(15, 18, 26, 0.90) 100%)";
-      const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
-      tl.fromTo(flash,
-        { opacity: 0 },
-        { opacity: 0.70, duration: 0.28, ease: "power2.inOut" }
-      ).to(flash,
-        { opacity: 0, duration: 0.37, ease: "power2.inOut" },
-        "+=0.04"
-      );
-    } else {
-      // wipe_gold (padrão Broadcast: 0.75s com feixe de luz dourado e aceleração calibrada)
-      const tl = gsap.timeline({ onComplete: () => { layer.hidden = true; } });
-      tl.fromTo(beam,
-        { x: "-100%", opacity: 1 },
-        { x: "100%", opacity: 1, duration: 0.75, ease: "power2.inOut" }
-      );
-    }
+    if (layer) layer.hidden = true;
+    if (beam) beam.style.opacity = "0";
+    if (flash) flash.style.opacity = "0";
   },
 
   _isValePlaceholderUrl(u) {

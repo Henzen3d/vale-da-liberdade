@@ -717,7 +717,7 @@ MAX_SCENE_DURATION_S = 10.0
 PORTAL_READ_HOLD_S = 27.0
 DEFAULT_BROLL_DUR_S = 1.2
 TARGET_MIN_BEATS_5MIN = 18
-_PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll", "portal_highlight"]
+_PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll"]
 
 
 def count_words(text: str) -> int:
@@ -1604,11 +1604,7 @@ def build_scene_timeline(
                 break
             half = round(b_target.t0 + b_dur / 2.0, 2)
             b1_variant = b_target.visual_variant or "portal_hero"
-            b2_variant = "portal_zoom" if b1_variant in ("portal_hero", "portal_clean", "") else (
-                "portal_highlight" if b1_variant == "portal_zoom" else "portal_scroll"
-            )
-            if b2_variant == b1_variant:
-                b2_variant = "portal_highlight"
+            b2_variant = "portal_scroll" if b1_variant in ("portal_hero", "portal_clean", "") else "portal_hero"
             b1 = SceneBeat(
                 t0=b_target.t0,
                 t1=half,
@@ -1722,46 +1718,8 @@ def build_scene_timeline(
     final_beats = hold_source_videos_in_full(final_beats, scene_queue, total_dur)
     final_beats = ensure_all_scene_urls(final_beats, scene_queue, total_dur)
 
-    # 7.2 Inserção de Transições Dinâmicas de Bloco / Pauta (Wipe, Dissolve, Flash)
-    if total_dur >= 60.0 and len(final_beats) > 3:
-        trans_styles = ["wipe_gold", "dissolve_brand", "flash_cut"]
-        trans_count = 0
-        new_beats: list[SceneBeat] = []
-        for idx, b in enumerate(final_beats):
-            new_beats.append(b)
-            # Verifica se há transição de pauta no próximo beat (apenas fora do gancho inicial de 14s)
-            if idx < len(final_beats) - 1 and b.t0 >= 14.0 and not b.video:
-                next_b = final_beats[idx + 1]
-                is_section_change = (b.t0 < 30.0 and next_b.t0 >= 20.0) or (next_b.t0 >= (total_dur * 0.78))
-                is_url_change = bool(b.url and next_b.url and b.url != next_b.url and b.visual_component == "source" and next_b.visual_component == "source")
-                if (is_section_change or is_url_change) and (b.t1 - b.t0) >= 4.5:
-                    t_trans = 0.8
-                    trans_start = round(b.t1 - t_trans, 2)
-                    b.t1 = trans_start
-                    trans_beat = SceneBeat(
-                        t0=trans_start,
-                        t1=round(trans_start + t_trans, 2),
-                        url=next_b.url,
-                        veiculo="Vale da Liberdade",
-                        kind="transition",
-                        shot=next_b.shot,
-                        shot_long=next_b.shot_long,
-                        highlight_box=next_b.highlight_box,
-                        video=None,
-                        broll_file=None,
-                        x_post=None,
-                        semantic_role="transicao_broll",
-                        visual_component="transition",
-                        visual_variant=trans_styles[trans_count % len(trans_styles)],
-                        visual_payload={},
-                        fala_indices=[],
-                        texto_origem="",
-                        fonte_url_fala=None,
-                        provenance_type="transition",
-                    )
-                    new_beats.append(trans_beat)
-                    trans_count += 1
-        final_beats = [b for b in new_beats if b.t1 > b.t0 + 0.05]
+    # Corte seco entre portais. Wipe/dissolve/flash são de edição, não da maquete.
+    # Troca de tipo (browser → X, X → browser, phone) fica no GSAP do mockup.
 
     # 8. Ajustar continuidade estrita dos timestamps
     for j in range(len(final_beats) - 1):

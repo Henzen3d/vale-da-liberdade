@@ -489,8 +489,8 @@ class SceneTimelineTests(unittest.TestCase):
             self.assertEqual(sb.shot_long, "src-00-long.png")
             self.assertEqual(sb.highlight_box, hl)
 
-    def test_timeline_inserts_transitions_on_scene_change(self):
-        """Transições broadcast (wipe_gold, etc.) são inseridas em mudanças de cena após o gancho."""
+    def test_timeline_uses_dry_cuts_between_portals(self):
+        """Wipe/dissolve/flash são de edição. Troca de portal é corte seco."""
         episode = {
             "titulo": "Transição de Pauta",
             "abertura": [
@@ -510,8 +510,9 @@ class SceneTimelineTests(unittest.TestCase):
         ]
         beats = build_scene_timeline(episode, total_duration_s=120.0, scenes=scenes)
         trans_beats = [b for b in beats if b.visual_component == "transition" or b.kind == "transition"]
-        self.assertTrue(len(trans_beats) >= 1, "Deveria ter inserido pelo menos 1 transição broadcast")
-        self.assertIn(trans_beats[0].visual_variant, {"wipe_gold", "dissolve_brand", "flash_cut"})
+        self.assertEqual(trans_beats, [])
+        self.assertIn("https://portal1.com", {b.url for b in beats})
+        self.assertIn("https://portal2.com", {b.url for b in beats})
 
     def test_person_photo_skips_missing_and_placeholder(self):
         """Foto editorial só entra com arquivo real explícito; thumbnail de capa do vídeo NUNCA é usada."""

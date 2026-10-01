@@ -7,24 +7,18 @@ MOCKUP_DIR = ROOT / "references" / "youtube" / "mockup-browser"
 
 
 @pytest.mark.parametrize("filename", ["mockup-browser.html", "mockup-brower.html"])
-def test_portal_transition_code_present_in_mockups(filename):
-    """Garante que a lógica de animação de zoom out/in ao trocar de portal está em ambos os arquivos HTML."""
+def test_portal_swap_is_dry_cut(filename):
+    """Troca de portal no mesmo mockup é corte seco. Troca de tipo continua no mockup."""
     path = MOCKUP_DIR / filename
     assert path.is_file(), f"{filename} deve existir"
     content = path.read_text(encoding="utf-8")
 
-    assert "transform-origin: center center;" in content, "CSS do .browser-wrapper deve ter transform-origin: center center"
-    assert "_animatePortalTransition" in content, "VDL_MOCKUP_ENGINE deve conter o método _animatePortalTransition"
-    assert "_getPortalKey" in content, "VDL_MOCKUP_ENGINE deve conter o método _getPortalKey"
-    assert "_updateArticleText" in content, "VDL_MOCKUP_ENGINE deve conter o método _updateArticleText"
-    assert "_portalZoomTween" in content, "VDL_MOCKUP_ENGINE deve rastrear _portalZoomTween"
-    assert "_hasRenderedFirstPortal" in content, "VDL_MOCKUP_ENGINE deve rastrear _hasRenderedFirstPortal"
-    assert "scale: 0.88" in content, "Deve usar escala reduzida (~0.88) no ponto de contração central"
-    assert "power2.inOut" in content, "Deve usar easing suave na redução ao centro"
-    assert "power3.out" in content, "Deve usar easing suave na expansão a partir do centro"
-    assert "_playTransitionSfx" in content, "Deve conter método para disparar som de transição"
-    assert "_synthWhoosh" in content, "Deve conter sintetizador Web Audio API de whoosh para fallback"
-    assert "whoosh.mp3" in content, "Deve referenciar assets/sfx/whoosh.mp3"
+    assert "_animatePortalTransition" in content
+    assert "corte seco" in content
+    assert "duration: 0.28" not in content
+    assert "transitionToX" in content
+    assert "transitionToBrowser" in content
+    assert "highlightOverlay.hidden = true" in content
 
 
 def test_transition_sfx_assets_exist():
