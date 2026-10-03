@@ -715,6 +715,9 @@ MAX_SCENE_DURATION_S = 10.0
 # Leitura em 1.5x: título ~4s + subtítulo ~4s + início da matéria ~10s = 18s reais.
 # Tempo de vídeo = 18 * 1.5. Abaixo disso o print troca antes da leitura.
 PORTAL_READ_HOLD_S = 27.0
+# Card do X tem mais texto que a manchete do portal. O piso é tempo de vídeo (1x),
+# não só o fator 1.5x em cima de uma fala curta. 42s de vídeo = 28s em 1.5x.
+X_READ_HOLD_S = 42.0
 DEFAULT_BROLL_DUR_S = 1.2
 TARGET_MIN_BEATS_5MIN = 18
 _PORTAL_VARIANTS_CYCLE = ["portal_hero", "portal_zoom", "portal_scroll"]
@@ -1062,6 +1065,90 @@ def hold_source_videos_in_full(
         beats = [b for b in kept if b.t1 > b.t0 + 0.05]
         beats.sort(key=lambda b: (b.t0, b.t1))
     return beats
+
+
+def _x_donor_floor(beat: SceneBeat, dur: float, strict: bool) -> float:
+    """Quanto o beat pode doar sem sumir. Abertura de portal não desce do piso de leitura."""
+    if beat.video:
+        return dur
+    if beat.visual_component == "source" and beat.t0 < PORTAL_READ_HOLD_S - 0.05:
+        return min(dur, PORTAL_READ_HOLD_S)
+    if beat.visual_component == "x-post":
+        return min(dur, X_READ_HOLD_S)
+    if beat.visual_component == "source":
+        return min(dur, PORTAL_READ_HOLD_S if strict else 8.0)
+    return min(dur, 4.0)
+
+
+def _steal_x_read_time(
+    beats: list[SceneBeat],
+    durs: list[float],
+    index: int,
+    deficit: float,
+    direction: int,
+    strict: bool,
+) -> float:
+    if deficit <= 0.05:
+        return deficit
+    if direction > 0:
+        indices = range(len(beats) - 1, index, -1)
+    else:
+        indices = range(0, index)
+    for j in indices:
+        if deficit <= 0.05:
+            break
+        spare = durs[j] - _x_donor_floor(beats[j], durs[j], strict)
+        if spare <= 0.05:
+            continue
+        take = min(deficit, spare)
+        durs[j] -= take
+        durs[index] += take
+        deficit -= take
+    return deficit
+
+
+def hold_x_cards_for_reading(beats: list[SceneBeat], total_dur: float) -> list[SceneBeat]:
+    """Card estático do X fica na tela o bastante para ler o post, em 1x e em 1.5x.
+
+    Não encurta um card que a fala já segurou mais que o piso. Não come clipe de vídeo.
+    Primeiro tira folga acima do piso do portal; se não bastar, tira do fim da timeline.
+    """
+    if not beats or total_dur <= 0:
+        return beats
+    needs_hold = any(
+        b.visual_component == "x-post"
+        and not b.video
+        and (b.t1 - b.t0) < X_READ_HOLD_S - 0.05
+        for b in beats
+    )
+    if not needs_hold:
+        return beats
+    beats = list(beats)
+    durs = [max(0.0, b.t1 - b.t0) for b in beats]
+    for i, beat in enumerate(beats):
+        if beat.visual_component != "x-post" or beat.video:
+            continue
+        deficit = X_READ_HOLD_S - durs[i]
+        if deficit <= 0.05:
+            continue
+        deficit = _steal_x_read_time(beats, durs, i, deficit, direction=1, strict=True)
+        deficit = _steal_x_read_time(beats, durs, i, deficit, direction=1, strict=False)
+        deficit = _steal_x_read_time(beats, durs, i, deficit, direction=-1, strict=True)
+        _steal_x_read_time(beats, durs, i, deficit, direction=-1, strict=False)
+    t = 0.0
+    out: list[SceneBeat] = []
+    for beat, dur in zip(beats, durs):
+        if dur <= 0.05:
+            continue
+        out.append(replace(beat, t0=round(t, 2), t1=round(t + dur, 2)))
+        t = out[-1].t1
+    if out:
+        out[0] = replace(out[0], t0=0.0)
+        last_span = out[-1].t1 - out[-1].t0
+        out[-1] = replace(out[-1], t1=round(total_dur, 2))
+        if out[-1].t1 <= out[-1].t0:
+            out[-1] = replace(out[-1], t0=max(0.0, round(out[-1].t1 - last_span, 2)))
+    return out
 
 
 def ensure_all_scene_urls(
@@ -1452,6 +1539,8 @@ def build_scene_timeline(
         ))
         i += 1
 
+    final_beats = hold_x_cards_for_reading(final_beats, total_dur)
+
     # Abertura não fatia o portal em 5s/4s. Em 1.5x isso some com título e subtítulo
     # antes da leitura. O primeiro portal permanece estável pela janela PORTAL_READ_HOLD_S.
     # abertura_fim abaixo só marca a rotação livre para diagnóstico, sem corte visual.
@@ -1717,6 +1806,7 @@ def build_scene_timeline(
     final_beats = ensure_all_scene_urls(final_beats, scene_queue, total_dur)
     final_beats = hold_source_videos_in_full(final_beats, scene_queue, total_dur)
     final_beats = ensure_all_scene_urls(final_beats, scene_queue, total_dur)
+    final_beats = hold_x_cards_for_reading(final_beats, total_dur)
 
     # Corte seco entre portais. Wipe/dissolve/flash são de edição, não da maquete.
     # Troca de tipo (browser → X, X → browser, phone) fica no GSAP do mockup.

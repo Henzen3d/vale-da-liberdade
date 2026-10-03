@@ -52,15 +52,17 @@ Estrutura do stage: `#xStageRoot` (raiz, fundo diagonal + luz ambiente) e `#xCar
 | Propriedade | Valor | Por quê |
 |---|---|---|
 | `width` | `1250px` | card ampliado do Modelo 3 |
-| `height` | `720px` (+ `min-height`/`max-height` idem) | **altura travada** — não deforma com ou sem mídia |
-| `top` | `44px` (dentro de `#broadcastStage` em `top: 36px`) | faixa de tela **Y 80 → Y 800** |
+| `height` | `792px` (+ `min-height`/`max-height` idem) | **altura travada** — não deforma com ou sem mídia; +72px para caber mais texto |
+| `top` | `28px` (dentro de `#broadcastStage` em `top: 36px`) | faixa de tela **Y 64 → Y 856** (+16px em cima, +56px embaixo) |
 | `right` | `44px` | alinhado à direita |
 | `transform` | `rotateY(-1.8deg) rotateX(1deg)` | perspectiva 3D do vidro |
 | `z-index` | `32` | à frente das diagonais (stage root = 30) |
 
-**Clearances:** 80px livres do topo da tela e 90px livres acima da safe zone **Y 890** do palco (`bottom: 190px` do stage). Lower Third ocupa **Y 880–1080** — o card nunca o invade. Invariante: `36 + 44 + 720 ≤ 890`.
+**Clearances:** 64px livres do topo da tela e 24px livres acima do Lower Third **Y 880**. Safe zone do palco em **Y 890**. O card não invade o LT. Invariante: `36 + 28 + 792 = 856 ≤ 880`.
 
-Mídia do tweet: `#xMediaBox` com altura fixa **350px** + Ken Burns suave (`scale: 1.05` em 10s). Texto base: 38px.
+Mídia do tweet: `#xMediaBox` com altura fixa **382px** (+16px em cima e embaixo em relação a 350px) + Ken Burns suave (`scale: 1.05` em 10s). Texto base: 38px. Com mídia, `.x-body` vai até `max-height: 200px` (era 160px).
+
+Tempo de tela: card estático fica no mínimo `X_READ_HOLD_S = 42` s de vídeo (28 s em 1.5x). O piso de portal (27 s / 18 s em 1.5x) não cobria o X. Clipe de vídeo continua na duração do arquivo.
 
 #### Tipografia adaptativa sem imagem (`.is-text-only`)
 
@@ -74,7 +76,7 @@ Quando o post não tem mídia, `transitionToX` adiciona a classe `.is-text-only`
 | 261–380 | `38px` | 1.38 | 600 |
 | > 380 | `33px` | 1.40 | 500 |
 
-Com mídia, a fonte volta ao padrão editorial 38px e `.x-body` é limitado a `max-height: 160px`.
+Com mídia, a fonte volta ao padrão editorial 38px e `.x-body` é limitado a `max-height: 200px`.
 
 #### Pipeline de tradução automática
 

@@ -2789,8 +2789,8 @@ video.portal-page-shot {
    top:36 / bottom:190 → área livre Y 36..890.
    - Speaker: quadrante sup. esquerdo, avatar 300px (cabeça
      termina ~Y 450; Peter ocupa a faixa Y 686..1080).
-   - Card: top 24, width 1250, mídia 380px → base ~Y 828,
-     respiro de ~52px acima do Lower Third (Y 880).
+   - Card: top 28, width 1250, height 792, mídia 382px → base Y 856,
+     respiro de 24px acima do Lower Third (Y 880).
    ============================================================ */
 
 /* --- Camada de fundo do modo X (stage inteiro 1920x1080) --- */
@@ -2956,16 +2956,16 @@ video.portal-page-shot {
   gap: 6px;
 }
 
-/* --- Card do X ampliado, em perspectiva 3D (altura fixa 720px perfeitamente centralizada entre topo e LT) --- */
+/* --- Card do X ampliado, em perspectiva 3D (altura fixa 792px; base Y 856, acima do LT Y 880) --- */
 .bcard-x-post {
   position: absolute;
-  top: 44px;
+  top: 28px;
   right: 44px;
   width: 1250px;
   max-width: 1250px;
-  height: 720px;
-  min-height: 720px;
-  max-height: 720px;
+  height: 792px;
+  min-height: 792px;
+  max-height: 792px;
   box-sizing: border-box;
   background: #ffffff;
   border-radius: 28px;
@@ -3103,15 +3103,15 @@ video.portal-page-shot {
 }
 
 .bcard-x-post:not(.is-text-only) .x-body {
-  max-height: 160px;
+  max-height: 200px;
   overflow: hidden;
 }
 
-/* Mídia com altura calibrada (350px) + Ken Burns suave */
+/* Mídia 382px: +16px em cima e embaixo vs 350, para o cover mostrar mais da foto */
 .x-media-box {
   width: 100%;
-  height: 350px;
-  min-height: 350px;
+  height: 382px;
+  min-height: 382px;
   flex-shrink: 0;
   border-radius: 20px;
   overflow: hidden;
@@ -5348,7 +5348,7 @@ const VDL_MOCKUP_ENGINE = {
       cardEl.classList.add("is-text-only");
       mediaBox.style.display = "none";
       if (bodyTextEl) {
-        // Sem imagem: amplia tipografia proporcionalmente para ocupar o card de 760px com elegância
+        // Sem imagem: amplia tipografia proporcionalmente para ocupar o card de 792px com elegância
         const len = (text || "").length;
         let fSize = "44px";
         let lHeight = "1.36";

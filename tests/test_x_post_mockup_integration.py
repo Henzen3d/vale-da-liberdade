@@ -129,18 +129,26 @@ def test_modelo3_dom_markers_present(marker):
 
 
 def test_modelo3_css_geometry():
-    """Geometria calibrada: card top:44 (centralizado entre topo Y:0 e LT Y:880), height 720px, mídia 350px, avatar 300px."""
+    """Card um pouco maior para caber mais texto. Imagem ganha pixels em cima e embaixo.
+
+    Stage top 36 + card top 28 + altura 792 = Y 856. Lower Third começa em Y 880.
+    Mídia 382px (+16px em cima e embaixo vs 350). Texto com mídia até 200px.
+    """
     content = (MOCKUP_DIR / "mockup-browser.html").read_text(encoding="utf-8")
     css = content[content.index(".bcard-x-post {"):content.index(".x-header {")]
-    assert "top: 44px;" in css, "card centralizado entre Y:0 e Lower Third Y:880 (top:44px)"
-    assert "height: 720px;" in css, "card com altura fixa travada em 720px"
+    assert "top: 28px;" in css, "card sobe 16px (top:28) para ganhar pixels em cima"
+    assert "height: 792px;" in css, "card com altura fixa 792px — mais texto, sem invadir o LT"
     assert "right: 44px;" in css, "card alinhado à direita (right:44px)"
     assert "rotateY(-1.8deg)" in css, "perspectiva 3D do card"
     assert "width: 1250px;" in css, "card ampliado 1250px"
     assert "z-index: 32;" in css, "card deve ficar à frente das diagonais"
+    assert 36 + 28 + 792 <= 880, "base do card não pode invadir o Lower Third (Y 880)"
 
     css_media = content[content.index(".x-media-box {"):content.index(".x-media-img {")]
-    assert "height: 350px;" in css_media, "mídia do tweet calibrada com 350px"
+    assert "height: 382px;" in css_media, "mídia ganha 16px em cima e 16px embaixo (382px)"
+
+    css_clip = content[content.index(".bcard-x-post:not(.is-text-only) .x-body"):content.index(".x-media-box {")]
+    assert "max-height: 200px;" in css_clip, "com mídia o texto cabe um pouco mais (200px, era 160)"
 
     css_body = content[content.index(".x-body {"):content.index(".x-body strong {")]
     assert "font-size: 38px;" in css_body, "texto editorial base em 38px"

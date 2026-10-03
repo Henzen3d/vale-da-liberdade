@@ -823,6 +823,32 @@ class Exp0001ProvenanceTests(unittest.TestCase):
         self.assertNotIn("narração não pode", x_beats[0].x_post["text"])
         self.assertEqual(x_beats[0].visual_variant, "x_card")
 
+    def test_x_card_hold_longer_than_portal_even_at_1x(self):
+        """Card do X não entrou no piso de 27s do portal. Fala curta não pode tirar o post da tela.
+
+        Piso é tempo de vídeo (1x). Em 1.5x ainda fica mais tempo real que título+subtítulo de portal.
+        """
+        from bm_scene_timeline import X_READ_HOLD_S, build_scene_timeline
+
+        self.assertGreater(X_READ_HOLD_S, PORTAL_READ_HOLD_S)
+        self.assertGreater(X_READ_HOLD_S / 1.5, PORTAL_READ_HOLD_S / 1.5)
+        post_url = "https://x.com/andreshalders/status/2102008469217808460"
+        episode = {
+            "titulo": "Leitura do X",
+            "abertura": [{"speaker": "Peter", "texto": "Abertura na matéria. " * 30, "fonte_url": "https://www.metropoles.com/materia"}],
+            "desenvolvimento": [{"speaker": "Peter", "texto": "O post. " * 8, "fonte_url": post_url}],
+            "fechamento": [{"speaker": "Peter", "texto": "Fecho na matéria. " * 40, "fonte_url": "https://www.metropoles.com/materia"}],
+        }
+        beats = build_scene_timeline(episode, 240.0, [self._article(), self._x()])
+        x_beats = [b for b in beats if b.visual_component == "x-post" and not b.video]
+        self.assertTrue(x_beats, "fala que cita o post deve gerar card do X")
+        shown = x_beats[0].t1 - x_beats[0].t0
+        self.assertGreaterEqual(
+            shown,
+            X_READ_HOLD_S - 1.0,
+            f"x-post ficou {shown:.1f}s de vídeo ({shown / 1.5:.1f}s em 1.5x); piso {X_READ_HOLD_S:.0f}s",
+        )
+
     def test_caso_c_abertura_longa_mesma_url(self):
         from bm_scene_timeline import build_scene_timeline
         episode = {
