@@ -110,12 +110,13 @@ def run_step_code(cmd: list[str], label: str, env: dict | None = None) -> int:
     env = {**os.environ, **(env or {})}
     print(f"\n  ▶ {label}")
     result = subprocess.run(cmd, env=env, cwd=str(PROJECT_ROOT), capture_output=True, text=True, encoding="utf-8")
-    if result.stdout:
-        print(result.stdout[-3000:])
+    # Cron no_agent entrega stdout no Telegram. Filho em sucesso fica no log do wrapper.
     if result.returncode != 0:
         print(f"  ❌ FALHA ({label}): exit {result.returncode}")
         if result.stderr:
             print(result.stderr[-2000:])
+        if result.stdout:
+            print(result.stdout[-2000:])
     return result.returncode
 
 

@@ -90,24 +90,35 @@ fi
 # ------------------------------------------------------------------------------
 QUEUE_RC=0
 LEFT=$(remain)
+HOURLY_LOG="$LOG_DIR/bm-hourly.log"
 if [[ "$LEFT" -lt 60 ]]; then
   echo "WARN: sem tempo para process-queue (restam ${LEFT}s) — próximo tick" >&2
 else
+  TICK_LOG=$(mktemp)
   set +e
-  timeout --kill-after=30s "${LEFT}s" "$HERMES_PY" scripts/bm_pipeline.py process-queue --max 1
+  timeout --kill-after=30s "${LEFT}s" "$HERMES_PY" scripts/bm_pipeline.py process-queue --max 1 >"$TICK_LOG" 2>&1
   QUEUE_RC=$?
   set -e
+  cat "$TICK_LOG" >> "$HOURLY_LOG"
   if [[ "$QUEUE_RC" -eq 124 ]]; then
     echo "WARN: process-queue parado no orçamento Hermes — próximo tick retoma" >&2
     QUEUE_RC=0
   fi
+  # Telegram (no_agent) recebe só este recorte. Passo a passo fica em logs/bm-hourly.log.
+  if grep -qE 'Processando:|Pipeline concluído|❌ |FALHA' "$TICK_LOG"; then
+    grep -E '📋 |🎬 Processando|✅ Pipeline concluído|❌ |⏳ FALHA|✅ .+ vídeo\(s\) processado' "$TICK_LOG" | head -20
+  fi
+  rm -f "$TICK_LOG"
 fi
 
 # ------------------------------------------------------------------------------
 # ETAPA 3: Renderização de Vídeo Mockup & Upload YouTube (Ambiente Projeto)
+# Pausa: arquivo .pause-youtube-video na raiz do projeto. Não apagar até o canal voltar.
 # ------------------------------------------------------------------------------
 LEFT=$(remain)
-if [[ ! -x "$PROJECT_PY" ]]; then
+if [[ -f "$WORK_DIR/.pause-youtube-video" ]]; then
+  echo "WARN: produção de vídeo pausada ($(tr '\n' ' ' < "$WORK_DIR/.pause-youtube-video")) — pulando mockup/upload" >&2
+elif [[ ! -x "$PROJECT_PY" ]]; then
   echo "WARN: venv do projeto sem python ($PROJECT_PY nao encontrado) — pulando video mockup" >&2
 elif [[ "$LEFT" -lt "$MOCKUP_MIN_S" ]]; then
   echo "WARN: pulando mockup nesta rodada (restam ${LEFT}s < ${MOCKUP_MIN_S}s) — próximo tick" >&2
@@ -118,7 +129,7 @@ else
     echo "WARN: outro bm_mockup_video já em execução (lock /tmp/vale-bm-mockup.lock) — pulando nesta rodada" >&2
   else
     set +e
-    flock /tmp/vale-bm-mockup.lock -c "timeout --kill-after=30s ${LEFT}s \"$PROJECT_PY\" scripts/bm_mockup_video.py --pending --upload --privacy public --max 1 --days 2"
+    flock /tmp/vale-bm-mockup.lock -c "timeout --kill-after=30s ${LEFT}s \"$PROJECT_PY\" scripts/bm_mockup_video.py --pending --upload --privacy public --max 1 --days 2" >>"$HOURLY_LOG" 2>&1
     VIDEO_RC=$?
     set -e
     if [[ "$VIDEO_RC" -eq 124 ]]; then
