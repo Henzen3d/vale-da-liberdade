@@ -263,23 +263,30 @@ def excerpt_from_md(date: str, manchetes: list[str]) -> str:
 
 
 def pick_audio(date: str) -> Path | None:
+    def _safe_stat(p: Path) -> int | None:
+        try:
+            return p.stat().st_size
+        except (OSError, FileNotFoundError):
+            return None
+
     candidates = [
         AUDIO_DIR / f"{date}.mp3",
         AUDIO_DIR / f"{date}-vale-da-liberdade.mp3",
         AUDIO_DIR / f"{date}-completo.mp3",
     ]
-    existing = [p for p in candidates if p.exists() and p.stat().st_size > 200_000]
+    existing = [p for p in candidates if _safe_stat(p) and _safe_stat(p) > 200_000]
     if not existing:
         for p in sorted(AUDIO_DIR.glob(f"{date}*.mp3")):
             if re.search(r"-(peter|ricardo|edge)-\d+", p.name):
                 continue
-            if p.stat().st_size > 200_000:
+            size = _safe_stat(p)
+            if size and size > 200_000:
                 existing.append(p)
     if not existing:
         return None
-    existing.sort(key=lambda p: p.stat().st_size, reverse=True)
+    existing.sort(key=lambda p: _safe_stat(p) or 0, reverse=True)
     for preferred in candidates[:2]:
-        if preferred in existing and preferred.stat().st_size >= 1_000_000:
+        if preferred in existing and (_safe_stat(preferred) or 0) >= 1_000_000:
             return preferred
     return existing[0]
 
@@ -708,9 +715,14 @@ def discover_especial_episodes() -> list[dict]:
         # 2026-08-10 (BUG LULINHA): glob volta em ordem alfabética (08-09 antes
         # de 08-10) — o catálogo republicava o áudio ANTIGO/corrompido. Ordenar
         # pela data no nome (YYYY-MM-DD) e escolher a MAIS RECENTE.
+        def _safe_stat(p: Path) -> float | None:
+            try:
+                return p.stat().st_mtime
+            except (OSError, FileNotFoundError):
+                return None
         def _audio_date_key(p: Path) -> tuple:
             m = re.search(r"_(\d{4}-\d{2}-\d{2})\.mp3$", p.name)
-            return (m.group(1) if m else "0000-00-00", p.stat().st_mtime)
+            return (m.group(1) if m else "0000-00-00", _safe_stat(p) or 0)
         audio_files.sort(key=_audio_date_key, reverse=True)
         audio_path = None
         # Try to get date from audio filename or mtime
